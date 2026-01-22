@@ -124,8 +124,3 @@ The platform consists of three main applications:
 - MySQL & MongoDB
 - Firebase account (for cloud services)
 
-### Backend Setup
-```bash
-cd backend
-npm install
-npm run dev
