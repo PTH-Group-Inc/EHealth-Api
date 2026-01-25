@@ -12,5 +12,16 @@ services:
     depends_on:
       - postgres
 
+postgres:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: ehealthdatabase
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: db123456
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
 volumes:
   pgdata:
