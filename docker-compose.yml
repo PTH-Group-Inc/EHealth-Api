@@ -9,19 +9,9 @@ services:
       - "3000:3000"
     env_file:
       - .env
-    depends_on:
-      - postgres
+    networks:
+      - postgres-db_default
 
-postgres:
-    image: postgres:16
-    container_name: postgres_db
-    restart: always
-    environment:
-      POSTGRES_DB: ehealthdatabase
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: db123456
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
+networks:
+  postgres-db_default:
+    external: true

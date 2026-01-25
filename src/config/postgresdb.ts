@@ -1,13 +1,13 @@
 import { Pool } from 'pg';
 
 export const pool = new Pool({
-  host: process.env.DB_HOST,
+  host: process.env.DB_HOST || 'postgres_db' ||'localhost',
   port: Number(process.env.DB_PORT),
   user: process.env.DB_USER,
   password: String(process.env.DB_PASSWORD),
   database: process.env.DB_NAME,
 });
-
+  
 (async () => {
   try {
     const client = await pool.connect(); 
