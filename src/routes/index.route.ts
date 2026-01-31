@@ -1,7 +1,14 @@
-import { Express,  } from 'express'
-import productRouter from './testProduct.route'
+import { Router } from "express";
+import userRoute from "./user.route";
+import roleRoute from "./role.route";
+import permissionRoute from "./permission.route";
 
-export const initRoutes = (app: Express) => {
-    //test product routes
-    app.use('/api/test', productRouter)
-}
+const router = Router();
+
+router.get("/health", (_req, res) => res.json({ ok: true }));
+
+router.use("/users", userRoute);
+router.use("/roles", roleRoute);
+router.use("/permissions", permissionRoute);
+
+export default router;

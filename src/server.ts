@@ -1,10 +1,7 @@
-import dotenv from 'dotenv'
-dotenv.config() 
+import app from "./app";
 
-import app from './app'
+const port = Number(process.env.PORT || 3000);
 
-const PORT = process.env.PORT
-
-app.listen(PORT, () => {
-  console.log(`Server đang chạy tại cổng: ${PORT}`)
-})
+app.listen(port, () => {
+  console.log(`API running at http://localhost:${port}/api/v1`);
+});
