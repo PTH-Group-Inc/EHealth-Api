@@ -1,0 +1,15 @@
+// constants/token.constant.ts
+
+export const TOKEN_CONFIG = {
+  ACCESS_TOKEN: {
+    EXPIRES_IN: '15m',
+    EXPIRES_IN_SECONDS: 15 * 60,
+    SECRET_ENV: 'JWT_ACCESS_SECRET',
+  },
+
+  REFRESH_TOKEN: {
+    EXPIRES_IN: '3d',
+    EXPIRES_IN_SECONDS: 3 * 24 * 60 * 60,
+    SECRET_ENV: 'JWT_REFRESH_SECRET',
+  },
+} as const;
