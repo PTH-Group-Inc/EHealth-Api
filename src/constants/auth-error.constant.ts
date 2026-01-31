@@ -32,4 +32,9 @@ export const AUTH_ERRORS = {
         code: 'AUTH_003',
         message: 'Tài khoản đã bị khóa hoặc chưa kích hoạt',
     },
+    INVALID_DEVICE: {
+        httpCode: 400,
+        code: 'AUTH_006',
+        message: 'Thiết bị đăng nhập không hợp lệ',
+    },
 } as const;
