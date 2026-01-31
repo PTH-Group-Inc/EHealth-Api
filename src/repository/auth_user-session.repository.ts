@@ -1,15 +1,6 @@
 import { pool } from '../config/postgresdb';
 import { UserSession } from '../models/auth_user-session.model';
-
-export interface CreateSessionInput {
-  accountId: string;
-  refreshTokenHash: string;
-  deviceId?: string;
-  deviceName?: string;
-  ipAddress?: string;
-  userAgent?: string;
-  expiredAt: Date;
-}
+import { CreateSessionInput } from '../models/auth_user-session.model';
 
 export class UserSessionRepository {
   /**
@@ -30,7 +21,7 @@ export class UserSessionRepository {
       `
       INSERT INTO accounting.user_sessions (
         account_id,
-        refresh_token,
+        refresh_token_hash,
         device_id,
         device_name,
         ip_address,
@@ -63,7 +54,7 @@ export class UserSessionRepository {
       SELECT
         id,
         account_id,
-        refresh_token,
+        refresh_token_hash,
         device_id,
         device_name,
         ip_address,
@@ -108,7 +99,7 @@ export class UserSessionRepository {
       `
       UPDATE accounting.user_sessions
       SET revoked_at = NOW()
-      WHERE refresh_token = $1
+      WHERE refresh_token_hash = $1
         AND revoked_at IS NULL
       `,
       [refreshTokenHash]
@@ -127,6 +118,58 @@ export class UserSessionRepository {
         AND revoked_at IS NULL
       `,
       [accountId]
+    );
+  }
+
+  // Tìm user session theo accountId và deviceId
+  static async findByAccountAndDevice(
+    accountId: string,
+    deviceId: string
+  ): Promise<UserSession | null> {
+    const result = await pool.query<UserSession>(
+      `
+      SELECT *
+      FROM accounting.user_sessions
+      WHERE account_id = $1
+        AND device_id = $2
+        AND revoked_at IS NULL
+      LIMIT 1
+      `,
+      [accountId, deviceId]
+    );
+
+    return result.rows[0] ?? null;
+  }
+
+  // Cập nhật user session theo ID
+  static async updateSessionById(
+    sessionId: bigint,
+    input: {
+      refreshTokenHash: string;
+      ipAddress?: string;
+      userAgent?: string;
+      expiredAt: Date;
+    }
+  ): Promise<void> {
+    await pool.query(
+      `
+      UPDATE accounting.user_sessions
+      SET
+        refresh_token_hash = $1,
+        ip_address = $2,
+        user_agent = $3,
+        expired_at = $4,
+        last_used_at = NOW(),
+        revoked_at = NULL
+      WHERE id = $5
+      `,
+      [
+        input.refreshTokenHash,
+        input.ipAddress ?? null,
+        input.userAgent ?? null,
+        input.expiredAt,
+        sessionId,
+      ]
     );
   }
 }

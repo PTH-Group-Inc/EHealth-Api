@@ -7,14 +7,16 @@ export class AuthController {
      */
     static async loginByEmail(req: Request, res: Response): Promise<Response> {
         try {
-            const { email, password } = req.body;
+            const { email, password, clientInfo } = req.body;
 
             const data = await AuthService.loginByEmail(
                 email,
                 password,
                 {
-                    ip: req.ip,
-                    userAgent: req.headers["user-agent"] ?? "",
+                    deviceId: clientInfo?.deviceId,
+                    deviceName: clientInfo?.deviceName,
+                    ip: req.ip, // server tự set
+                    userAgent: req.headers["user-agent"] ?? clientInfo?.userAgent ?? "",
                 }
             );
 
@@ -36,14 +38,16 @@ export class AuthController {
      */
     static async loginByPhone(req: Request, res: Response): Promise<Response> {
         try {
-            const { phone, password } = req.body;
+            const { phone, password, clientInfo } = req.body;
 
             const data = await AuthService.loginByPhone(
                 phone,
                 password,
                 {
-                    ip: req.ip,
-                    userAgent: req.headers["user-agent"] ?? "",
+                    deviceId: clientInfo?.deviceId,
+                    deviceName: clientInfo?.deviceName,
+                    ip: req.ip, // server tự set
+                    userAgent: req.headers["user-agent"] ?? clientInfo?.userAgent ?? "",
                 }
             );
 

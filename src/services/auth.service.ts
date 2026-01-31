@@ -1,20 +1,10 @@
-// services/auth.service.ts
-
 import { AccountRepository } from '../repository/auth_account.repository';
 import { UserSessionRepository } from '../repository/auth_user-session.repository';
-
 import { ValidationLogin } from '../utils/validation-login.util';
 import { SecurityUtil } from '../utils/security.util';
 import { TokenUtil } from '../utils/token.util';
-
 import { AUTH_ERRORS } from '../constants/auth-error.constant';
-
-interface ClientInfo {
-  deviceId?: string;
-  deviceName?: string;
-  ip?: string;
-  userAgent?: string;
-}
+import { ClientInfo } from '../models/auth_user-session.model';
 
 export class AuthService {
   /**
@@ -83,16 +73,40 @@ export class AuthService {
     // 4. Hash refresh token
     const refreshTokenHash = await SecurityUtil.hashToken(refreshToken);
 
-    // 5. Tạo user session
-    await UserSessionRepository.createSession({
-      accountId: account.account_id,
-      refreshTokenHash,
-      deviceId: clientInfo.deviceId,
-      deviceName: clientInfo.deviceName,
-      ipAddress: clientInfo.ip,
-      userAgent: clientInfo.userAgent,
-      expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
-    });
+    // 5. Upsert user session theo device
+    if (!clientInfo.deviceId) {
+      throw AUTH_ERRORS.INVALID_DEVICE;
+    }
+
+    const existingSession =
+      await UserSessionRepository.findByAccountAndDevice(
+        account.account_id,
+        clientInfo.deviceId
+      );
+
+    if (existingSession) {
+      // UPDATE session cũ (login lại cùng device)
+      await UserSessionRepository.updateSessionById(
+        existingSession.id,
+        {
+          refreshTokenHash,
+          ipAddress: clientInfo.ip,
+          userAgent: clientInfo.userAgent,
+          expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
+        }
+      );
+    } else {
+      // INSERT session mới (device mới)
+      await UserSessionRepository.createSession({
+        accountId: account.account_id,
+        refreshTokenHash,
+        deviceId: clientInfo.deviceId,
+        deviceName: clientInfo.deviceName,
+        ipAddress: clientInfo.ip,
+        userAgent: clientInfo.userAgent,
+        expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
+      });
+    }
 
     // 6. Cập nhật thời gian đăng nhập cuối cùng
     await AccountRepository.updateLastLogin(account.account_id);
