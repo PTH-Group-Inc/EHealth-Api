@@ -26,11 +26,11 @@ export class SecurityUtil {
     }
 
     /**
-   * Lấy thời điểm hết hạn của refresh token
-   */
+       * Lấy thời điểm hết hạn của refresh token
+       */
     static getRefreshTokenExpiredAt(): Date {
         return new Date(
             Date.now() + TOKEN_CONFIG.REFRESH_TOKEN.EXPIRES_IN_SECONDS * 1000
         );
-    } 
+    }
 }

@@ -1,127 +1,64 @@
 import { AccountRepository } from '../repository/auth_account.repository';
-import { UserSessionRepository } from '../repository/auth_user-session.repository';
 import { ValidationLogin } from '../utils/validation-login.util';
-import { SecurityUtil } from '../utils/security.util';
-import { TokenUtil } from '../utils/token.util';
-import { AUTH_ERRORS } from '../constants/auth-error.constant';
 import { ClientInfo } from '../models/auth_user-session.model';
+import { Account } from '../models/auth_account.model';
+import { AuthValidator } from '../utils/auth-validator.util';
+import { AuthTokenHelper } from '../utils/auth-token.util';
+import { AuthSessionHelper } from '../utils/auth-session.util';
 
 export class AuthService {
   /**
    * Đăng nhập bằng Email
    */
-  static async loginByEmail(
-    email: string,
-    password: string,
-    clientInfo: ClientInfo
-  ) {
-    // 1. xác thực đầu vào
+  static async loginByEmail(email: string, password: string, clientInfo: ClientInfo) {
+    // xác thực đầu vào
     ValidationLogin.validateLoginInput(email, password, 'EMAIL');
 
-    // 2. Truy vấn tài khoản
+    // Truy vấn tài khoản
     const account = await AccountRepository.findByEmail(email);
 
-    // 3. Xử lý đăng nhập chung
+    // Xử lý đăng nhập chung
     return this.processLogin(account, password, clientInfo);
   }
 
   /**
    * Đăng nhập bằng SĐT
    */
-  static async loginByPhone(
-    phone: string,
-    password: string,
-    clientInfo: ClientInfo
-  ) {
-    // 1. Xác thực đầu vào
+  static async loginByPhone(phone: string, password: string, clientInfo: ClientInfo) {
+    // Xác thực đầu vào
     ValidationLogin.validateLoginInput(phone, password, 'PHONE');
 
-    // 2. Truy vấn tài khoản
+    // Truy vấn tài khoản
     const account = await AccountRepository.findByPhone(phone);
 
-    // 3. Xử lý đăng nhập chung
+    // Xử lý đăng nhập chung
     return this.processLogin(account, password, clientInfo);
   }
 
   /**
-   * Xử lý đăng nhập chung (Email / Phone)
+   * Xử lý đăng nhập chung
    */
-  private static async processLogin(
-    account: any | null,
-    password: string,
-    clientInfo: ClientInfo
-  ) {
-    // 1. Kiểm tra credential
-    const isPasswordValid = await SecurityUtil.verifyPasswordSafe(
-      password,
-      account?.password
-    );
+  private static async processLogin( account: Account | null, password: string, clientInfo: ClientInfo) {
+    AuthValidator.validateDevice(clientInfo);
 
-    if (!account || !isPasswordValid) {
-      throw AUTH_ERRORS.INVALID_CREDENTIAL;
-    }
+    await AuthValidator.validateCredential(account, password);
 
-    // 2. Kiểm tra trạng thái tài khoản
-    if (account.status !== 'ACTIVE') {
-      throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
-    }
+    const {accessToken, refreshToken, refreshTokenHash, expiresIn,} = await AuthTokenHelper.generate(account!);
 
-    // 3. Tạo access token & refresh token
-    const { accessToken, refreshToken, expiresIn } =
-      TokenUtil.generateAuthTokens(account);
+    await AuthSessionHelper.upsertSession( account!.account_id, refreshTokenHash, clientInfo);
 
-    // 4. Hash refresh token
-    const refreshTokenHash = await SecurityUtil.hashToken(refreshToken);
+    await AccountRepository.updateLastLogin(account!.account_id);
 
-    // 5. Upsert user session theo device
-    if (!clientInfo.deviceId) {
-      throw AUTH_ERRORS.INVALID_DEVICE;
-    }
-
-    const existingSession =
-      await UserSessionRepository.findByAccountAndDevice(
-        account.account_id,
-        clientInfo.deviceId
-      );
-
-    if (existingSession) {
-      // UPDATE session cũ (login lại cùng device)
-      await UserSessionRepository.updateSessionById(
-        existingSession.id,
-        {
-          refreshTokenHash,
-          ipAddress: clientInfo.ip,
-          userAgent: clientInfo.userAgent,
-          expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
-        }
-      );
-    } else {
-      // INSERT session mới (device mới)
-      await UserSessionRepository.createSession({
-        accountId: account.account_id,
-        refreshTokenHash,
-        deviceId: clientInfo.deviceId,
-        deviceName: clientInfo.deviceName,
-        ipAddress: clientInfo.ip,
-        userAgent: clientInfo.userAgent,
-        expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
-      });
-    }
-
-    // 6. Cập nhật thời gian đăng nhập cuối cùng
-    await AccountRepository.updateLastLogin(account.account_id);
-
-    // 7. Trả về kết quả
     return {
       accessToken,
       refreshToken,
       expiresIn,
       user: {
-        accountId: account.account_id,
-        name: account.name,
-        email: account.email,
-        phone: account.phone,
-        role: account.role,
+        accountId: account!.account_id,
+        name: account!.name,
+        email: account!.email,
+        phone: account!.phone,
+        role: account!.role,
       },
     };
   }
