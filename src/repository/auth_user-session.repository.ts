@@ -1,7 +1,7 @@
 import { pool } from '../config/postgresdb';
 import { UserSession } from '../models/auth_user-session.model';
 import { CreateSessionInput } from '../models/auth_user-session.model';
-import { SessionIdUtil } from '../utils/auth-session-id.util';
+import { AuthSessionUtil } from '../utils/auth-session.util';
 
 export class UserSessionRepository {
   //
@@ -12,7 +12,7 @@ export class UserSessionRepository {
    */
   static async createSession(input: CreateSessionInput): Promise<void> {
     const {
-      sessionId = SessionIdUtil.generate(input.accountId),
+      sessionId = AuthSessionUtil.generate(input.accountId),
       accountId,
       refreshTokenHash,
       deviceId,
@@ -128,7 +128,7 @@ export class UserSessionRepository {
   /**
    * Đăng xuất toàn bộ session của một tài khoản
    */
-  static async logoutAllSessionsByAccount(accountId: string): Promise<number> {
+  static async revokeAllByAccount(accountId: string): Promise<number> {
     const result = await pool.query(
       `
       UPDATE accounting.user_sessions

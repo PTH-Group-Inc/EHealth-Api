@@ -11,4 +11,8 @@ authRoutes.post("/login/phone", AuthController.loginByPhone);
 // Đăng xuất
 authRoutes.post("/logout", verifyAccessToken, AuthController.logout);
 
+// Quên mật khẩu & Đặt lại mật khẩu
+authRoutes.post('/forgot-password', AuthController.forgotPassword);
+authRoutes.post('/reset-password', AuthController.resetPassword);
+
 export default authRoutes;

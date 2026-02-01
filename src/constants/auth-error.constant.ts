@@ -54,4 +54,10 @@ export const AUTH_ERRORS = {
         code: 'AUTH_002',
         message: 'Refresh token không hợp lệ',
     },
+
+    INVALID_RESET_TOKEN: {
+        httpCode: 400,
+        code: 'AUTH_004',
+        message: 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
+    },
 } as const;

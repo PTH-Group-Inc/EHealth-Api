@@ -73,4 +73,21 @@ export class AccountRepository {
       [accountId]
     );
   }
+
+  /**
+   * Cập nhật mật khẩu mới cho account
+   */
+  static async updatePassword(
+    accountId: string,
+    hashedPassword: string
+  ): Promise<void> {
+    const query = `
+      UPDATE accounting.accounts
+      SET password = $1,
+          updated_at = NOW()
+      WHERE account_id = $2
+    `;
+
+    await pool.query(query, [hashedPassword, accountId]);
+  }
 }

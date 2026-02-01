@@ -1,7 +1,7 @@
+import { randomUUID } from "crypto";
 import { ClientInfo } from "../models/auth_user-session.model";
 import { UserSessionRepository } from "../repository/auth_user-session.repository";
 import { SecurityUtil } from "./auth-security.util";
-import { SessionIdUtil } from "./auth-session-id.util";
 
 export class AuthSessionUtil {
     /*
@@ -26,7 +26,7 @@ export class AuthSessionUtil {
             return;
         }
         await UserSessionRepository.createSession({
-            sessionId: SessionIdUtil.generate(accountId),
+            sessionId: this.generate(accountId),
             accountId,
             refreshTokenHash,
             deviceId: clientInfo.deviceId!,
@@ -35,5 +35,20 @@ export class AuthSessionUtil {
             userAgent: clientInfo.userAgent,
             expiredAt,
         });
+    }
+
+    /*
+     * Tạo session ID mới
+    */
+    static generate(accountId: string): string {
+        const now = new Date();
+
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+
+        const datePart = `${yy}${mm}${dd}`;
+
+        return `SES_${datePart}_${accountId}_${randomUUID()}`;
     }
 }

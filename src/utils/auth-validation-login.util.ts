@@ -24,6 +24,22 @@ export class ValidationLogin {
         }
     }
 
+    /**
+     * Chỉ validate Email (Dùng cho Forgot Password)
+     */
+    static validateEmailOnly(email: string): void {
+        if (!email) throw AUTH_ERRORS.INVALID_INPUT;
+        if (!this.isValidEmail(email)) throw AUTH_ERRORS.INVALID_EMAIL_FORMAT;
+    }
+
+    /**
+     * Chỉ validate Password (Dùng cho Reset Password)
+     */
+    static validatePasswordOnly(password: string): void {
+        if (!password) throw AUTH_ERRORS.INVALID_INPUT;
+        if (password.length < 6) throw AUTH_ERRORS.INVALID_PASSWORD_FORMAT;
+    }
+
     /*
      * Kiểm tra định dạng email
      */
@@ -31,7 +47,7 @@ export class ValidationLogin {
         if (!email) return false;
 
         const normalizedEmail = email.trim().toLowerCase();
-        
+
         const emailRegex =
             /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
 
@@ -57,4 +73,7 @@ export class ValidationLogin {
             internationalPhoneRegex.test(normalizedPhone)
         );
     }
+
+
+
 }
