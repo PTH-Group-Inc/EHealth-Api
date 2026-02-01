@@ -4,29 +4,35 @@ import { ClientInfo } from '../models/auth_user-session.model';
 import { SecurityUtil } from './security.util';
 
 export class AuthValidator {
-  static validateDevice(clientInfo: ClientInfo) {
-    if (!clientInfo.deviceId) {
-      throw AUTH_ERRORS.INVALID_DEVICE;
-    }
-  }
-
-  static async validateCredential(
-    account: Account | null,
-    password: string
-  ) {
-    if (!account) {
-      throw AUTH_ERRORS.INVALID_CREDENTIAL;
+    /*
+     * Xác thực thiết bị
+     */
+    static validateDevice(clientInfo: ClientInfo) {
+        if (!clientInfo.deviceId) {
+            throw AUTH_ERRORS.INVALID_DEVICE;
+        }
     }
 
-    const isPasswordValid =
-      await SecurityUtil.verifyPasswordSafe(password, account.password);
+    /*
+     * Xác thực thông tin đăng nhập
+     */
+    static async validateCredential(
+        account: Account | null,
+        password: string
+    ) {
+        if (!account) {
+            throw AUTH_ERRORS.INVALID_CREDENTIAL;
+        }
 
-    if (!isPasswordValid) {
-      throw AUTH_ERRORS.INVALID_CREDENTIAL;
-    }
+        const isPasswordValid =
+            await SecurityUtil.verifyPasswordSafe(password, account.password);
 
-    if (account.status !== 'ACTIVE') {
-      throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+        if (!isPasswordValid) {
+            throw AUTH_ERRORS.INVALID_CREDENTIAL;
+        }
+
+        if (account.status !== 'ACTIVE') {
+            throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+        }
     }
-  }
 }

@@ -63,4 +63,32 @@ export class AuthController {
             });
         }
     }
+
+    /**
+    * Đăng xuất session hiện tại
+    */
+    static async logout(req: Request, res: Response): Promise<Response> {
+        try {
+            const { refreshToken } = req.body;
+
+            // authPayload được gắn từ middleware verifyAccessToken
+            const authPayload = (req as any).auth;
+
+            const result = await AuthService.logout(
+                { refreshToken },
+                authPayload
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: 'Đăng xuất thành công',
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'AUTH_999',
+                message: error.message || 'Lỗi máy chủ nội bộ',
+            });
+        }
+    }
 }

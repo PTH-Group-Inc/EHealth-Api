@@ -2,13 +2,14 @@ import { Account } from '../models/auth_account.model';
 import { TokenUtil } from './token.util';
 import { SecurityUtil } from './security.util';
 
-export class AuthTokenHelper {
-  static async generate(account: Account) {
-    const { accessToken, refreshToken, expiresIn } =
-      TokenUtil.generateAuthTokens(account);
+export class AuthTokenUtil {
+    /*
+    * Tạo access token và refresh token
+    */
+  static generate(account: Account) {
+    const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(account);
 
-    const refreshTokenHash =
-      await SecurityUtil.hashToken(refreshToken);
+    const refreshTokenHash = SecurityUtil.hashRefreshToken(refreshToken);
 
     return {
       accessToken,
@@ -16,5 +17,12 @@ export class AuthTokenHelper {
       refreshTokenHash,
       expiresIn,
     };
+  }
+
+  /**
+   * Xác thực refresh token
+   */
+  static verifyRefreshToken(token: string) {
+    return TokenUtil.verifyRefreshToken(token);
   }
 }

@@ -30,3 +30,13 @@ export interface ClientInfo {
   ip?: string;
   userAgent?: string;
 }
+
+
+export interface LogoutInput {
+  refreshToken: string;
+}
+
+export interface AuthPayload {
+  sub: string; // accountId
+  role: string;
+}

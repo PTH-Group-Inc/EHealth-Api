@@ -4,6 +4,9 @@ import { CreateSessionInput } from '../models/auth_user-session.model';
 import { SessionIdUtil } from '../utils/session-id.util';
 
 export class UserSessionRepository {
+  //
+  // Login
+  //
   /**
    * Tạo mới một user session
    */
@@ -47,10 +50,103 @@ export class UserSessionRepository {
     );
   }
 
+  // Tìm user session theo accountId và deviceId
+  static async findByAccountAndDevice(accountId: string, deviceId: string | null): Promise<UserSession | null> {
+    const result = await pool.query<UserSession>(
+      `
+      SELECT
+        session_id,
+        account_id,
+        refresh_token_hash,
+        device_id,
+        device_name,
+        ip_address,
+        user_agent,
+        last_used_at,
+        expired_at,
+        revoked_at,
+        created_at
+      FROM accounting.user_sessions
+      WHERE account_id = $1
+        AND (device_id = $2 OR (device_id IS NULL AND $2 IS NULL))
+        AND revoked_at IS NULL
+        AND expired_at > NOW()
+      LIMIT 1
+      `,
+      [accountId, deviceId]
+    );
+
+    return result.rows[0] ?? null;
+  }
+
+  // Cập nhật user session theo ID
+  static async updateSessionBySessionId(sessionId: string, input: { refreshTokenHash: string; ipAddress?: string; userAgent?: string; expiredAt: Date; }): Promise<void> {
+    await pool.query(
+      `
+      UPDATE accounting.user_sessions
+      SET
+        refresh_token_hash = $1,
+        ip_address = $2,
+        user_agent = $3,
+        expired_at = $4,
+        last_used_at = NOW(),
+        revoked_at = NULL
+      WHERE session_id = $5
+      `,
+      [
+        input.refreshTokenHash,
+        input.ipAddress ?? null,
+        input.userAgent ?? null,
+        input.expiredAt,
+        sessionId,
+      ]
+    );
+  }
+
+  //
+  //logout
+  //
   /**
-   * Tìm user session theo refresh token (chỉ session còn hiệu lực)
+   * Đăng xuất session hiện tại 
    */
-  static async findByRefreshToken(
+  static async logoutCurrentSession(accountId: string, refreshTokenHash: string): Promise<boolean> {
+    const result = await pool.query(
+      `
+      UPDATE accounting.user_sessions
+      SET revoked_at = NOW()
+      WHERE account_id = $1
+        AND refresh_token_hash = $2
+        AND revoked_at IS NULL
+        AND expired_at > NOW()
+      `,
+      [accountId, refreshTokenHash]
+    );
+
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  /**
+   * Đăng xuất toàn bộ session của một tài khoản
+   */
+  static async logoutAllSessionsByAccount(accountId: string): Promise<number> {
+    const result = await pool.query(
+      `
+      UPDATE accounting.user_sessions
+      SET revoked_at = NOW()
+      WHERE account_id = $1
+        AND revoked_at IS NULL
+      `,
+      [accountId]
+    );
+
+    return result.rowCount ?? 0;
+  }
+
+
+  /**
+   * Tìm session còn hiệu lực theo refresh token
+   */
+  static async findActiveSessionByRefreshToken(
     refreshTokenHash: string
   ): Promise<UserSession | null> {
     const result = await pool.query<UserSession>(
@@ -79,9 +175,12 @@ export class UserSessionRepository {
     return result.rows[0] ?? null;
   }
 
+  //
+  //refresh token
+  //
   /**
-   * Cập nhật thời gian sử dụng cuối cùng của session
-   */
+  * Cập nhật thời gian sử dụng cuối cùng của session
+  */
   static async updateLastUsed(sessionId: string): Promise<void> {
     await pool.query(
       `
@@ -90,101 +189,6 @@ export class UserSessionRepository {
       WHERE session_id = $1
       `,
       [sessionId]
-    );
-  }
-
-  /**
-   * Thu hồi một user session theo refresh token
-   */
-  static async revokeSessionByRefreshToken(
-    refreshTokenHash: string
-  ): Promise<void> {
-    await pool.query(
-      `
-      UPDATE accounting.user_sessions
-      SET revoked_at = NOW()
-      WHERE refresh_token_hash = $1
-        AND revoked_at IS NULL
-      `,
-      [refreshTokenHash]
-    );
-  }
-
-  /**
-   * Thu hồi tất cả user session của một tài khoản
-   */
-  static async revokeAllSessions(accountId: string): Promise<void> {
-    await pool.query(
-      `
-      UPDATE accounting.user_sessions
-      SET revoked_at = NOW()
-      WHERE account_id = $1
-        AND revoked_at IS NULL
-      `,
-      [accountId]
-    );
-  }
-
-  // Tìm user session theo accountId và deviceId
-  static async findByAccountAndDevice(
-    accountId: string,
-    deviceId: string
-  ): Promise<UserSession | null> {
-    const result = await pool.query<UserSession>(
-      `
-      SELECT
-        session_id,
-        account_id,
-        refresh_token_hash,
-        device_id,
-        device_name,
-        ip_address,
-        user_agent,
-        last_used_at,
-        expired_at,
-        revoked_at,
-        created_at
-      FROM accounting.user_sessions
-      WHERE account_id = $1
-        AND device_id = $2
-        AND revoked_at IS NULL
-      LIMIT 1
-      `,
-      [accountId, deviceId]
-    );
-
-    return result.rows[0] ?? null;
-  }
-
-  // Cập nhật user session theo ID
-  static async updateSessionBySessionId(
-    sessionId: string,
-    input: {
-      refreshTokenHash: string;
-      ipAddress?: string;
-      userAgent?: string;
-      expiredAt: Date;
-    }
-  ): Promise<void> {
-    await pool.query(
-      `
-      UPDATE accounting.user_sessions
-      SET
-        refresh_token_hash = $1,
-        ip_address = $2,
-        user_agent = $3,
-        expired_at = $4,
-        last_used_at = NOW(),
-        revoked_at = NULL
-      WHERE session_id = $5
-      `,
-      [
-        input.refreshTokenHash,
-        input.ipAddress ?? null,
-        input.userAgent ?? null,
-        input.expiredAt,
-        sessionId,
-      ]
     );
   }
 }

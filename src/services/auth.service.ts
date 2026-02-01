@@ -3,21 +3,20 @@ import { ValidationLogin } from '../utils/validation-login.util';
 import { ClientInfo } from '../models/auth_user-session.model';
 import { Account } from '../models/auth_account.model';
 import { AuthValidator } from '../utils/auth-validator.util';
-import { AuthTokenHelper } from '../utils/auth-token.util';
-import { AuthSessionHelper } from '../utils/auth-session.util';
+import { AuthTokenUtil } from '../utils/auth-token.util';
+import { AuthSessionUtil } from '../utils/auth-session.util';
+import { SecurityUtil } from '../utils/security.util';
+import { UserSessionRepository } from '../repository/auth_user-session.repository';
 
 export class AuthService {
   /**
    * Đăng nhập bằng Email
    */
   static async loginByEmail(email: string, password: string, clientInfo: ClientInfo) {
-    // xác thực đầu vào
     ValidationLogin.validateLoginInput(email, password, 'EMAIL');
 
-    // Truy vấn tài khoản
     const account = await AccountRepository.findByEmail(email);
 
-    // Xử lý đăng nhập chung
     return this.processLogin(account, password, clientInfo);
   }
 
@@ -25,27 +24,24 @@ export class AuthService {
    * Đăng nhập bằng SĐT
    */
   static async loginByPhone(phone: string, password: string, clientInfo: ClientInfo) {
-    // Xác thực đầu vào
     ValidationLogin.validateLoginInput(phone, password, 'PHONE');
 
-    // Truy vấn tài khoản
     const account = await AccountRepository.findByPhone(phone);
 
-    // Xử lý đăng nhập chung
     return this.processLogin(account, password, clientInfo);
   }
 
   /**
    * Xử lý đăng nhập chung
    */
-  private static async processLogin( account: Account | null, password: string, clientInfo: ClientInfo) {
+  private static async processLogin(account: Account | null, password: string, clientInfo: ClientInfo) {
     AuthValidator.validateDevice(clientInfo);
 
     await AuthValidator.validateCredential(account, password);
 
-    const {accessToken, refreshToken, refreshTokenHash, expiresIn,} = await AuthTokenHelper.generate(account!);
+    const { accessToken, refreshToken, refreshTokenHash, expiresIn, } = AuthTokenUtil.generate(account!);
 
-    await AuthSessionHelper.upsertSession( account!.account_id, refreshTokenHash, clientInfo);
+    await AuthSessionUtil.upsertSession(account!.account_id, refreshTokenHash, clientInfo);
 
     await AccountRepository.updateLastLogin(account!.account_id);
 
@@ -61,5 +57,40 @@ export class AuthService {
         role: account!.role,
       },
     };
+  }
+  /**  
+   * Đăng xuất
+   */
+  static async logout(input: { refreshToken: string }, authPayload: { account_id: string }): Promise<void> {
+    
+    const accountId = authPayload.account_id;
+
+    // Xác thực refresh token
+    try {
+      AuthTokenUtil.verifyRefreshToken(input.refreshToken);
+    } catch {
+      throw {
+        httpCode: 401,
+        code: 'AUTH_002',
+        message: 'Refresh token không hợp lệ'
+      };
+    }
+
+    const refreshTokenHash = SecurityUtil.hashRefreshToken(input.refreshToken);
+
+    // Xác thực session tồn tại
+    const session = await UserSessionRepository.findActiveSessionByRefreshToken(refreshTokenHash);
+    if (!session || session.account_id !== accountId) {
+      throw {
+        httpCode: 404,
+        code: 'AUTH_404',
+        message: 'Session không tồn tại'
+      };
+    }
+
+    await UserSessionRepository.logoutCurrentSession(
+      accountId,
+      refreshTokenHash
+    );
   }
 }
