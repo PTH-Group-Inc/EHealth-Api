@@ -1,5 +1,5 @@
 export interface UserSession {
-  id: bigint;
+  sessionId: string;
   account_id: string;
   refresh_token_hash: string;
   device_id: string | null;
@@ -13,6 +13,7 @@ export interface UserSession {
 }
 
 export interface CreateSessionInput {
+  sessionId: string;
   accountId: string;
   refreshTokenHash: string;
   deviceId?: string;
@@ -28,4 +29,14 @@ export interface ClientInfo {
   deviceName?: string;
   ip?: string;
   userAgent?: string;
+}
+
+
+export interface LogoutInput {
+  refreshToken: string;
+}
+
+export interface AuthPayload {
+  sub: string; // accountId
+  role: string;
 }

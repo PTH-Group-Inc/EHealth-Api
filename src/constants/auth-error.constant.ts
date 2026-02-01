@@ -37,4 +37,15 @@ export const AUTH_ERRORS = {
         code: 'AUTH_006',
         message: 'Thiết bị đăng nhập không hợp lệ',
     },
+    UNAUTHORIZED: {
+        httpCode: 401,
+        code: 'AUTH_401',
+        message: 'Không tồn tại quyền truy cập',
+    },
+
+    SESSION_NOT_FOUND: {
+        httpCode: 404,
+        code: 'AUTH_404',
+        message: 'Session không tồn tại',
+    },
 } as const;

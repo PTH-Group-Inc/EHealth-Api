@@ -1,36 +1,45 @@
-import bcrypt from "bcrypt";
-import { TOKEN_CONFIG } from "../constants/auth_token.constant";
+// utils/security.util.ts
+import bcrypt from 'bcrypt';
+import { createHash } from 'crypto';
+import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 
 export class SecurityUtil {
     /**
-     * Hash refresh token trước khi lưu DB
+     * Hash refresh token
      */
-    static async hashToken(token: string): Promise<string> {
-        return bcrypt.hash(token, 10);
+    static hashRefreshToken(token: string): string {
+        return createHash('sha256')
+            .update(token)
+            .digest('hex');
     }
 
     /**
-     * So sánh mật khẩu an toàn (chống timing attack)
+     * Hash password (bcrypt)
+     */
+    static async hashPassword(password: string): Promise<string> {
+        return bcrypt.hash(password, 10);
+    }
+
+    /**
+     * Verify password an toàn
      */
     static async verifyPasswordSafe(
         inputPassword: string,
         storedHash: string | null | undefined,
     ): Promise<boolean> {
-        // Hash giả dùng để so sánh khi user không tồn tại
         const DUMMY_HASH =
-            "$2b$10$C6UzMDM.H6dfI/f/IKcEeO5Q7GkE1E7dBDEuDfSU/EYEYVplpXCMu";
+            '$2b$10$C6UzMDM.H6dfI/f/IKcEeO5Q7GkE1E7dBDEuDfSU/EYEYVplpXCMu';
 
-        const hashToCompare = storedHash ?? DUMMY_HASH;
-
-        return bcrypt.compare(inputPassword, hashToCompare);
+        return bcrypt.compare(inputPassword, storedHash ?? DUMMY_HASH);
     }
 
     /**
-   * Lấy thời điểm hết hạn của refresh token
-   */
+     * Lấy thời điểm hết hạn của refresh token
+     */
     static getRefreshTokenExpiredAt(): Date {
         return new Date(
-            Date.now() + TOKEN_CONFIG.REFRESH_TOKEN.EXPIRES_IN_SECONDS * 1000
+            Date.now() +
+            TOKEN_CONFIG.REFRESH_TOKEN.EXPIRES_IN_SECONDS * 1000
         );
-    } 
+    }
 }
