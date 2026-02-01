@@ -1,17 +1,13 @@
 import { ClientInfo } from "../models/auth_user-session.model";
 import { UserSessionRepository } from "../repository/auth_user-session.repository";
-import { SecurityUtil } from "./security.util";
-import { SessionIdUtil } from "./session-id.util";
+import { SecurityUtil } from "./auth-security.util";
+import { SessionIdUtil } from "./auth-session-id.util";
 
 export class AuthSessionUtil {
     /*
      * Tạo hoặc cập nhật user session
      */
-    static async upsertSession(
-        accountId: string,
-        refreshTokenHash: string,
-        clientInfo: ClientInfo,
-    ) {
+    static async upsertSession(accountId: string, refreshTokenHash: string, clientInfo: ClientInfo,) {
         const expiredAt = SecurityUtil.getRefreshTokenExpiredAt();
         const existingSession = await UserSessionRepository.findByAccountAndDevice(
             accountId,

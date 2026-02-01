@@ -28,13 +28,33 @@ export class ValidationLogin {
      * Kiểm tra định dạng email
      */
     private static isValidEmail(email: string): boolean {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!email) return false;
+
+        const normalizedEmail = email.trim().toLowerCase();
+        
+        const emailRegex =
+            /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+
+        return emailRegex.test(normalizedEmail);
     }
 
     /*
      * Kiểm tra định dạng số điện thoại
      */
     private static isValidPhone(phone: string): boolean {
-        return /^[0-9]{9,15}$/.test(phone);
+        if (!phone) return false;
+
+        const normalizedPhone = phone
+            .replace(/\s+/g, '')
+            .replace(/[-()]/g, '');
+
+        const vnPhoneRegex = /^(0\d{9}|(\+84)\d{9})$/;
+
+        const internationalPhoneRegex = /^\+\d{10,15}$/;
+
+        return (
+            vnPhoneRegex.test(normalizedPhone) ||
+            internationalPhoneRegex.test(normalizedPhone)
+        );
     }
 }

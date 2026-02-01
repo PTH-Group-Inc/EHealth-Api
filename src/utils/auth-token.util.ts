@@ -1,6 +1,6 @@
 import { Account } from '../models/auth_account.model';
 import { TokenUtil } from './token.util';
-import { SecurityUtil } from './security.util';
+import { SecurityUtil } from './auth-security.util';
 
 export class AuthTokenUtil {
     /*

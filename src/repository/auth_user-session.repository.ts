@@ -1,7 +1,7 @@
 import { pool } from '../config/postgresdb';
 import { UserSession } from '../models/auth_user-session.model';
 import { CreateSessionInput } from '../models/auth_user-session.model';
-import { SessionIdUtil } from '../utils/session-id.util';
+import { SessionIdUtil } from '../utils/auth-session-id.util';
 
 export class UserSessionRepository {
   //

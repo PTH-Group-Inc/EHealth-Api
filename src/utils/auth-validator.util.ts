@@ -1,7 +1,7 @@
 import { AUTH_ERRORS } from '../constants/auth-error.constant';
 import { Account, AccountStatus } from '../models/auth_account.model';
 import { ClientInfo } from '../models/auth_user-session.model';
-import { SecurityUtil } from './security.util';
+import { SecurityUtil } from './auth-security.util';
 
 export class AuthValidator {
     /*

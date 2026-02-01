@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
+import { AUTH_ERRORS } from "../constants/auth-error.constant";
 
 export class AuthController {
     /**
@@ -15,7 +16,7 @@ export class AuthController {
                 {
                     deviceId: clientInfo?.deviceId,
                     deviceName: clientInfo?.deviceName,
-                    ip: req.ip, // server tự set
+                    ip: req.ip,
                     userAgent: req.headers["user-agent"] ?? clientInfo?.userAgent ?? "",
                 }
             );
@@ -46,7 +47,7 @@ export class AuthController {
                 {
                     deviceId: clientInfo?.deviceId,
                     deviceName: clientInfo?.deviceName,
-                    ip: req.ip, // server tự set
+                    ip: req.ip, 
                     userAgent: req.headers["user-agent"] ?? clientInfo?.userAgent ?? "",
                 }
             );

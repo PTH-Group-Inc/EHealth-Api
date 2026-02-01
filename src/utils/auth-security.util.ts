@@ -23,10 +23,7 @@ export class SecurityUtil {
     /**
      * Verify password an toàn
      */
-    static async verifyPasswordSafe(
-        inputPassword: string,
-        storedHash: string | null | undefined,
-    ): Promise<boolean> {
+    static async verifyPasswordSafe(inputPassword: string, storedHash: string | null | undefined,): Promise<boolean> {
         const DUMMY_HASH =
             '$2b$10$C6UzMDM.H6dfI/f/IKcEeO5Q7GkE1E7dBDEuDfSU/EYEYVplpXCMu';
 

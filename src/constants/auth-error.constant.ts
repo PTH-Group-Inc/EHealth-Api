@@ -48,4 +48,10 @@ export const AUTH_ERRORS = {
         code: 'AUTH_404',
         message: 'Session không tồn tại',
     },
+
+    INVALID_REFRESH_TOKEN: {
+        httpCode: 401,
+        code: 'AUTH_002',
+        message: 'Refresh token không hợp lệ',
+    },
 } as const;

@@ -1,12 +1,13 @@
 import { AccountRepository } from '../repository/auth_account.repository';
-import { ValidationLogin } from '../utils/validation-login.util';
+import { ValidationLogin } from '../utils/auth-validation-login.util';
 import { ClientInfo } from '../models/auth_user-session.model';
 import { Account } from '../models/auth_account.model';
 import { AuthValidator } from '../utils/auth-validator.util';
 import { AuthTokenUtil } from '../utils/auth-token.util';
 import { AuthSessionUtil } from '../utils/auth-session.util';
-import { SecurityUtil } from '../utils/security.util';
+import { SecurityUtil } from '../utils/auth-security.util';
 import { UserSessionRepository } from '../repository/auth_user-session.repository';
+import { AUTH_ERRORS } from '../constants/auth-error.constant';
 
 export class AuthService {
   /**
@@ -62,18 +63,13 @@ export class AuthService {
    * Đăng xuất
    */
   static async logout(input: { refreshToken: string }, authPayload: { account_id: string }): Promise<void> {
-    
     const accountId = authPayload.account_id;
 
     // Xác thực refresh token
     try {
       AuthTokenUtil.verifyRefreshToken(input.refreshToken);
     } catch {
-      throw {
-        httpCode: 401,
-        code: 'AUTH_002',
-        message: 'Refresh token không hợp lệ'
-      };
+      throw AUTH_ERRORS.INVALID_REFRESH_TOKEN;
     }
 
     const refreshTokenHash = SecurityUtil.hashRefreshToken(input.refreshToken);
@@ -81,11 +77,7 @@ export class AuthService {
     // Xác thực session tồn tại
     const session = await UserSessionRepository.findActiveSessionByRefreshToken(refreshTokenHash);
     if (!session || session.account_id !== accountId) {
-      throw {
-        httpCode: 404,
-        code: 'AUTH_404',
-        message: 'Session không tồn tại'
-      };
+      throw AUTH_ERRORS.SESSION_NOT_FOUND;
     }
 
     await UserSessionRepository.logoutCurrentSession(
