@@ -3,7 +3,7 @@ import { AccountRepository } from '../../src/repository/auth_account.repository'
 import { PasswordResetRepository } from '../../src/repository/auth_password-reset.repository';
 import { AuthMailUtil } from '../../src/utils/auth-mail.util';
 import { UserSessionRepository } from '../../src/repository/auth_user-session.repository';
-import { ValidationLogin } from '../../src/utils/auth-validation-login.util';
+import { ValidationLogin } from '../utils/auth-validation.util';
 import { AUTH_ERRORS } from '../../src/constants/auth-error.constant';
 import { SecurityUtil } from '../../src/utils/auth-security.util';
 

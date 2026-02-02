@@ -15,4 +15,11 @@ authRoutes.post("/logout", verifyAccessToken, AuthController.logout);
 authRoutes.post('/forgot-password', AuthController.forgotPassword);
 authRoutes.post('/reset-password', AuthController.resetPassword);
 
+// Đăng ký tài khoản
+authRoutes.post('/register/email', AuthController.registerByEmail);
+authRoutes.post('/register/phone', AuthController.registerByPhone);
+
+// Xác thực Email
+authRoutes.get('/verify-email', AuthController.verifyEmail);
+
 export default authRoutes;

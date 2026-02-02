@@ -90,4 +90,49 @@ export class AccountRepository {
 
     await pool.query(query, [hashedPassword, accountId]);
   }
+
+
+  /**
+   * Tạo tài khoản mới
+   */
+  static async createAccount(account: Account): Promise<void> {
+    const query = `
+            INSERT INTO accounting.accounts (
+                account_id,
+                name,
+                email,
+                phone,
+                password,
+                role,
+                status,
+                created_at,
+                updated_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        `;
+
+    await pool.query(query, [
+      account.account_id,
+      account.name,
+      account.email || null,
+      account.phone || null,
+      account.password,
+      account.role,
+      account.status
+    ]);
+  }
+
+
+  /**
+     * Kích hoạt tài khoản (Update status -> ACTIVE)
+     */
+  static async activateAccount(accountId: string): Promise<void> {
+    const query = `
+            UPDATE accounting.accounts
+            SET status = 'ACTIVE',
+                updated_at = NOW()
+            WHERE account_id = $1
+        `;
+    await pool.query(query, [accountId]);
+  }
 }

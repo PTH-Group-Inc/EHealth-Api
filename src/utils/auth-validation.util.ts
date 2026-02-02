@@ -1,8 +1,44 @@
 import { AUTH_ERRORS } from '../constants/auth-error.constant';
+import { SecurityUtil } from './auth-security.util';
+import { ClientInfo } from '../models/auth_user-session.model';
+import { Account } from '../models/auth_account.model';
 
 export type LoginIdentifierType = 'EMAIL' | 'PHONE';
 
-export class ValidationLogin {
+export class AuthValidation {
+    /*
+     * Xác thực thiết bị
+     */
+    static validateDevice(clientInfo: ClientInfo) {
+        if (!clientInfo.deviceId) {
+            throw AUTH_ERRORS.INVALID_DEVICE;
+        }
+    }
+
+    /*
+     * Xác thực thông tin đăng nhập
+     */
+    static async validateCredential(
+        account: Account | null,
+        password: string
+    ) {
+        if (!account) {
+            throw AUTH_ERRORS.INVALID_CREDENTIAL;
+        }
+
+        const isPasswordValid =
+            await SecurityUtil.verifyPasswordSafe(password, account.password);
+
+        if (!isPasswordValid) {
+            throw AUTH_ERRORS.INVALID_CREDENTIAL;
+        }
+
+        if (account.status !== 'ACTIVE') {
+            throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+        }
+    }
+
+
     /*
      * Xác thực đầu vào đăng nhập
      */
@@ -23,6 +59,8 @@ export class ValidationLogin {
             throw AUTH_ERRORS.INVALID_PHONE_FORMAT;
         }
     }
+
+
 
     /**
      * Chỉ validate Email (Dùng cho Forgot Password)
@@ -72,6 +110,33 @@ export class ValidationLogin {
             vnPhoneRegex.test(normalizedPhone) ||
             internationalPhoneRegex.test(normalizedPhone)
         );
+    }
+
+    /**
+     * Validate đăng ký bằng Email
+     */
+    static validateEmailRegister(email?: string, password?: string, name?: string) {
+        if (!email || !password || !name) throw AUTH_ERRORS.INVALID_DATA;
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) throw AUTH_ERRORS.INVALID_DATA;
+
+        if (password.length < 6) throw AUTH_ERRORS.INVALID_DATA;
+    }
+
+    /**
+     * Validate đăng ký bằng SĐT
+     */
+
+    static validatePhoneRegister(phone?: string, password?: string, name?: string) {
+        if (!phone || !password || !name) throw AUTH_ERRORS.INVALID_DATA;
+
+        const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+
+        if (!phoneRegex.test(phone)) throw AUTH_ERRORS.INVALID_DATA;
+
+        if (password.length < 6) throw AUTH_ERRORS.INVALID_DATA;
     }
 
 

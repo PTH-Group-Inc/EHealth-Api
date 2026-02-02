@@ -3,13 +3,17 @@ import bcrypt from 'bcrypt';
 import { createHash, randomBytes, randomUUID } from 'crypto';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 import { TokenUtil } from './token.util';
-import { Account } from '../models/auth_account.model';
+import { Account, AccountRole } from '../models/auth_account.model';
+import { pool } from '../config/postgresdb';
+import { ROLE_CONFIG } from '../constants/role-config.constant';
+
+
 
 export class SecurityUtil {
     /*
       * Tạo access token và refresh token
       */
-    static generate(account: Account) {
+    static generateToken(account: Account) {
         const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(account);
 
         const refreshTokenHash = SecurityUtil.hashRefreshToken(refreshToken);
@@ -33,9 +37,7 @@ export class SecurityUtil {
      * Hash refresh token
      */
     static hashRefreshToken(token: string): string {
-        return createHash('sha256')
-            .update(token)
-            .digest('hex');
+        return createHash('sha256') .update(token) .digest('hex');
     }
 
     /**
@@ -49,8 +51,8 @@ export class SecurityUtil {
      * Verify password an toàn
      */
     static async verifyPasswordSafe(inputPassword: string, storedHash: string | null | undefined,): Promise<boolean> {
-        const DUMMY_HASH =
-            '$2b$10$C6UzMDM.H6dfI/f/IKcEeO5Q7GkE1E7dBDEuDfSU/EYEYVplpXCMu';
+       
+        const DUMMY_HASH = '$2b$10$C6UzMDM.H6dfI/f/IKcEeO5Q7GkE1E7dBDEuDfSU/EYEYVplpXCMu';
 
         return bcrypt.compare(inputPassword, storedHash ?? DUMMY_HASH);
     }
@@ -69,7 +71,6 @@ export class SecurityUtil {
      * Sinh token ngẫu nhiên dùng cho reset password
      */
     static generateRandomTokenResetPassword(length = 32): string {
-        // length = số byte → hex string sẽ gấp đôi
         return randomBytes(length).toString('hex');
     }
 
@@ -77,9 +78,7 @@ export class SecurityUtil {
      * Hash token dùng cho reset password
      */
     static hashTokenResetPassword(token: string): string {
-        return createHash('sha256')
-            .update(token)
-            .digest('hex');
+        return createHash('sha256') .update(token) .digest('hex');
     }
 
 
@@ -89,14 +88,57 @@ export class SecurityUtil {
     static generateResetPasswordId(accountId: string): string {
         const now = new Date();
 
-        // Lấy 2 số cuối của năm (26), tháng (02), ngày (01)
         const yy = String(now.getFullYear()).slice(-2);
         const mm = String(now.getMonth() + 1).padStart(2, '0');
         const dd = String(now.getDate()).padStart(2, '0');
 
         const datePart = `${yy}${mm}${dd}`;
 
-        // Format y hệt Session nhưng đổi tiền tố thành PRST
         return `PRST_${datePart}_${accountId}_${randomUUID()}`;
     }
+
+
+
+
+    /**
+     * Sinh UserCode tự động dựa trên Role
+     */
+    static async generateUserCode(role: AccountRole): Promise<string> {
+        const config = ROLE_CONFIG[role];
+        
+        if (!config) {
+            throw new Error(`Không tìm thấy cấu hình sinh mã cho role: ${role}`);
+        }
+
+        const result = await pool.query(
+            `SELECT nextval($1) as next_val`, 
+            [config.sequence]
+        );
+
+        const nextVal = result.rows[0].next_val;
+
+        const paddedNumber = nextVal.toString().padStart(5, '0');
+
+        return `${config.prefix}${paddedNumber}`;
+    }
+
+
+
+    /**
+     * Tạo ID cho record Verification
+     */
+    static generateVerificationId(accountId: string): string {
+
+        const now = new Date();
+
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+
+        const datePart = `${yy}${mm}${dd}`;
+
+        return `VER_${datePart}_${accountId}_${randomUUID()}`;
+    }
+
+
 }

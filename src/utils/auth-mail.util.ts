@@ -42,4 +42,25 @@ export class AuthMailUtil {
             html,
         });
     }
+
+    /**
+     * Gửi email xác thực tài khoản
+     */
+    static async sendVerifyEmail(email: string, verifyLink: string): Promise<void> {
+        const subject = '[E-Health] Xác thực tài khoản của bạn';
+        
+        const html = `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2>Chào mừng bạn đến với E-Health!</h2>
+                <p>Cảm ơn bạn đã đăng ký. Vui lòng nhấn vào nút bên dưới để kích hoạt tài khoản:</p>
+                <a href="${verifyLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">
+                    Xác thực Email
+                </a>
+                <p>Hoặc truy cập đường dẫn sau: <br> <a href="${verifyLink}">${verifyLink}</a></p>
+                <p>Link này sẽ hết hạn sau 24 giờ.</p>
+            </div>
+        `;
+
+        await MailService.send({ to: email, subject, html });
+    }
 }

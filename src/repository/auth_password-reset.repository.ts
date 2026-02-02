@@ -55,8 +55,9 @@ export class PasswordResetRepository {
         };
     }
 
-    /* * Đánh dấu token đã được sử dụng
-     */
+    /* 
+    * Đánh dấu token đã được sử dụng
+    */
     static async markAsUsed(id: string): Promise<void> {
         const query = `
             UPDATE accounting.password_resets

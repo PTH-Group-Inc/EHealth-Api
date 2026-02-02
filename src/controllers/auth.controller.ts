@@ -142,4 +142,113 @@ export class AuthController {
             });
         }
     }
+
+
+
+    /**
+     * Đăng ký bằng Email
+     */
+    static async registerByEmail(req: Request, res: Response): Promise<Response> {
+        try {
+            const { email, password, name } = req.body;
+
+            const data = await AuthService.registerByEmail({ email, password, name });
+
+            return res.status(201).json({
+                success: true,
+                message: "Register successfully",
+                data,
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || "AUTH_999",
+                message: error.message || "Lỗi máy chủ nội bộ",
+            });
+        }
+    }
+
+    /**
+     * Đăng ký bằng SĐT
+     */
+    static async registerByPhone(req: Request, res: Response): Promise<Response> {
+        try {
+            const { phone, password, name } = req.body;
+
+            const data = await AuthService.registerByPhone({ phone, password, name });
+
+            return res.status(201).json({
+                success: true,
+                message: "Register successfully",
+                data,
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || "AUTH_999",
+                message: error.message || "Lỗi máy chủ nội bộ",
+            });
+        }
+    }
+
+    /**
+     * Xử lý khi xác thực Email thành công
+     */
+    static async verifyEmail(req: Request, res: Response): Promise<void> { // Lưu ý: return void vì ta dùng res.send
+        try {
+            const { token } = req.query;
+
+            if (!token || typeof token !== 'string') {
+                throw new Error("Token không hợp lệ");
+            }
+
+            await AuthService.verifyEmail(token);
+
+            res.status(200).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Xác thực thành công</title>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #f4f4f9; }
+                        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; }
+                        h1 { color: #4CAF50; }
+                        p { color: #333; }
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h1>✅ Xác thực thành công!</h1>
+                        <p>Tài khoản của bạn đã được kích hoạt.</p>
+                        <p>Bây giờ bạn có thể quay lại ứng dụng để đăng nhập.</p>
+                    </div>
+                </body>
+                </html>
+            `);
+
+        } catch (error: any) {
+            res.status(400).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Xác thực thất bại</title>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #f4f4f9; }
+                        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; }
+                        h1 { color: #F44336; }
+                        p { color: #333; }
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h1>❌ Xác thực thất bại</h1>
+                        <p>${error.message || "Đường dẫn không hợp lệ hoặc đã hết hạn."}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+    }
 }

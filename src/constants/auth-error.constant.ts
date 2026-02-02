@@ -60,4 +60,19 @@ export const AUTH_ERRORS = {
         code: 'AUTH_004',
         message: 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
     },
+    INVALID_DATA: {
+        httpCode: 400,
+        code: 'AUTH_001',
+        message: 'Dữ liệu không hợp lệ',
+    },
+    EMAIL_EXISTED: {
+        httpCode: 409,
+        code: 'AUTH_007',
+        message: 'Email đã được sử dụng',
+    },
+    PHONE_EXISTED: {
+        httpCode: 409,
+        code: 'AUTH_008',
+        message: 'Số điện thoại đã được sử dụng',
+    },
 } as const;
