@@ -15,8 +15,11 @@ export class AuthService {
   /**
    * Đăng nhập bằng Email
    */
-  static async loginByEmail(email: string, password: string, clientInfo: ClientInfo,) {
-
+  static async loginByEmail(
+    email: string,
+    password: string,
+    clientInfo: ClientInfo,
+  ) {
     AuthValidation.validateLoginInput(email, password, "EMAIL");
 
     const account = await AccountRepository.findByEmail(email);
@@ -27,8 +30,11 @@ export class AuthService {
   /**
    * Đăng nhập bằng SĐT
    */
-  static async loginByPhone(phone: string, password: string, clientInfo: ClientInfo,) {
-
+  static async loginByPhone(
+    phone: string,
+    password: string,
+    clientInfo: ClientInfo,
+  ) {
     AuthValidation.validateLoginInput(phone, password, "PHONE");
 
     const account = await AccountRepository.findByPhone(phone);
@@ -39,15 +45,32 @@ export class AuthService {
   /**
    * Xử lý đăng nhập chung
    */
-  private static async processLogin(account: Account | null, password: string, clientInfo: ClientInfo,) {
-
+  private static async processLogin(
+    account: Account | null,
+    password: string,
+    clientInfo: ClientInfo,
+  ) {
     AuthValidation.validateDevice(clientInfo);
 
     await AuthValidation.validateCredential(account, password);
 
-    const { accessToken, refreshToken, refreshTokenHash, expiresIn } = SecurityUtil.generateToken(account!);
+    const existingSession = await UserSessionRepository.findByAccountAndDevice(
+      account!.account_id,
+      clientInfo.deviceId!,
+    );
 
-    await AuthSessionUtil.upsertSession(account!.account_id, refreshTokenHash, clientInfo,);
+    const sessionId = existingSession
+      ? existingSession.sessionId
+      : AuthSessionUtil.generate(account!.account_id);
+
+    const { accessToken, refreshToken, refreshTokenHash, expiresIn } =
+      SecurityUtil.generateToken(account!, sessionId);
+    await AuthSessionUtil.upsertSession(
+      sessionId,
+      account!.account_id,
+      refreshTokenHash,
+      clientInfo,
+    );
 
     await AccountRepository.updateLastLogin(account!.account_id);
 
@@ -67,10 +90,7 @@ export class AuthService {
   /**
    * Đăng xuất
    */
-  static async logout(input: { refreshToken: string }, authPayload: { account_id: string },): Promise<void> {
-    const accountId = authPayload.account_id;
-
-    // Xác thực refresh token
+  static async logout(input: { refreshToken: string }): Promise<void> {
     try {
       SecurityUtil.verifyRefreshToken(input.refreshToken);
     } catch {
@@ -79,13 +99,18 @@ export class AuthService {
 
     const refreshTokenHash = SecurityUtil.hashRefreshToken(input.refreshToken);
 
-    // Xác thực session tồn tại
-    const session = await UserSessionRepository.findActiveSessionByRefreshToken(refreshTokenHash,);
+    const session = await UserSessionRepository.findActiveSessionByRefreshToken(
+      refreshTokenHash
+    );
 
-    if (!session || session.account_id !== accountId) throw AUTH_ERRORS.SESSION_NOT_FOUND;
+    if (!session) {
+      throw AUTH_ERRORS.SESSION_NOT_FOUND;
+    }
 
-
-    await UserSessionRepository.logoutCurrentSession(accountId, refreshTokenHash,);
+    await UserSessionRepository.logoutCurrentSession(
+      session.account_id,
+      refreshTokenHash
+    );
   }
 
   /**
@@ -99,22 +124,29 @@ export class AuthService {
 
       if (!account || account.status !== "ACTIVE") return;
 
-
       if (!account.email) return;
 
       const resetId = SecurityUtil.generateResetPasswordId(account.account_id);
 
-      const resetToken = SecurityUtil.generateRandomTokenResetPassword(AUTH_CONSTANTS.RESET_PASSWORD.TOKEN_LENGTH,);
+      const resetToken = SecurityUtil.generateRandomTokenResetPassword(
+        AUTH_CONSTANTS.RESET_PASSWORD.TOKEN_LENGTH,
+      );
       const resetTokenHash = SecurityUtil.hashTokenResetPassword(resetToken);
 
-      const expiredAt = new Date(Date.now() + AUTH_CONSTANTS.RESET_PASSWORD.EXPIRES_IN_MS);
+      const expiredAt = new Date(
+        Date.now() + AUTH_CONSTANTS.RESET_PASSWORD.EXPIRES_IN_MS,
+      );
 
-      await PasswordResetRepository.createResetToken(resetId, account.account_id, resetTokenHash, expiredAt,);
+      await PasswordResetRepository.createResetToken(
+        resetId,
+        account.account_id,
+        resetTokenHash,
+        expiredAt,
+      );
 
       const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
       await AuthMailUtil.sendResetPasswordEmail(account.email, resetLink);
-
     } catch (error) {
       console.error("Lỗi quên mật khẩu:", error);
     }
@@ -123,21 +155,27 @@ export class AuthService {
   /**
    * Đặt lại mật khẩu
    */
-  static async resetPassword(input: { resetToken: string; newPassword: string; }): Promise<void> {
-
+  static async resetPassword(input: {
+    resetToken: string;
+    newPassword: string;
+  }): Promise<void> {
     const { resetToken, newPassword } = input;
 
     AuthValidation.validatePasswordOnly(newPassword);
 
     const resetTokenHash = SecurityUtil.hashTokenResetPassword(resetToken);
 
-    const resetRecord = await PasswordResetRepository.findValidToken(resetTokenHash);
+    const resetRecord =
+      await PasswordResetRepository.findValidToken(resetTokenHash);
 
     if (!resetRecord) throw AUTH_ERRORS.INVALID_RESET_TOKEN;
 
     const hashedPassword = await SecurityUtil.hashPassword(newPassword);
 
-    await AccountRepository.updatePassword(resetRecord.accountId, hashedPassword,);
+    await AccountRepository.updatePassword(
+      resetRecord.accountId,
+      hashedPassword,
+    );
 
     await PasswordResetRepository.markAsUsed(resetRecord.id);
 
@@ -147,9 +185,16 @@ export class AuthService {
   /**
    * Đăng ký bằng Email
    */
-  static async registerByEmail(input: { email: string; password: string; name: string; }) {
-
-    AuthValidation.validateEmailRegister(input.email, input.password, input.name);
+  static async registerByEmail(input: {
+    email: string;
+    password: string;
+    name: string;
+  }) {
+    AuthValidation.validateEmailRegister(
+      input.email,
+      input.password,
+      input.name,
+    );
 
     const existAccount = await AccountRepository.findByEmail(input.email);
     if (existAccount) throw AUTH_ERRORS.EMAIL_EXISTED;
@@ -172,17 +217,18 @@ export class AuthService {
 
       const verifyId = SecurityUtil.generateVerificationId(accountId);
 
-      const expiredAt = new Date(Date.now() + AUTH_CONSTANTS.VERIFY_EMAIL.EXPIRES_IN_MS);
+      const expiredAt = new Date(
+        Date.now() + AUTH_CONSTANTS.VERIFY_EMAIL.EXPIRES_IN_MS,
+      );
 
       await AccountVerificationRepository.createVerificationToken(
         verifyId,
         accountId,
         otpHash,
-        expiredAt
+        expiredAt,
       );
 
       await AuthMailUtil.sendOtpEmail(input.email, otpCode);
-
     } catch (error) {
       console.error("⚠️ Lỗi gửi OTP:", error);
     }
@@ -193,13 +239,19 @@ export class AuthService {
   /**
    * Đăng ký bằng SĐT
    */
-  static async registerByPhone(input: { phone: string; password: string; name: string; }) {
-
-    AuthValidation.validatePhoneRegister(input.phone, input.password, input.name,);
+  static async registerByPhone(input: {
+    phone: string;
+    password: string;
+    name: string;
+  }) {
+    AuthValidation.validatePhoneRegister(
+      input.phone,
+      input.password,
+      input.name,
+    );
 
     const existAccount = await AccountRepository.findByPhone(input.phone);
     if (existAccount) throw AUTH_ERRORS.PHONE_EXISTED;
-
 
     const result = await this.processRegister({
       name: input.name,
@@ -212,12 +264,16 @@ export class AuthService {
     return result;
   }
 
-
-  /* 
-  * Xử lý đăng ký chung
-  */
-  private static async processRegister(payload: { name: string; password: string; email: string | null; phone: string | null; status: AccountStatus; }) {
-    
+  /*
+   * Xử lý đăng ký chung
+   */
+  private static async processRegister(payload: {
+    name: string;
+    password: string;
+    email: string | null;
+    phone: string | null;
+    status: AccountStatus;
+  }) {
     const hashedPassword = await SecurityUtil.hashPassword(payload.password);
 
     const userCode = await SecurityUtil.generateUserCode("CUSTOMER");
@@ -246,16 +302,17 @@ export class AuthService {
     };
   }
 
-
   /**
-     * Xác thực Email từ Token
-     */
+   * Xác thực Email từ Token
+   */
   static async verifyEmail(token: string): Promise<void> {
     const tokenHash = SecurityUtil.hashTokenResetPassword(token);
 
-    const verificationRecord = await AccountVerificationRepository.findValidToken(tokenHash);
+    const verificationRecord =
+      await AccountVerificationRepository.findValidToken(tokenHash);
 
-    if (!verificationRecord) throw new Error("Đường dẫn xác thực không hợp lệ hoặc đã hết hạn.");
+    if (!verificationRecord)
+      throw new Error("Đường dẫn xác thực không hợp lệ hoặc đã hết hạn.");
 
     await AccountRepository.activateAccount(verificationRecord.accountId);
 
@@ -263,9 +320,12 @@ export class AuthService {
   }
 
   /**
-     * Xác thực Email bằng OTP
-     */
-  static async verifyEmailOTP(input: { email: string, otp: string }): Promise<void> {
+   * Xác thực Email bằng OTP
+   */
+  static async verifyEmailOTP(input: {
+    email: string;
+    otp: string;
+  }): Promise<void> {
     const { email, otp } = input;
 
     const account = await AccountRepository.findByEmail(email);
@@ -275,10 +335,13 @@ export class AuthService {
 
     const otpHash = SecurityUtil.hashTokenResetPassword(otp);
 
-    const verificationRecord = await AccountVerificationRepository.findValidOTP(account.account_id, otpHash);
+    const verificationRecord = await AccountVerificationRepository.findValidOTP(
+      account.account_id,
+      otpHash,
+    );
 
-    if (!verificationRecord) throw new Error("Mã xác thực không hợp lệ hoặc đã hết hạn.");
-    
+    if (!verificationRecord)
+      throw new Error("Mã xác thực không hợp lệ hoặc đã hết hạn.");
 
     await AccountRepository.activateAccount(verificationRecord.accountId);
 

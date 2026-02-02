@@ -11,8 +11,8 @@ export class SecurityUtil {
     /*
       * Tạo access token và refresh token
       */
-    static generateToken(account: Account) {
-        const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(account);
+    static generateToken(account: Account, sessionId: string) {
+        const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(account, sessionId);
 
         const refreshTokenHash = SecurityUtil.hashRefreshToken(refreshToken);
 

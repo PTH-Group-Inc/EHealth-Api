@@ -7,12 +7,19 @@ export class AuthSessionUtil {
     /*
      * Tạo hoặc cập nhật user session
      */
-    static async upsertSession(accountId: string, refreshTokenHash: string, clientInfo: ClientInfo,) {
+    static async upsertSession(
+        sessionId: string,
+        accountId: string, 
+        refreshTokenHash: string, 
+        clientInfo: ClientInfo
+    ) {
         const expiredAt = SecurityUtil.getRefreshTokenExpiredAt();
+        
         const existingSession = await UserSessionRepository.findByAccountAndDevice(
-            accountId,
-            clientInfo.deviceId!,
+             accountId,
+             clientInfo.deviceId!
         );
+
         if (existingSession) {
             await UserSessionRepository.updateSessionBySessionId(
                 existingSession.sessionId,
@@ -25,8 +32,9 @@ export class AuthSessionUtil {
             );
             return;
         }
+
         await UserSessionRepository.createSession({
-            sessionId: this.generate(accountId),
+            sessionId: sessionId, 
             accountId,
             refreshTokenHash,
             deviceId: clientInfo.deviceId!,

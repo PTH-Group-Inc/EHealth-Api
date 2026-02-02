@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { AuthController} from '../controllers/auth.controller'
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware'
+import { SessionController } from '../controllers/auth_session.controller';
+import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
 
 const authRoutes = Router()
 
@@ -9,7 +11,7 @@ authRoutes.post("/login/email", AuthController.loginByEmail);
 authRoutes.post("/login/phone", AuthController.loginByPhone);
 
 // Đăng xuất
-authRoutes.post("/logout", verifyAccessToken, AuthController.logout);
+authRoutes.post('/logout', AuthController.logout);
 
 // Quên mật khẩu & Đặt lại mật khẩu
 authRoutes.post('/forgot-password', AuthController.forgotPassword);
@@ -21,5 +23,11 @@ authRoutes.post('/register/phone', AuthController.registerByPhone);
 
 // Xác thực Email
 authRoutes.post('/verify-email', AuthController.verifyEmail);
+
+// Quản lý session
+authRoutes.use('/sessions', verifyAccessToken, checkSessionStatus);
+authRoutes.get('/sessions', SessionController.getSessions);
+authRoutes.post('/sessions/logout-all', SessionController.logoutAll);
+authRoutes.delete('/sessions/:sessionId', SessionController.logoutSession);
 
 export default authRoutes;

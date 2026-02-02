@@ -47,7 +47,7 @@ export class AuthController {
                 {
                     deviceId: clientInfo?.deviceId,
                     deviceName: clientInfo?.deviceName,
-                    ip: req.ip, 
+                    ip: req.ip,
                     userAgent: req.headers["user-agent"] ?? clientInfo?.userAgent ?? "",
                 }
             );
@@ -72,13 +72,14 @@ export class AuthController {
         try {
             const { refreshToken } = req.body;
 
-            // authPayload được gắn từ middleware verifyAccessToken
-            const authPayload = (req as any).auth;
+            if (!refreshToken) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Vui lòng cung cấp Refresh Token",
+                });
+            }
 
-            const result = await AuthService.logout(
-                { refreshToken },
-                authPayload
-            );
+            await AuthService.logout({ refreshToken });
 
             return res.status(200).json({
                 success: true,
@@ -99,7 +100,7 @@ export class AuthController {
     static async forgotPassword(req: Request, res: Response): Promise<Response> {
         try {
             const { email } = req.body;
-            
+
             // Luôn trả về 200 dù email có tồn tại hay không (theo Docs)
             await AuthService.forgotPassword({ email });
 
@@ -109,7 +110,7 @@ export class AuthController {
             });
         } catch (error: any) {
             // Log lỗi hệ thống nếu có, nhưng vẫn trả về thông báo chung hoặc lỗi server
-             return res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 code: 'AUTH_999',
                 message: 'Lỗi máy chủ nội bộ',
@@ -222,5 +223,5 @@ export class AuthController {
     }
 
 
-    
+
 }
