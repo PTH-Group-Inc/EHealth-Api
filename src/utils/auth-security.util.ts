@@ -1,13 +1,11 @@
 // utils/security.util.ts
 import bcrypt from 'bcrypt';
-import { createHash, randomBytes, randomUUID } from 'crypto';
+import { createHash, randomBytes, randomInt, randomUUID } from 'crypto';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 import { TokenUtil } from './token.util';
 import { Account, AccountRole } from '../models/auth_account.model';
 import { pool } from '../config/postgresdb';
 import { ROLE_CONFIG } from '../constants/role-config.constant';
-
-
 
 export class SecurityUtil {
     /*
@@ -81,7 +79,6 @@ export class SecurityUtil {
         return createHash('sha256') .update(token) .digest('hex');
     }
 
-
     /**
      * Tạo ID cho request reset password
      */
@@ -96,9 +93,6 @@ export class SecurityUtil {
 
         return `PRST_${datePart}_${accountId}_${randomUUID()}`;
     }
-
-
-
 
     /**
      * Sinh UserCode tự động dựa trên Role
@@ -122,8 +116,6 @@ export class SecurityUtil {
         return `${config.prefix}${paddedNumber}`;
     }
 
-
-
     /**
      * Tạo ID cho record Verification
      */
@@ -140,5 +132,15 @@ export class SecurityUtil {
         return `VER_${datePart}_${accountId}_${randomUUID()}`;
     }
 
+    /**
+     * Sinh mã OTP ngẫu nhiên (chỉ chứa số)
+     */
+    static generateOTP(length: number = 6): string {
+        let otp = '';
+        for (let i = 0; i < length; i++) {
+            otp += randomInt(0, 10).toString(); // An toàn hơn Math.random()
+        }
+        return otp;
+    }
 
 }

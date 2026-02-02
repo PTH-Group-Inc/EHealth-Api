@@ -20,6 +20,6 @@ authRoutes.post('/register/email', AuthController.registerByEmail);
 authRoutes.post('/register/phone', AuthController.registerByPhone);
 
 // Xác thực Email
-authRoutes.get('/verify-email', AuthController.verifyEmail);
+authRoutes.post('/verify-email', AuthController.verifyEmail);
 
 export default authRoutes;

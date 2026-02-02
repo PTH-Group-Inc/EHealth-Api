@@ -104,7 +104,7 @@ export class AuthService {
 
       const resetId = SecurityUtil.generateResetPasswordId(account.account_id);
 
-      const resetToken = SecurityUtil.generateRandomTokenResetPassword( AUTH_CONSTANTS.RESET_PASSWORD.TOKEN_LENGTH,);
+      const resetToken = SecurityUtil.generateRandomTokenResetPassword(AUTH_CONSTANTS.RESET_PASSWORD.TOKEN_LENGTH,);
       const resetTokenHash = SecurityUtil.hashTokenResetPassword(resetToken);
 
       const expiredAt = new Date(Date.now() + AUTH_CONSTANTS.RESET_PASSWORD.EXPIRES_IN_MS);
@@ -149,12 +149,10 @@ export class AuthService {
    */
   static async registerByEmail(input: { email: string; password: string; name: string; }) {
 
-    AuthValidation.validateEmailRegister(input.email, input.password, input.name,);
+    AuthValidation.validateEmailRegister(input.email, input.password, input.name);
 
     const existAccount = await AccountRepository.findByEmail(input.email);
-
     if (existAccount) throw AUTH_ERRORS.EMAIL_EXISTED;
-
 
     const result = await this.processRegister({
       name: input.name,
@@ -169,26 +167,24 @@ export class AuthService {
 
       await AccountVerificationRepository.invalidateOldTokens(accountId);
 
-      const verifyId = SecurityUtil.generateVerificationId(accountId);
+      const otpCode = SecurityUtil.generateOTP(6);
+      const otpHash = SecurityUtil.hashTokenResetPassword(otpCode);
 
-      const verifyToken = SecurityUtil.generateRandomTokenResetPassword(AUTH_CONSTANTS.VERIFY_EMAIL.TOKEN_LENGTH );
-      const verifyTokenHash = SecurityUtil.hashTokenResetPassword(verifyToken);
+      const verifyId = SecurityUtil.generateVerificationId(accountId);
 
       const expiredAt = new Date(Date.now() + AUTH_CONSTANTS.VERIFY_EMAIL.EXPIRES_IN_MS);
 
       await AccountVerificationRepository.createVerificationToken(
         verifyId,
         accountId,
-        verifyTokenHash,
+        otpHash,
         expiredAt
       );
 
-      const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}`;
-
-      await AuthMailUtil.sendVerifyEmail(input.email, verifyLink);
+      await AuthMailUtil.sendOtpEmail(input.email, otpCode);
 
     } catch (error) {
-      console.error("⚠️ Lỗi quy trình gửi mail verify:", error);
+      console.error("⚠️ Lỗi gửi OTP:", error);
     }
 
     return result;
@@ -210,7 +206,7 @@ export class AuthService {
       password: input.password,
       email: null,
       phone: input.phone,
-      status: AUTH_CONSTANTS.ACCOUNT_STATUS.PENDING,
+      status: AUTH_CONSTANTS.ACCOUNT_STATUS.ACTIVE,
     });
 
     return result;
@@ -221,6 +217,7 @@ export class AuthService {
   * Xử lý đăng ký chung
   */
   private static async processRegister(payload: { name: string; password: string; email: string | null; phone: string | null; status: AccountStatus; }) {
+    
     const hashedPassword = await SecurityUtil.hashPassword(payload.password);
 
     const userCode = await SecurityUtil.generateUserCode("CUSTOMER");
@@ -253,17 +250,38 @@ export class AuthService {
   /**
      * Xác thực Email từ Token
      */
-    static async verifyEmail(token: string): Promise<void> {
-        const tokenHash = SecurityUtil.hashTokenResetPassword(token);
+  static async verifyEmail(token: string): Promise<void> {
+    const tokenHash = SecurityUtil.hashTokenResetPassword(token);
 
-        const verificationRecord = await AccountVerificationRepository.findValidToken(tokenHash);
+    const verificationRecord = await AccountVerificationRepository.findValidToken(tokenHash);
 
-        if (!verificationRecord) {
-            throw new Error("Đường dẫn xác thực không hợp lệ hoặc đã hết hạn.");
-        }
+    if (!verificationRecord) throw new Error("Đường dẫn xác thực không hợp lệ hoặc đã hết hạn.");
 
-        await AccountRepository.activateAccount(verificationRecord.accountId);
+    await AccountRepository.activateAccount(verificationRecord.accountId);
 
-        await AccountVerificationRepository.markAsUsed(verificationRecord.id);
+    await AccountVerificationRepository.markAsUsed(verificationRecord.id);
+  }
+
+  /**
+     * Xác thực Email bằng OTP
+     */
+  static async verifyEmailOTP(input: { email: string, otp: string }): Promise<void> {
+    const { email, otp } = input;
+
+    const account = await AccountRepository.findByEmail(email);
+    if (!account) {
+      throw new Error("Email không tồn tại.");
     }
+
+    const otpHash = SecurityUtil.hashTokenResetPassword(otp);
+
+    const verificationRecord = await AccountVerificationRepository.findValidOTP(account.account_id, otpHash);
+
+    if (!verificationRecord) throw new Error("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+    
+
+    await AccountRepository.activateAccount(verificationRecord.accountId);
+
+    await AccountVerificationRepository.markAsUsed(verificationRecord.id);
+  }
 }

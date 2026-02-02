@@ -71,4 +71,30 @@ export class AccountVerificationRepository {
         `;
         await pool.query(query, [accountId]);
     }
+
+    /**
+     * Tìm OTP hợp lệ
+     */
+    static async findValidOTP(accountId: string, tokenHash: string): Promise<AccountVerification | null> {
+        const query = `
+            SELECT 
+                id,
+                account_id as "accountId",
+                verify_token_hash as "verifyTokenHash",
+                expired_at as "expiredAt",
+                used_at as "usedAt",
+                created_at as "createdAt"
+            FROM accounting.account_verifications
+            WHERE account_id = $1           
+              AND verify_token_hash = $2
+              AND expired_at > NOW()
+              AND used_at IS NULL 
+            LIMIT 1
+        `;
+
+        const result = await pool.query(query, [accountId, tokenHash]);
+        return result.rows[0] ?? null;
+    }
+
+    
 }

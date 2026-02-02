@@ -192,63 +192,35 @@ export class AuthController {
     }
 
     /**
-     * Xử lý khi xác thực Email thành công
+     * Xác thực OTP Email
      */
-    static async verifyEmail(req: Request, res: Response): Promise<void> { // Lưu ý: return void vì ta dùng res.send
+    static async verifyEmail(req: Request, res: Response): Promise<Response> {
         try {
-            const { token } = req.query;
+            const { email, otp } = req.body;
 
-            if (!token || typeof token !== 'string') {
-                throw new Error("Token không hợp lệ");
+            if (!email || !otp) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Vui lòng cung cấp Email và mã OTP",
+                });
             }
 
-            await AuthService.verifyEmail(token);
+            await AuthService.verifyEmailOTP({ email, otp });
 
-            res.status(200).send(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Xác thực thành công</title>
-                    <meta charset="utf-8">
-                    <style>
-                        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #f4f4f9; }
-                        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; }
-                        h1 { color: #4CAF50; }
-                        p { color: #333; }
-                    </style>
-                </head>
-                <body>
-                    <div class="card">
-                        <h1>✅ Xác thực thành công!</h1>
-                        <p>Tài khoản của bạn đã được kích hoạt.</p>
-                        <p>Bây giờ bạn có thể quay lại ứng dụng để đăng nhập.</p>
-                    </div>
-                </body>
-                </html>
-            `);
+            return res.status(200).json({
+                success: true,
+                message: "Xác thực tài khoản thành công!",
+            });
 
         } catch (error: any) {
-            res.status(400).send(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Xác thực thất bại</title>
-                    <meta charset="utf-8">
-                    <style>
-                        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #f4f4f9; }
-                        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; }
-                        h1 { color: #F44336; }
-                        p { color: #333; }
-                    </style>
-                </head>
-                <body>
-                    <div class="card">
-                        <h1>❌ Xác thực thất bại</h1>
-                        <p>${error.message || "Đường dẫn không hợp lệ hoặc đã hết hạn."}</p>
-                    </div>
-                </body>
-                </html>
-            `);
+            return res.status(400).json({
+                success: false,
+                code: error.code || "AUTH_VERIFY_FAILED",
+                message: error.message || "Xác thực thất bại",
+            });
         }
     }
+
+
+    
 }

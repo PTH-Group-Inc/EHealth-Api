@@ -1,7 +1,6 @@
 export const AUTH_CONSTANTS = {
-    VERIFY_EMAIL: {
-        TOKEN_LENGTH: 64,               
-        EXPIRES_IN_MS: 24 * 60 * 60 * 1000, 
+    VERIFY_EMAIL: {             
+        EXPIRES_IN_MS: 5 * 60 * 1000, 
     },
 
     RESET_PASSWORD: {

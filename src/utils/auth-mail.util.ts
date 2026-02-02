@@ -1,66 +1,135 @@
-// utils/auth-mail.util.ts
-import { MailService } from '../services/mail.service'; // Import service vừa tạo
+import { MailService } from '../services/mail.service';
 
 export class AuthMailUtil {
+
+    /*
+    * Template chung cho email
+    */
+
+    private static getTemplate(title: string, contentBody: string): string {
+        const currentYear = new Date().getFullYear();
+        
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body { margin: 0; padding: 0; background-color: #f4f6f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+                .header { background-color: #1e88e5; padding: 20px; text-align: center; }
+                .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 1px; }
+                .content { padding: 30px 25px; color: #333333; line-height: 1.6; }
+                .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #eeeeee; }
+                .btn { display: inline-block; padding: 12px 30px; background-color: #1e88e5; color: #ffffff !important; text-decoration: none; border-radius: 50px; font-weight: bold; margin: 20px 0; box-shadow: 0 4px 6px rgba(30,136,229,0.3); }
+                .otp-box { background-color: #e3f2fd; color: #1565c0; font-size: 32px; font-weight: bold; letter-spacing: 5px; padding: 15px; border-radius: 8px; text-align: center; margin: 25px 0; border: 1px dashed #1e88e5; }
+                .link-text { color: #1e88e5; word-break: break-all; font-size: 13px; }
+                .warning { font-size: 13px; color: #666; font-style: italic; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div style="padding: 20px 0;">
+                <div class="container">
+                    <div class="header">
+                        <h1>E-Health System</h1>
+                    </div>
+
+                    <div class="content">
+                        <h2 style="color: #1e88e5; margin-top: 0;">${title}</h2>
+                        ${contentBody}
+                    </div>
+
+                    <div class="footer">
+                        <p>&copy; ${currentYear} E-Health System. All rights reserved.</p>
+                        <p>Đây là email tự động, vui lòng không trả lời email này.</p>
+                        <p>Địa chỉ: TP. Hồ Chí Minh, Việt Nam</p>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+    }
     /**
      * Gửi email reset password
      */
     static async sendResetPasswordEmail(toEmail: string, resetLink: string): Promise<void> {
         const subject = '[E-Health] Yêu cầu đặt lại mật khẩu';
-
-        // Nên làm template HTML đẹp hơn một chút
-        const html = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #2c3e50;">Đặt lại mật khẩu</h2>
-                <p>Xin chào,</p>
-                <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản E-Health của bạn.</p>
-                <p>Vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới (Link có hiệu lực trong 15 phút):</p>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetLink}" 
-                       style="background-color: #007bff; color: #ffffff; padding: 12px 24px; 
-                              text-decoration: none; border-radius: 5px; font-weight: bold;">
-                        Đặt lại mật khẩu
-                    </a>
-                </div>
-
-                <p style="color: #666; font-size: 14px;">
-                    Hoặc copy đường dẫn sau vào trình duyệt: <br/>
-                    <a href="${resetLink}">${resetLink}</a>
-                </p>
-                
-                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                <p style="color: #999; font-size: 12px;">
-                    Nếu bạn không yêu cầu thay đổi mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn an toàn.
-                </p>
+        
+        const body = `
+            <p>Xin chào,</p>
+            <p>Chúng tôi vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với email <strong>${toEmail}</strong>.</p>
+            <p>Để đảm bảo an toàn, vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới. Đường dẫn này chỉ có hiệu lực trong vòng <strong>15 phút</strong>.</p>
+            
+            <div style="text-align: center;">
+                <a href="${resetLink}" class="btn">Đặt Lại Mật Khẩu</a>
             </div>
+
+            <p class="warning">Nếu nút bấm không hoạt động, bạn hãy sao chép và dán đường dẫn sau vào trình duyệt:</p>
+            <p><a href="${resetLink}" class="link-text">${resetLink}</a></p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="font-size: 13px; color: #999;">Nếu bạn không yêu cầu thay đổi mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn được bảo mật an toàn.</p>
         `;
 
         await MailService.send({
             to: toEmail,
             subject,
-            html,
+            html: this.getTemplate('Quên Mật Khẩu?', body)
         });
     }
 
     /**
-     * Gửi email xác thực tài khoản
+     * Gửi email xác thực tài khoản (Link Verify)
      */
     static async sendVerifyEmail(email: string, verifyLink: string): Promise<void> {
-        const subject = '[E-Health] Xác thực tài khoản của bạn';
-        
-        const html = `
-            <div style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2>Chào mừng bạn đến với E-Health!</h2>
-                <p>Cảm ơn bạn đã đăng ký. Vui lòng nhấn vào nút bên dưới để kích hoạt tài khoản:</p>
-                <a href="${verifyLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">
-                    Xác thực Email
-                </a>
-                <p>Hoặc truy cập đường dẫn sau: <br> <a href="${verifyLink}">${verifyLink}</a></p>
-                <p>Link này sẽ hết hạn sau 24 giờ.</p>
+        const subject = '[E-Health] Kích hoạt tài khoản';
+
+        const body = `
+            <p>Xin chào,</p>
+            <p>Cảm ơn bạn đã đăng ký tham gia <strong>E-Health System</strong>. Để bắt đầu sử dụng dịch vụ, vui lòng xác thực địa chỉ email của bạn.</p>
+            
+            <div style="text-align: center;">
+                <a href="${verifyLink}" class="btn">Kích Hoạt Tài Khoản Ngay</a>
             </div>
+
+            <p class="warning">Hoặc truy cập trực tiếp đường dẫn bên dưới:</p>
+            <p><a href="${verifyLink}" class="link-text">${verifyLink}</a></p>
         `;
 
-        await MailService.send({ to: email, subject, html });
+        await MailService.send({
+            to: email,
+            subject,
+            html: this.getTemplate('Xác Thực Tài Khoản', body)
+        });
+    }
+
+    /**
+     * Gửi email mã OTP
+     */
+    static async sendOtpEmail(email: string, otp: string): Promise<void> {
+        const subject = `[E-Health] Mã xác thực: ${otp}`;
+
+        const body = `
+            <p>Xin chào,</p>
+            <p>Bạn đang thực hiện đăng ký hoặc đăng nhập vào hệ thống <strong>E-Health</strong>. Dưới đây là mã xác thực (OTP) của bạn:</p>
+            
+            <div class="otp-box">${otp}</div>
+            
+            <p><strong>Lưu ý:</strong></p>
+            <ul>
+                <li>Mã này có hiệu lực trong vòng <strong>5 phút</strong>.</li>
+                <li>Tuyệt đối không chia sẻ mã này cho bất kỳ ai, kể cả nhân viên hỗ trợ.</li>
+            </ul>
+            
+            <p>Nếu bạn không thực hiện yêu cầu này, vui lòng đổi mật khẩu ngay lập tức.</p>
+        `;
+
+        await MailService.send({
+            to: email,
+            subject,
+            html: this.getTemplate('Mã Xác Thực OTP', body)
+        });
     }
 }
