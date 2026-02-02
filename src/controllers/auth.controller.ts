@@ -244,10 +244,40 @@ export class AuthController {
                 message: "Đã mở khóa tài khoản thành công",
             });
         } catch (error: any) {
-             return res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 code: "AUTH_UNLOCK_FAILED",
                 message: error.message || "Lỗi mở khóa tài khoản",
+            });
+        }
+    }
+
+    /*
+     * Làm mới Token (Refresh Token)
+     */
+    static async refreshToken(req: Request, res: Response): Promise<Response> {
+        try {
+            const { refreshToken } = req.body;
+
+            if (!refreshToken) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Vui lòng cung cấp Refresh Token",
+                });
+            }
+
+            const data = await AuthService.refreshToken({ refreshToken });
+
+            return res.status(200).json({
+                success: true,
+                message: "Làm mới token thành công",
+                data,
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'AUTH_999',
+                message: error.message || 'Lỗi máy chủ nội bộ',
             });
         }
     }

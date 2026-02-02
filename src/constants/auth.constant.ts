@@ -18,5 +18,10 @@ export const AUTH_CONSTANTS = {
         MAX_ATTEMPTS: 7,      
         LOCK_DURATION_MINUTES: 30, 
         LOCK_DURATION_MS: 30 * 60 * 1000 
+    },
+    SESSION: {
+        IDLE_TIMEOUT_DAYS: 7,
+        IDLE_TIMEOUT_MS: 7 * 24 * 60 * 60 * 1000,
     }
+
 } as const;

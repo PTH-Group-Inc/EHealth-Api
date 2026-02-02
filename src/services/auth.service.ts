@@ -435,4 +435,54 @@ export class AuthService {
 
     await AccountVerificationRepository.markAsUsed(verificationRecord.id);
   }
+
+
+  /**
+   * Làm mới Access Token & Refresh Token (Rotation)
+   */
+  static async refreshToken(input: { refreshToken: string }) {
+    try {
+      SecurityUtil.verifyRefreshToken(input.refreshToken);
+    } catch {
+      throw AUTH_ERRORS.INVALID_REFRESH_TOKEN;
+    }
+
+    const refreshTokenHash = SecurityUtil.hashRefreshToken(input.refreshToken);
+
+    const session = await UserSessionRepository.findActiveSessionByRefreshToken(refreshTokenHash);
+
+    if (!session) {
+      throw AUTH_ERRORS.SESSION_EXPIRED;
+    }
+
+    const now = new Date().getTime();
+    const lastUsed = new Date(session.last_used_at).getTime();
+    const idleTime = now - lastUsed;
+
+    if (idleTime > AUTH_CONSTANTS.SESSION.IDLE_TIMEOUT_MS) {
+        await UserSessionRepository.revokeBySessionId(session.sessionId, session.account_id);
+        throw AUTH_ERRORS.SESSION_EXPIRED;
+    }
+
+    const account = await AccountRepository.findByEmail(session.account_id) 
+                 || await AccountRepository.findByPhone(session.account_id); 
+    
+    if (!account || account.status !== 'ACTIVE') {
+        throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+    }
+
+    const { accessToken, refreshToken: newRefreshToken, expiresIn } = 
+        SecurityUtil.generateToken(account, session.sessionId);
+
+    await UserSessionRepository.updateSessionBySessionId(session.sessionId, {
+        refreshTokenHash: SecurityUtil.hashRefreshToken(newRefreshToken),
+        expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
+    });
+
+    return {
+        accessToken,
+        refreshToken: newRefreshToken,
+        expiresIn
+    };
+  }
 }

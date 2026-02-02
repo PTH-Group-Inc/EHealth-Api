@@ -80,4 +80,9 @@ export const AUTH_ERRORS = {
         code: 'AUTH_006',
         message: 'Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau.',
     },
+    SESSION_EXPIRED: {
+        httpCode: 401,
+        code: 'AUTH_007',
+        message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    },
 } as const;

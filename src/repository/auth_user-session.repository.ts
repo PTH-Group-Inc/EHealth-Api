@@ -216,11 +216,31 @@ export class UserSessionRepository {
    */
   static async findActiveBySessionId(sessionId: string): Promise<UserSession | null> {
     const result = await pool.query<UserSession>(
-        `SELECT * FROM accounting.user_sessions 
+      `SELECT * FROM accounting.user_sessions 
          WHERE session_id = $1 AND revoked_at IS NULL AND expired_at > NOW() 
          LIMIT 1`,
-        [sessionId]
+      [sessionId]
     );
     return result.rows[0] ?? null;
-}
+  }
+
+  /**
+   * Dọn dẹp các session hết hạn
+   */
+  static async revokeExpiredSessions(idleTimeoutDays: number): Promise<number> {
+    const result = await pool.query(
+      `
+      UPDATE accounting.user_sessions
+      SET revoked_at = NOW()
+      WHERE revoked_at IS NULL
+        AND (
+            expired_at < NOW() 
+            OR 
+            last_used_at < (NOW() - make_interval(days => $1))
+        )
+      `,
+      [idleTimeoutDays]
+    );
+    return result.rowCount ?? 0;
+  }
 }

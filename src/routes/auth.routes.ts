@@ -33,6 +33,8 @@ authRoutes.get('/sessions', SessionController.getSessions);
 authRoutes.post('/sessions/logout-all', SessionController.logoutAll);
 authRoutes.delete('/sessions/:sessionId', SessionController.logoutSession);
 
+// Làm mới token
+authRoutes.post('/refresh-token', AuthController.refreshToken);
 
 
 export default authRoutes;
