@@ -75,4 +75,9 @@ export const AUTH_ERRORS = {
         code: 'AUTH_008',
         message: 'Số điện thoại đã được sử dụng',
     },
+    ACCOUNT_LOCKED: {
+        httpCode: 403,
+        code: 'AUTH_006',
+        message: 'Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau.',
+    },
 } as const;

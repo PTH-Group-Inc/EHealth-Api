@@ -223,5 +223,33 @@ export class AuthController {
     }
 
 
+    /**
+     * Mở khóa tài khoản (Thường dành cho Admin)
+     */
+    static async unlockAccount(req: Request, res: Response): Promise<Response> {
+        try {
+            const { accountId } = req.body; // Lấy ID tài khoản cần mở khóa
+
+            if (!accountId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Vui lòng cung cấp accountId",
+                });
+            }
+
+            await AuthService.unlockAccount({ accountId });
+
+            return res.status(200).json({
+                success: true,
+                message: "Đã mở khóa tài khoản thành công",
+            });
+        } catch (error: any) {
+             return res.status(500).json({
+                success: false,
+                code: "AUTH_UNLOCK_FAILED",
+                message: error.message || "Lỗi mở khóa tài khoản",
+            });
+        }
+    }
 
 }

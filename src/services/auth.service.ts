@@ -15,36 +15,120 @@ export class AuthService {
   /**
    * Đăng nhập bằng Email
    */
-  static async loginByEmail(
-    email: string,
-    password: string,
-    clientInfo: ClientInfo,
-  ) {
+  static async loginByEmail(email: string, password: string, clientInfo: ClientInfo) {
     AuthValidation.validateLoginInput(email, password, "EMAIL");
 
     const account = await AccountRepository.findByEmail(email);
 
-    return this.processLogin(account, password, clientInfo);
+    if (!account) throw AUTH_ERRORS.INVALID_CREDENTIAL;
+
+    await this.handleLoginAttempt(account, password);
+
+    return this.processLoginSuccess(account, clientInfo);
   }
 
   /**
    * Đăng nhập bằng SĐT
    */
-  static async loginByPhone(
-    phone: string,
-    password: string,
-    clientInfo: ClientInfo,
-  ) {
+  static async loginByPhone(phone: string, password: string, clientInfo: ClientInfo) {
     AuthValidation.validateLoginInput(phone, password, "PHONE");
 
     const account = await AccountRepository.findByPhone(phone);
 
-    return this.processLogin(account, password, clientInfo);
+    if (!account) {
+      throw AUTH_ERRORS.INVALID_CREDENTIAL;
+    }
+
+    await this.handleLoginAttempt(account, password);
+
+    return this.processLoginSuccess(account, clientInfo);
   }
+
+  /**
+   * Xử lý kiểm tra khóa và xác thực mật khẩu
+   */
+  private static async handleLoginAttempt(account: Account, passwordInput: string) {
+
+    if (account.locked_until && new Date() < new Date(account.locked_until)) {
+      throw AUTH_ERRORS.ACCOUNT_LOCKED;
+    }
+
+    const isPasswordValid = await SecurityUtil.verifyPasswordSafe(passwordInput, account.password);
+
+    if (!isPasswordValid) {
+      const newFailedCount = await AccountRepository.incrementFailedLogin(account.account_id);
+
+      if (newFailedCount >= AUTH_CONSTANTS.LOGIN_LIMIT.MAX_ATTEMPTS) {
+        const lockUntil = new Date(Date.now() + AUTH_CONSTANTS.LOGIN_LIMIT.LOCK_DURATION_MS);
+        await AccountRepository.lockAccount(account.account_id, lockUntil);
+      }
+
+      throw AUTH_ERRORS.INVALID_CREDENTIAL;
+    }
+
+    if (account.failed_login_count > 0 || account.locked_until) {
+      await AccountRepository.resetFailedLogin(account.account_id);
+    }
+
+    if (account.status !== 'ACTIVE') {
+      throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+    }
+  }
+
+  /**
+   * Xử lý khi đăng nhập thành công (Tạo Token & Session)
+   */
+  private static async processLoginSuccess(account: Account, clientInfo: ClientInfo) {
+
+    AuthValidation.validateDevice(clientInfo);
+
+    const existingSession = await UserSessionRepository.findByAccountAndDevice(
+      account.account_id,
+      clientInfo.deviceId!,
+    );
+
+    const sessionId = existingSession
+      ? existingSession.sessionId
+      : AuthSessionUtil.generate(account.account_id);
+
+    const { accessToken, refreshToken, refreshTokenHash, expiresIn } =
+      SecurityUtil.generateToken(account, sessionId);
+
+    await AuthSessionUtil.upsertSession(
+      sessionId,
+      account.account_id,
+      refreshTokenHash,
+      clientInfo,
+    );
+
+    await AccountRepository.updateLastLogin(account.account_id);
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn,
+      user: {
+        accountId: account.account_id,
+        name: account.name,
+        email: account.email,
+        phone: account.phone,
+        role: account.role,
+      },
+    };
+  }
+
+  /**
+   * Mở khóa tài khoản thủ công
+   */
+  static async unlockAccount(input: { accountId: string }): Promise<void> {
+     await AccountRepository.unlockAccount(input.accountId);
+  }
+
 
   /**
    * Xử lý đăng nhập chung
    */
+  /*
   private static async processLogin(
     account: Account | null,
     password: string,
@@ -87,6 +171,8 @@ export class AuthService {
       },
     };
   }
+  */
+
   /**
    * Đăng xuất
    */
@@ -290,6 +376,8 @@ export class AuthService {
       last_login_at: null,
       created_at: new Date(),
       updated_at: new Date(),
+      failed_login_count: 0,
+      locked_until: null
     };
 
     await AccountRepository.createAccount(newAccount);

@@ -13,4 +13,6 @@ export interface Account {
   last_login_at: Date | null;
   created_at: Date;
   updated_at: Date;
+  failed_login_count: number;
+  locked_until: Date | null;
 }

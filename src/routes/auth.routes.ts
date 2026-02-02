@@ -10,6 +10,9 @@ const authRoutes = Router()
 authRoutes.post("/login/email", AuthController.loginByEmail);
 authRoutes.post("/login/phone", AuthController.loginByPhone);
 
+// Mở khóa tài khoản
+authRoutes.post('/unlock-account', AuthController.unlockAccount);
+
 // Đăng xuất
 authRoutes.post('/logout', AuthController.logout);
 
@@ -29,5 +32,7 @@ authRoutes.use('/sessions', verifyAccessToken, checkSessionStatus);
 authRoutes.get('/sessions', SessionController.getSessions);
 authRoutes.post('/sessions/logout-all', SessionController.logoutAll);
 authRoutes.delete('/sessions/:sessionId', SessionController.logoutSession);
+
+
 
 export default authRoutes;

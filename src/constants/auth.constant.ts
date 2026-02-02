@@ -12,11 +12,11 @@ export const AUTH_CONSTANTS = {
         PENDING: 'PENDING',
         ACTIVE: 'ACTIVE',
         LOCKED: 'LOCKED',
-    } as const,
+    },
 
     LOGIN_LIMIT: {
-        MAX_ATTEMPTS: 5,      
+        MAX_ATTEMPTS: 7,      
         LOCK_DURATION_MINUTES: 30, 
         LOCK_DURATION_MS: 30 * 60 * 1000 
     }
-};
+} as const;
