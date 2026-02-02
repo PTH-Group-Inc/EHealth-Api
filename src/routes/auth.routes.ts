@@ -13,6 +13,9 @@ authRoutes.post("/login/phone", AuthController.loginByPhone);
 // Mở khóa tài khoản
 authRoutes.post('/unlock-account', AuthController.unlockAccount);
 
+// Làm mới token
+authRoutes.post('/refresh-token', AuthController.refreshToken);
+
 // Đăng xuất
 authRoutes.post('/logout', AuthController.logout);
 
@@ -33,8 +36,7 @@ authRoutes.get('/sessions', SessionController.getSessions);
 authRoutes.post('/sessions/logout-all', SessionController.logoutAll);
 authRoutes.delete('/sessions/:sessionId', SessionController.logoutSession);
 
-// Làm mới token
-authRoutes.post('/refresh-token', AuthController.refreshToken);
+
 
 
 export default authRoutes;
