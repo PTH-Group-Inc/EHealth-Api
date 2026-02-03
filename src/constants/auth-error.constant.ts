@@ -48,4 +48,41 @@ export const AUTH_ERRORS = {
         code: 'AUTH_404',
         message: 'Session không tồn tại',
     },
+
+    INVALID_REFRESH_TOKEN: {
+        httpCode: 401,
+        code: 'AUTH_002',
+        message: 'Refresh token không hợp lệ',
+    },
+
+    INVALID_RESET_TOKEN: {
+        httpCode: 400,
+        code: 'AUTH_004',
+        message: 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
+    },
+    INVALID_DATA: {
+        httpCode: 400,
+        code: 'AUTH_001',
+        message: 'Dữ liệu không hợp lệ',
+    },
+    EMAIL_EXISTED: {
+        httpCode: 409,
+        code: 'AUTH_007',
+        message: 'Email đã được sử dụng',
+    },
+    PHONE_EXISTED: {
+        httpCode: 409,
+        code: 'AUTH_008',
+        message: 'Số điện thoại đã được sử dụng',
+    },
+    ACCOUNT_LOCKED: {
+        httpCode: 403,
+        code: 'AUTH_006',
+        message: 'Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau.',
+    },
+    SESSION_EXPIRED: {
+        httpCode: 401,
+        code: 'AUTH_007',
+        message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    },
 } as const;

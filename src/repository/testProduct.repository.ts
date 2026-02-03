@@ -1,4 +1,4 @@
-import pool from '../config/postgresdb'
+import { pool } from '../config/postgresdb'
 import { Product } from '../models/testProduct.models'
 
 export const getAllProductsRepo = async (): Promise<Product[]> => {

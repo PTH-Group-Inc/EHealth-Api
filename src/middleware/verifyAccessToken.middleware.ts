@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { TokenUtil } from "../utils/token.util";
 import { AUTH_ERRORS } from "../constants/auth-error.constant";
 
-export function verifyAccessToken(req: Request, res: Response, next: NextFunction,) {
+export function verifyAccessToken(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith("Bearer ")) {
@@ -10,16 +10,17 @@ export function verifyAccessToken(req: Request, res: Response, next: NextFunctio
     }
 
     const token = authHeader.split(" ")[1];
-    const payload = TokenUtil.verifyAccessToken(token);
+    
+    const payload: any = TokenUtil.verifyAccessToken(token);
 
-    // gắn payload cho controller dùng
     (req as any).auth = {
       account_id: payload.sub,
       role: payload.role,
+      sessionId: payload.sessionId,
     };
 
     next();
-  } catch {
+  } catch (error) {
     return res.status(401).json({
       success: false,
       code: "AUTH_401",

@@ -5,11 +5,13 @@ import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 export class TokenUtil {
     /*
      * Tạo access token và refresh token
+     * CẬP NHẬT: Thêm tham số sessionId
      */
-    static generateAuthTokens(account: Account) {
+    static generateAuthTokens(account: Account, sessionId: string) {
         const payload = {
             sub: account.account_id,
             role: account.role,
+            sessionId: sessionId, // Thêm sessionId vào payload
         };
 
         const accessToken = jwt.sign(

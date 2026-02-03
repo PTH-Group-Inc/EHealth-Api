@@ -1,18 +1,15 @@
 import { pool } from '../config/postgresdb';
 import { UserSession } from '../models/auth_user-session.model';
 import { CreateSessionInput } from '../models/auth_user-session.model';
-import { SessionIdUtil } from '../utils/session-id.util';
+import { AuthSessionUtil } from '../utils/auth-session.util';
 
 export class UserSessionRepository {
-  //
-  // Login
-  //
   /**
    * Tạo mới một user session
    */
   static async createSession(input: CreateSessionInput): Promise<void> {
     const {
-      sessionId = SessionIdUtil.generate(input.accountId),
+      sessionId = AuthSessionUtil.generate(input.accountId),
       accountId,
       refreshTokenHash,
       deviceId,
@@ -103,9 +100,6 @@ export class UserSessionRepository {
     );
   }
 
-  //
-  //logout
-  //
   /**
    * Đăng xuất session hiện tại 
    */
@@ -128,7 +122,7 @@ export class UserSessionRepository {
   /**
    * Đăng xuất toàn bộ session của một tài khoản
    */
-  static async logoutAllSessionsByAccount(accountId: string): Promise<number> {
+  static async revokeAllByAccount(accountId: string): Promise<number> {
     const result = await pool.query(
       `
       UPDATE accounting.user_sessions
@@ -175,9 +169,6 @@ export class UserSessionRepository {
     return result.rows[0] ?? null;
   }
 
-  //
-  //refresh token
-  //
   /**
   * Cập nhật thời gian sử dụng cuối cùng của session
   */
@@ -190,5 +181,66 @@ export class UserSessionRepository {
       `,
       [sessionId]
     );
+  }
+
+  /*
+   * Lấy danh sách session còn hiệu lực của một tài khoản
+   */
+
+  static async findActiveByAccount(accountId: string): Promise<UserSession[]> {
+    const result = await pool.query<UserSession>(
+      `SELECT session_id, device_name, ip_address, last_used_at, created_at, expired_at
+         FROM accounting.user_sessions
+         WHERE account_id = $1 AND revoked_at IS NULL AND expired_at > NOW()
+         ORDER BY last_used_at DESC`,
+      [accountId]
+    );
+    return result.rows;
+  }
+
+  /*
+   * Thu hồi (revoke) một session theo sessionId
+   */
+  static async revokeBySessionId(sessionId: string, accountId: string): Promise<boolean> {
+    const result = await pool.query(
+      `UPDATE accounting.user_sessions
+         SET revoked_at = NOW()
+         WHERE session_id = $1 AND account_id = $2 AND revoked_at IS NULL`,
+      [sessionId, accountId]
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  /*
+   * Thu hồi (revoke) một session theo refreshTokenHash
+   */
+  static async findActiveBySessionId(sessionId: string): Promise<UserSession | null> {
+    const result = await pool.query<UserSession>(
+      `SELECT * FROM accounting.user_sessions 
+         WHERE session_id = $1 AND revoked_at IS NULL AND expired_at > NOW() 
+         LIMIT 1`,
+      [sessionId]
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /**
+   * Dọn dẹp các session hết hạn
+   */
+  static async revokeExpiredSessions(idleTimeoutDays: number): Promise<number> {
+    const result = await pool.query(
+      `
+      UPDATE accounting.user_sessions
+      SET revoked_at = NOW()
+      WHERE revoked_at IS NULL
+        AND (
+            expired_at < NOW() 
+            OR 
+            last_used_at < (NOW() - make_interval(days => $1))
+        )
+      `,
+      [idleTimeoutDays]
+    );
+    return result.rowCount ?? 0;
   }
 }
