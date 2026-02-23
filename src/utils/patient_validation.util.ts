@@ -1,0 +1,82 @@
+import { PATIENT_ERROR_CODES } from '../constants/patient_error.constant';
+
+export class ValidationPatientUtil {
+    /**
+     * Chuẩn hóa họ tên:
+     */
+    static normalizeFullName(fullName: string): string {
+        if (!fullName) return '';
+
+        return fullName
+            .trim()
+            .replace(/\s+/g, ' ')
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
+    /**
+     * Parse và validate ngày sinh
+     */
+    static parseAndValidateDateOfBirth(dobInput: string): string {
+        if (!dobInput) {
+            throw PATIENT_ERROR_CODES.INVALID_DOB;
+        }
+
+        const trimmedInput = dobInput.trim();
+        let formattedDate = '';
+        let year: number, month: number, day: number;
+
+        //Parse định dạng đầu vào
+        if (trimmedInput.length === 4 && /^\d{4}$/.test(trimmedInput)) {
+            // Trường hợp chỉ có năm YYYY
+            year = parseInt(trimmedInput, 10);
+            month = 1;
+            day = 1;
+            formattedDate = `${year}-01-01`;
+        } else if (/^\d{2}-\d{2}-\d{4}$/.test(trimmedInput)) {
+            // Trường hợp DD-MM-YYYY
+            const parts = trimmedInput.split('-');
+            day = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            year = parseInt(parts[2], 10);
+
+            // Format trước thành chuỗi YYYY-MM-DD chuẩn SQL (thêm số 0 ở trước nếu cần)
+            const paddedMonth = month.toString().padStart(2, '0');
+            const paddedDay = day.toString().padStart(2, '0');
+            formattedDate = `${year}-${paddedMonth}-${paddedDay}`;
+        } else {
+            // Sai định dạng
+            throw PATIENT_ERROR_CODES.INVALID_DOB;
+        }
+
+        // Validate tính hợp lệ của ngày tháng (Strict mode)
+        const strictDate = new Date(year, month - 1, day);
+
+        if (
+            strictDate.getFullYear() !== year ||
+            strictDate.getMonth() !== month - 1 ||
+            strictDate.getDate() !== day
+        ) {
+            throw PATIENT_ERROR_CODES.INVALID_DOB;
+        }
+
+        //Validate ngày không được ở tương lai
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        if (strictDate > now) {
+            throw PATIENT_ERROR_CODES.INVALID_DOB;
+        }
+
+        // Validate thêm rule: Tuổi không quá 130 tuổi
+        const ageInMilliseconds = now.getTime() - strictDate.getTime();
+        const ageInYears = ageInMilliseconds / (1000 * 60 * 60 * 24 * 365.25);
+        if (ageInYears > 130) {
+            throw PATIENT_ERROR_CODES.INVALID_DOB;
+        }
+
+        return formattedDate;
+    }
+}
