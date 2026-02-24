@@ -2,6 +2,53 @@ import { Request, Response } from 'express';
 import { patientService } from '../services/patient_patient.service';
 
 export class PatientController {
+
+  /**
+   * Lấy danh sách hồ sơ bệnh nhân
+   */
+  static async getPatientsList(req: Request, res: Response) {
+    try {
+      const currentUser = (req as any).auth;
+
+      // Kiểm tra xác thực
+      if (!currentUser) {
+        return res.status(401).json({
+          success: false,
+          error_code: 'UNAUTHORIZED',
+          message: 'Không tìm thấy thông tin xác thực (Token không hợp lệ).'
+        });
+      }
+
+      // Gọi  Service
+      const result = await patientService.getPatientsListLogic(req.query);
+
+      // Trả về response
+      return res.status(200).json({
+        success: true,
+        message: 'Lấy danh sách hồ sơ bệnh nhân thành công.',
+        data: result
+      });
+
+    } catch (error: any) {
+      if (error && error.httpCode) {
+        return res.status(error.httpCode).json({
+          success: false,
+          error_code: error.code,
+          message: error.message
+        });
+      }
+
+      // Lỗi hệ thống
+      console.error('[PatientController - getPatientsList] Lỗi không xác định:', error);
+      return res.status(500).json({
+        success: false,
+        error_code: 'INTERNAL_SERVER_ERROR',
+        message: 'Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.'
+      });
+    }
+  }
+
+
   /**
    * Tạo hồ sơ bệnh nhân mới
    */
@@ -34,7 +81,6 @@ export class PatientController {
         });
       }
 
-      console.error('[PatientController] Lỗi không xác định:', error);
       return res.status(500).json({
         success: false,
         error_code: 'INTERNAL_SERVER_ERROR',
@@ -84,7 +130,6 @@ export class PatientController {
         });
       }
 
-      console.error('[PatientController - updatePatientInfo] Lỗi không xác định:', error);
       return res.status(500).json({
         success: false,
         error_code: 'INTERNAL_SERVER_ERROR',
@@ -92,4 +137,56 @@ export class PatientController {
       });
     }
   }
+
+
+  /**
+   * Cập nhật trạng thái hồ sơ bệnh nhân (ACTIVE, INACTIVE, DECEASED)
+   */
+  static async updatePatientStatus(req: Request, res: Response) {
+    try {
+      const patient_id = req.params.patient_id as string;
+      const { status, status_reason } = req.body;
+      const currentUser = (req as any).auth;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          success: false,
+          error_code: 'UNAUTHORIZED',
+          message: 'Không tìm thấy thông tin xác thực (Token không hợp lệ).'
+        });
+      }
+
+      const result = await patientService.updatePatientStatusLogic(
+        patient_id,
+        { status, status_reason },
+        currentUser
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Cập nhật trạng thái hồ sơ bệnh nhân thành công.',
+        data: result
+      });
+
+    } catch (error: any) {
+      if (error && error.httpCode) {
+        return res.status(error.httpCode).json({
+          success: false,
+          error_code: error.code,
+          message: error.message
+        });
+      }
+
+      // Lỗi hệ thống không lường trước được
+      console.error('[PatientController - updatePatientStatus] Lỗi không xác định:', error);
+      return res.status(500).json({
+        success: false,
+        error_code: 'INTERNAL_SERVER_ERROR',
+        message: 'Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.'
+      });
+    }
+  }
+
+
+
 }

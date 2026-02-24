@@ -6,6 +6,64 @@ import { PatientModels, Gender, IdentityType, CreatePatientPayload, UpdatePatien
 import { AuditPatientUtil } from '../utils/patient_audit.util';
 
 export class PatientService {
+    /**
+     * Nghiệp vụ lấy danh sách bệnh nhân
+     */
+    async getPatientsListLogic(queryParams: any) {
+        // Chuẩn hóa tham số phân trang
+        const page = Math.max(1, parseInt(queryParams.page) || 1); 
+        
+        const limit = Math.min(100, Math.max(1, parseInt(queryParams.limit) || 10)); 
+        
+        const offset = (page - 1) * limit;
+
+        // Chuẩn hóa các tham số Tìm kiếm & Lọc
+        const search = queryParams.search ? String(queryParams.search).trim() : undefined;
+        const status = queryParams.status ? String(queryParams.status).trim().toUpperCase() : undefined;
+        const gender = queryParams.gender ? String(queryParams.gender).trim().toUpperCase() : undefined;
+
+        // Validate
+        if (status && !['ACTIVE', 'INACTIVE', 'DECEASED'].includes(status)) {
+            throw {
+                httpCode: 400,
+                code: 'INVALID_FILTER_STATUS',
+                message: 'Giá trị lọc trạng thái không hợp lệ. Chỉ chấp nhận ACTIVE, INACTIVE, DECEASED.'
+            };
+        }
+
+        if (gender && !['MALE', 'FEMALE', 'OTHER', 'UNKNOWN'].includes(gender)) {
+            throw {
+                httpCode: 400,
+                code: 'INVALID_FILTER_GENDER',
+                message: 'Giá trị lọc giới tính không hợp lệ.'
+            };
+        }
+
+        // Gọi  Repository
+        const { items, total } = await patientRepository.getPatientsList({
+            limit,
+            offset,
+            search,
+            status,
+            gender
+        });
+
+        // kết quả trả về
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            items: items,
+            pagination: {
+                total_items: total,
+                total_pages: totalPages,
+                current_page: page,
+                limit: limit
+            }
+        };
+    }
+
+
+
     /*
      * Nghiệp vụ tạo mới hồ sơ bệnh nhân
      */
@@ -142,12 +200,122 @@ export class PatientService {
             await patientRepository.updatePatientWithAuditTransaction(patientId, mappedData, auditLogs);
         }
 
-        // Trả về thông tin cho Controller
         return {
             patient_id: patientId,
             updated_at: new Date()
         };
     }
+
+
+
+    /**
+     * Cập nhật trạng thái hồ sơ bệnh nhân (ACTIVE / INACTIVE / DECEASED)
+     */
+    async updatePatientStatusLogic(
+        patientId: string, 
+        payload: { status: string; status_reason?: string }, 
+        currentUser: { account_id: string; role: string }
+    ) {
+        // Kiểm tra tính hợp lệ cơ bản
+        const validStatuses = ['ACTIVE', 'INACTIVE', 'DECEASED'];
+        if (!validStatuses.includes(payload.status)) {
+            throw {
+                httpCode: 400,
+                code: 'INVALID_PAYLOAD',
+                message: 'Trạng thái không hợp lệ. Chỉ chấp nhận ACTIVE, INACTIVE, DECEASED.'
+            };
+        }
+
+        // Bắt buộc có lý do nếu ngưng theo dõi hoặc báo tử
+        if (['INACTIVE', 'DECEASED'].includes(payload.status)) {
+            if (!payload.status_reason || payload.status_reason.trim() === '') {
+                throw {
+                    httpCode: 400,
+                    code: 'MISSING_REASON',
+                    message: 'Vui lòng nhập lý do khi chuyển trạng thái sang ngưng hoạt động hoặc tử vong.'
+                };
+            }
+        }
+
+        // Kiểm tra hồ sơ tồn tại
+        const oldPatientData = await patientRepository.getPatientById(patientId);
+        if (!oldPatientData) {
+            throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        }
+
+        //Kiểm tra luồng logic trạng thái
+        // Chặn: Hồ sơ đã tử vong thì vĩnh viễn không được mở lại hay đổi trạng thái khác
+        if (oldPatientData.status === 'DECEASED') {
+            throw {
+                httpCode: 409,
+                code: 'DECEASED_LOCKED',
+                message: 'Không thể thay đổi trạng thái của hồ sơ bệnh nhân đã báo tử.'
+            };
+        }
+
+        // Xử lý status_reason: Nếu chuyển về ACTIVE thì tự động dọn dẹp (null) lý do cũ
+        let finalReason = payload.status_reason?.trim() || null;
+        if (payload.status === 'ACTIVE') {
+            finalReason = null;
+        }
+
+        // Kiểm tra nếu trạng thái không có sự thay đổi so với dữ liệu cũ thì không cần update, chỉ trả về thông báo
+        const oldReason = (oldPatientData as any).status_reason || null;
+        if (oldPatientData.status === payload.status && oldReason === finalReason) {
+            return { 
+                patient_id: patientId, 
+                message: 'Trạng thái không có sự thay đổi.' 
+            };
+        }
+
+        // Kiểm tra ràng buộc chéo - Chỉ check khi chuẩn bị khóa hồ sơ
+        if (['INACTIVE', 'DECEASED'].includes(payload.status)) {
+            const hasConstraints = await patientRepository.checkBusinessConstraintsForStatusChange(patientId);
+            if (hasConstraints) {
+                throw {
+                    httpCode: 409,
+                    code: 'CONSTRAINT_VIOLATION',
+                    message: 'Không thể khóa! Hồ sơ đang có lịch hẹn chờ khám hoặc nợ viện phí chưa thanh toán.'
+                };
+            }
+        }
+
+        // Chuẩn bị dữ liệu để sinh Log
+        const oldDataToCompare = {
+            status: oldPatientData.status,
+            status_reason: oldReason
+        };
+
+        const newDataToCompare = {
+            status: payload.status,
+            status_reason: finalReason
+        };
+
+        const auditLogs = AuditPatientUtil.generateLogRecords(
+            oldDataToCompare,
+            newDataToCompare,
+            currentUser.account_id,
+            patientId
+        );
+
+        // Thực thi cập nhật trạng thái cùng với log trong một transaction
+        await patientRepository.updatePatientStatusWithAuditTransaction(
+            patientId,
+            payload.status,
+            finalReason,
+            auditLogs
+        );
+
+        return {
+            patient_id: patientId,
+            status: payload.status,
+            updated_at: new Date()
+        };
+    }
+
+
+
+
 }
 
 export const patientService = new PatientService();

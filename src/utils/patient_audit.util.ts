@@ -4,12 +4,7 @@ export class AuditPatientUtil {
     /**
      * Sinh danh sách log
      */
-    static generateLogRecords(
-        oldData: any, 
-        newData: any, 
-        accountId: string, 
-        patientId: string
-    ): PatientAuditLogModel[] {
+    static generateLogRecords(oldData: any, newData: any, accountId: string, patientId: string): PatientAuditLogModel[] {
         const logs: PatientAuditLogModel[] = [];
 
         // Chỉ duyệt qua các key có trong newData

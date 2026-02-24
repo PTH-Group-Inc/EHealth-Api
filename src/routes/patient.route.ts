@@ -6,13 +6,17 @@ import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
 
 const patientRoutes = Router();
 
+// Lấy danh sách bệnh nhân
+patientRoutes.get('/', verifyAccessToken, authorizeRoles('ADMIN', 'SYSTEM', 'STAFF', 'DOCTOR', 'PHARMACIST'), PatientController.getPatientsList);
+
 // tạo hồ sơ bệnh nhân
 patientRoutes.post('/', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'SYSTEM'), PatientController.createPatient);
 
 // Cập nhật thông tin hành chính bệnh nhân
 patientRoutes.put('/:patient_id', verifyAccessToken, authorizeRoles('ADMIN', 'SYSTEM', 'STAFF'), PatientController.updatePatientInfo);
 
-
+// Cập nhật trạng thái hồ sơ bệnh nhân (ACTIVE / INACTIVE / DECEASED)
+patientRoutes.patch('/:patient_id/status',  verifyAccessToken,  authorizeRoles('ADMIN', 'SYSTEM', 'STAFF'),  PatientController.updatePatientStatus);
 
 
 export default patientRoutes;
