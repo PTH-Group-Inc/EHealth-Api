@@ -79,4 +79,30 @@ export class ValidationPatientUtil {
 
         return formattedDate;
     }
+
+
+    /**
+     * Kiểm tra định dạng số điện thoại
+     */
+    static validatePhoneNumber(phoneInput: string): string {
+        if (!phoneInput) return '';
+        
+        const trimmedPhone = phoneInput.trim();
+
+        const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+        
+        if (!phoneRegex.test(trimmedPhone)) {
+            throw PATIENT_ERROR_CODES.INVALID_PHONE;
+        }
+        
+        return trimmedPhone;
+    }
+
+    /**
+     * Chuẩn hóa chuỗi: Xóa khoảng trắng thừa ở 2 đầu
+     */
+    static normalizeString(input: string | undefined | null): string {
+        if (!input) return '';
+        return input.trim();
+    }
 }

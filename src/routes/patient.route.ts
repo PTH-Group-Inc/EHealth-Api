@@ -9,5 +9,10 @@ const patientRoutes = Router();
 // tạo hồ sơ bệnh nhân
 patientRoutes.post('/', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'SYSTEM'), PatientController.createPatient);
 
+// Cập nhật thông tin hành chính bệnh nhân
+patientRoutes.put('/:patient_id', verifyAccessToken, authorizeRoles('ADMIN', 'SYSTEM', 'STAFF'), PatientController.updatePatientInfo);
+
+
+
 
 export default patientRoutes;
