@@ -74,3 +74,12 @@ export interface UpdatePatientAdminPayload {
   account_id?: string | null;
   status?: PatientStatus;
 }
+
+
+export interface LinkPatientPayload {
+    patient_code: string;
+    verification_data: {
+        identity_number: string;
+        date_of_birth: string;
+    };
+}

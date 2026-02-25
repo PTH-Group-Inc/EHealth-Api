@@ -12,8 +12,11 @@ export class AuditPatientUtil {
             const newValue = newData[key];
             const oldValue = oldData[key];
 
+            const oldString = oldValue instanceof Date ? oldValue.toISOString().split('T')[0] : String(oldValue || '').trim();
+            const newString = String(newValue || '').trim();
+
             // Bỏ qua nếu giá trị gửi lên là undefined
-            if (newValue !== undefined && newValue !== oldValue) {
+            if (newString !== oldString) {
                 logs.push({
                     patient_id: patientId,
                     changed_by: accountId,

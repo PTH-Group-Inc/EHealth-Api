@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { PatientController } from '../controllers/patient_patient.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { PatientMobileController } from '../controllers/patient_mobile.controller';
 
 const patientRoutes = Router();
 
@@ -18,5 +19,7 @@ patientRoutes.put('/:patient_id', verifyAccessToken, authorizeRoles('ADMIN', 'SY
 // Cập nhật trạng thái hồ sơ bệnh nhân (ACTIVE / INACTIVE / DECEASED)
 patientRoutes.patch('/:patient_id/status',  verifyAccessToken,  authorizeRoles('ADMIN', 'SYSTEM', 'STAFF'),  PatientController.updatePatientStatus);
 
+// Liên kết hồ sơ bệnh nhân và thông tin định danh
+patientRoutes.post('/link', verifyAccessToken, authorizeRoles('CUSTOMER'), PatientMobileController.linkPatient);
 
 export default patientRoutes;

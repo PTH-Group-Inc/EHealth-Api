@@ -2,7 +2,7 @@ import { ValidationPatientUtil } from '../utils/patient_validation.util';
 import { IdentifierPatientUtil } from '../utils/patient_identifier.util';
 import { patientRepository } from '../repository/patient_patient.repository';
 import { PATIENT_ERROR_CODES } from '../constants/patient_error.constant';
-import { PatientModels, Gender, IdentityType, CreatePatientPayload, UpdatePatientAdminPayload } from '../models/patient_patient.models';
+import { PatientModels, Gender, IdentityType, CreatePatientPayload, UpdatePatientAdminPayload, BloodType } from '../models/patient_patient.models';
 import { AuditPatientUtil } from '../utils/patient_audit.util';
 
 export class PatientService {
@@ -10,14 +10,13 @@ export class PatientService {
      * Nghiệp vụ lấy danh sách bệnh nhân
      */
     async getPatientsListLogic(queryParams: any) {
-        // Chuẩn hóa tham số phân trang
-        const page = Math.max(1, parseInt(queryParams.page) || 1); 
-        
-        const limit = Math.min(100, Math.max(1, parseInt(queryParams.limit) || 10)); 
-        
+        // Chuẩn hóa
+        const page = Math.max(1, parseInt(queryParams.page) || 1);
+
+        const limit = Math.min(100, Math.max(1, parseInt(queryParams.limit) || 10));
+
         const offset = (page - 1) * limit;
 
-        // Chuẩn hóa các tham số Tìm kiếm & Lọc
         const search = queryParams.search ? String(queryParams.search).trim() : undefined;
         const status = queryParams.status ? String(queryParams.status).trim().toUpperCase() : undefined;
         const gender = queryParams.gender ? String(queryParams.gender).trim().toUpperCase() : undefined;
@@ -39,7 +38,6 @@ export class PatientService {
             };
         }
 
-        // Gọi  Repository
         const { items, total } = await patientRepository.getPatientsList({
             limit,
             offset,
@@ -68,12 +66,11 @@ export class PatientService {
      * Nghiệp vụ tạo mới hồ sơ bệnh nhân
      */
     async createPatientProfile(payload: CreatePatientPayload, currentUser: { account_id: string; role: string }) {
-        // Có loại giấy tờ nhưng không có số giấy tờ -> Báo lỗi
+
         if (payload.identity_type && !payload.identity_number) {
             throw PATIENT_ERROR_CODES.MISSING_IDENTITY_NUMBER;
         }
 
-        // --- Normalize & Validate ---
         if (!payload.full_name || payload.full_name.trim().length < 2) {
             throw PATIENT_ERROR_CODES.INVALID_NAME;
         }
@@ -82,7 +79,6 @@ export class PatientService {
 
 
         // --- Check Duplicate ---
-        // Chỉ kiểm tra khi bệnh nhân có cung cấp giấy tờ định danh
         if (payload.identity_type && payload.identity_number) {
             const isExist = await patientRepository.checkPatientExistenceByIdentity(
                 payload.identity_type,
@@ -95,12 +91,10 @@ export class PatientService {
         }
 
 
-        // --- Generate IDs ---
         const patientId = IdentifierPatientUtil.generateInternalId();
         const patientCode = IdentifierPatientUtil.generatePatientCode();
 
 
-        // --- Save (Map data & Insert) ---
         const now = new Date();
         const newPatient: PatientModels = {
             patient_id: patientId,
@@ -111,13 +105,22 @@ export class PatientService {
             phone: payload.phone || null,
             identity_type: (payload.identity_type as IdentityType) || null,
             identity_number: payload.identity_number || null,
+            
+            email: payload.email || null,
+            address: payload.address || null,
+            ethnicity: payload.ethnicity || 'Kinh',
+            nationality: payload.nationality || 'VN', 
+            job_title: payload.job_title || null,
+            blood_type: (payload.blood_type as BloodType) || null,
+            emer_contact_name: payload.emer_contact_name || null,
+            emer_contact_phone: payload.emer_contact_phone || null,
+            
             status: 'ACTIVE',
             created_at: now,
             updated_at: now,
         };
 
-        // Gọi Repository để lưu xuống DB
-        await patientRepository.insertNewPatientWithAuditTransaction(newPatient, currentUser.account_id);
+        await patientRepository.insertNewPatient(newPatient, currentUser.account_id);
 
 
         // --- Return ---
@@ -197,7 +200,7 @@ export class PatientService {
 
         // Chỉ thực hiện update DB nếu thực sự có sự thay đổi dữ liệu
         if (auditLogs.length > 0) {
-            await patientRepository.updatePatientWithAuditTransaction(patientId, mappedData, auditLogs);
+            await patientRepository.updatePatient(patientId, mappedData, auditLogs);
         }
 
         return {
@@ -212,8 +215,8 @@ export class PatientService {
      * Cập nhật trạng thái hồ sơ bệnh nhân (ACTIVE / INACTIVE / DECEASED)
      */
     async updatePatientStatusLogic(
-        patientId: string, 
-        payload: { status: string; status_reason?: string }, 
+        patientId: string,
+        payload: { status: string; status_reason?: string },
         currentUser: { account_id: string; role: string }
     ) {
         // Kiểm tra tính hợp lệ cơ bản
@@ -262,9 +265,9 @@ export class PatientService {
         // Kiểm tra nếu trạng thái không có sự thay đổi so với dữ liệu cũ thì không cần update, chỉ trả về thông báo
         const oldReason = (oldPatientData as any).status_reason || null;
         if (oldPatientData.status === payload.status && oldReason === finalReason) {
-            return { 
-                patient_id: patientId, 
-                message: 'Trạng thái không có sự thay đổi.' 
+            return {
+                patient_id: patientId,
+                message: 'Trạng thái không có sự thay đổi.'
             };
         }
 
@@ -299,7 +302,7 @@ export class PatientService {
         );
 
         // Thực thi cập nhật trạng thái cùng với log trong một transaction
-        await patientRepository.updatePatientStatusWithAuditTransaction(
+        await patientRepository.updatePatientStatus(
             patientId,
             payload.status,
             finalReason,

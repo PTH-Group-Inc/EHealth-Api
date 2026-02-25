@@ -49,8 +49,8 @@ export class PatientRepository {
       }
 
       // Nối các điều kiện lại với nhau bằng AND
-      const whereClause = whereConditions.length > 0 
-        ? `WHERE ${whereConditions.join(' AND ')}` 
+      const whereClause = whereConditions.length > 0
+        ? `WHERE ${whereConditions.join(' AND ')}`
         : '';
 
       // Thực thi Câu lệnh đếm tổng số bản ghi
@@ -60,12 +60,12 @@ export class PatientRepository {
         ${whereClause};
       `;
       const countResult = await pool.query(countQuery, values);
-      
+
       const totalItems = parseInt(countResult.rows[0].count, 10);
 
       // Thực thi Câu lệnh lấy dữ liệu
       const dataValues = [...values, limit, offset];
-      
+
       const dataQuery = `
         SELECT 
           patient_id, patient_code, full_name, date_of_birth, gender, 
@@ -115,7 +115,7 @@ export class PatientRepository {
   /**
    * Thêm mới hồ sơ bệnh nhân và lưu Log tạo mới
    */
-  async insertNewPatientWithAuditTransaction(patientEntity: PatientModels, accountId: string): Promise<void> {
+  async insertNewPatient(patientEntity: PatientModels, accountId: string): Promise<void> {
     const client = await pool.connect();
 
     try {
@@ -188,14 +188,12 @@ export class PatientRepository {
   /**
    * Cập nhật thông tin bệnh nhân và lưu Audit Log
    */
-  async updatePatientWithAuditTransaction(patientId: string, updateFields: Record<string, any>, auditLogs: any[]): Promise<void> {
-    // Lấy một kết nối duy nhất từ pool
+  async updatePatient(patientId: string, updateFields: Record<string, any>, auditLogs: any[]): Promise<void> {
     const client = await pool.connect();
 
     try {
       await client.query('BEGIN');
 
-      // Xử lý Update bảng patients
       const setClauses: string[] = [];
       const values: any[] = [];
       let paramIndex = 1;
@@ -206,10 +204,8 @@ export class PatientRepository {
         paramIndex++;
       }
 
-      // Bổ sung updated_at
       setClauses.push(`updated_at = CURRENT_TIMESTAMP`);
 
-      // Đẩy patientId vào cuối mảng values
       values.push(patientId);
 
       const updateQuery = `
@@ -220,7 +216,6 @@ export class PatientRepository {
 
       await client.query(updateQuery, values);
 
-      // Xử lý Insert bảng patient_audit_logs
       if (auditLogs.length > 0) {
         const logQuery = `
           INSERT INTO patienting.patient_audit_logs 
@@ -240,11 +235,9 @@ export class PatientRepository {
         }
       }
 
-      // Commit Transaction nếu mọi thứ thành công
       await client.query('COMMIT');
 
     } catch (error) {
-      // Rollback nếu có lỗi xảy ra
       await client.query('ROLLBACK');
       throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
     } finally {
@@ -300,7 +293,7 @@ export class PatientRepository {
    */
   async checkBusinessConstraintsForStatusChange(patientId: string): Promise<boolean> {
     try {
-            /*
+      /*
       const query = `
         SELECT 
           (SELECT EXISTS (
@@ -329,15 +322,15 @@ export class PatientRepository {
 
     } catch (error) {
       console.error('[PatientRepository] checkBusinessConstraints Error:', error);
-      throw PATIENT_ERROR_CODES.DATABASE_ERROR; 
+      throw PATIENT_ERROR_CODES.DATABASE_ERROR;
     }
   }
 
   /**
    * Cập nhật trạng thái, lý do và ghi nhận Audit Log bằng Transaction
    */
-  async updatePatientStatusWithAuditTransaction(patientId: string,  status: string,  statusReason: string | null,  auditLogs: any[]): Promise<void> {
-    
+  async updatePatientStatus(patientId: string, status: string, statusReason: string | null, auditLogs: any[]): Promise<void> {
+
     const client = await pool.connect();
 
     try {
@@ -351,7 +344,6 @@ export class PatientRepository {
       `;
       await client.query(updateQuery, [status, statusReason, patientId]);
 
-      // Insert vào bảng patient_audit_logs
       if (auditLogs.length > 0) {
         const logQuery = `
           INSERT INTO patienting.patient_audit_logs 
@@ -382,6 +374,75 @@ export class PatientRepository {
   }
 
 
+
+
+  /**
+   * Lấy thông tin bệnh nhân để phục vụ so khớp liên kết tài khoản (Mobile App)
+   */
+  async getPatientForLinking(patientCode: string): Promise<{ patient_id: string; account_id: string | null; identity_number: string | null; date_of_birth: Date;} | null> {
+    const query = `
+      SELECT patient_id, account_id, identity_number, date_of_birth 
+      FROM patienting.patients 
+      WHERE patient_code = $1 
+      LIMIT 1;
+    `;
+
+    try {
+      const result = await pool.query(query, [patientCode]);
+      
+      if ((result.rowCount ?? 0) === 0)  return null; 
+      
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('[PatientRepository - getPatientForLinking] Lỗi truy vấn:', error);
+      throw PATIENT_ERROR_CODES.DATABASE_ERROR;
+    }
+  }
+
+  /**
+   * Liên kết tài khoản người dùng với hồ sơ bệnh nhân
+   */
+  async linkAccount(patientId: string, accountId: string): Promise<void> {
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const updateQuery = `
+        UPDATE patienting.patients 
+        SET account_id = $1, updated_at = CURRENT_TIMESTAMP 
+        WHERE patient_id = $2;
+      `;
+      await client.query(updateQuery, [accountId, patientId]);
+
+      // Đã bỏ log_id ra khỏi câu query, giống hệt hàm updatePatientStatus
+      const logQuery = `
+        INSERT INTO patienting.patient_audit_logs 
+        (patient_id, changed_by, field_name, old_value, new_value, created_at) 
+        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP);
+      `;
+      
+      const logValues = [
+        patientId,   // $1
+        accountId,   // $2
+        'account_id',// $3
+        null,        // $4
+        accountId    // $5
+      ];
+      
+      await client.query(logQuery, logValues);
+
+      await client.query('COMMIT');
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[PatientRepository - linkAccountWithAuditTransaction] Lỗi Transaction:', error);
+      throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
+    } finally {
+      client.release();
+    }
+  }
 
 }
 

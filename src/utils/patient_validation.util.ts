@@ -28,30 +28,37 @@ export class ValidationPatientUtil {
         let formattedDate = '';
         let year: number, month: number, day: number;
 
-        //Parse định dạng đầu vào
         if (trimmedInput.length === 4 && /^\d{4}$/.test(trimmedInput)) {
-            // Trường hợp chỉ có năm YYYY
             year = parseInt(trimmedInput, 10);
             month = 1;
             day = 1;
             formattedDate = `${year}-01-01`;
+
         } else if (/^\d{2}-\d{2}-\d{4}$/.test(trimmedInput)) {
-            // Trường hợp DD-MM-YYYY
             const parts = trimmedInput.split('-');
             day = parseInt(parts[0], 10);
             month = parseInt(parts[1], 10);
             year = parseInt(parts[2], 10);
 
-            // Format trước thành chuỗi YYYY-MM-DD chuẩn SQL (thêm số 0 ở trước nếu cần)
+            const paddedMonth = month.toString().padStart(2, '0');
+            const paddedDay = day.toString().padStart(2, '0');
+            formattedDate = `${year}-${paddedMonth}-${paddedDay}`;
+
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedInput)) {
+
+            const parts = trimmedInput.split('-');
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10);
+            day = parseInt(parts[2], 10);
+
             const paddedMonth = month.toString().padStart(2, '0');
             const paddedDay = day.toString().padStart(2, '0');
             formattedDate = `${year}-${paddedMonth}-${paddedDay}`;
         } else {
-            // Sai định dạng
             throw PATIENT_ERROR_CODES.INVALID_DOB;
         }
 
-        // Validate tính hợp lệ của ngày tháng (Strict mode)
+        // Validate tính hợp lệ của ngày tháng
         const strictDate = new Date(year, month - 1, day);
 
         if (
@@ -70,7 +77,7 @@ export class ValidationPatientUtil {
             throw PATIENT_ERROR_CODES.INVALID_DOB;
         }
 
-        // Validate thêm rule: Tuổi không quá 130 tuổi
+        // Tuổi không quá 130 tuổi
         const ageInMilliseconds = now.getTime() - strictDate.getTime();
         const ageInYears = ageInMilliseconds / (1000 * 60 * 60 * 24 * 365.25);
         if (ageInYears > 130) {
@@ -89,7 +96,7 @@ export class ValidationPatientUtil {
         
         const trimmedPhone = phoneInput.trim();
 
-        const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+        const phoneRegex = /^(0[35789])[0-9]{8}$/;
         
         if (!phoneRegex.test(trimmedPhone)) {
             throw PATIENT_ERROR_CODES.INVALID_PHONE;

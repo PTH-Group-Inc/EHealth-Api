@@ -63,5 +63,10 @@ export const PATIENT_ERROR_CODES = {
         httpCode: 500,
         code: 'TRANSACTION_FAILED',
         message: 'Lỗi đồng bộ dữ liệu khi cập nhật. Vui lòng thử lại.',
+    },
+    LINK_FAILED: {
+        httpCode: 400,
+        code: 'LINK_FAILED',
+        message: 'Thông tin xác minh không khớp hoặc hồ sơ không khả dụng để liên kết.',
     }
 } as const;
