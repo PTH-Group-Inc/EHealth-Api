@@ -241,4 +241,100 @@ export class PatientController {
 
 
 
+  /**
+   * Cập nhật thông tin liên hệ của bệnh nhân
+   */
+  static async updatePatientContact(req: Request, res: Response) {
+    try {
+      const patient_id = req.params.patient_id as string;
+      const payload = req.body;
+      const currentUser = (req as any).auth;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          success: false,
+          error_code: 'UNAUTHORIZED',
+          message: 'Không tìm thấy thông tin xác thực (Token không hợp lệ).'
+        });
+      }
+
+      const result = await patientService.updatePatientContactLogic(
+        patient_id, 
+        payload, 
+        currentUser
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Cập nhật thông tin liên hệ thành công.',
+        data: result
+      });
+
+    } catch (error: any) {
+      if (error && error.httpCode) {
+        return res.status(error.httpCode).json({
+          success: false,
+          error_code: error.code,
+          message: error.message
+        });
+      }
+
+      console.error('[PatientController - updatePatientContact] Lỗi không xác định:', error);
+      return res.status(500).json({
+        success: false,
+        error_code: 'INTERNAL_SERVER_ERROR',
+        message: 'Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.'
+      });
+    }
+  }
+
+  /**
+   * Thêm mới thông tin người nhà bệnh nhân
+   */
+  static async addPatientRelation(req: Request, res: Response) {
+    try {
+      const patient_id = req.params.patient_id as string;
+      const payload = req.body;
+      const currentUser = (req as any).auth;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          success: false,
+          error_code: 'UNAUTHORIZED',
+          message: 'Không tìm thấy thông tin xác thực (Token không hợp lệ).'
+        });
+      }
+
+      // Gọi logic Service
+      const result = await patientService.addPatientRelationLogic(
+        patient_id, 
+        payload, 
+        currentUser
+      );
+
+      return res.status(201).json({
+        success: true,
+        message: 'Thêm mới thông tin người nhà thành công.',
+        data: result
+      });
+
+    } catch (error: any) {
+      if (error && error.httpCode) {
+        return res.status(error.httpCode).json({
+          success: false,
+          error_code: error.code,
+          message: error.message
+        });
+      }
+
+      console.error('[PatientController - addPatientRelation] Lỗi không xác định:', error);
+      return res.status(500).json({
+        success: false,
+        error_code: 'INTERNAL_SERVER_ERROR',
+        message: 'Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.'
+      });
+    }
+  }
+
+
 }

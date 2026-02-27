@@ -1,80 +1,80 @@
 import { pool } from '../config/postgresdb';
-import { PatientModels } from '../models/patient_patient.models';
+import { PatientFilterParams, PatientModels, PatientContact, PatientRelation, PatientMedicalHistory, PatientAuditLogModel } from '../models/patient_patient.models';
 import { PATIENT_ERROR_CODES } from '../constants/patient_error.constant';
+import crypto from 'crypto';
+
+
 
 export class PatientRepository {
 
   /**
-   * Lấy danh sách hồ sơ bệnh nhân (Hỗ trợ Search, Filter và Pagination)
+   * Lấy danh sách hồ sơ bệnh nhân
    */
-  async getPatientsList(params: {
-    limit: number;
-    offset: number;
-    search?: string;
-    status?: string;
-    gender?: string;
-  }): Promise<{ items: any[]; total: number }> {
+  async getPatientsList(params: PatientFilterParams): Promise<{ items: any[]; total: number }> {
     try {
       const { limit, offset, search, status, gender } = params;
 
-      const whereConditions: string[] = [];
+      const conditions: string[] = [];
       const values: any[] = [];
-      let paramIndex = 1;
 
-      // Xử lý tìm kiếm
       if (search) {
-        whereConditions.push(`(
-          full_name ILIKE $${paramIndex} OR 
-          phone ILIKE $${paramIndex} OR 
-          patient_code ILIKE $${paramIndex} OR 
-          identity_number ILIKE $${paramIndex}
-        )`);
         values.push(`%${search}%`);
-        paramIndex++;
+        conditions.push(`(
+          p.full_name ILIKE $${values.length} OR 
+          p.patient_code ILIKE $${values.length} OR 
+          p.identity_number ILIKE $${values.length} OR
+          EXISTS (
+            SELECT 1 FROM patienting.patient_contacts pc 
+            WHERE pc.patient_id = p.patient_id AND pc.phone_number ILIKE $${values.length}
+          )
+        )`);
       }
 
       if (status) {
-        whereConditions.push(`status = $${paramIndex}`);
         values.push(status);
-        paramIndex++;
+        conditions.push(`p.status = $${values.length}`);
       }
 
       if (gender) {
-        whereConditions.push(`gender = $${paramIndex}`);
         values.push(gender);
-        paramIndex++;
+        conditions.push(`p.gender = $${values.length}`);
       }
 
-      const whereClause = whereConditions.length > 0
-        ? `WHERE ${whereConditions.join(' AND ')}`
-        : '';
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
       const countQuery = `
-        SELECT COUNT(*) 
-        FROM patienting.patients 
+        SELECT COUNT(p.patient_id) as total_count
+        FROM patienting.patients p
         ${whereClause};
       `;
-      const countResult = await pool.query(countQuery, values);
-
-      const totalItems = parseInt(countResult.rows[0].count, 10);
-
-      const dataValues = [...values, limit, offset];
 
       const dataQuery = `
         SELECT 
-          patient_id, patient_code, full_name, date_of_birth, gender, 
-          phone, identity_type, identity_number, blood_type, status, created_at, updated_at 
-        FROM patienting.patients 
+          p.patient_id, p.patient_code, p.full_name, p.date_of_birth, p.gender, 
+          p.identity_type, p.identity_number, p.nationality, p.status, 
+          p.created_at, p.updated_at,
+          (
+            SELECT phone_number 
+            FROM patienting.patient_contacts pc 
+            WHERE pc.patient_id = p.patient_id AND pc.is_primary = true 
+            LIMIT 1
+          ) AS primary_phone
+        FROM patienting.patients p
         ${whereClause}
-        ORDER BY created_at DESC 
-        LIMIT $${paramIndex} OFFSET $${paramIndex + 1};
+        ORDER BY p.created_at DESC 
+        LIMIT $${values.length + 1} OFFSET $${values.length + 2};
       `;
-      const dataResult = await pool.query(dataQuery, dataValues);
 
-      // Trả về kết quả
+      const dataValues = [...values, limit, offset];
+
+      const [countResult, dataResult] = await Promise.all([
+        pool.query(countQuery, values),
+        pool.query(dataQuery, dataValues)
+      ]);
+
       return {
         items: dataResult.rows,
-        total: totalItems
+        total: parseInt(countResult.rows[0].total_count, 10)
       };
 
     } catch (error) {
@@ -107,70 +107,72 @@ export class PatientRepository {
   }
 
   /**
-   * Thêm mới hồ sơ bệnh nhân và lưu Log tạo mới
+   * Thêm mới hồ sơ bệnh nhân
    */
-  async insertNewPatient(patientEntity: PatientModels, accountId: string): Promise<void> {
+  async insertNewPatient(
+    patientEntity: PatientModels,
+    contactEntity: Partial<PatientContact>,
+    accountId: string
+  ): Promise<void> {
     const client = await pool.connect();
 
     try {
       await client.query('BEGIN');
 
-      const insertQuery = `
+      // Insert vào bảng patients
+      const insertPatientQuery = `
         INSERT INTO patienting.patients (
-          patient_id, patient_code, full_name, date_of_birth, gender, phone,
-          identity_type, identity_number, email, address, ethnicity, nationality, 
-          job_title, blood_type, emer_contact_name, emer_contact_phone, account_id,
+          patient_id, patient_code, full_name, date_of_birth, gender,
+          identity_type, identity_number, nationality, account_id,
           status, created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 
-          $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
         );
       `;
-
-      const values = [
-        patientEntity.patient_id,
-        patientEntity.patient_code,
-        patientEntity.full_name,
-        patientEntity.date_of_birth,
-        patientEntity.gender || null,
-        patientEntity.phone || null,
-        patientEntity.identity_type || null,
-        patientEntity.identity_number || null,
-        patientEntity.email || null,
-        patientEntity.address || null,
-        patientEntity.ethnicity || null,
-        patientEntity.nationality || null,
-        patientEntity.job_title || null,
-        patientEntity.blood_type || null,
-        patientEntity.emer_contact_name || null,
-        patientEntity.emer_contact_phone || null,
-        patientEntity.account_id || null,
-
-        patientEntity.status,
-        patientEntity.created_at,
-        patientEntity.updated_at
+      const patientValues = [
+        patientEntity.patient_id, patientEntity.patient_code, patientEntity.full_name,
+        patientEntity.date_of_birth, patientEntity.gender || null, patientEntity.identity_type || null,
+        patientEntity.identity_number || null, patientEntity.nationality || 'VN',
+        patientEntity.account_id || null, patientEntity.status, patientEntity.created_at, patientEntity.updated_at
       ];
+      await client.query(insertPatientQuery, patientValues);
 
-      await client.query(insertQuery, values);
+      // Insert vào bảng patient_contacts
+      const insertContactQuery = `
+        INSERT INTO patienting.patient_contacts (
+          contact_id, patient_id, phone_number, email, street_address, 
+          ward, province, is_primary, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        );
+      `;
+      const contactValues = [
+        contactEntity.contact_id,
+        patientEntity.patient_id,
+        contactEntity.phone_number,
+        contactEntity.email || null,
+        contactEntity.street_address || null,
+        contactEntity.ward || null,
+        contactEntity.province || null,
+        true
+      ];
+      await client.query(insertContactQuery, contactValues);
 
+      // Ghi audit log (Tạo mới hồ sơ)
+      const logId = crypto.randomUUID();
       const logQuery = `
         INSERT INTO patienting.patient_audit_logs 
-        (patient_id, changed_by, field_name, old_value, new_value, created_at) 
-        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP);
+        (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
       `;
-
       await client.query(logQuery, [
-        patientEntity.patient_id,
-        accountId,
-        'profile_creation',
-        null,
-        'CREATED'
+        logId, patientEntity.patient_id, accountId, 'status', null, 'CREATED'
       ]);
 
       await client.query('COMMIT');
 
     } catch (error) {
-      await client.query('ROLLBACK');
+      console.error('[PatientRepository] insertNewPatient Error:', error);
       throw PATIENT_ERROR_CODES.DATABASE_INSERT_ERROR;
     } finally {
       client.release();
@@ -180,7 +182,7 @@ export class PatientRepository {
 
 
   /**
-   * Cập nhật thông tin bệnh nhân và lưu Audit Log
+   * Cập nhật thông tin bệnh nhân
    */
   async updatePatient(patientId: string, updateFields: Record<string, any>, auditLogs: any[]): Promise<void> {
     const client = await pool.connect();
@@ -199,7 +201,6 @@ export class PatientRepository {
       }
 
       setClauses.push(`updated_at = CURRENT_TIMESTAMP`);
-
       values.push(patientId);
 
       const updateQuery = `
@@ -210,21 +211,23 @@ export class PatientRepository {
 
       await client.query(updateQuery, values);
 
+      // Ghi audit logs
       if (auditLogs.length > 0) {
         const logQuery = `
           INSERT INTO patienting.patient_audit_logs 
-          (patient_id, changed_by, field_name, old_value, new_value, created_at) 
-          VALUES ($1, $2, $3, $4, $5, $6);
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
 
         for (const log of auditLogs) {
+          const logId = crypto.randomUUID();
           await client.query(logQuery, [
+            logId,
             log.patient_id,
             log.changed_by,
             log.field_name,
             log.old_value,
-            log.new_value,
-            new Date()
+            log.new_value
           ]);
         }
       }
@@ -233,6 +236,7 @@ export class PatientRepository {
 
     } catch (error) {
       await client.query('ROLLBACK');
+      console.error('[PatientRepository] updatePatient Error:', error);
       throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
     } finally {
       client.release();
@@ -257,6 +261,7 @@ export class PatientRepository {
       }
       return result.rows[0] as PatientModels;
     } catch (error) {
+      console.error('[PatientRepository] getPatientById Error:', error);
       throw PATIENT_ERROR_CODES.DATABASE_ERROR;
     }
   }
@@ -267,8 +272,8 @@ export class PatientRepository {
   async checkPhoneConflict(phone: string, currentPatientId: string): Promise<boolean> {
     const query = `
       SELECT 1 
-      FROM patienting.patients 
-      WHERE phone = $1 AND patient_id != $2 
+      FROM patienting.patient_contacts 
+      WHERE phone_number = $1 AND patient_id != $2 
       LIMIT 1;
     `;
 
@@ -276,6 +281,7 @@ export class PatientRepository {
       const result = await pool.query(query, [phone, currentPatientId]);
       return (result.rowCount ?? 0) > 0;
     } catch (error) {
+      console.error('[PatientRepository] checkPhoneConflict Error:', error);
       throw PATIENT_ERROR_CODES.DATABASE_ERROR;
     }
   }
@@ -338,15 +344,18 @@ export class PatientRepository {
       `;
       await client.query(updateQuery, [status, statusReason, patientId]);
 
+      // Ghi audit logs
       if (auditLogs.length > 0) {
         const logQuery = `
           INSERT INTO patienting.patient_audit_logs 
-          (patient_id, changed_by, field_name, old_value, new_value, created_at) 
-          VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP);
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
 
         for (const log of auditLogs) {
+          const logId = crypto.randomUUID();
           await client.query(logQuery, [
+            logId,
             log.patient_id,
             log.changed_by,
             log.field_name,
@@ -360,7 +369,7 @@ export class PatientRepository {
 
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('[PatientRepository] updatePatientStatusTransaction Error:', error);
+      console.error('[PatientRepository] updatePatientStatus Error:', error);
       throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
     } finally {
       client.release();
@@ -373,9 +382,19 @@ export class PatientRepository {
   /**
    * Lấy thông tin bệnh nhân để phục vụ so khớp liên kết tài khoản (Mobile App)
    */
-  async getPatientForLinking(patientCode: string): Promise<{ patient_id: string; account_id: string | null; identity_number: string | null; date_of_birth: Date;} | null> {
+  async getPatientForLinking(patientCode: string): Promise<{
+    patient_id: string;
+    account_id: string | null;
+    identity_number: string | null;
+    date_of_birth: string;
+  } | null> {
+
     const query = `
-      SELECT patient_id, account_id, identity_number, date_of_birth 
+      SELECT 
+        patient_id, 
+        account_id, 
+        identity_number, 
+        TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth 
       FROM patienting.patients 
       WHERE patient_code = $1 
       LIMIT 1;
@@ -383,13 +402,12 @@ export class PatientRepository {
 
     try {
       const result = await pool.query(query, [patientCode]);
-      
-      if ((result.rowCount ?? 0) === 0)  return null; 
-      
+
+      if ((result.rowCount ?? 0) === 0) return null;
 
       return result.rows[0];
     } catch (error) {
-      console.error('[PatientRepository - getPatientForLinking] Lỗi truy vấn:', error);
+      console.error('[PatientRepository - getPatientForLinking] Error:', error);
       throw PATIENT_ERROR_CODES.DATABASE_ERROR;
     }
   }
@@ -410,35 +428,190 @@ export class PatientRepository {
       `;
       await client.query(updateQuery, [accountId, patientId]);
 
+      // Ghi audit log
+      const logId = crypto.randomUUID();
       const logQuery = `
         INSERT INTO patienting.patient_audit_logs 
-        (patient_id, changed_by, field_name, old_value, new_value, created_at) 
-        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP);
+        (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
       `;
-      
-      const logValues = [
-        patientId,  
-        accountId, 
+
+      await client.query(logQuery, [
+        logId,
+        patientId,
+        accountId,
         'account_id',
-        null,     
-        accountId    
-      ];
-      
-      await client.query(logQuery, logValues);
+        null,
+        accountId
+      ]);
 
       await client.query('COMMIT');
 
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('[PatientRepository - linkAccountWithAuditTransaction] Lỗi Transaction:', error);
+      console.error('[PatientRepository - linkAccount] Error:', error);
       throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
     } finally {
       client.release();
     }
   }
 
+
+
+  /**
+   * Cập nhật thông tin liên hệ
+   */
+  async updatePatientContact(patientId: string, contactData: Record<string, any>, auditLogs: any[]): Promise<number> {
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const setClauses: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      for (const [key, value] of Object.entries(contactData)) {
+        setClauses.push(`${key} = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      }
+
+      setClauses.push(`updated_at = CURRENT_TIMESTAMP`);
+      values.push(patientId);
+
+      const updateQuery = `
+        UPDATE patienting.patient_contacts 
+        SET ${setClauses.join(', ')} 
+        WHERE patient_id = $${paramIndex} AND is_primary = true;
+      `;
+      
+      const updateResult = await client.query(updateQuery, values);
+      
+      const affectedRows = updateResult.rowCount ?? 0;
+
+      if (affectedRows > 0 && auditLogs.length > 0) {
+        const logQuery = `
+          INSERT INTO patienting.patient_audit_logs 
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+
+        for (const log of auditLogs) {
+          await client.query(logQuery, [
+            crypto.randomUUID(), 
+            log.patient_id,
+            log.changed_by,
+            log.field_name,
+            log.old_value,
+            log.new_value
+          ]);
+        }
+      }
+
+      await client.query('COMMIT');
+      
+      return affectedRows;
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[PatientRepository] updatePatientContact Error:', error);
+      throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
+    } finally {
+      client.release();
+    }
+  }
+
+
+
+
+  /**
+   * Thêm mới thông tin người nhà
+   */
+  async insertPatientRelation(relationData: any, auditLogs: any[]): Promise<void> {
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const insertQuery = `
+        INSERT INTO patienting.patient_relations (
+          relation_id, patient_id, full_name, relationship, phone_number, 
+          is_emergency, has_legal_rights, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        );
+      `;
+
+      const relationValues = [
+        relationData.relation_id,
+        relationData.patient_id,
+        relationData.full_name,
+        relationData.relationship,
+        relationData.phone_number,
+        relationData.is_emergency || false,
+        relationData.has_legal_rights || false
+      ];
+
+      await client.query(insertQuery, relationValues);
+
+      if (auditLogs.length > 0) {
+        const logQuery = `
+          INSERT INTO patienting.patient_audit_logs 
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+
+        for (const log of auditLogs) {
+          await client.query(logQuery, [
+            crypto.randomUUID(),
+            log.patient_id,
+            log.changed_by,
+            `relation_${log.field_name}`,
+            log.old_value,
+            log.new_value
+          ]);
+        }
+      }
+
+      await client.query('COMMIT');
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[PatientContactRelationRepository] insertPatientRelation Error:', error);
+      throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
+    } finally {
+      client.release();
+    }
+  }
+
+
+
+  /**
+   * Lấy thông tin liên hệ chính của bệnh nhân
+   */
+  async getPrimaryContactByPatientId(patientId: string): Promise<PatientContact | null> {
+    const query = `
+      SELECT * FROM patienting.patient_contacts 
+      WHERE patient_id = $1 AND is_primary = true 
+      LIMIT 1;
+    `;
+
+    try {
+      const result = await pool.query(query, [patientId]);
+      
+      if ((result.rowCount ?? 0) === 0) {
+        return null;
+      }
+      return result.rows[0] as PatientContact;
+      
+    } catch (error) {
+      console.error('[PatientRepository] getPrimaryContactByPatientId Error:', error);
+      throw PATIENT_ERROR_CODES.DATABASE_ERROR;
+    }
+  }
+
+
 }
-
-
 
 export const patientRepository = new PatientRepository();

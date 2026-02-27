@@ -21,4 +21,10 @@ patientRoutes.patch('/:patient_id/status',  verifyAccessToken,  authorizeRoles('
 // Liên kết hồ sơ bệnh nhân và thông tin định danh
 patientRoutes.post('/link', verifyAccessToken, authorizeRoles('CUSTOMER'), PatientController.linkPatient);
 
+// Cập nhật thông tin liên hệ bệnh nhân
+patientRoutes.put('/:patient_id/contact',  verifyAccessToken,  authorizeRoles('ADMIN', 'SYSTEM', 'STAFF'),  PatientController.updatePatientContact);
+
+// Thêm mới thông tin người nhà
+patientRoutes.post( '/:patient_id/relations',  verifyAccessToken,  authorizeRoles('ADMIN', 'SYSTEM', 'STAFF'),  PatientController.addPatientRelation);
+
 export default patientRoutes;

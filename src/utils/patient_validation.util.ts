@@ -88,29 +88,38 @@ export class ValidationPatientUtil {
         return formattedDate;
     }
 
-
-    /**
-     * Kiểm tra định dạng số điện thoại
-     */
-    static validatePhoneNumber(phoneInput: string): string {
-        if (!phoneInput) return '';
-        
-        const trimmedPhone = phoneInput.trim();
-
-        const phoneRegex = /^(0[35789])[0-9]{8}$/;
-        
-        if (!phoneRegex.test(trimmedPhone)) {
-            throw PATIENT_ERROR_CODES.INVALID_PHONE;
-        }
-        
-        return trimmedPhone;
-    }
-
     /**
      * Chuẩn hóa chuỗi: Xóa khoảng trắng thừa ở 2 đầu
      */
-    static normalizeString(input: string | undefined | null): string {
-        if (!input) return '';
-        return input.trim();
+    static normalizeString(input: string | undefined | null): string | null {
+        if (input === null || input === undefined) return null;
+        const trimmed = input.trim();
+        return trimmed === '' ? null : trimmed;
+    }
+
+
+    /**    
+     *  * Validate và chuẩn hóa số điện thoại Việt Nam
+     */
+    static validatePhoneNumber(phoneInput: string): string {
+        if (!phoneInput) {
+            throw { httpCode: 400, code: 'INVALID_PHONE', message: 'Vui lòng cung cấp số điện thoại.' };
+        }
+
+        const digitsOnly = phoneInput.replace(/\D/g, '');
+
+        const normalizedPhone = digitsOnly.startsWith('84') ? '0' + digitsOnly.slice(2) : digitsOnly;
+
+        const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+
+        if (!phoneRegex.test(normalizedPhone)) {
+            throw { 
+                httpCode: 400, 
+                code: 'INVALID_PHONE_FORMAT', 
+                message: 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam hợp lệ (10 chữ số).' 
+            };
+        }
+
+        return normalizedPhone;
     }
 }
