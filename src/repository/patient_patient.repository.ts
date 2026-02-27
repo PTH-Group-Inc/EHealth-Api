@@ -17,7 +17,6 @@ export class PatientRepository {
     try {
       const { limit, offset, search, status, gender } = params;
 
-      // Khởi tạo mảng 
       const whereConditions: string[] = [];
       const values: any[] = [];
       let paramIndex = 1;
@@ -34,26 +33,22 @@ export class PatientRepository {
         paramIndex++;
       }
 
-      // Xử lý lọc theo Trạng thái
       if (status) {
         whereConditions.push(`status = $${paramIndex}`);
         values.push(status);
         paramIndex++;
       }
 
-      // Xử lý lọc theo Giới tính
       if (gender) {
         whereConditions.push(`gender = $${paramIndex}`);
         values.push(gender);
         paramIndex++;
       }
 
-      // Nối các điều kiện lại với nhau bằng AND
       const whereClause = whereConditions.length > 0
         ? `WHERE ${whereConditions.join(' AND ')}`
         : '';
 
-      // Thực thi Câu lệnh đếm tổng số bản ghi
       const countQuery = `
         SELECT COUNT(*) 
         FROM patienting.patients 
@@ -63,7 +58,6 @@ export class PatientRepository {
 
       const totalItems = parseInt(countResult.rows[0].count, 10);
 
-      // Thực thi Câu lệnh lấy dữ liệu
       const dataValues = [...values, limit, offset];
 
       const dataQuery = `
@@ -416,7 +410,6 @@ export class PatientRepository {
       `;
       await client.query(updateQuery, [accountId, patientId]);
 
-      // Đã bỏ log_id ra khỏi câu query, giống hệt hàm updatePatientStatus
       const logQuery = `
         INSERT INTO patienting.patient_audit_logs 
         (patient_id, changed_by, field_name, old_value, new_value, created_at) 
@@ -424,11 +417,11 @@ export class PatientRepository {
       `;
       
       const logValues = [
-        patientId,   // $1
-        accountId,   // $2
-        'account_id',// $3
-        null,        // $4
-        accountId    // $5
+        patientId,  
+        accountId, 
+        'account_id',
+        null,     
+        accountId    
       ];
       
       await client.query(logQuery, logValues);

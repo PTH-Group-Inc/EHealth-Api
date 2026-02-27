@@ -28,6 +28,7 @@ export class ValidationPatientUtil {
         let formattedDate = '';
         let year: number, month: number, day: number;
 
+        // Hỗ trợ 3 định dạng: YYYY, DD-MM-YYYY, YYYY-MM-DD
         if (trimmedInput.length === 4 && /^\d{4}$/.test(trimmedInput)) {
             year = parseInt(trimmedInput, 10);
             month = 1;
