@@ -76,20 +76,25 @@ export class AuthService {
   }
 
   /**
-   * Xử lý khi đăng nhập thành công (Tạo Token & Session)
+   * Xử lý khi đăng nhập thành công
    */
   private static async processLoginSuccess(account: Account, clientInfo: ClientInfo) {
 
-    AuthValidation.validateDevice(clientInfo);
+    let sessionId: string;
 
-    const existingSession = await UserSessionRepository.findByAccountAndDevice(
-      account.account_id,
-      clientInfo.deviceId!,
-    );
-
-    const sessionId = existingSession
-      ? existingSession.sessionId
-      : AuthSessionUtil.generate(account.account_id);
+    // Nếu client gửi device info thì check xem có session cũ của device không
+    if (clientInfo.deviceId) {
+      const existingSession = await UserSessionRepository.findByAccountAndDevice(
+        account.account_id,
+        clientInfo.deviceId,
+      );
+      // Nếu có session cũ thì dùng lại, không có thì tạo mới
+      sessionId = existingSession
+        ? existingSession.sessionId
+        : AuthSessionUtil.generate(account.account_id);
+    } else {
+      sessionId = AuthSessionUtil.generate(account.account_id);
+    }
 
     const { accessToken, refreshToken, refreshTokenHash, expiresIn } =
       SecurityUtil.generateToken(account, sessionId);

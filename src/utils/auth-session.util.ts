@@ -15,29 +15,33 @@ export class AuthSessionUtil {
     ) {
         const expiredAt = SecurityUtil.getRefreshTokenExpiredAt();
         
-        const existingSession = await UserSessionRepository.findByAccountAndDevice(
-             accountId,
-             clientInfo.deviceId!
-        );
-
-        if (existingSession) {
-            await UserSessionRepository.updateSessionBySessionId(
-                existingSession.sessionId,
-                {
-                    refreshTokenHash,
-                    ipAddress: clientInfo.ip,
-                    userAgent: clientInfo.userAgent,
-                    expiredAt,
-                },
+        // Nếu có deviceId thì tìm session cũ của device
+        if (clientInfo.deviceId) {
+            const existingSession = await UserSessionRepository.findByAccountAndDevice(
+                accountId,
+                clientInfo.deviceId
             );
-            return;
+
+            if (existingSession) {
+                await UserSessionRepository.updateSessionBySessionId(
+                    existingSession.sessionId,
+                    {
+                        refreshTokenHash,
+                        ipAddress: clientInfo.ip,
+                        userAgent: clientInfo.userAgent,
+                        expiredAt,
+                    },
+                );
+                return;
+            }
         }
 
+        // Tạo session mới
         await UserSessionRepository.createSession({
             sessionId: sessionId, 
             accountId,
             refreshTokenHash,
-            deviceId: clientInfo.deviceId!,
+            deviceId: clientInfo.deviceId,
             deviceName: clientInfo.deviceName,
             ipAddress: clientInfo.ip,
             userAgent: clientInfo.userAgent,
