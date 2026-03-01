@@ -156,7 +156,7 @@ export class PatientController {
         });
       }
 
-      const result = await patientService.updatePatientStatusLogic(
+      const result = await patientService.updatePatientStatus(
         patient_id,
         { status, status_reason },
         currentUser
@@ -241,6 +241,64 @@ export class PatientController {
 
 
 
+  /// Cập nhật một liên hệ cụ thể của bệnh nhân
+  static async addSpecificContact(req: Request, res: Response) {
+    try {
+      
+      const currentUser = (req as any).auth;
+      
+      if (!currentUser) return res.status(401).json({ success: false, message: 'Unauthorized' });
+      
+      const result = await patientService.addPatientContact(req.params.patient_id as string, req.body, currentUser);
+     
+      return res.status(201).json({ success: true, message: 'Thêm liên hệ phụ thành công', data: result });
+    } catch (error: any) {
+      
+      if (error && error.httpCode) return res.status(error.httpCode).json({ success: false, error_code: error.code, message: error.message });
+     
+      return res.status(500).json({ success: false, error_code: 'INTERNAL_SERVER_ERROR', message: 'Lỗi hệ thống.' });
+    }
+  }
+
+
+  // Cập nhật đích danh 1 liên hệ phụ
+  static async updateSpecificContact(req: Request, res: Response) {
+    try {
+      const currentUser = (req as any).auth;
+     
+      if (!currentUser) return res.status(401).json({ success: false, message: 'Unauthorized' });
+      
+      const result = await patientService.updateSpecificContact(req.params.patient_id as string, req.params.contact_id as string, req.body, currentUser);
+      
+      return res.status(200).json({ success: true, message: 'Cập nhật liên hệ thành công', data: result });
+    } catch (error: any) {
+      
+      if (error && error.httpCode) return res.status(error.httpCode).json({ success: false, error_code: error.code, message: error.message });
+      
+      return res.status(500).json({ success: false, error_code: 'INTERNAL_SERVER_ERROR', message: 'Lỗi hệ thống.' });
+    }
+  }
+
+  // Xóa 1 liên hệ phụ
+  static async deleteSpecificContact(req: Request, res: Response) {
+    try {
+      const currentUser = (req as any).auth;
+      
+      if (!currentUser) return res.status(401).json({ success: false, message: 'Unauthorized' });
+      
+      const result = await patientService.deletePatientContact(req.params.patient_id as string, req.params.contact_id as string, currentUser);
+      
+      return res.status(200).json({ success: true, message: 'Xóa liên hệ phụ thành công', data: result });
+    } catch (error: any) {
+      
+      if (error && error.httpCode) return res.status(error.httpCode).json({ success: false, error_code: error.code, message: error.message });
+      
+      return res.status(500).json({ success: false, error_code: 'INTERNAL_SERVER_ERROR', message: 'Lỗi hệ thống.' });
+    }
+  }
+
+
+
   /**
    * Cập nhật thông tin liên hệ của bệnh nhân
    */
@@ -258,9 +316,9 @@ export class PatientController {
         });
       }
 
-      const result = await patientService.updatePatientContactLogic(
-        patient_id, 
-        payload, 
+      const result = await patientService.updatePatientContact(
+        patient_id,
+        payload,
         currentUser
       );
 
@@ -288,6 +346,9 @@ export class PatientController {
     }
   }
 
+
+
+
   /**
    * Thêm mới thông tin người nhà bệnh nhân
    */
@@ -306,9 +367,9 @@ export class PatientController {
       }
 
       // Gọi logic Service
-      const result = await patientService.addPatientRelationLogic(
-        patient_id, 
-        payload, 
+      const result = await patientService.addPatientRelation(
+        patient_id,
+        payload,
         currentUser
       );
 
@@ -328,6 +389,91 @@ export class PatientController {
       }
 
       console.error('[PatientController - addPatientRelation] Lỗi không xác định:', error);
+      return res.status(500).json({
+        success: false,
+        error_code: 'INTERNAL_SERVER_ERROR',
+        message: 'Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.'
+      });
+    }
+  }
+
+
+
+  /**
+   * Cập nhật thông tin người nhà
+   */
+  static async updatePatientRelation(req: Request, res: Response) {
+    try {
+      const patient_id = req.params.patient_id as string;
+      const relation_id = req.params.relation_id as string;
+      const currentUser = (req as any).auth;
+      if (!currentUser) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+      const result = await patientService.updatePatientRelation(patient_id, relation_id, req.body, currentUser);
+
+      return res.status(200).json({ success: true, message: 'Cập nhật người nhà thành công.', data: result });
+    } catch (error: any) {
+      if (error && error.httpCode) return res.status(error.httpCode).json({ success: false, error_code: error.code, message: error.message });
+      return res.status(500).json({ success: false, error_code: 'INTERNAL_SERVER_ERROR', message: 'Lỗi hệ thống.' });
+    }
+  }
+
+  /**
+   * Xóa thông tin người nhà
+   */
+  static async deletePatientRelation(req: Request, res: Response) {
+    try {
+      const patient_id = req.params.patient_id as string;
+      const relation_id = req.params.relation_id as string;
+      const currentUser = (req as any).auth;
+      if (!currentUser) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+      const result = await patientService.deletePatientRelation(patient_id, relation_id, currentUser);
+
+      return res.status(200).json({ success: true, message: 'Xóa người nhà thành công.', data: result });
+    } catch (error: any) {
+      if (error && error.httpCode) return res.status(error.httpCode).json({ success: false, error_code: error.code, message: error.message });
+      return res.status(500).json({ success: false, error_code: 'INTERNAL_SERVER_ERROR', message: 'Lỗi hệ thống.' });
+    }
+  }
+
+
+
+
+  /**
+   * Xem chi tiết hồ sơ bệnh nhân
+   */
+  static async getPatientDetail(req: Request, res: Response) {
+    try {
+      const patient_id = req.params.patient_id as string;
+      const currentUser = (req as any).auth;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          success: false,
+          error_code: 'UNAUTHORIZED',
+          message: 'Không tìm thấy thông tin xác thực (Token không hợp lệ).'
+        });
+      }
+
+      const result = await patientService.getPatientDetai(patient_id);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Lấy thông tin chi tiết bệnh nhân thành công.',
+        data: result
+      });
+
+    } catch (error: any) {
+      if (error && error.httpCode) {
+        return res.status(error.httpCode).json({
+          success: false,
+          error_code: error.code,
+          message: error.message
+        });
+      }
+
+      console.error('[PatientController - getPatientDetail] Lỗi không xác định:', error);
       return res.status(500).json({
         success: false,
         error_code: 'INTERNAL_SERVER_ERROR',

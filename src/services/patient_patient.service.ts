@@ -10,7 +10,7 @@ export class PatientService {
      * Nghiệp vụ lấy danh sách bệnh nhân
      */
     async getPatientsListLogic(queryParams: any) {
-        // Chuẩn hóa
+
         const page = Math.max(1, parseInt(queryParams.page) || 1);
 
         const limit = Math.min(100, Math.max(1, parseInt(queryParams.limit) || 10));
@@ -23,19 +23,11 @@ export class PatientService {
 
         // Validate
         if (status && !['ACTIVE', 'INACTIVE', 'DECEASED'].includes(status)) {
-            throw {
-                httpCode: 400,
-                code: 'INVALID_FILTER_STATUS',
-                message: 'Giá trị lọc trạng thái không hợp lệ. Chỉ chấp nhận ACTIVE, INACTIVE, DECEASED.'
-            };
+            throw PATIENT_ERROR_CODES.INVALID_FILTER_STATUS;
         }
 
         if (gender && !['MALE', 'FEMALE', 'OTHER', 'UNKNOWN'].includes(gender)) {
-            throw {
-                httpCode: 400,
-                code: 'INVALID_FILTER_GENDER',
-                message: 'Giá trị lọc giới tính không hợp lệ.'
-            };
+            throw PATIENT_ERROR_CODES.INVALID_FILTER_GENDER;
         }
 
         const { items, total } = await patientRepository.getPatientsList({
@@ -46,8 +38,7 @@ export class PatientService {
             gender
         });
 
-        // kết quả trả về
-        const totalPages = Math.ceil(total / limit);
+        const totalPages = Math.ceil(total / limit) || 1;
 
         return {
             items: items,
@@ -68,11 +59,7 @@ export class PatientService {
     async createPatientProfile(payload: CreatePatientPayload, currentUser: { account_id: string; role: string }) {
 
         if (!payload.contact || !payload.contact.phone_number || payload.contact.phone_number.trim() === '') {
-            throw {
-                httpCode: 400,
-                code: 'MISSING_PHONE_NUMBER',
-                message: 'Bắt buộc phải cung cấp số điện thoại liên lạc của bệnh nhân.'
-            };
+            throw PATIENT_ERROR_CODES.MISSING_PHONE_NUMBER;
         }
 
         if (payload.identity_type && !payload.identity_number) {
@@ -87,17 +74,20 @@ export class PatientService {
         const formattedDateOfBirth = ValidationPatientUtil.parseAndValidateDateOfBirth(payload.date_of_birth);
         const normalizedPhone = ValidationPatientUtil.validatePhoneNumber(payload.contact.phone_number);
 
-        // Check Duplicate
+        const patientId = IdentifierPatientUtil.generateInternalId();
+        const patientCode = IdentifierPatientUtil.generatePatientCode();
+        const now = new Date();
+
         if (payload.identity_type && payload.identity_number) {
-            const isExist = await patientRepository.checkPatientExistenceByIdentity(
-                payload.identity_type, payload.identity_number
+            const isExist = await patientRepository.checkIdentityConflict(
+                payload.identity_type, 
+                payload.identity_number,
+                patientId
             );
             if (isExist) throw PATIENT_ERROR_CODES.DUPLICATE_STRONG;
         }
 
-        const patientId = IdentifierPatientUtil.generateInternalId();
-        const patientCode = IdentifierPatientUtil.generatePatientCode();
-        const now = new Date();
+        
 
         const newPatient: PatientModels = {
             patient_id: patientId,
@@ -125,8 +115,25 @@ export class PatientService {
             province: payload.contact.province,
         };
 
-        // Gọi DB (Transaction đã lo phần còn lại)
-        await patientRepository.insertNewPatient(newPatient, newContact, currentUser.account_id);
+        // Sinh audit logs cho creation
+        const auditLogs = AuditPatientUtil.generateLogRecords(
+            {},
+            {
+                patient_code: newPatient.patient_code,
+                full_name: newPatient.full_name,
+                date_of_birth: newPatient.date_of_birth,
+                gender: newPatient.gender,
+                identity_type: newPatient.identity_type,
+                identity_number: newPatient.identity_number,
+                nationality: newPatient.nationality,
+                status: newPatient.status
+            },
+            currentUser.account_id,
+            newPatient.patient_id
+        );
+
+        // Gọi DB với audit logs
+        await patientRepository.insertNewPatient(newPatient, newContact, auditLogs);
 
         return {
             patient_id: newPatient.patient_id,
@@ -142,11 +149,22 @@ export class PatientService {
      */
     async updatePatientAdminInfo(patientId: string, payload: UpdatePatientAdminPayload, currentUser: { account_id: string; role: string }) {
         // Kiểm tra quyền của user
-        const forbiddenRoles = ['DOCTOR', 'NURSE'];
-        if (forbiddenRoles.includes(currentUser.role)) {
+        const allowedRoles = ['ADMIN', 'SYSTEM', 'STAFF'];
+        if (!allowedRoles.includes(currentUser.role)) {
             throw PATIENT_ERROR_CODES.FORBIDDEN;
         }
 
+        // Kiểm tra bệnh nhân tồn tại trước tiên
+        const oldPatientData = await patientRepository.getPatientById(patientId);
+        if (!oldPatientData) {
+            throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        }
+
+        if (oldPatientData.status === 'DECEASED') {
+            throw PATIENT_ERROR_CODES.DECEASED_LOCKED;
+        }
+
+        
         // Xử lý dữ liệu đầu vào
         const mappedData: Record<string, any> = {};
 
@@ -169,13 +187,27 @@ export class PatientService {
             return { patient_id: patientId, message: 'Không có dữ liệu nào được cập nhật.' };
         }
 
-        // Kiểm tra bệnh nhân tồn tại
-        const oldPatientData = await patientRepository.getPatientById(patientId);
-        if (!oldPatientData) {
-            throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        // Kiểm tra conflict identity nếu cập nhật identity
+        const newIdentityType = mappedData.identity_type !== undefined ? mappedData.identity_type : oldPatientData.identity_type;
+        const newIdentityNumber = mappedData.identity_number !== undefined ? mappedData.identity_number : oldPatientData.identity_number;
+
+        // Chỉ chạy kiểm tra TRÙNG LẶP khi: Có đủ cả Loại & Số, VÀ 1 trong 2 thông tin này có sự thay đổi so với DB
+        if (newIdentityType && newIdentityNumber) {
+            if (newIdentityType !== oldPatientData.identity_type || newIdentityNumber !== oldPatientData.identity_number) {
+                
+                const hasConflict = await patientRepository.checkIdentityConflict(
+                    newIdentityType as string,
+                    newIdentityNumber as string,
+                    patientId
+                );
+                
+                if (hasConflict) {
+                    throw PATIENT_ERROR_CODES.DUPLICATE_STRONG;
+                }
+            }
         }
 
-        // Tạo log và Gọi Repository để lưu DB
+        // Tạo audit logs
         const auditLogs = AuditPatientUtil.generateLogRecords(
             oldPatientData,
             mappedData,
@@ -199,7 +231,7 @@ export class PatientService {
     /**
      * Cập nhật trạng thái hồ sơ bệnh nhân
      */
-    async updatePatientStatusLogic(
+    async updatePatientStatus(
         patientId: string,
         payload: { status: string; status_reason?: string },
         currentUser: { account_id: string; role: string }
@@ -207,21 +239,13 @@ export class PatientService {
         // Kiểm tra tính hợp lệ cơ bản
         const validStatuses = ['ACTIVE', 'INACTIVE', 'DECEASED'];
         if (!validStatuses.includes(payload.status)) {
-            throw {
-                httpCode: 400,
-                code: 'INVALID_PAYLOAD',
-                message: 'Trạng thái không hợp lệ. Chỉ chấp nhận ACTIVE, INACTIVE, DECEASED.'
-            };
+            throw PATIENT_ERROR_CODES.INVALID_STATUS;
         }
 
         // Bắt buộc có lý do nếu ngưng theo dõi hoặc báo tử
         if (['INACTIVE', 'DECEASED'].includes(payload.status)) {
             if (!payload.status_reason || payload.status_reason.trim() === '') {
-                throw {
-                    httpCode: 400,
-                    code: 'MISSING_REASON',
-                    message: 'Vui lòng nhập lý do khi chuyển trạng thái sang ngưng hoạt động hoặc tử vong.'
-                };
+                throw PATIENT_ERROR_CODES.MISSING_STATUS_REASON;
             }
         }
 
@@ -233,11 +257,7 @@ export class PatientService {
 
         //Kiểm tra luồng logic trạng thái
         if (oldPatientData.status === 'DECEASED') {
-            throw {
-                httpCode: 409,
-                code: 'DECEASED_LOCKED',
-                message: 'Không thể thay đổi trạng thái của hồ sơ bệnh nhân đã báo tử.'
-            };
+            throw PATIENT_ERROR_CODES.DECEASED_STATUS_LOCKED;
         }
 
         // Nếu chuyển về ACTIVE thì tự động dọn dẹp
@@ -251,7 +271,7 @@ export class PatientService {
         if (oldPatientData.status === payload.status && oldReason === finalReason) {
             return {
                 patient_id: patientId,
-                message: 'Trạng thái không có sự thay đổi.'
+                message: PATIENT_ERROR_CODES.STATUS_UNCHANGED.message
             };
         }
 
@@ -259,11 +279,7 @@ export class PatientService {
         if (['INACTIVE', 'DECEASED'].includes(payload.status)) {
             const hasConstraints = await patientRepository.checkBusinessConstraintsForStatusChange(patientId);
             if (hasConstraints) {
-                throw {
-                    httpCode: 409,
-                    code: 'CONSTRAINT_VIOLATION',
-                    message: 'Không thể khóa! Hồ sơ đang có lịch hẹn chờ khám hoặc nợ viện phí chưa thanh toán.'
-                };
+                throw PATIENT_ERROR_CODES.CONSTRAINT_VIOLATION;
             }
         }
 
@@ -300,6 +316,8 @@ export class PatientService {
     }
 
 
+    
+
     /**
      * Liên kết hồ sơ bệnh nhân với tài khoản App
      */
@@ -307,6 +325,12 @@ export class PatientService {
 
         if (!payload.patient_code || !payload.verification_data || !payload.verification_data.identity_number || !payload.verification_data.date_of_birth) {
             throw PATIENT_ERROR_CODES.VALIDATION_ERROR;
+        }
+
+        // Kiểm tra xem tài khoản App này đã liên kết với hồ sơ nào chưa
+        const isAccountLinked = await patientRepository.checkAccountAlreadyLinked(currentUser.account_id);
+        if (isAccountLinked) {
+            throw PATIENT_ERROR_CODES.ACCOUNT_ALREADY_LINKED;
         }
 
         const patientCode = payload.patient_code?.trim();
@@ -329,7 +353,7 @@ export class PatientService {
 
         if (
             !patientData ||                                
-            patientData.account_id !== null ||         
+            patientData.account_id !== null ||
             patientData.identity_number !== identityNumber || 
             dbFormattedDob !== formattedDob             
         ) {
@@ -351,14 +375,120 @@ export class PatientService {
 
 
     /**
-     * Nghiệp vụ: Cập nhật thông tin liên hệ (Contact)
+     * Thêm liên hệ phụ
      */
-    async updatePatientContactLogic(
+    async addPatientContact(patientId: string, payload: any, currentUser: { account_id: string; role: string }) {
+        if (!payload.phone_number) throw PATIENT_ERROR_CODES.MISSING_PHONE_NUMBER;
+
+        const patientData = await patientRepository.getPatientById(patientId);
+        if (!patientData) throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        if (patientData.status === 'DECEASED') throw PATIENT_ERROR_CODES.DECEASED_LOCKED_CONTACT;
+
+        const normalizedPhone = ValidationPatientUtil.validatePhoneNumber(payload.phone_number);
+        const isConflict = await patientRepository.checkPhoneConflict(normalizedPhone, patientId);
+        if (isConflict) throw PATIENT_ERROR_CODES.PHONE_CONFLICT;
+
+        const contactId = IdentifierPatientUtil.generateInternalId();
+        const newContactData = {
+            contact_id: contactId,
+            patient_id: patientId,
+            phone_number: normalizedPhone,
+            email: ValidationPatientUtil.normalizeString(payload.email),
+            street_address: ValidationPatientUtil.normalizeString(payload.street_address),
+            ward: ValidationPatientUtil.normalizeString(payload.ward),
+            province: ValidationPatientUtil.normalizeString(payload.province),
+            is_primary: false
+        };
+
+        const auditLogs = AuditPatientUtil.generateLogRecords(
+            {}, newContactData, currentUser.account_id, patientId, 'contact_aux_'
+        );
+
+        await patientRepository.insertPatientContact(newContactData, auditLogs);
+
+        return { patient_id: patientId, contact_id: contactId, created_at: new Date() };
+    }
+
+    /**
+     * Cập nhật đích danh 1 liên hệ
+     */
+    async updateSpecificContact(patientId: string, contactId: string, payload: any, currentUser: { account_id: string; role: string }) {
+        const patientData = await patientRepository.getPatientById(patientId);
+        if (!patientData) throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        if (patientData.status === 'DECEASED') throw PATIENT_ERROR_CODES.DECEASED_LOCKED_CONTACT;
+
+        const oldContactData = await patientRepository.getPatientContactById(contactId, patientId);
+        if (!oldContactData) {
+            throw { httpCode: 404, code: 'CONTACT_NOT_FOUND', message: 'Không tìm thấy liên hệ hoặc đã bị xóa.' };
+        }
+
+        const mappedData: Record<string, any> = {};
+        if (payload.phone_number) {
+            mappedData.phone_number = ValidationPatientUtil.validatePhoneNumber(payload.phone_number);
+            if (mappedData.phone_number !== oldContactData.phone_number) {
+                const isConflict = await patientRepository.checkPhoneConflict(mappedData.phone_number, patientId);
+                if (isConflict) throw PATIENT_ERROR_CODES.PHONE_CONFLICT;
+            }
+        }
+
+        if (payload.email !== undefined) mappedData.email = ValidationPatientUtil.normalizeString(payload.email);
+        if (payload.street_address !== undefined) mappedData.street_address = ValidationPatientUtil.normalizeString(payload.street_address);
+        if (payload.ward !== undefined) mappedData.ward = ValidationPatientUtil.normalizeString(payload.ward);
+        if (payload.province !== undefined) mappedData.province = ValidationPatientUtil.normalizeString(payload.province);
+
+        if (Object.keys(mappedData).length === 0) throw PATIENT_ERROR_CODES.EMPTY_PAYLOAD;
+
+        const auditLogs = AuditPatientUtil.generateLogRecords(oldContactData, mappedData, currentUser.account_id, patientId, 'contact_');
+        
+        if (auditLogs.length > 0) {
+            await patientRepository.updatePatientContact(contactId, patientId, mappedData, auditLogs);
+        }
+
+        return { patient_id: patientId, contact_id: contactId, updated_at: new Date() };
+    }
+
+    /**
+     * Xóa liên hệ
+     */
+    async deletePatientContact(patientId: string, contactId: string, currentUser: { account_id: string; role: string }) {
+        const patientData = await patientRepository.getPatientById(patientId);
+        if (!patientData) throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        if (patientData.status === 'DECEASED') throw PATIENT_ERROR_CODES.DECEASED_LOCKED_CONTACT;
+
+        const oldContactData = await patientRepository.getPatientContactById(contactId, patientId);
+        if (!oldContactData) {
+            throw { httpCode: 404, code: 'CONTACT_NOT_FOUND', message: 'Không tìm thấy liên hệ hoặc đã bị xóa.' };
+        }
+
+        // Không được xóa số điện thoại duy nhất/chính
+        if (oldContactData.is_primary) {
+            throw { httpCode: 400, code: 'CANNOT_DELETE_PRIMARY_CONTACT', message: 'Không thể xóa liên hệ chính. Hệ thống yêu cầu mỗi bệnh nhân phải có ít nhất 1 phương thức liên lạc.' };
+        }
+
+        const crypto = require('crypto');
+        const auditLog = {
+            log_id: crypto.randomUUID(),
+            patient_id: patientId,
+            changed_by: currentUser.account_id,
+            field_name: 'contact_status',
+            old_value: 'ACTIVE',
+            new_value: 'DELETED'
+        };
+
+        await patientRepository.deletePatientContact(contactId, patientId, auditLog);
+
+        return { patient_id: patientId, contact_id: contactId, message: 'Đã xóa liên hệ phụ thành công.' };
+    }
+
+
+    /**
+     * Cập nhật thông tin liên hệ
+     */
+    async updatePatientContact(
         patientId: string, 
         payload: any,
         currentUser: { account_id: string; role: string }
     ) {
-        // Validation
         let normalizedPhone = '';
         if (payload.phone_number) {
             normalizedPhone = ValidationPatientUtil.validatePhoneNumber(payload.phone_number);
@@ -372,28 +502,31 @@ export class PatientService {
         if (payload.province !== undefined) mappedData.province = ValidationPatientUtil.normalizeString(payload.province);
 
         if (Object.keys(mappedData).length === 0) {
-            throw { httpCode: 400, code: 'EMPTY_PAYLOAD', message: 'Không có dữ liệu hợp lệ để cập nhật.' };
+            throw PATIENT_ERROR_CODES.EMPTY_PAYLOAD;
         }
 
-        // 2. Kiểm tra Business Rules
+        // Kiểm tra Business Rules
         const patientData = await patientRepository.getPatientById(patientId);
         if (!patientData) {
             throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
         }
         if (patientData.status === 'DECEASED') {
-            throw { httpCode: 409, code: 'DECEASED_LOCKED', message: 'Không thể cập nhật liên hệ cho bệnh nhân đã báo tử.' };
+            throw PATIENT_ERROR_CODES.DECEASED_LOCKED_CONTACT;
         }
 
         if (mappedData.phone_number) {
             const isConflict = await patientRepository.checkPhoneConflict(mappedData.phone_number, patientId);
             if (isConflict) {
-                throw { httpCode: 409, code: 'PHONE_CONFLICT', message: 'Số điện thoại này đã được sử dụng bởi một hồ sơ khác.' };
+                throw PATIENT_ERROR_CODES.PHONE_CONFLICT;
             }
         }
 
-        // Chuẩn bị dữ liệu Audit Log
+        // Audit Log
         const oldContactData = await (patientRepository as any).getPrimaryContactByPatientId(patientId); 
-        
+        if (!oldContactData || !oldContactData.contact_id) {
+            throw PATIENT_ERROR_CODES.CONTACT_NOT_FOUND;
+        }
+
         const safeOldData = oldContactData || {}; 
 
         const auditLogs = AuditPatientUtil.generateLogRecords(
@@ -405,7 +538,12 @@ export class PatientService {
         );
 
         if (auditLogs.length > 0) {
-            await patientRepository.updatePatientContact(patientId, mappedData, auditLogs);
+            await patientRepository.updatePatientContact(
+                oldContactData.contact_id, 
+                patientId, 
+                mappedData, 
+                auditLogs
+            );
         }
 
         return {
@@ -416,21 +554,21 @@ export class PatientService {
     }
 
     /**
-     * Nghiệp vụ: Thêm mới người nhà 
+     * Thêm mới người nhà 
      */
-    async addPatientRelationLogic(
+    async addPatientRelation(
         patientId: string, 
         payload: any,
         currentUser: { account_id: string; role: string }
     ) {
         // Validation
         if (!payload.full_name || !payload.relationship || !payload.phone_number) {
-            throw { httpCode: 400, code: 'MISSING_FIELDS', message: 'Họ tên, Mối quan hệ và Số điện thoại là bắt buộc.' };
+            throw PATIENT_ERROR_CODES.MISSING_FIELDS;
         }
 
         const validRelationships = ['PARENT', 'SPOUSE', 'CHILD', 'SIBLING', 'OTHER'];
         if (!validRelationships.includes(payload.relationship.toUpperCase())) {
-            throw { httpCode: 400, code: 'INVALID_RELATIONSHIP', message: 'Mối quan hệ không hợp lệ.' };
+            throw PATIENT_ERROR_CODES.INVALID_RELATIONSHIP;
         }
 
         const normalizedPhone = ValidationPatientUtil.validatePhoneNumber(payload.phone_number);
@@ -442,10 +580,10 @@ export class PatientService {
             throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
         }
         if (patientData.status === 'DECEASED') {
-            throw { httpCode: 409, code: 'DECEASED_LOCKED', message: 'Không thể thêm người nhà cho bệnh nhân đã báo tử.' };
+            throw PATIENT_ERROR_CODES.DECEASED_LOCKED_RELATION;
         }
 
-        // 3. Chuẩn bị Data & Audit
+        // Chuẩn bị Data
         const relationId = IdentifierPatientUtil.generateInternalId(); 
         const newRelationData = {
             relation_id: relationId,
@@ -485,6 +623,117 @@ export class PatientService {
         };
     }
 
+    /**
+     * Cập nhật thông tin người nhà
+     */
+    async updatePatientRelation(
+        patientId: string, 
+        relationId: string, 
+        payload: any, 
+        currentUser: { account_id: string; role: string }
+    ) {
+        // Kiểm tra Bệnh nhân
+        const patientData = await patientRepository.getPatientById(patientId);
+        if (!patientData) throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        if (patientData.status === 'DECEASED') throw PATIENT_ERROR_CODES.DECEASED_LOCKED_RELATION;
+
+        // Kiểm tra Người nhà tồn tại
+        const oldRelationData = await patientRepository.getPatientRelationById(relationId, patientId);
+        if (!oldRelationData) {
+            throw { httpCode: 404, code: 'RELATION_NOT_FOUND', message: 'Không tìm thấy thông tin người nhà này.' };
+        }
+
+        // Chuẩn hóa dữ liệu mới
+        const mappedData: Record<string, any> = {};
+        
+        if (payload.full_name !== undefined) mappedData.full_name = ValidationPatientUtil.normalizeFullName(payload.full_name);
+        if (payload.phone_number !== undefined) mappedData.phone_number = ValidationPatientUtil.validatePhoneNumber(payload.phone_number);
+        
+        if (payload.relationship !== undefined) {
+            const validRelationships = ['PARENT', 'SPOUSE', 'CHILD', 'SIBLING', 'OTHER'];
+            const rel = payload.relationship.toUpperCase();
+            if (!validRelationships.includes(rel)) throw PATIENT_ERROR_CODES.INVALID_RELATIONSHIP;
+            mappedData.relationship = rel;
+        }
+
+        if (payload.is_emergency !== undefined) mappedData.is_emergency = payload.is_emergency;
+        if (payload.has_legal_rights !== undefined) mappedData.has_legal_rights = payload.has_legal_rights;
+
+        if (Object.keys(mappedData).length === 0) throw PATIENT_ERROR_CODES.EMPTY_PAYLOAD;
+
+        // Audit & Cập nhật
+        const auditLogs = AuditPatientUtil.generateLogRecords(
+            oldRelationData, 
+            mappedData, 
+            currentUser.account_id, 
+            patientId, 
+            'relation_' 
+        );
+
+        if (auditLogs.length > 0) {
+            await patientRepository.updatePatientRelation(relationId, patientId, mappedData, auditLogs);
+        }
+
+        return {
+            patient_id: patientId,
+            relation_id: relationId,
+            updated_at: new Date()
+        };
+    }
+
+    /**
+     * Xóa thông tin người nhà
+     */
+    async deletePatientRelation(
+        patientId: string, 
+        relationId: string, 
+        currentUser: { account_id: string; role: string }
+    ) {
+        // Check điều kiện bệnh nhân
+        const patientData = await patientRepository.getPatientById(patientId);
+        if (!patientData) throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        if (patientData.status === 'DECEASED') throw PATIENT_ERROR_CODES.DECEASED_LOCKED_RELATION;
+
+        const oldRelationData = await patientRepository.getPatientRelationById(relationId, patientId);
+        if (!oldRelationData) {
+            throw { httpCode: 404, code: 'RELATION_NOT_FOUND', message: 'Không tìm thấy thông tin người nhà, hoặc dữ liệu đã bị xóa.' };
+        }
+
+        // Tạo Audit Log đúng bản chất đổi status
+        const crypto = require('crypto');
+        const auditLog = {
+            log_id: crypto.randomUUID(),
+            patient_id: patientId,
+            changed_by: currentUser.account_id,
+            field_name: 'relation_status', 
+            old_value: 'ACTIVE',          
+            new_value: 'DELETED'     
+        };
+
+        // Thực thi Update (Soft Delete)
+        await patientRepository.deletePatientRelation(relationId, patientId, auditLog);
+
+        return {
+            patient_id: patientId,
+            relation_id: relationId,
+            message: 'Đã xóa thông tin người nhà thành công.'
+        };
+    }
+
+
+
+    /**
+     * Nghiệp vụ lấy chi tiết hồ sơ bệnh nhân
+     */
+    async getPatientDetai(patientId: string) {
+        const patientDetail = await patientRepository.getPatientDetailById(patientId);
+        
+        if (!patientDetail) {
+            throw PATIENT_ERROR_CODES.PATIENT_NOT_FOUND;
+        }
+
+        return patientDetail;
+    }
 
 
 }

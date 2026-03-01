@@ -18,6 +18,7 @@ export class AuditPatientUtil {
             const newValue = newData[key];
             const oldValue = oldData[key];
 
+            // Chuẩn hóa để so sánh
             const formatValue = (val: any) => {
                 if (val === null || val === undefined) return '';
                 if (typeof val === 'boolean') return val ? 'true' : 'false';
@@ -28,14 +29,16 @@ export class AuditPatientUtil {
             const oldString = formatValue(oldValue);
             const newString = formatValue(newValue);
 
+            // Chỉ sinh log nếu thực sự có sự khác biệt
             if (newString !== oldString) {
                 logs.push({
                     log_id: crypto.randomUUID(),
                     patient_id: patientId,
                     changed_by: accountId,
                     field_name: `${prefix}${key}`,
-                    old_value: oldValue !== null && oldValue !== undefined ? String(oldValue) : null,
-                    new_value: newValue !== null && newValue !== undefined ? String(newValue) : null,
+                    
+                    old_value: oldString === '' ? null : oldString,
+                    new_value: newString === '' ? null : newString,
                     created_at: new Date()
                 });
             }

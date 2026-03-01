@@ -83,36 +83,32 @@ export class PatientRepository {
     }
   }
 
-
   /**
-   * Kiểm tra xem bệnh nhân đã tồn tại dựa trên giấy tờ định danh chưa.
+   * Kiểm tra xem CCCD/Passport đã bị trùng với một bệnh nhân KHÁC
    */
-  async checkPatientExistenceByIdentity(
-    identityType: string,
-    identityNumber: string
-  ): Promise<boolean> {
+  async checkIdentityConflict(identityType: string, identityNumber: string, currentPatientId: string): Promise<boolean> {
     const query = `
       SELECT 1 
       FROM patienting.patients 
-      WHERE identity_type = $1 AND identity_number = $2 
+      WHERE identity_type = $1 AND identity_number = $2 AND patient_id != $3 
       LIMIT 1;
     `;
-
     try {
-      const result = await pool.query(query, [identityType, identityNumber]);
+      const result = await pool.query(query, [identityType, identityNumber, currentPatientId]);
       return (result.rowCount ?? 0) > 0;
     } catch (error) {
+      console.error('[PatientRepository] checkIdentityConflict Error:', error);
       throw PATIENT_ERROR_CODES.DATABASE_ERROR;
     }
   }
 
   /**
-   * Thêm mới hồ sơ bệnh nhân
-   */
+    * Thêm mới hồ sơ bệnh nhân (Đã hỗ trợ lưu Full Audit Log)
+    */
   async insertNewPatient(
     patientEntity: PatientModels,
     contactEntity: Partial<PatientContact>,
-    accountId: string
+    auditLogs: any[]
   ): Promise<void> {
     const client = await pool.connect();
 
@@ -158,20 +154,24 @@ export class PatientRepository {
       ];
       await client.query(insertContactQuery, contactValues);
 
-      // Ghi audit log (Tạo mới hồ sơ)
-      const logId = crypto.randomUUID();
-      const logQuery = `
-        INSERT INTO patienting.patient_audit_logs 
-        (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
-        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
-      `;
-      await client.query(logQuery, [
-        logId, patientEntity.patient_id, accountId, 'status', null, 'CREATED'
-      ]);
+      // Ghi Audit logs khởi tạo
+      if (auditLogs.length > 0) {
+        const logQuery = `
+          INSERT INTO patienting.patient_audit_logs 
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+        for (const log of auditLogs) {
+          await client.query(logQuery, [
+            log.log_id, log.patient_id, log.changed_by, log.field_name, log.old_value, log.new_value
+          ]);
+        }
+      }
 
       await client.query('COMMIT');
 
     } catch (error) {
+      await client.query('ROLLBACK');
       console.error('[PatientRepository] insertNewPatient Error:', error);
       throw PATIENT_ERROR_CODES.DATABASE_INSERT_ERROR;
     } finally {
@@ -220,9 +220,8 @@ export class PatientRepository {
         `;
 
         for (const log of auditLogs) {
-          const logId = crypto.randomUUID();
           await client.query(logQuery, [
-            logId,
+            log.log_id,
             log.patient_id,
             log.changed_by,
             log.field_name,
@@ -327,9 +326,14 @@ export class PatientRepository {
   }
 
   /**
-   * Cập nhật trạng thái, lý do và ghi nhận Audit Log bằng Transaction
+   * Cập nhật trạng thái, lý do
    */
-  async updatePatientStatus(patientId: string, status: string, statusReason: string | null, auditLogs: any[]): Promise<void> {
+  async updatePatientStatus(
+    patientId: string,
+    status: string,
+    statusReason: string | null,
+    auditLogs: any[]
+  ): Promise<number> {
 
     const client = await pool.connect();
 
@@ -342,10 +346,12 @@ export class PatientRepository {
         SET status = $1, status_reason = $2, updated_at = CURRENT_TIMESTAMP 
         WHERE patient_id = $3;
       `;
-      await client.query(updateQuery, [status, statusReason, patientId]);
+      const updateResult = await client.query(updateQuery, [status, statusReason, patientId]);
 
-      // Ghi audit logs
-      if (auditLogs.length > 0) {
+      const affectedRows = updateResult.rowCount ?? 0;
+
+      // CHỈ GHI LOG NẾU HỒ SƠ THỰC SỰ ĐƯỢC CẬP NHẬT
+      if (affectedRows > 0 && auditLogs.length > 0) {
         const logQuery = `
           INSERT INTO patienting.patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
@@ -353,9 +359,8 @@ export class PatientRepository {
         `;
 
         for (const log of auditLogs) {
-          const logId = crypto.randomUUID();
           await client.query(logQuery, [
-            logId,
+            log.log_id,
             log.patient_id,
             log.changed_by,
             log.field_name,
@@ -367,6 +372,9 @@ export class PatientRepository {
 
       await client.query('COMMIT');
 
+      // Trả về số dòng để kiểm tra
+      return affectedRows;
+
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('[PatientRepository] updatePatientStatus Error:', error);
@@ -375,6 +383,7 @@ export class PatientRepository {
       client.release();
     }
   }
+
 
 
 
@@ -411,6 +420,27 @@ export class PatientRepository {
       throw PATIENT_ERROR_CODES.DATABASE_ERROR;
     }
   }
+
+
+  /**
+   * Kiểm tra xem tài khoản App đã được liên kết với bất kỳ hồ sơ bệnh nhân nào chưa
+   */
+  async checkAccountAlreadyLinked(accountId: string): Promise<boolean> {
+    const query = `
+      SELECT 1 FROM patienting.patients 
+      WHERE account_id = $1 
+      LIMIT 1;
+    `;
+    try {
+      const result = await pool.query(query, [accountId]);
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('[PatientRepository - checkAccountAlreadyLinked] Error:', error);
+      throw PATIENT_ERROR_CODES.DATABASE_ERROR;
+    }
+  }
+
+
 
   /**
    * Liên kết tài khoản người dùng với hồ sơ bệnh nhân
@@ -456,12 +486,121 @@ export class PatientRepository {
     }
   }
 
+  /**
+   * Lấy thông tin một liên hệ cụ thể của bệnh nhân
+   */
+  async getPatientContactById(contactId: string, patientId: string): Promise<any | null> {
+    const query = `
+      SELECT * FROM patienting.patient_contacts 
+      WHERE contact_id = $1 AND patient_id = $2 AND status = 'ACTIVE' 
+      LIMIT 1;
+    `;
+    try {
+      const result = await pool.query(query, [contactId, patientId]);
+      return (result.rowCount ?? 0) > 0 ? result.rows[0] : null;
+    } catch (error) {
+      console.error('[PatientRepository] getPatientContactById Error:', error);
+      throw PATIENT_ERROR_CODES.DATABASE_ERROR;
+    }
+  }
+
+  /**
+   * Thêm liên hệ cho bệnh nhân
+   */
+  async insertPatientContact(contactData: any, auditLogs: any[]): Promise<void> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const insertQuery = `
+        INSERT INTO patienting.patient_contacts (
+          contact_id, patient_id, phone_number, email, street_address, 
+          ward, province, is_primary, status, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        );
+      `;
+      const values = [
+        contactData.contact_id, contactData.patient_id, contactData.phone_number,
+        contactData.email || null, contactData.street_address || null, 
+        contactData.ward || null, contactData.province || null, contactData.is_primary
+      ];
+
+      await client.query(insertQuery, values);
+
+      if (auditLogs.length > 0) {
+        const logQuery = `
+          INSERT INTO patienting.patient_audit_logs 
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+        for (const log of auditLogs) {
+          await client.query(logQuery, [
+            log.log_id, log.patient_id, log.changed_by, log.field_name, log.old_value, log.new_value
+          ]);
+        }
+      }
+
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[PatientRepository] insertPatientContactAux Error:', error);
+      throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Xóa liên hệ 
+   */
+  async deletePatientContact(contactId: string, patientId: string, auditLog: any): Promise<number> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const deleteQuery = `
+        UPDATE patienting.patient_contacts 
+        SET status = 'DELETED', updated_at = CURRENT_TIMESTAMP
+        WHERE contact_id = $1 AND patient_id = $2 AND status = 'ACTIVE';
+      `;
+      const result = await client.query(deleteQuery, [contactId, patientId]);
+      const affectedRows = result.rowCount ?? 0;
+
+      if (affectedRows > 0 && auditLog) {
+        const logQuery = `
+          INSERT INTO patienting.patient_audit_logs 
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+        await client.query(logQuery, [
+            auditLog.log_id, auditLog.patient_id, auditLog.changed_by, 
+            auditLog.field_name, auditLog.old_value, auditLog.new_value
+        ]);
+      }
+
+      await client.query('COMMIT');
+      return affectedRows;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[PatientRepository] deletePatientContact Error:', error);
+      throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
+    } finally {
+      client.release();
+    }
+  }
+
 
 
   /**
    * Cập nhật thông tin liên hệ
    */
-  async updatePatientContact(patientId: string, contactData: Record<string, any>, auditLogs: any[]): Promise<number> {
+  async updatePatientContact(
+    contactId: string,
+    patientId: string,
+    contactData: Record<string, any>,
+    auditLogs: any[]
+  ): Promise<number> {
     const client = await pool.connect();
 
     try {
@@ -478,16 +617,20 @@ export class PatientRepository {
       }
 
       setClauses.push(`updated_at = CURRENT_TIMESTAMP`);
+
+      values.push(contactId);
+      const contactIdIndex = paramIndex;
+
       values.push(patientId);
+      const patientIdIndex = paramIndex + 1;
 
       const updateQuery = `
         UPDATE patienting.patient_contacts 
         SET ${setClauses.join(', ')} 
-        WHERE patient_id = $${paramIndex} AND is_primary = true;
+        WHERE contact_id = $${contactIdIndex} AND patient_id = $${patientIdIndex} AND status = 'ACTIVE';
       `;
-      
+
       const updateResult = await client.query(updateQuery, values);
-      
       const affectedRows = updateResult.rowCount ?? 0;
 
       if (affectedRows > 0 && auditLogs.length > 0) {
@@ -499,7 +642,7 @@ export class PatientRepository {
 
         for (const log of auditLogs) {
           await client.query(logQuery, [
-            crypto.randomUUID(), 
+            log.log_id,
             log.patient_id,
             log.changed_by,
             log.field_name,
@@ -510,7 +653,6 @@ export class PatientRepository {
       }
 
       await client.query('COMMIT');
-      
       return affectedRows;
 
     } catch (error) {
@@ -524,22 +666,20 @@ export class PatientRepository {
 
 
 
-
   /**
-   * Thêm mới thông tin người nhà
-   */
+     * Thêm mới thông tin người nhà
+     */
   async insertPatientRelation(relationData: any, auditLogs: any[]): Promise<void> {
     const client = await pool.connect();
-
     try {
       await client.query('BEGIN');
 
       const insertQuery = `
         INSERT INTO patienting.patient_relations (
           relation_id, patient_id, full_name, relationship, phone_number, 
-          is_emergency, has_legal_rights, created_at, updated_at
+          is_emergency, has_legal_rights, status, created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+          $1, $2, $3, $4, $5, $6, $7, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
         );
       `;
 
@@ -561,10 +701,9 @@ export class PatientRepository {
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
-
         for (const log of auditLogs) {
           await client.query(logQuery, [
-            crypto.randomUUID(),
+            log.log_id,
             log.patient_id,
             log.changed_by,
             `relation_${log.field_name}`,
@@ -575,10 +714,130 @@ export class PatientRepository {
       }
 
       await client.query('COMMIT');
-
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('[PatientContactRelationRepository] insertPatientRelation Error:', error);
+      console.error('[PatientRepository] insertPatientRelation Error:', error);
+      throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Lấy thông tin 1 người nhà cụ thể
+   */
+  async getPatientRelationById(relationId: string, patientId: string): Promise<any | null> {
+    const query = `
+      SELECT * FROM patienting.patient_relations 
+      WHERE relation_id = $1 AND patient_id = $2 AND status = 'ACTIVE'
+      LIMIT 1;
+    `;
+    try {
+      const result = await pool.query(query, [relationId, patientId]);
+      return (result.rowCount ?? 0) > 0 ? result.rows[0] : null;
+    } catch (error) {
+      console.error('[PatientRepository] getPatientRelationById Error:', error);
+      throw PATIENT_ERROR_CODES.DATABASE_ERROR;
+    }
+  }
+
+  /**
+   * Cập nhật thông tin người nhà
+   */
+  async updatePatientRelation(
+    relationId: string,
+    patientId: string,
+    updateData: Record<string, any>,
+    auditLogs: any[]
+  ): Promise<number> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const setClauses: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      for (const [key, value] of Object.entries(updateData)) {
+        setClauses.push(`${key} = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      }
+
+      setClauses.push(`updated_at = CURRENT_TIMESTAMP`);
+      values.push(relationId);
+      const relationIdIndex = paramIndex;
+      values.push(patientId);
+      const patientIdIndex = paramIndex + 1;
+
+      // CHỈ CHO PHÉP UPDATE KHI STATUS ĐANG ACTIVE
+      const updateQuery = `
+        UPDATE patienting.patient_relations 
+        SET ${setClauses.join(', ')} 
+        WHERE relation_id = $${relationIdIndex} AND patient_id = $${patientIdIndex} AND status = 'ACTIVE';
+      `;
+
+      const result = await client.query(updateQuery, values);
+      const affectedRows = result.rowCount ?? 0;
+
+      if (affectedRows > 0 && auditLogs.length > 0) {
+        const logQuery = `
+          INSERT INTO patienting.patient_audit_logs 
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+        for (const log of auditLogs) {
+          await client.query(logQuery, [
+            log.log_id, log.patient_id, log.changed_by, log.field_name, log.old_value, log.new_value
+          ]);
+        }
+      }
+
+      await client.query('COMMIT');
+      return affectedRows;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[PatientRepository] updatePatientRelation Error:', error);
+      throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * XÓA người nhà - Chặn không cho xóa hồ sơ đã bị xóa
+   */
+  async deletePatientRelation(relationId: string, patientId: string, auditLog: any): Promise<number> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      //Chuyển từ DELETE thành UPDATE status
+      const deleteQuery = `
+        UPDATE patienting.patient_relations 
+        SET status = 'DELETED', updated_at = CURRENT_TIMESTAMP
+        WHERE relation_id = $1 AND patient_id = $2 AND status = 'ACTIVE';
+      `;
+      const result = await client.query(deleteQuery, [relationId, patientId]);
+      const affectedRows = result.rowCount ?? 0;
+
+      if (affectedRows > 0 && auditLog) {
+        const logQuery = `
+          INSERT INTO patienting.patient_audit_logs 
+          (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
+        `;
+        await client.query(logQuery, [
+          auditLog.log_id, auditLog.patient_id, auditLog.changed_by,
+          auditLog.field_name, auditLog.old_value, auditLog.new_value
+        ]);
+      }
+
+      await client.query('COMMIT');
+      return affectedRows;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('[PatientRepository] deletePatientRelation Error:', error);
       throw PATIENT_ERROR_CODES.TRANSACTION_FAILED;
     } finally {
       client.release();
@@ -599,14 +858,72 @@ export class PatientRepository {
 
     try {
       const result = await pool.query(query, [patientId]);
-      
+
       if ((result.rowCount ?? 0) === 0) {
         return null;
       }
       return result.rows[0] as PatientContact;
-      
+
     } catch (error) {
       console.error('[PatientRepository] getPrimaryContactByPatientId Error:', error);
+      throw PATIENT_ERROR_CODES.DATABASE_ERROR;
+    }
+  }
+
+
+
+  /**
+   * Lấy chi tiết hồ sơ bệnh nhân
+   */
+  async getPatientDetailById(patientId: string): Promise<any | null> {
+    const query = `
+      SELECT 
+        p.patient_id, p.patient_code, p.full_name, p.date_of_birth, p.gender, 
+        p.identity_type, p.identity_number, p.nationality, p.account_id, 
+        p.status, p.status_reason, p.created_at, p.updated_at,
+        
+        COALESCE((
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'contact_id', pc.contact_id,
+              'phone_number', pc.phone_number,
+              'email', pc.email,
+              'street_address', pc.street_address,
+              'ward', pc.ward,
+              'province', pc.province,
+              'is_primary', pc.is_primary
+            )
+          ) 
+          FROM patienting.patient_contacts pc 
+          WHERE pc.patient_id = p.patient_id AND pc.status = 'ACTIVE'
+        ), '[]'::jsonb) AS contacts,
+
+        COALESCE((
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'relation_id', pr.relation_id,
+              'full_name', pr.full_name,
+              'relationship', pr.relationship,
+              'phone_number', pr.phone_number,
+              'is_emergency', pr.is_emergency,
+              'has_legal_rights', pr.has_legal_rights
+            )
+          ) 
+          FROM patienting.patient_relations pr 
+          WHERE pr.patient_id = p.patient_id AND pr.status = 'ACTIVE'
+        ), '[]'::jsonb) AS relations
+
+      FROM patienting.patients p
+      WHERE p.patient_id = $1
+      LIMIT 1;
+    `;
+
+    try {
+      const result = await pool.query(query, [patientId]);
+      if ((result.rowCount ?? 0) === 0) return null;
+      return result.rows[0];
+    } catch (error) {
+      console.error('[PatientRepository] getPatientDetailById Error:', error);
       throw PATIENT_ERROR_CODES.DATABASE_ERROR;
     }
   }
