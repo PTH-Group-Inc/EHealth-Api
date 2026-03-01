@@ -13,7 +13,7 @@ app.use(express.json())
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
+  customCss: '.swagger-ui .topbar { background-color: #4a90e2; }',
   customSiteTitle: 'E-Health API Documentation',
 }))
 
