@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import { initRoutes } from './routes/index.route'
 import { SessionCleanup } from './jobs/SessionCleanup.jobs'
@@ -12,5 +12,13 @@ app.use(express.json())
 initRoutes(app);
 
 SessionCleanup.startSessionCleanupJob();
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('[Global Error]:', err);
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Lỗi máy chủ nội bộ'
+    });
+});
 
 export default app

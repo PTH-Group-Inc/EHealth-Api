@@ -1,4 +1,4 @@
-import { MailService } from '../services/mail.service';
+import { MailService } from '../services/auth_mail.service';
 
 export class AuthMailUtil {
 

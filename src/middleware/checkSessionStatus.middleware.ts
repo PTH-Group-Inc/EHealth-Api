@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { UserSessionRepository } from "../repository/auth_user-session.repository";
-import { AUTH_ERRORS } from "../constants/auth-error.constant";
 
 export const checkSessionStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -85,4 +85,10 @@ export const AUTH_ERRORS = {
         code: 'AUTH_007',
         message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
     },
+    LINK_FAILED: {
+        httpCode: 400,
+        code: 'LINK_FAILED',
+        message: 'Thông tin xác minh không khớp hoặc hồ sơ không khả dụng để liên kết.',
+    },
+    
 } as const;

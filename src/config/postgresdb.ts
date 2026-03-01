@@ -1,3 +1,4 @@
+// file: config/postgresdb.ts
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
@@ -9,12 +10,21 @@ export const pool = new Pool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: parseInt(process.env.DB_PORT || '5432'),
+    max: 20, 
+    idleTimeoutMillis: 30000, 
+    connectionTimeoutMillis: 2000, 
+});
+
+pool.on('error', (err) => {
+    console.error('❌ Lỗi PostgreSQL Pool ngầm:', err.message);
 });
 
 export const connectDB = async () => {
     try {
-        await pool.connect();
+        const client = await pool.connect();
         console.log('✅ Kết nối PostgreSQL thành công');
+        
+        client.release(); 
     } catch (error) {
         console.error('❌ Kết nối database thất bại:', error);
         process.exit(1);
