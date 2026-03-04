@@ -7,7 +7,7 @@ export class AccountVerificationRepository {
      */
     static async createVerificationToken(id: string, accountId: string, tokenHash: string, expiredAt: Date): Promise<void> {
         const query = `
-            INSERT INTO accounting.account_verifications (
+            INSERT INTO account_verifications (
                 id,
                 account_id,
                 verify_token_hash,
@@ -30,7 +30,7 @@ export class AccountVerificationRepository {
                 expired_at as "expiredAt",
                 used_at as "usedAt",
                 created_at as "createdAt"
-            FROM accounting.account_verifications
+            FROM account_verifications
             WHERE verify_token_hash = $1
               AND expired_at > NOW()
               AND used_at IS NULL 
@@ -49,7 +49,7 @@ export class AccountVerificationRepository {
      */
     static async markAsUsed(id: string): Promise<void> {
         const query = `
-            UPDATE accounting.account_verifications
+            UPDATE account_verifications
             SET used_at = NOW()
             WHERE id = $1
               AND used_at IS NULL
@@ -63,7 +63,7 @@ export class AccountVerificationRepository {
      */
     static async invalidateOldTokens(accountId: string): Promise<void> {
         const query = `
-            UPDATE accounting.account_verifications
+            UPDATE account_verifications
             SET expired_at = NOW()
             WHERE account_id = $1
               AND used_at IS NULL
@@ -84,7 +84,7 @@ export class AccountVerificationRepository {
                 expired_at as "expiredAt",
                 used_at as "usedAt",
                 created_at as "createdAt"
-            FROM accounting.account_verifications
+            FROM account_verifications
             WHERE account_id = $1           
               AND verify_token_hash = $2
               AND expired_at > NOW()
