@@ -23,7 +23,7 @@ export class AccountRepository {
         updated_at,
         failed_login_count, 
         locked_until       
-      FROM accounting.accounts
+      FROM accounts
       WHERE email = $1
       LIMIT 1
       `,
@@ -52,7 +52,7 @@ export class AccountRepository {
         updated_at,
         failed_login_count, 
         locked_until      
-      FROM accounting.accounts
+      FROM accounts
       WHERE phone = $1
       LIMIT 1
       `,
@@ -68,7 +68,7 @@ export class AccountRepository {
   static async updateLastLogin(accountId: string): Promise<void> {
     await pool.query(
       `
-      UPDATE accounting.accounts
+      UPDATE accounts
       SET
         last_login_at = NOW(),
         updated_at = NOW()
@@ -86,7 +86,7 @@ export class AccountRepository {
     hashedPassword: string
   ): Promise<void> {
     const query = `
-      UPDATE accounting.accounts
+      UPDATE accounts
       SET password = $1,
           updated_at = NOW()
       WHERE account_id = $2
@@ -101,7 +101,7 @@ export class AccountRepository {
    */
   static async createAccount(account: Account): Promise<void> {
     const query = `
-            INSERT INTO accounting.accounts (
+            INSERT INTO accounts (
                 account_id,
                 name,
                 email,
@@ -132,7 +132,7 @@ export class AccountRepository {
      */
   static async activateAccount(accountId: string): Promise<void> {
     const query = `
-            UPDATE accounting.accounts
+            UPDATE accounts
             SET status = 'ACTIVE',
                 updated_at = NOW()
             WHERE account_id = $1
@@ -146,7 +146,7 @@ export class AccountRepository {
   static async incrementFailedLogin(accountId: string): Promise<number> {
     const result = await pool.query(
       `
-      UPDATE accounting.accounts
+      UPDATE accounts
       SET failed_login_count = failed_login_count + 1,
           updated_at = NOW()
       WHERE account_id = $1
@@ -163,7 +163,7 @@ export class AccountRepository {
   static async lockAccount(accountId: string, lockedUntil: Date): Promise<void> {
     await pool.query(
       `
-      UPDATE accounting.accounts
+      UPDATE accounts
       SET locked_until = $1,
           failed_login_count = 0,  
           updated_at = NOW()
@@ -179,7 +179,7 @@ export class AccountRepository {
   static async resetFailedLogin(accountId: string): Promise<void> {
     await pool.query(
       `
-      UPDATE accounting.accounts
+      UPDATE accounts
       SET failed_login_count = 0,
           locked_until = NULL,
           updated_at = NOW()
@@ -195,7 +195,7 @@ export class AccountRepository {
   static async unlockAccount(accountId: string): Promise<void> {
     await pool.query(
       `
-      UPDATE accounting.accounts
+      UPDATE accounts
       SET locked_until = NULL,
           failed_login_count = 0,
           status = 'ACTIVE', 

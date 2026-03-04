@@ -21,7 +21,7 @@ export class UserSessionRepository {
 
     await pool.query(
       `
-      INSERT INTO accounting.user_sessions (
+      INSERT INTO user_sessions (
         session_id,
         account_id,
         refresh_token_hash,
@@ -63,7 +63,7 @@ export class UserSessionRepository {
         expired_at,
         revoked_at,
         created_at
-      FROM accounting.user_sessions
+      FROM user_sessions
       WHERE account_id = $1
         AND (device_id = $2 OR (device_id IS NULL AND $2 IS NULL))
         AND revoked_at IS NULL
@@ -80,7 +80,7 @@ export class UserSessionRepository {
   static async updateSessionBySessionId(sessionId: string, input: { refreshTokenHash: string; ipAddress?: string; userAgent?: string; expiredAt: Date; }): Promise<void> {
     await pool.query(
       `
-      UPDATE accounting.user_sessions
+      UPDATE user_sessions
       SET
         refresh_token_hash = $1,
         ip_address = $2,
@@ -106,7 +106,7 @@ export class UserSessionRepository {
   static async logoutCurrentSession(accountId: string, refreshTokenHash: string): Promise<boolean> {
     const result = await pool.query(
       `
-      UPDATE accounting.user_sessions
+      UPDATE user_sessions
       SET revoked_at = NOW()
       WHERE account_id = $1
         AND refresh_token_hash = $2
@@ -125,7 +125,7 @@ export class UserSessionRepository {
   static async revokeAllByAccount(accountId: string): Promise<number> {
     const result = await pool.query(
       `
-      UPDATE accounting.user_sessions
+      UPDATE user_sessions
       SET revoked_at = NOW()
       WHERE account_id = $1
         AND revoked_at IS NULL
@@ -157,7 +157,7 @@ export class UserSessionRepository {
         expired_at,
         revoked_at,
         created_at
-      FROM accounting.user_sessions
+      FROM user_sessions
       WHERE refresh_token_hash = $1
         AND revoked_at IS NULL
         AND expired_at > NOW()
@@ -175,7 +175,7 @@ export class UserSessionRepository {
   static async updateLastUsed(sessionId: string): Promise<void> {
     await pool.query(
       `
-      UPDATE accounting.user_sessions
+      UPDATE user_sessions
       SET last_used_at = NOW()
       WHERE session_id = $1
       `,
@@ -190,7 +190,7 @@ export class UserSessionRepository {
   static async findActiveByAccount(accountId: string): Promise<UserSession[]> {
     const result = await pool.query<UserSession>(
       `SELECT session_id, device_name, ip_address, last_used_at, created_at, expired_at
-         FROM accounting.user_sessions
+         FROM user_sessions
          WHERE account_id = $1 AND revoked_at IS NULL AND expired_at > NOW()
          ORDER BY last_used_at DESC`,
       [accountId]
@@ -203,7 +203,7 @@ export class UserSessionRepository {
    */
   static async revokeBySessionId(sessionId: string, accountId: string): Promise<boolean> {
     const result = await pool.query(
-      `UPDATE accounting.user_sessions
+      `UPDATE user_sessions
          SET revoked_at = NOW()
          WHERE session_id = $1 AND account_id = $2 AND revoked_at IS NULL`,
       [sessionId, accountId]
@@ -216,7 +216,7 @@ export class UserSessionRepository {
    */
   static async findActiveBySessionId(sessionId: string): Promise<UserSession | null> {
     const result = await pool.query<UserSession>(
-      `SELECT * FROM accounting.user_sessions 
+      `SELECT * FROM user_sessions 
          WHERE session_id = $1 AND revoked_at IS NULL AND expired_at > NOW() 
          LIMIT 1`,
       [sessionId]
@@ -230,7 +230,7 @@ export class UserSessionRepository {
   static async revokeExpiredSessions(idleTimeoutDays: number): Promise<number> {
     const result = await pool.query(
       `
-      UPDATE accounting.user_sessions
+      UPDATE user_sessions
       SET revoked_at = NOW()
       WHERE revoked_at IS NULL
         AND (

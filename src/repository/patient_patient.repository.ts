@@ -24,7 +24,7 @@ export class PatientRepository {
           p.patient_code ILIKE $${values.length} OR 
           p.identity_number ILIKE $${values.length} OR
           EXISTS (
-            SELECT 1 FROM patienting.patient_contacts pc 
+            SELECT 1 FROM patient_contacts pc 
             WHERE pc.patient_id = p.patient_id AND pc.phone_number ILIKE $${values.length}
           )
         )`);
@@ -44,7 +44,7 @@ export class PatientRepository {
 
       const countQuery = `
         SELECT COUNT(p.patient_id) as total_count
-        FROM patienting.patients p
+        FROM patients p
         ${whereClause};
       `;
 
@@ -55,11 +55,11 @@ export class PatientRepository {
           p.created_at, p.updated_at,
           (
             SELECT phone_number 
-            FROM patienting.patient_contacts pc 
+            FROM patient_contacts pc 
             WHERE pc.patient_id = p.patient_id AND pc.is_primary = true 
             LIMIT 1
           ) AS primary_phone
-        FROM patienting.patients p
+        FROM patients p
         ${whereClause}
         ORDER BY p.created_at DESC 
         LIMIT $${values.length + 1} OFFSET $${values.length + 2};
@@ -89,7 +89,7 @@ export class PatientRepository {
   async checkIdentityConflict(identityType: string, identityNumber: string, currentPatientId: string): Promise<boolean> {
     const query = `
       SELECT 1 
-      FROM patienting.patients 
+      FROM patients 
       WHERE identity_type = $1 AND identity_number = $2 AND patient_id != $3 
       LIMIT 1;
     `;
@@ -117,7 +117,7 @@ export class PatientRepository {
 
       // Insert vào bảng patients
       const insertPatientQuery = `
-        INSERT INTO patienting.patients (
+        INSERT INTO patients (
           patient_id, patient_code, full_name, date_of_birth, gender,
           identity_type, identity_number, nationality, account_id,
           status, created_at, updated_at
@@ -135,7 +135,7 @@ export class PatientRepository {
 
       // Insert vào bảng patient_contacts
       const insertContactQuery = `
-        INSERT INTO patienting.patient_contacts (
+        INSERT INTO patient_contacts (
           contact_id, patient_id, phone_number, email, street_address, 
           ward, province, is_primary, created_at, updated_at
         ) VALUES (
@@ -157,7 +157,7 @@ export class PatientRepository {
       // Ghi Audit logs khởi tạo
       if (auditLogs.length > 0) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -204,7 +204,7 @@ export class PatientRepository {
       values.push(patientId);
 
       const updateQuery = `
-        UPDATE patienting.patients 
+        UPDATE patients 
         SET ${setClauses.join(', ')} 
         WHERE patient_id = $${paramIndex};
       `;
@@ -214,7 +214,7 @@ export class PatientRepository {
       // Ghi audit logs
       if (auditLogs.length > 0) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -248,7 +248,7 @@ export class PatientRepository {
    */
   async getPatientById(patientId: string): Promise<PatientModels | null> {
     const query = `
-      SELECT * FROM patienting.patients 
+      SELECT * FROM patients 
       WHERE patient_id = $1 
       LIMIT 1;
     `;
@@ -271,7 +271,7 @@ export class PatientRepository {
   async checkPhoneConflict(phone: string, currentPatientId: string): Promise<boolean> {
     const query = `
       SELECT 1 
-      FROM patienting.patient_contacts 
+      FROM patient_contacts 
       WHERE phone_number = $1 AND patient_id != $2 
       LIMIT 1;
     `;
@@ -296,11 +296,11 @@ export class PatientRepository {
       const query = `
         SELECT 
           (SELECT EXISTS (
-            SELECT 1 FROM patienting.appointments 
+            SELECT 1 FROM appointments 
             WHERE patient_id = $1 AND status IN ('WAITING', 'IN_PROGRESS')
           )) AS has_active_appointment,
           (SELECT EXISTS (
-            SELECT 1 FROM patienting.invoices 
+            SELECT 1 FROM invoices 
             WHERE patient_id = $1 AND status = 'PENDING'
           )) AS has_pending_invoice;
       `;
@@ -342,7 +342,7 @@ export class PatientRepository {
 
       // Cập nhật bảng patients
       const updateQuery = `
-        UPDATE patienting.patients 
+        UPDATE patients 
         SET status = $1, status_reason = $2, updated_at = CURRENT_TIMESTAMP 
         WHERE patient_id = $3;
       `;
@@ -353,7 +353,7 @@ export class PatientRepository {
       // CHỈ GHI LOG NẾU HỒ SƠ THỰC SỰ ĐƯỢC CẬP NHẬT
       if (affectedRows > 0 && auditLogs.length > 0) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -404,7 +404,7 @@ export class PatientRepository {
         account_id, 
         identity_number, 
         TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth 
-      FROM patienting.patients 
+      FROM patients 
       WHERE patient_code = $1 
       LIMIT 1;
     `;
@@ -427,7 +427,7 @@ export class PatientRepository {
    */
   async checkAccountAlreadyLinked(accountId: string): Promise<boolean> {
     const query = `
-      SELECT 1 FROM patienting.patients 
+      SELECT 1 FROM patients 
       WHERE account_id = $1 
       LIMIT 1;
     `;
@@ -452,7 +452,7 @@ export class PatientRepository {
       await client.query('BEGIN');
 
       const updateQuery = `
-        UPDATE patienting.patients 
+        UPDATE patients 
         SET account_id = $1, updated_at = CURRENT_TIMESTAMP 
         WHERE patient_id = $2;
       `;
@@ -461,7 +461,7 @@ export class PatientRepository {
       // Ghi audit log
       const logId = crypto.randomUUID();
       const logQuery = `
-        INSERT INTO patienting.patient_audit_logs 
+        INSERT INTO patient_audit_logs 
         (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
       `;
@@ -491,7 +491,7 @@ export class PatientRepository {
    */
   async getPatientContactById(contactId: string, patientId: string): Promise<any | null> {
     const query = `
-      SELECT * FROM patienting.patient_contacts 
+      SELECT * FROM patient_contacts 
       WHERE contact_id = $1 AND patient_id = $2 AND status = 'ACTIVE' 
       LIMIT 1;
     `;
@@ -513,7 +513,7 @@ export class PatientRepository {
       await client.query('BEGIN');
 
       const insertQuery = `
-        INSERT INTO patienting.patient_contacts (
+        INSERT INTO patient_contacts (
           contact_id, patient_id, phone_number, email, street_address, 
           ward, province, is_primary, status, created_at, updated_at
         ) VALUES (
@@ -530,7 +530,7 @@ export class PatientRepository {
 
       if (auditLogs.length > 0) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -560,7 +560,7 @@ export class PatientRepository {
       await client.query('BEGIN');
 
       const deleteQuery = `
-        UPDATE patienting.patient_contacts 
+        UPDATE patient_contacts 
         SET status = 'DELETED', updated_at = CURRENT_TIMESTAMP
         WHERE contact_id = $1 AND patient_id = $2 AND status = 'ACTIVE';
       `;
@@ -569,7 +569,7 @@ export class PatientRepository {
 
       if (affectedRows > 0 && auditLog) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -625,7 +625,7 @@ export class PatientRepository {
       const patientIdIndex = paramIndex + 1;
 
       const updateQuery = `
-        UPDATE patienting.patient_contacts 
+        UPDATE patient_contacts 
         SET ${setClauses.join(', ')} 
         WHERE contact_id = $${contactIdIndex} AND patient_id = $${patientIdIndex} AND status = 'ACTIVE';
       `;
@@ -635,7 +635,7 @@ export class PatientRepository {
 
       if (affectedRows > 0 && auditLogs.length > 0) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -675,7 +675,7 @@ export class PatientRepository {
       await client.query('BEGIN');
 
       const insertQuery = `
-        INSERT INTO patienting.patient_relations (
+        INSERT INTO patient_relations (
           relation_id, patient_id, full_name, relationship, phone_number, 
           is_emergency, has_legal_rights, status, created_at, updated_at
         ) VALUES (
@@ -697,7 +697,7 @@ export class PatientRepository {
 
       if (auditLogs.length > 0) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -728,7 +728,7 @@ export class PatientRepository {
    */
   async getPatientRelationById(relationId: string, patientId: string): Promise<any | null> {
     const query = `
-      SELECT * FROM patienting.patient_relations 
+      SELECT * FROM patient_relations 
       WHERE relation_id = $1 AND patient_id = $2 AND status = 'ACTIVE'
       LIMIT 1;
     `;
@@ -772,7 +772,7 @@ export class PatientRepository {
 
       // CHỈ CHO PHÉP UPDATE KHI STATUS ĐANG ACTIVE
       const updateQuery = `
-        UPDATE patienting.patient_relations 
+        UPDATE patient_relations 
         SET ${setClauses.join(', ')} 
         WHERE relation_id = $${relationIdIndex} AND patient_id = $${patientIdIndex} AND status = 'ACTIVE';
       `;
@@ -782,7 +782,7 @@ export class PatientRepository {
 
       if (affectedRows > 0 && auditLogs.length > 0) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -814,7 +814,7 @@ export class PatientRepository {
 
       //Chuyển từ DELETE thành UPDATE status
       const deleteQuery = `
-        UPDATE patienting.patient_relations 
+        UPDATE patient_relations 
         SET status = 'DELETED', updated_at = CURRENT_TIMESTAMP
         WHERE relation_id = $1 AND patient_id = $2 AND status = 'ACTIVE';
       `;
@@ -823,7 +823,7 @@ export class PatientRepository {
 
       if (affectedRows > 0 && auditLog) {
         const logQuery = `
-          INSERT INTO patienting.patient_audit_logs 
+          INSERT INTO patient_audit_logs 
           (log_id, patient_id, changed_by, field_name, old_value, new_value, created_at) 
           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP);
         `;
@@ -851,7 +851,7 @@ export class PatientRepository {
    */
   async getPrimaryContactByPatientId(patientId: string): Promise<PatientContact | null> {
     const query = `
-      SELECT * FROM patienting.patient_contacts 
+      SELECT * FROM patient_contacts 
       WHERE patient_id = $1 AND is_primary = true 
       LIMIT 1;
     `;
@@ -894,7 +894,7 @@ export class PatientRepository {
               'is_primary', pc.is_primary
             )
           ) 
-          FROM patienting.patient_contacts pc 
+          FROM patient_contacts pc 
           WHERE pc.patient_id = p.patient_id AND pc.status = 'ACTIVE'
         ), '[]'::jsonb) AS contacts,
 
@@ -909,11 +909,11 @@ export class PatientRepository {
               'has_legal_rights', pr.has_legal_rights
             )
           ) 
-          FROM patienting.patient_relations pr 
+          FROM patient_relations pr 
           WHERE pr.patient_id = p.patient_id AND pr.status = 'ACTIVE'
         ), '[]'::jsonb) AS relations
 
-      FROM patienting.patients p
+      FROM patients p
       WHERE p.patient_id = $1
       LIMIT 1;
     `;

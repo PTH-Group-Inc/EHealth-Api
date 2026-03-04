@@ -14,7 +14,7 @@ export class PasswordResetRepository {
 
 
         const query = `
-                INSERT INTO accounting.password_resets (
+                INSERT INTO password_resets (
                     id,   
                     account_id,
                     reset_token,
@@ -34,7 +34,7 @@ export class PasswordResetRepository {
     ): Promise<PasswordReset | null> {
         const query = `
             SELECT *
-            FROM accounting.password_resets
+            FROM password_resets
             WHERE reset_token = $1
               AND expired_at > NOW()
               AND used_at IS NULL
@@ -60,7 +60,7 @@ export class PasswordResetRepository {
     */
     static async markAsUsed(id: string): Promise<void> {
         const query = `
-            UPDATE accounting.password_resets
+            UPDATE password_resets
             SET used_at = NOW()
             WHERE id = $1
               AND used_at IS NULL
