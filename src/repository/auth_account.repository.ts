@@ -63,6 +63,35 @@ export class AccountRepository {
   }
 
   /**
+ * Tìm kiếm tài khoản theo account_id
+ */
+static async findById(accountId: string): Promise<Account | null> {
+  const result = await pool.query<Account>(
+    `
+    SELECT
+      account_id,
+      name,
+      email,
+      phone,
+      password,
+      role,
+      status,
+      last_login_at,
+      created_at,
+      updated_at,
+      failed_login_count, 
+      locked_until       
+    FROM accounts
+    WHERE account_id = $1
+    LIMIT 1
+    `,
+    [accountId]
+  );
+
+  return result.rows[0] ?? null;
+}
+
+  /**
    * Cập nhật thời gian đăng nhập cuối cùng cho tài khoản
    */
   static async updateLastLogin(accountId: string): Promise<void> {

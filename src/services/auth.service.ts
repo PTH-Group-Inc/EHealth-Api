@@ -126,7 +126,7 @@ export class AuthService {
    * Mở khóa tài khoản thủ công
    */
   static async unlockAccount(input: { accountId: string }): Promise<void> {
-     await AccountRepository.unlockAccount(input.accountId);
+    await AccountRepository.unlockAccount(input.accountId);
   }
 
 
@@ -465,29 +465,32 @@ export class AuthService {
     const idleTime = now - lastUsed;
 
     if (idleTime > AUTH_CONSTANTS.SESSION.IDLE_TIMEOUT_MS) {
-        await UserSessionRepository.revokeBySessionId(session.sessionId, session.account_id);
-        throw AUTH_ERRORS.SESSION_EXPIRED;
+      await UserSessionRepository.revokeBySessionId(session.sessionId, session.account_id);
+      throw AUTH_ERRORS.SESSION_EXPIRED;
     }
 
-    const account = await AccountRepository.findByEmail(session.account_id) 
-                 || await AccountRepository.findByPhone(session.account_id); 
-    
+    const account = await AccountRepository.findById(session.account_id);
+
     if (!account || account.status !== 'ACTIVE') {
-        throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+      throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
     }
 
-    const { accessToken, refreshToken: newRefreshToken, expiresIn } = 
-        SecurityUtil.generateToken(account, session.sessionId);
+    if (!account || account.status !== 'ACTIVE') {
+      throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+    }
+
+    const { accessToken, refreshToken: newRefreshToken, expiresIn } =
+      SecurityUtil.generateToken(account, session.sessionId);
 
     await UserSessionRepository.updateSessionBySessionId(session.sessionId, {
-        refreshTokenHash: SecurityUtil.hashRefreshToken(newRefreshToken),
-        expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
+      refreshTokenHash: SecurityUtil.hashRefreshToken(newRefreshToken),
+      expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
     });
 
     return {
-        accessToken,
-        refreshToken: newRefreshToken,
-        expiresIn
+      accessToken,
+      refreshToken: newRefreshToken,
+      expiresIn
     };
   }
 }
