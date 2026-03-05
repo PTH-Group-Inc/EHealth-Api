@@ -1,14 +1,13 @@
-import { MailService } from '../services/auth_mail.service';
-
-export class AuthMailUtil {
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthMailUtil = void 0;
+const auth_mail_service_1 = require("../services/auth_mail.service");
+class AuthMailUtil {
     /*
     * Template chung cho email
     */
-
-    private static getTemplate(title: string, contentBody: string): string {
+    static getTemplate(title, contentBody) {
         const currentYear = new Date().getFullYear();
-
         return `
         <!DOCTYPE html>
         <html>
@@ -54,9 +53,8 @@ export class AuthMailUtil {
     /**
      * Gửi email reset password bằng OTP
      */
-    static async sendResetPasswordOtpEmail(toEmail: string, otp: string): Promise<void> {
+    static async sendResetPasswordOtpEmail(toEmail, otp) {
         const subject = `[E-Health] Mã xác thực đặt lại mật khẩu: ${otp}`;
-
         const body = `
             <p>Xin chào,</p>
             <p>Chúng tôi vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với email <strong>${toEmail}</strong>. Dưới đây là mã xác thực (OTP) của bạn:</p>
@@ -71,20 +69,17 @@ export class AuthMailUtil {
             
             <p>Nếu bạn không yêu cầu thay đổi mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn được bảo mật an toàn.</p>
         `;
-
-        await MailService.send({
+        await auth_mail_service_1.MailService.send({
             to: toEmail,
             subject,
             html: this.getTemplate('Quên Mật Khẩu?', body)
         });
     }
-
     /**
      * Gửi email xác thực tài khoản (Link Verify)
      */
-    static async sendVerifyEmail(email: string, verifyLink: string): Promise<void> {
+    static async sendVerifyEmail(email, verifyLink) {
         const subject = '[E-Health] Kích hoạt tài khoản';
-
         const body = `
             <p>Xin chào,</p>
             <p>Cảm ơn bạn đã đăng ký tham gia <strong>E-Health System</strong>. Để bắt đầu sử dụng dịch vụ, vui lòng xác thực địa chỉ email của bạn.</p>
@@ -96,20 +91,17 @@ export class AuthMailUtil {
             <p class="warning">Hoặc truy cập trực tiếp đường dẫn bên dưới:</p>
             <p><a href="${verifyLink}" class="link-text">${verifyLink}</a></p>
         `;
-
-        await MailService.send({
+        await auth_mail_service_1.MailService.send({
             to: email,
             subject,
             html: this.getTemplate('Xác Thực Tài Khoản', body)
         });
     }
-
     /**
      * Gửi email mã OTP
      */
-    static async sendOtpEmail(email: string, otp: string): Promise<void> {
+    static async sendOtpEmail(email, otp) {
         const subject = `[E-Health] Mã xác thực: ${otp}`;
-
         const body = `
             <p>Xin chào,</p>
             <p>Bạn đang thực hiện đăng ký hoặc đăng nhập vào hệ thống <strong>E-Health</strong>. Dưới đây là mã xác thực (OTP) của bạn:</p>
@@ -124,8 +116,7 @@ export class AuthMailUtil {
             
             <p>Nếu bạn không thực hiện yêu cầu này, vui lòng đổi mật khẩu ngay lập tức.</p>
         `;
-
-        await MailService.send({
+        await auth_mail_service_1.MailService.send({
             to: email,
             subject,
             html: this.getTemplate('Mã Xác Thực OTP', body)
@@ -134,13 +125,11 @@ export class AuthMailUtil {
     /**
      * Gửi email thông báo tài khoản mới được tạo bởi Admin
      */
-    static async sendNewAccountEmail(email: string, rawPassword?: string): Promise<void> {
+    static async sendNewAccountEmail(email, rawPassword) {
         const subject = `[E-Health] Tài khoản của bạn đã được tạo`;
-
         const passwordHtml = rawPassword
             ? `<p>Mật khẩu tạm thời đăng nhập của bạn là:</p><div class="otp-box">${rawPassword}</div><p><i>Vui lòng đổi mật khẩu ngay trong lần đăng nhập đầu tiên để bảo mật tài khoản.</i></p>`
             : `<p>Vui lòng liên hệ với Quản trị viên để nhận mật khẩu hoặc sử dụng chức năng Quên Mật Khẩu trên hệ thống.</p>`;
-
         const body = `
             <p>Xin chào,</p>
             <p>Một tài khoản mới đã được tạo cho bạn bằng địa chỉ email <strong>${email}</strong> trên hệ thống <strong>E-Health</strong>.</p>
@@ -153,11 +142,11 @@ export class AuthMailUtil {
             
             <p>Trân trọng,<br>Ban Quản Trị Hệ Thống E-Health.</p>
         `;
-
-        await MailService.send({
+        await auth_mail_service_1.MailService.send({
             to: email,
             subject,
             html: this.getTemplate('Chào Mừng Thành Viên Mới', body)
         });
     }
 }
+exports.AuthMailUtil = AuthMailUtil;

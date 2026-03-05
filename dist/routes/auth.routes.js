@@ -1,11 +1,11 @@
-import { Router } from 'express'
-import { AuthController } from '../controllers/auth.controller'
-import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware'
-import { SessionController } from '../controllers/auth_session.controller';
-import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
-
-const authRoutes = Router()
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_controller_1 = require("../controllers/auth.controller");
+const verifyAccessToken_middleware_1 = require("../middleware/verifyAccessToken.middleware");
+const auth_session_controller_1 = require("../controllers/auth_session.controller");
+const checkSessionStatus_middleware_1 = require("../middleware/checkSessionStatus.middleware");
+const authRoutes = (0, express_1.Router)();
 /**
  * @swagger
  * /api/auth/login/email:
@@ -13,7 +13,7 @@ const authRoutes = Router()
  *     summary: Đăng nhập bằng Email
  *     description: |
  *       Đăng nhập với email và mật khẩu.
- *       
+ *
  *       **Lưu ý về Device Info:**
  *       - Nếu gửi `clientInfo.deviceId`: Hệ thống sẽ tìm session cũ của device.
  *         Nếu có thì reuse, không có thì tạo mới (cho phép login từ nhiều device)
@@ -53,8 +53,7 @@ const authRoutes = Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post("/login/email", AuthController.loginByEmail);
-
+authRoutes.post("/login/email", auth_controller_1.AuthController.loginByEmail);
 /**
  * @swagger
  * /api/auth/login/phone:
@@ -62,7 +61,7 @@ authRoutes.post("/login/email", AuthController.loginByEmail);
  *     summary: Đăng nhập bằng Số điện thoại
  *     description: |
  *       Đăng nhập với số điện thoại và mật khẩu.
- *       
+ *
  *       **Lưu ý về Device Info:**
  *       - Nếu gửi `clientInfo.deviceId`: Hệ thống sẽ tìm session cũ của device.
  *         Nếu có thì reuse, không có thì tạo mới (cho phép login từ nhiều device)
@@ -108,8 +107,7 @@ authRoutes.post("/login/email", AuthController.loginByEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post("/login/phone", AuthController.loginByPhone);
-
+authRoutes.post("/login/phone", auth_controller_1.AuthController.loginByPhone);
 /**
  * @swagger
  * /api/auth/register/email:
@@ -132,8 +130,7 @@ authRoutes.post("/login/phone", AuthController.loginByPhone);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/register/email', AuthController.registerByEmail);
-
+authRoutes.post('/register/email', auth_controller_1.AuthController.registerByEmail);
 /**
  * @swagger
  * /api/auth/register/phone:
@@ -166,8 +163,7 @@ authRoutes.post('/register/email', AuthController.registerByEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/register/phone', AuthController.registerByPhone);
-
+authRoutes.post('/register/phone', auth_controller_1.AuthController.registerByPhone);
 /**
  * @swagger
  * /api/auth/verify-email:
@@ -199,8 +195,7 @@ authRoutes.post('/register/phone', AuthController.registerByPhone);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/verify-email', AuthController.verifyEmail);
-
+authRoutes.post('/verify-email', auth_controller_1.AuthController.verifyEmail);
 /**
  * @swagger
  * /api/auth/forgot-password:
@@ -228,8 +223,7 @@ authRoutes.post('/verify-email', AuthController.verifyEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/forgot-password', AuthController.forgotPassword);
-
+authRoutes.post('/forgot-password', auth_controller_1.AuthController.forgotPassword);
 /**
  * @swagger
  * /api/auth/reset-password:
@@ -259,8 +253,7 @@ authRoutes.post('/forgot-password', AuthController.forgotPassword);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/reset-password', AuthController.resetPassword);
-
+authRoutes.post('/reset-password', auth_controller_1.AuthController.resetPassword);
 /**
  * @swagger
  * /api/auth/unlock-account:
@@ -303,8 +296,7 @@ authRoutes.post('/reset-password', AuthController.resetPassword);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/unlock-account', AuthController.unlockAccount);
-
+authRoutes.post('/unlock-account', auth_controller_1.AuthController.unlockAccount);
 /**
  * @swagger
  * /api/auth/refresh-token:
@@ -347,8 +339,7 @@ authRoutes.post('/unlock-account', AuthController.unlockAccount);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/refresh-token', AuthController.refreshToken);
-
+authRoutes.post('/refresh-token', auth_controller_1.AuthController.refreshToken);
 /**
  * @swagger
  * /api/auth/logout:
@@ -387,8 +378,7 @@ authRoutes.post('/refresh-token', AuthController.refreshToken);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/logout', AuthController.logout);
-
+authRoutes.post('/logout', auth_controller_1.AuthController.logout);
 /**
  * @swagger
  * /api/auth/sessions:
@@ -419,8 +409,7 @@ authRoutes.post('/logout', AuthController.logout);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.get('/sessions', verifyAccessToken, checkSessionStatus, SessionController.getSessions);
-
+authRoutes.get('/sessions', verifyAccessToken_middleware_1.verifyAccessToken, checkSessionStatus_middleware_1.checkSessionStatus, auth_session_controller_1.SessionController.getSessions);
 /**
  * @swagger
  * /api/auth/sessions/logout-all:
@@ -439,8 +428,7 @@ authRoutes.get('/sessions', verifyAccessToken, checkSessionStatus, SessionContro
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/sessions/logout-all', verifyAccessToken, checkSessionStatus, SessionController.logoutAll);
-
+authRoutes.post('/sessions/logout-all', verifyAccessToken_middleware_1.verifyAccessToken, checkSessionStatus_middleware_1.checkSessionStatus, auth_session_controller_1.SessionController.logoutAll);
 /**
  * @swagger
  * /api/auth/sessions/{sessionId}:
@@ -472,9 +460,5 @@ authRoutes.post('/sessions/logout-all', verifyAccessToken, checkSessionStatus, S
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.delete('/sessions/:sessionId', verifyAccessToken, checkSessionStatus, SessionController.logoutSession);
-
-
-
-
-export default authRoutes;
+authRoutes.delete('/sessions/:sessionId', verifyAccessToken_middleware_1.verifyAccessToken, checkSessionStatus_middleware_1.checkSessionStatus, auth_session_controller_1.SessionController.logoutSession);
+exports.default = authRoutes;

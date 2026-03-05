@@ -4,8 +4,8 @@
 -- Bảng tài khoản người dùng (Xác thực)
 CREATE TABLE users (
     users_id VARCHAR(50) PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone_number VARCHAR(20) UNIQUE,
+    email VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
     password_hash VARCHAR(255) NOT NULL,
     status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, INACTIVE, BANNED
     last_login_at TIMESTAMP,
@@ -15,6 +15,10 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL -- Nguyên tắc Soft Delete
 );
+
+-- Partial Indexes for User Soft Delete
+CREATE UNIQUE INDEX users_email_key ON users (email) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX users_phone_number_key ON users (phone_number) WHERE phone_number IS NOT NULL AND deleted_at IS NULL;
 
 -- Bảng hồ sơ người dùng
 CREATE TABLE user_profiles (
@@ -105,7 +109,7 @@ CREATE INDEX idx_account_verif_user_token ON account_verifications(user_id, veri
 -- Bảng Vai trò
 CREATE TABLE roles (
     roles_id VARCHAR(50) PRIMARY KEY,
-    code VARCHAR(50) UNIQUE NOT NULL, -- vd: SYS_ADMIN, DOCTOR, NURSE, PATIENT
+    code VARCHAR(50) UNIQUE NOT NULL, -- vd: ADMIN, DOCTOR, NURSE, PATIENT,..
     name VARCHAR(100) NOT NULL,
     description TEXT,
     is_system BOOLEAN DEFAULT FALSE -- TRUE: Không cho phép admin sửa/xóa
