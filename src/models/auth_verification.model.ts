@@ -1,6 +1,6 @@
 export interface AccountVerification {
-    id: string;
-    accountId: string;
+    account_verifications_id: string;
+    userId: string;
     verifyTokenHash: string;
     expiredAt: Date;
     usedAt: Date | null;

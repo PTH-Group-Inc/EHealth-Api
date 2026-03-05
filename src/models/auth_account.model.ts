@@ -1,18 +1,16 @@
-export type AccountRole = | 'ADMIN' | 'DOCTOR' | 'PHARMACIST' | 'STAFF' | 'CUSTOMER' | 'SYSTEM';
+export type AccountRole = 'ADMIN' | 'DOCTOR' | 'NURSE' | 'PATIENT' | 'CUSTOMER' | 'PHARMACIST' | 'STAFF' | 'SYSTEM';
+export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'BANNED' | 'PENDING';
 
-export type AccountStatus = | 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'DELETED' | 'PENDING';
-
-export interface Account {
-  account_id: string;
-  name: string;
+export interface User {
+  users_id: string;
   email: string | null;
   phone: string | null;
-  password: string;
-  role: AccountRole;
+  password_hash: string;
+  roles: string[];
   status: AccountStatus;
   last_login_at: Date | null;
-  created_at: Date;
-  updated_at: Date;
   failed_login_count: number;
   locked_until: Date | null;
+  created_at: Date;
+  updated_at: Date;
 }

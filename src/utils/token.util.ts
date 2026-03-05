@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { Account } from '../models/auth_account.model';
+import { User } from '../models/auth_account.model';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 
 export class TokenUtil {
@@ -7,10 +7,10 @@ export class TokenUtil {
      * Tạo access token và refresh token
      * CẬP NHẬT: Thêm tham số sessionId
      */
-    static generateAuthTokens(account: Account, sessionId: string) {
+    static generateAuthTokens(user: User, sessionId: string) {
         const payload = {
-            sub: account.account_id,
-            role: account.role,
+            sub: user.users_id,
+            roles: user.roles,
             sessionId: sessionId, // Thêm sessionId vào payload
         };
 

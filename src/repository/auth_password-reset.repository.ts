@@ -3,28 +3,26 @@ import { PasswordReset } from '../models/auth_password-reset.model';
 
 export class PasswordResetRepository {
     /*
-     * Tạo mới một token đặt lại mật khẩu (Có Transaction: Xóa cũ -> Thêm mới)
+     * Tạo mới một token đặt lại mật khẩu
      */
     static async createResetToken(
         id: string,
-        accountId: string,
+        userId: string,
         resetTokenHash: string,
         expiredAt: Date
     ): Promise<void> {
 
-
         const query = `
                 INSERT INTO password_resets (
-                    id,   
-                    account_id,
+                    password_resets_id,   
+                    user_id,
                     reset_token,
                     expired_at
                 )
                 VALUES ($1, $2, $3, $4) 
             `;
 
-        await pool.query(query, [id, accountId, resetTokenHash, expiredAt]);
-
+        await pool.query(query, [id, userId, resetTokenHash, expiredAt]);
     }
 
     /* * Tìm token đặt lại mật khẩu hợp lệ
@@ -33,7 +31,7 @@ export class PasswordResetRepository {
         resetTokenHash: string
     ): Promise<PasswordReset | null> {
         const query = `
-            SELECT *
+            SELECT password_resets_id, user_id, reset_token, expired_at, used_at, created_at
             FROM password_resets
             WHERE reset_token = $1
               AND expired_at > NOW()
@@ -46,8 +44,8 @@ export class PasswordResetRepository {
         if (result.rowCount === 0) return null;
 
         return {
-            id: result.rows[0].id,
-            accountId: result.rows[0].account_id,
+            password_resets_id: result.rows[0].password_resets_id,
+            userId: result.rows[0].user_id,
             resetToken: result.rows[0].reset_token,
             expiredAt: result.rows[0].expired_at,
             usedAt: result.rows[0].used_at,
@@ -62,7 +60,7 @@ export class PasswordResetRepository {
         const query = `
             UPDATE password_resets
             SET used_at = NOW()
-            WHERE id = $1
+            WHERE password_resets_id = $1
               AND used_at IS NULL
         `;
 

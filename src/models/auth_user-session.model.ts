@@ -1,6 +1,6 @@
 export interface UserSession {
-  sessionId: string;
-  account_id: string;
+  user_sessions_id: string;
+  user_id: string;
   refresh_token_hash: string;
   device_id: string | null;
   device_name: string | null;
@@ -13,8 +13,8 @@ export interface UserSession {
 }
 
 export interface CreateSessionInput {
-  sessionId: string;
-  accountId: string;
+  user_sessions_id?: string;
+  userId: string;
   refreshTokenHash: string;
   deviceId?: string;
   deviceName?: string;
@@ -23,20 +23,9 @@ export interface CreateSessionInput {
   expiredAt: Date;
 }
 
-
 export interface ClientInfo {
   deviceId?: string;
   deviceName?: string;
   ip?: string;
   userAgent?: string;
-}
-
-
-export interface LogoutInput {
-  refreshToken: string;
-}
-
-export interface AuthPayload {
-  sub: string; // accountId
-  role: string;
 }

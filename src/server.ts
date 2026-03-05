@@ -1,14 +1,58 @@
 import dotenv from 'dotenv';
-dotenv.config(); 
+dotenv.config();
 
 import app from './app';
-import { connectDB, pool } from './config/postgresdb';
+import { connectDB, closeDB } from './config/postgresdb';
+import { Server } from 'http';
 
 const PORT = process.env.PORT || 3000;
+let server: Server;
 
-connectDB().then(() => {
-    const server = app.listen(PORT, () => {
+// Khởi động ứng dụng
+const startServer = async () => {
+    await connectDB();
+
+    server = app.listen(PORT, () => {
         console.log(`🚀 Server is running on port ${PORT}`);
     });
+};
 
+startServer();
+
+const gracefulShutdown = async (signal: string) => {
+    console.log(`\n🛑 Nhận tín hiệu ${signal}. Đang tiến hành tắt server an toàn...`);
+
+    if (server) {
+        server.close(async (err) => {
+            if (err) {
+                console.error('❌ Lỗi khi tắt HTTP Server:', err);
+                process.exit(1);
+            }
+
+            console.log('✅ Đã tắt HTTP Server (Không nhận thêm Request mới).');
+
+            await closeDB();
+
+            console.log('👋 Tạm biệt! Graceful shutdown hoàn tất.');
+            process.exit(0);
+        });
+    } else {
+        await closeDB();
+        process.exit(0);
+    }
+};
+
+// Lắng nghe tín hiệu từ Hệ điều hành
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+// Bắt các vòng lặp lỗi không xác định
+process.on('uncaughtException', (err) => {
+    console.error('💥 Lỗi không xác định (uncaughtException):', err);
+    gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 Lệnh Promise bị từ chối (unhandledRejection):', reason);
+    gracefulShutdown('unhandledRejection');
 });

@@ -13,9 +13,11 @@ export const checkSessionStatus = async (req: Request, res: Response, next: Next
             });
         }
 
+        // Kiểm tra xem session có tồn tại không
         const session = await UserSessionRepository.findActiveBySessionId(authPayload.sessionId);
 
-        if (!session || session.account_id !== authPayload.account_id) {
+        // check 
+        if (!session || session.user_id !== authPayload.user_id) {
             return res.status(401).json({
                 success: false,
                 code: "AUTH_SESSION_INVALID",

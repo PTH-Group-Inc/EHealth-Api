@@ -1,7 +1,6 @@
-import { Express,  } from 'express'
+import { Express, } from 'express'
 import productRouter from './testProduct.route';
 import authRoutes from './auth.routes';
-import patientRoutes from './patient.route';
 
 export const initRoutes = (app: Express) => {
     //test product routes
@@ -9,7 +8,4 @@ export const initRoutes = (app: Express) => {
 
     //auth routes
     app.use('/api/auth', authRoutes);
-
-    // patient routes
-    app.use('/api/patients', patientRoutes);
 }
