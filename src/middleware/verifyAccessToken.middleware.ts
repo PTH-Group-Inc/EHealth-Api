@@ -10,12 +10,12 @@ export function verifyAccessToken(req: Request, res: Response, next: NextFunctio
     }
 
     const token = authHeader.split(" ")[1];
-    
+
     const payload: any = TokenUtil.verifyAccessToken(token);
 
     (req as any).auth = {
-      account_id: payload.sub,
-      role: payload.role,
+      user_id: payload.sub,
+      roles: payload.roles,
       sessionId: payload.sessionId,
     };
 

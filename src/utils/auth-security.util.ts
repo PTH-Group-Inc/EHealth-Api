@@ -1,18 +1,15 @@
-// utils/security.util.ts
 import bcrypt from 'bcrypt';
 import { createHash, randomBytes, randomInt, randomUUID } from 'crypto';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 import { TokenUtil } from './token.util';
-import { Account, AccountRole } from '../models/auth_account.model';
-import { pool } from '../config/postgresdb';
-import { ROLE_CONFIG } from '../constants/role-config.constant';
+import { User, AccountRole } from '../models/auth_account.model';
 
 export class SecurityUtil {
     /*
       * Tạo access token và refresh token
       */
-    static generateToken(account: Account, sessionId: string) {
-        const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(account, sessionId);
+    static generateToken(user: User, sessionId: string) {
+        const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(user, sessionId);
 
         const refreshTokenHash = SecurityUtil.hashRefreshToken(refreshToken);
 
@@ -35,7 +32,7 @@ export class SecurityUtil {
      * Hash refresh token
      */
     static hashRefreshToken(token: string): string {
-        return createHash('sha256') .update(token) .digest('hex');
+        return createHash('sha256').update(token).digest('hex');
     }
 
     /**
@@ -49,7 +46,7 @@ export class SecurityUtil {
      * Verify password an toàn
      */
     static async verifyPasswordSafe(inputPassword: string, storedHash: string | null | undefined,): Promise<boolean> {
-       
+
         const DUMMY_HASH = '$2b$10$C6UzMDM.H6dfI/f/IKcEeO5Q7GkE1E7dBDEuDfSU/EYEYVplpXCMu';
 
         return bcrypt.compare(inputPassword, storedHash ?? DUMMY_HASH);
@@ -76,13 +73,13 @@ export class SecurityUtil {
      * Hash token dùng cho reset password
      */
     static hashTokenResetPassword(token: string): string {
-        return createHash('sha256') .update(token) .digest('hex');
+        return createHash('sha256').update(token).digest('hex');
     }
 
     /**
      * Tạo ID cho request reset password
      */
-    static generateResetPasswordId(accountId: string): string {
+    static generateResetPasswordId(userId: string): string {
         const now = new Date();
 
         const yy = String(now.getFullYear()).slice(-2);
@@ -91,36 +88,27 @@ export class SecurityUtil {
 
         const datePart = `${yy}${mm}${dd}`;
 
-        return `PRST_${datePart}_${accountId}_${randomUUID()}`;
+        // Tổng chiều dài sẽ là: 5(PRST_) + 6(Date) + 1(_) + len(userId) + 1(_) + 16(UUID)
+        // Tổng chiều dài sẽ là: 5(PRST_) + 6(Date) + 1(_) + len(userId ~ 22) + 1(_) + 8(UUID) ~ 43 chars <= 50
+        return `PRST_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
     }
 
     /**
-     * Sinh UserCode tự động dựa trên Role
+     * Sinh ID cho bảng users tự động dựa trên Role
      */
-    static async generateUserCode(role: AccountRole): Promise<string> {
-        const config = ROLE_CONFIG[role];
-        
-        if (!config) {
-            throw new Error(`Không tìm thấy cấu hình sinh mã cho role: ${role}`);
-        }
+    static async generateUsersId(role: AccountRole): Promise<string> {
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const rolePrefix = "USR";
 
-        const result = await pool.query(
-            `SELECT nextval($1) as next_val`, 
-            [config.sequence]
-        );
-
-        const nextVal = result.rows[0].next_val;
-
-        const paddedNumber = nextVal.toString().padStart(5, '0');
-
-        return `${config.prefix}${paddedNumber}`;
+        return `${rolePrefix}_${yy}${mm}_${randomUUID().substring(0, 8)}`;
     }
 
     /**
      * Tạo ID cho record Verification
      */
-    static generateVerificationId(accountId: string): string {
-
+    static generateVerificationId(userId: string): string {
         const now = new Date();
 
         const yy = String(now.getFullYear()).slice(-2);
@@ -129,7 +117,7 @@ export class SecurityUtil {
 
         const datePart = `${yy}${mm}${dd}`;
 
-        return `VER_${datePart}_${accountId}_${randomUUID()}`;
+        return `VER_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
     }
 
     /**
@@ -138,9 +126,23 @@ export class SecurityUtil {
     static generateOTP(length: number = 6): string {
         let otp = '';
         for (let i = 0; i < length; i++) {
-            otp += randomInt(0, 10).toString(); // An toàn hơn Math.random()
+            otp += randomInt(0, 10).toString();
         }
         return otp;
     }
 
+    /**
+     * Tạo ID cho record User Profile
+     */
+    static generateUserProfileId(userId: string): string {
+        const now = new Date();
+
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+
+        const datePart = `${yy}${mm}${dd}`;
+
+        return `UPRF_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
+    }
 }

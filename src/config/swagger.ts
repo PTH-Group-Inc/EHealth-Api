@@ -74,17 +74,43 @@ const options = {
             data: {
               type: 'object',
               properties: {
-                access_token: {
+                accessToken: {
                   type: 'string',
                 },
-                refresh_token: {
+                refreshToken: {
                   type: 'string',
                 },
-                account_id: {
-                  type: 'string',
+                expiresIn: {
+                  type: 'number',
                 },
-                role: {
-                  type: 'string',
+                user: {
+                  type: 'object',
+                  properties: {
+                    userId: {
+                      type: 'string',
+                    },
+                    name: {
+                      type: 'string',
+                    },
+                    avatar: {
+                      type: 'string',
+                      nullable: true,
+                    },
+                    email: {
+                      type: 'string',
+                      nullable: true,
+                    },
+                    phone: {
+                      type: 'string',
+                      nullable: true,
+                    },
+                    roles: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -104,174 +130,6 @@ const options = {
             },
             name: {
               type: 'string',
-            },
-          },
-        },
-        // Patient Models
-        Patient: {
-          type: 'object',
-          properties: {
-            patient_id: {
-              type: 'string',
-            },
-            patient_code: {
-              type: 'string',
-            },
-            full_name: {
-              type: 'string',
-            },
-            date_of_birth: {
-              type: 'string',
-              format: 'date',
-            },
-            gender: {
-              type: 'string',
-              enum: ['MALE', 'FEMALE', 'OTHER', 'UNKNOWN'],
-            },
-            identity_type: {
-              type: 'string',
-              enum: ['CCCD', 'PASSPORT', 'OTHER'],
-            },
-            identity_number: {
-              type: 'string',
-            },
-            status: {
-              type: 'string',
-              enum: ['ACTIVE', 'INACTIVE', 'DECEASED'],
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-            },
-            updated_at: {
-              type: 'string',
-              format: 'date-time',
-            },
-          },
-        },
-        CreatePatientRequest: {
-          type: 'object',
-          required: ['full_name', 'date_of_birth', 'contact'],
-          properties: {
-            full_name: {
-              type: 'string',
-              example: 'Nguyễn Văn A',
-            },
-            date_of_birth: {
-              type: 'string',
-              format: 'date',
-              example: '1990-01-15',
-            },
-            gender: {
-              type: 'string',
-              enum: ['MALE', 'FEMALE', 'OTHER', 'UNKNOWN'],
-            },
-            identity_type: {
-              type: 'string',
-              enum: ['CCCD', 'PASSPORT', 'OTHER'],
-            },
-            identity_number: {
-              type: 'string',
-            },
-            nationality: {
-              type: 'string',
-              example: 'VN',
-            },
-            contact: {
-              type: 'object',
-              required: ['phone_number'],
-              properties: {
-                phone_number: {
-                  type: 'string',
-                  example: '0987654321',
-                },
-                email: {
-                  type: 'string',
-                  format: 'email',
-                },
-                street_address: {
-                  type: 'string',
-                },
-                ward: {
-                  type: 'string',
-                },
-                province: {
-                  type: 'string',
-                },
-              },
-            },
-          },
-        },
-        PatientContact: {
-          type: 'object',
-          properties: {
-            contact_id: {
-              type: 'string',
-            },
-            patient_id: {
-              type: 'string',
-            },
-            phone_number: {
-              type: 'string',
-            },
-            email: {
-              type: 'string',
-              format: 'email',
-            },
-            street_address: {
-              type: 'string',
-            },
-            ward: {
-              type: 'string',
-            },
-            province: {
-              type: 'string',
-            },
-            is_primary: {
-              type: 'boolean',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-            },
-            updated_at: {
-              type: 'string',
-              format: 'date-time',
-            },
-          },
-        },
-        PatientRelation: {
-          type: 'object',
-          properties: {
-            relation_id: {
-              type: 'string',
-            },
-            patient_id: {
-              type: 'string',
-            },
-            full_name: {
-              type: 'string',
-            },
-            relationship: {
-              type: 'string',
-              enum: ['PARENT', 'SPOUSE', 'CHILD', 'SIBLING', 'OTHER'],
-            },
-            phone_number: {
-              type: 'string',
-            },
-            is_emergency: {
-              type: 'boolean',
-            },
-            has_legal_rights: {
-              type: 'boolean',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-            },
-            updated_at: {
-              type: 'string',
-              format: 'date-time',
             },
           },
         },

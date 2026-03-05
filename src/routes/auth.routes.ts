@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { AuthController} from '../controllers/auth.controller'
+import { AuthController } from '../controllers/auth.controller'
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware'
 import { SessionController } from '../controllers/auth_session.controller';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
@@ -172,7 +172,8 @@ authRoutes.post('/register/phone', AuthController.registerByPhone);
  * @swagger
  * /api/auth/verify-email:
  *   post:
- *     summary: Xác thực Email
+ *     summary: Xác thực tài khoản (Bằng mã OTP gửi qua Email)
+ *     description: API này được gọi sau khi gọi đăng ký thành công. User sẽ nhập mã OTP gồm 6 số gửi vào email để kích hoạt.
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -190,9 +191,9 @@ authRoutes.post('/register/phone', AuthController.registerByPhone);
  *                 example: '123456'
  *     responses:
  *       200:
- *         description: Xác thực email thành công
+ *         description: Xác thực tài khoản thành công, tài khoản đã được Active
  *       400:
- *         description: Mã xác thực không đúng hoặc hết hạn
+ *         description: Mã OTP không đúng hoặc đã hết hạn
  *         content:
  *           application/json:
  *             schema:
@@ -272,12 +273,11 @@ authRoutes.post('/reset-password', AuthController.resetPassword);
  *         application/json:
  *           schema:
  *             type: object
- *             required: ['email']
+ *             required: ['accountId']
  *             properties:
- *               email:
+ *               accountId:
  *                 type: string
- *                 format: email
- *                 example: 'user@example.com'
+ *                 example: 'USR_2603_...'
  *     responses:
  *       200:
  *         description: Tài khoản đã được mở khóa
@@ -317,9 +317,9 @@ authRoutes.post('/unlock-account', AuthController.unlockAccount);
  *         application/json:
  *           schema:
  *             type: object
- *             required: ['refresh_token']
+ *             required: ['refreshToken']
  *             properties:
- *               refresh_token:
+ *               refreshToken:
  *                 type: string
  *     responses:
  *       200:
@@ -334,8 +334,12 @@ authRoutes.post('/unlock-account', AuthController.unlockAccount);
  *                 data:
  *                   type: object
  *                   properties:
- *                     access_token:
+ *                     accessToken:
  *                       type: string
+ *                     refreshToken:
+ *                       type: string
+ *                     expiresIn:
+ *                       type: number
  *       401:
  *         description: Refresh token không hợp lệ
  *         content:
@@ -415,7 +419,7 @@ authRoutes.post('/logout', AuthController.logout);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.get('/sessions', SessionController.getSessions);
+authRoutes.get('/sessions', verifyAccessToken, checkSessionStatus, SessionController.getSessions);
 
 /**
  * @swagger
@@ -435,7 +439,7 @@ authRoutes.get('/sessions', SessionController.getSessions);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/sessions/logout-all', SessionController.logoutAll);
+authRoutes.post('/sessions/logout-all', verifyAccessToken, checkSessionStatus, SessionController.logoutAll);
 
 /**
  * @swagger
@@ -468,7 +472,7 @@ authRoutes.post('/sessions/logout-all', SessionController.logoutAll);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.delete('/sessions/:sessionId', SessionController.logoutSession);
+authRoutes.delete('/sessions/:sessionId', verifyAccessToken, checkSessionStatus, SessionController.logoutSession);
 
 
 

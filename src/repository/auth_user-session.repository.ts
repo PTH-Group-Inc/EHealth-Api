@@ -9,8 +9,8 @@ export class UserSessionRepository {
    */
   static async createSession(input: CreateSessionInput): Promise<void> {
     const {
-      sessionId = AuthSessionUtil.generate(input.accountId),
-      accountId,
+      user_sessions_id = AuthSessionUtil.generate(input.userId),
+      userId,
       refreshTokenHash,
       deviceId,
       deviceName,
@@ -22,8 +22,8 @@ export class UserSessionRepository {
     await pool.query(
       `
       INSERT INTO user_sessions (
-        session_id,
-        account_id,
+        user_sessions_id,
+        user_id,
         refresh_token_hash,
         device_id,
         device_name,
@@ -35,8 +35,8 @@ export class UserSessionRepository {
       )
       `,
       [
-        sessionId,
-        accountId,
+        user_sessions_id,
+        userId,
         refreshTokenHash,
         deviceId ?? null,
         deviceName ?? null,
@@ -47,13 +47,13 @@ export class UserSessionRepository {
     );
   }
 
-  // Tìm user session theo accountId và deviceId
-  static async findByAccountAndDevice(accountId: string, deviceId: string | null): Promise<UserSession | null> {
-    const result = await pool.query<UserSession>(
+  // Tìm user session theo userId và deviceId
+  static async findByAccountAndDevice(userId: string, deviceId: string | null): Promise<UserSession | null> {
+    const result = await pool.query(
       `
       SELECT
-        session_id,
-        account_id,
+        user_sessions_id,
+        user_id,
         refresh_token_hash,
         device_id,
         device_name,
@@ -64,16 +64,17 @@ export class UserSessionRepository {
         revoked_at,
         created_at
       FROM user_sessions
-      WHERE account_id = $1
+      WHERE user_id = $1
         AND (device_id = $2 OR (device_id IS NULL AND $2 IS NULL))
         AND revoked_at IS NULL
         AND expired_at > NOW()
       LIMIT 1
       `,
-      [accountId, deviceId]
+      [userId, deviceId]
     );
 
-    return result.rows[0] ?? null;
+    if (result.rowCount === 0) return null;
+    return result.rows[0] as UserSession;
   }
 
   // Cập nhật user session theo ID
@@ -88,7 +89,7 @@ export class UserSessionRepository {
         expired_at = $4,
         last_used_at = NOW(),
         revoked_at = NULL
-      WHERE session_id = $5
+      WHERE user_sessions_id = $5
       `,
       [
         input.refreshTokenHash,
@@ -103,17 +104,17 @@ export class UserSessionRepository {
   /**
    * Đăng xuất session hiện tại 
    */
-  static async logoutCurrentSession(accountId: string, refreshTokenHash: string): Promise<boolean> {
+  static async logoutCurrentSession(userId: string, refreshTokenHash: string): Promise<boolean> {
     const result = await pool.query(
       `
       UPDATE user_sessions
       SET revoked_at = NOW()
-      WHERE account_id = $1
+      WHERE user_id = $1
         AND refresh_token_hash = $2
         AND revoked_at IS NULL
         AND expired_at > NOW()
       `,
-      [accountId, refreshTokenHash]
+      [userId, refreshTokenHash]
     );
 
     return (result.rowCount ?? 0) > 0;
@@ -122,15 +123,15 @@ export class UserSessionRepository {
   /**
    * Đăng xuất toàn bộ session của một tài khoản
    */
-  static async revokeAllByAccount(accountId: string): Promise<number> {
+  static async revokeAllByAccount(userId: string): Promise<number> {
     const result = await pool.query(
       `
       UPDATE user_sessions
       SET revoked_at = NOW()
-      WHERE account_id = $1
+      WHERE user_id = $1
         AND revoked_at IS NULL
       `,
-      [accountId]
+      [userId]
     );
 
     return result.rowCount ?? 0;
@@ -143,11 +144,11 @@ export class UserSessionRepository {
   static async findActiveSessionByRefreshToken(
     refreshTokenHash: string
   ): Promise<UserSession | null> {
-    const result = await pool.query<UserSession>(
+    const result = await pool.query(
       `
       SELECT
-        session_id,
-        account_id,
+        user_sessions_id,
+        user_id,
         refresh_token_hash,
         device_id,
         device_name,
@@ -166,7 +167,8 @@ export class UserSessionRepository {
       [refreshTokenHash]
     );
 
-    return result.rows[0] ?? null;
+    if (result.rowCount === 0) return null;
+    return result.rows[0] as UserSession;
   }
 
   /**
@@ -177,7 +179,7 @@ export class UserSessionRepository {
       `
       UPDATE user_sessions
       SET last_used_at = NOW()
-      WHERE session_id = $1
+      WHERE user_sessions_id = $1
       `,
       [sessionId]
     );
@@ -186,42 +188,43 @@ export class UserSessionRepository {
   /*
    * Lấy danh sách session còn hiệu lực của một tài khoản
    */
-
-  static async findActiveByAccount(accountId: string): Promise<UserSession[]> {
-    const result = await pool.query<UserSession>(
-      `SELECT session_id, device_name, ip_address, last_used_at, created_at, expired_at
+  static async findActiveByAccount(userId: string): Promise<UserSession[]> {
+    const result = await pool.query(
+      `SELECT user_sessions_id, device_name, ip_address, last_used_at, created_at, expired_at
          FROM user_sessions
-         WHERE account_id = $1 AND revoked_at IS NULL AND expired_at > NOW()
+         WHERE user_id = $1 AND revoked_at IS NULL AND expired_at > NOW()
          ORDER BY last_used_at DESC`,
-      [accountId]
+      [userId]
     );
-    return result.rows;
+    return result.rows as UserSession[];
   }
 
   /*
    * Thu hồi (revoke) một session theo sessionId
    */
-  static async revokeBySessionId(sessionId: string, accountId: string): Promise<boolean> {
+  static async revokeBySessionId(sessionId: string, userId: string): Promise<boolean> {
     const result = await pool.query(
       `UPDATE user_sessions
          SET revoked_at = NOW()
-         WHERE session_id = $1 AND account_id = $2 AND revoked_at IS NULL`,
-      [sessionId, accountId]
+         WHERE user_sessions_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+      [sessionId, userId]
     );
     return (result.rowCount ?? 0) > 0;
   }
 
   /*
-   * Thu hồi (revoke) một session theo refreshTokenHash
+   * Thu hồi (revoke) một session theo sessionId
    */
   static async findActiveBySessionId(sessionId: string): Promise<UserSession | null> {
-    const result = await pool.query<UserSession>(
-      `SELECT * FROM user_sessions 
-         WHERE session_id = $1 AND revoked_at IS NULL AND expired_at > NOW() 
+    const result = await pool.query(
+      `SELECT user_sessions_id, user_id, refresh_token_hash, device_id, device_name, ip_address, user_agent, last_used_at, expired_at, revoked_at, created_at 
+         FROM user_sessions 
+         WHERE user_sessions_id = $1 AND revoked_at IS NULL AND expired_at > NOW() 
          LIMIT 1`,
       [sessionId]
     );
-    return result.rows[0] ?? null;
+    if (result.rowCount === 0) return null;
+    return result.rows[0] as UserSession;
   }
 
   /**

@@ -1,7 +1,7 @@
 import { AccountRepository } from "../repository/auth_account.repository";
 import { AuthValidation } from "../utils/auth-validation.util";
 import { ClientInfo } from "../models/auth_user-session.model";
-import { Account, AccountStatus } from "../models/auth_account.model";
+import { User, AccountStatus } from "../models/auth_account.model";
 import { AuthSessionUtil } from "../utils/auth-session.util";
 import { SecurityUtil } from "../utils/auth-security.util";
 import { UserSessionRepository } from "../repository/auth_user-session.repository";
@@ -18,13 +18,13 @@ export class AuthService {
   static async loginByEmail(email: string, password: string, clientInfo: ClientInfo) {
     AuthValidation.validateLoginInput(email, password, "EMAIL");
 
-    const account = await AccountRepository.findByEmail(email);
+    const user = await AccountRepository.findByEmail(email);
 
-    if (!account) throw AUTH_ERRORS.INVALID_CREDENTIAL;
+    if (!user) throw AUTH_ERRORS.INVALID_CREDENTIAL;
 
-    await this.handleLoginAttempt(account, password);
+    await this.handleLoginAttempt(user, password);
 
-    return this.processLoginSuccess(account, clientInfo);
+    return this.processLoginSuccess(user, clientInfo);
   }
 
   /**
@@ -33,44 +33,44 @@ export class AuthService {
   static async loginByPhone(phone: string, password: string, clientInfo: ClientInfo) {
     AuthValidation.validateLoginInput(phone, password, "PHONE");
 
-    const account = await AccountRepository.findByPhone(phone);
+    const user = await AccountRepository.findByPhone(phone);
 
-    if (!account) {
+    if (!user) {
       throw AUTH_ERRORS.INVALID_CREDENTIAL;
     }
 
-    await this.handleLoginAttempt(account, password);
+    await this.handleLoginAttempt(user, password);
 
-    return this.processLoginSuccess(account, clientInfo);
+    return this.processLoginSuccess(user, clientInfo);
   }
 
   /**
    * Xử lý kiểm tra khóa và xác thực mật khẩu
    */
-  private static async handleLoginAttempt(account: Account, passwordInput: string) {
+  private static async handleLoginAttempt(user: User, passwordInput: string) {
 
-    if (account.locked_until && new Date() < new Date(account.locked_until)) {
+    if (user.locked_until && new Date() < new Date(user.locked_until)) {
       throw AUTH_ERRORS.ACCOUNT_LOCKED;
     }
 
-    const isPasswordValid = await SecurityUtil.verifyPasswordSafe(passwordInput, account.password);
+    const isPasswordValid = await SecurityUtil.verifyPasswordSafe(passwordInput, user.password_hash);
 
     if (!isPasswordValid) {
-      const newFailedCount = await AccountRepository.incrementFailedLogin(account.account_id);
+      const newFailedCount = await AccountRepository.incrementFailedLogin(user.users_id);
 
       if (newFailedCount >= AUTH_CONSTANTS.LOGIN_LIMIT.MAX_ATTEMPTS) {
         const lockUntil = new Date(Date.now() + AUTH_CONSTANTS.LOGIN_LIMIT.LOCK_DURATION_MS);
-        await AccountRepository.lockAccount(account.account_id, lockUntil);
+        await AccountRepository.lockAccount(user.users_id, lockUntil);
       }
 
       throw AUTH_ERRORS.INVALID_CREDENTIAL;
     }
 
-    if (account.failed_login_count > 0 || account.locked_until) {
-      await AccountRepository.resetFailedLogin(account.account_id);
+    if (user.failed_login_count > 0 || user.locked_until) {
+      await AccountRepository.resetFailedLogin(user.users_id);
     }
 
-    if (account.status !== 'ACTIVE') {
+    if (user.status !== 'ACTIVE') {
       throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
     }
   }
@@ -78,46 +78,48 @@ export class AuthService {
   /**
    * Xử lý khi đăng nhập thành công
    */
-  private static async processLoginSuccess(account: Account, clientInfo: ClientInfo) {
-
+  private static async processLoginSuccess(user: User, clientInfo: ClientInfo) {
     let sessionId: string;
 
     // Nếu client gửi device info thì check xem có session cũ của device không
     if (clientInfo.deviceId) {
       const existingSession = await UserSessionRepository.findByAccountAndDevice(
-        account.account_id,
+        user.users_id,
         clientInfo.deviceId,
       );
       // Nếu có session cũ thì dùng lại, không có thì tạo mới
       sessionId = existingSession
-        ? existingSession.sessionId
-        : AuthSessionUtil.generate(account.account_id);
+        ? existingSession.user_sessions_id
+        : AuthSessionUtil.generate(user.users_id);
     } else {
-      sessionId = AuthSessionUtil.generate(account.account_id);
+      sessionId = AuthSessionUtil.generate(user.users_id);
     }
 
     const { accessToken, refreshToken, refreshTokenHash, expiresIn } =
-      SecurityUtil.generateToken(account, sessionId);
+      SecurityUtil.generateToken(user, sessionId);
 
     await AuthSessionUtil.upsertSession(
       sessionId,
-      account.account_id,
+      user.users_id,
       refreshTokenHash,
       clientInfo,
     );
 
-    await AccountRepository.updateLastLogin(account.account_id);
+    await AccountRepository.updateLastLogin(user.users_id);
+
+    const profile = await AccountRepository.findProfileById(user.users_id);
 
     return {
       accessToken,
       refreshToken,
       expiresIn,
       user: {
-        accountId: account.account_id,
-        name: account.name,
-        email: account.email,
-        phone: account.phone,
-        role: account.role,
+        userId: user.users_id,
+        name: profile?.full_name || "",
+        avatar: profile?.avatar_url || null,
+        email: user.email,
+        phone: user.phone,
+        roles: user.roles,
       },
     };
   }
@@ -126,57 +128,8 @@ export class AuthService {
    * Mở khóa tài khoản thủ công
    */
   static async unlockAccount(input: { accountId: string }): Promise<void> {
-     await AccountRepository.unlockAccount(input.accountId);
+    await AccountRepository.unlockAccount(input.accountId);
   }
-
-
-  /**
-   * Xử lý đăng nhập chung
-   */
-  /*
-  private static async processLogin(
-    account: Account | null,
-    password: string,
-    clientInfo: ClientInfo,
-  ) {
-    AuthValidation.validateDevice(clientInfo);
-
-    await AuthValidation.validateCredential(account, password);
-
-    const existingSession = await UserSessionRepository.findByAccountAndDevice(
-      account!.account_id,
-      clientInfo.deviceId!,
-    );
-
-    const sessionId = existingSession
-      ? existingSession.sessionId
-      : AuthSessionUtil.generate(account!.account_id);
-
-    const { accessToken, refreshToken, refreshTokenHash, expiresIn } =
-      SecurityUtil.generateToken(account!, sessionId);
-    await AuthSessionUtil.upsertSession(
-      sessionId,
-      account!.account_id,
-      refreshTokenHash,
-      clientInfo,
-    );
-
-    await AccountRepository.updateLastLogin(account!.account_id);
-
-    return {
-      accessToken,
-      refreshToken,
-      expiresIn,
-      user: {
-        accountId: account!.account_id,
-        name: account!.name,
-        email: account!.email,
-        phone: account!.phone,
-        role: account!.role,
-      },
-    };
-  }
-  */
 
   /**
    * Đăng xuất
@@ -199,7 +152,7 @@ export class AuthService {
     }
 
     await UserSessionRepository.logoutCurrentSession(
-      session.account_id,
+      session.user_id,
       refreshTokenHash
     );
   }
@@ -211,13 +164,13 @@ export class AuthService {
     try {
       AuthValidation.validateEmailOnly(input.email);
 
-      const account = await AccountRepository.findByEmail(input.email);
+      const user = await AccountRepository.findByEmail(input.email);
 
-      if (!account || account.status !== "ACTIVE") return;
+      if (!user || user.status !== "ACTIVE") return;
 
-      if (!account.email) return;
+      if (!user.email) return;
 
-      const resetId = SecurityUtil.generateResetPasswordId(account.account_id);
+      const resetId = SecurityUtil.generateResetPasswordId(user.users_id);
 
       const resetToken = SecurityUtil.generateRandomTokenResetPassword(
         AUTH_CONSTANTS.RESET_PASSWORD.TOKEN_LENGTH,
@@ -230,14 +183,14 @@ export class AuthService {
 
       await PasswordResetRepository.createResetToken(
         resetId,
-        account.account_id,
+        user.users_id,
         resetTokenHash,
         expiredAt,
       );
 
       const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-      await AuthMailUtil.sendResetPasswordEmail(account.email, resetLink);
+      await AuthMailUtil.sendResetPasswordEmail(user.email, resetLink);
     } catch (error) {
       console.error("Lỗi quên mật khẩu:", error);
     }
@@ -264,13 +217,13 @@ export class AuthService {
     const hashedPassword = await SecurityUtil.hashPassword(newPassword);
 
     await AccountRepository.updatePassword(
-      resetRecord.accountId,
+      resetRecord.userId,
       hashedPassword,
     );
 
-    await PasswordResetRepository.markAsUsed(resetRecord.id);
+    await PasswordResetRepository.markAsUsed(resetRecord.password_resets_id);
 
-    await UserSessionRepository.revokeAllByAccount(resetRecord.accountId);
+    await UserSessionRepository.revokeAllByAccount(resetRecord.userId);
   }
 
   /**
@@ -299,14 +252,14 @@ export class AuthService {
     });
 
     try {
-      const accountId = result.userCode;
+      const { userCode } = result;
 
-      await AccountVerificationRepository.invalidateOldTokens(accountId);
+      await AccountVerificationRepository.invalidateOldTokens(userCode);
 
       const otpCode = SecurityUtil.generateOTP(6);
       const otpHash = SecurityUtil.hashTokenResetPassword(otpCode);
 
-      const verifyId = SecurityUtil.generateVerificationId(accountId);
+      const verifyId = SecurityUtil.generateVerificationId(userCode);
 
       const expiredAt = new Date(
         Date.now() + AUTH_CONSTANTS.VERIFY_EMAIL.EXPIRES_IN_MS,
@@ -314,7 +267,7 @@ export class AuthService {
 
       await AccountVerificationRepository.createVerificationToken(
         verifyId,
-        accountId,
+        userCode,
         otpHash,
         expiredAt,
       );
@@ -356,7 +309,7 @@ export class AuthService {
   }
 
   /*
-   * Xử lý đăng ký chung
+   * Xử lý đăng ký chung 
    */
   private static async processRegister(payload: {
     name: string;
@@ -367,16 +320,14 @@ export class AuthService {
   }) {
     const hashedPassword = await SecurityUtil.hashPassword(payload.password);
 
-    const userCode = await SecurityUtil.generateUserCode("CUSTOMER");
+    const userCode = await SecurityUtil.generateUsersId("CUSTOMER");
 
-    // Tạo object Account
-    const newAccount: Account = {
-      account_id: userCode,
-      name: payload.name,
+    const newUser: User = {
+      users_id: userCode,
       email: payload.email,
       phone: payload.phone,
-      password: hashedPassword,
-      role: "CUSTOMER",
+      password_hash: hashedPassword,
+      roles: ["CUSTOMER"],
       status: payload.status,
       last_login_at: null,
       created_at: new Date(),
@@ -385,13 +336,15 @@ export class AuthService {
       locked_until: null
     };
 
-    await AccountRepository.createAccount(newAccount);
+    const userProfileId = SecurityUtil.generateUserProfileId(userCode);
+
+    await AccountRepository.createAccountWithProfileAndRole(newUser, userProfileId, payload.name, "CUSTOMER");
 
     return {
-      userCode: newAccount.account_id,
-      email: newAccount.email,
-      phone: newAccount.phone,
-      status: newAccount.status,
+      userCode: newUser.users_id,
+      email: newUser.email,
+      phone: newUser.phone,
+      status: newUser.status,
     };
   }
 
@@ -407,9 +360,9 @@ export class AuthService {
     if (!verificationRecord)
       throw new Error("Đường dẫn xác thực không hợp lệ hoặc đã hết hạn.");
 
-    await AccountRepository.activateAccount(verificationRecord.accountId);
+    await AccountRepository.activateAccount(verificationRecord.userId);
 
-    await AccountVerificationRepository.markAsUsed(verificationRecord.id);
+    await AccountVerificationRepository.markAsUsed(verificationRecord.account_verifications_id);
   }
 
   /**
@@ -421,29 +374,29 @@ export class AuthService {
   }): Promise<void> {
     const { email, otp } = input;
 
-    const account = await AccountRepository.findByEmail(email);
-    if (!account) {
+    const user = await AccountRepository.findByEmail(email);
+    if (!user) {
       throw new Error("Email không tồn tại.");
     }
 
     const otpHash = SecurityUtil.hashTokenResetPassword(otp);
 
     const verificationRecord = await AccountVerificationRepository.findValidOTP(
-      account.account_id,
+      user.users_id,
       otpHash,
     );
 
     if (!verificationRecord)
       throw new Error("Mã xác thực không hợp lệ hoặc đã hết hạn.");
 
-    await AccountRepository.activateAccount(verificationRecord.accountId);
+    await AccountRepository.activateAccount(verificationRecord.userId);
 
-    await AccountVerificationRepository.markAsUsed(verificationRecord.id);
+    await AccountVerificationRepository.markAsUsed(verificationRecord.account_verifications_id);
   }
 
 
   /**
-   * Làm mới Access Token & Refresh Token (Rotation)
+   * Làm mới Access Token & Refresh Token
    */
   static async refreshToken(input: { refreshToken: string }) {
     try {
@@ -465,29 +418,28 @@ export class AuthService {
     const idleTime = now - lastUsed;
 
     if (idleTime > AUTH_CONSTANTS.SESSION.IDLE_TIMEOUT_MS) {
-        await UserSessionRepository.revokeBySessionId(session.sessionId, session.account_id);
-        throw AUTH_ERRORS.SESSION_EXPIRED;
+      await UserSessionRepository.revokeBySessionId(session.user_sessions_id, session.user_id);
+      throw AUTH_ERRORS.SESSION_EXPIRED;
     }
 
-    const account = await AccountRepository.findByEmail(session.account_id) 
-                 || await AccountRepository.findByPhone(session.account_id); 
-    
-    if (!account || account.status !== 'ACTIVE') {
-        throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
+    const user = await AccountRepository.findById(session.user_id);
+
+    if (!user || user.status !== 'ACTIVE') {
+      throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
     }
 
-    const { accessToken, refreshToken: newRefreshToken, expiresIn } = 
-        SecurityUtil.generateToken(account, session.sessionId);
+    const { accessToken, refreshToken: newRefreshToken, expiresIn } =
+      SecurityUtil.generateToken(user, session.user_sessions_id);
 
-    await UserSessionRepository.updateSessionBySessionId(session.sessionId, {
-        refreshTokenHash: SecurityUtil.hashRefreshToken(newRefreshToken),
-        expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
+    await UserSessionRepository.updateSessionBySessionId(session.user_sessions_id, {
+      refreshTokenHash: SecurityUtil.hashRefreshToken(newRefreshToken),
+      expiredAt: SecurityUtil.getRefreshTokenExpiredAt(),
     });
 
     return {
-        accessToken,
-        refreshToken: newRefreshToken,
-        expiresIn
+      accessToken,
+      refreshToken: newRefreshToken,
+      expiresIn
     };
   }
 }

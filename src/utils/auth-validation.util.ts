@@ -1,7 +1,7 @@
 import { AUTH_ERRORS } from '../constants/auth-error.constant';
 import { SecurityUtil } from './auth-security.util';
 import { ClientInfo } from '../models/auth_user-session.model';
-import { Account } from '../models/auth_account.model';
+import { User } from '../models/auth_account.model';
 
 export type LoginIdentifierType = 'EMAIL' | 'PHONE';
 
@@ -19,21 +19,21 @@ export class AuthValidation {
      * Xác thực thông tin đăng nhập
      */
     static async validateCredential(
-        account: Account | null,
+        user: User | null,
         password: string
     ) {
-        if (!account) {
+        if (!user) {
             throw AUTH_ERRORS.INVALID_CREDENTIAL;
         }
 
         const isPasswordValid =
-            await SecurityUtil.verifyPasswordSafe(password, account.password);
+            await SecurityUtil.verifyPasswordSafe(password, user.password_hash);
 
         if (!isPasswordValid) {
             throw AUTH_ERRORS.INVALID_CREDENTIAL;
         }
 
-        if (account.status !== 'ACTIVE') {
+        if (user.status !== 'ACTIVE') {
             throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
         }
     }

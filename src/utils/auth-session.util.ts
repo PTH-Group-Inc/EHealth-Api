@@ -9,22 +9,22 @@ export class AuthSessionUtil {
      */
     static async upsertSession(
         sessionId: string,
-        accountId: string, 
-        refreshTokenHash: string, 
+        userId: string,
+        refreshTokenHash: string,
         clientInfo: ClientInfo
     ) {
         const expiredAt = SecurityUtil.getRefreshTokenExpiredAt();
-        
+
         // Nếu có deviceId thì tìm session cũ của device
         if (clientInfo.deviceId) {
             const existingSession = await UserSessionRepository.findByAccountAndDevice(
-                accountId,
+                userId,
                 clientInfo.deviceId
             );
 
             if (existingSession) {
                 await UserSessionRepository.updateSessionBySessionId(
-                    existingSession.sessionId,
+                    existingSession.user_sessions_id,
                     {
                         refreshTokenHash,
                         ipAddress: clientInfo.ip,
@@ -38,8 +38,8 @@ export class AuthSessionUtil {
 
         // Tạo session mới
         await UserSessionRepository.createSession({
-            sessionId: sessionId, 
-            accountId,
+            user_sessions_id: sessionId,
+            userId,
             refreshTokenHash,
             deviceId: clientInfo.deviceId,
             deviceName: clientInfo.deviceName,
@@ -52,7 +52,7 @@ export class AuthSessionUtil {
     /*
      * Tạo session ID mới
     */
-    static generate(accountId: string): string {
+    static generate(userId: string): string {
         const now = new Date();
 
         const yy = String(now.getFullYear()).slice(-2);
@@ -61,6 +61,6 @@ export class AuthSessionUtil {
 
         const datePart = `${yy}${mm}${dd}`;
 
-        return `SES_${datePart}_${accountId}_${randomUUID()}`;
+        return `SES_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
     }
 }

@@ -1,25 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
 import { AccountRole } from '../models/auth_account.model';
 
-// Mở rộng interface Request để thêm thông tin auth
 export interface AuthenticatedRequest extends Request {
     auth?: {
-        account_id: string;
-        role: string;
+        user_id: string;
+        roles: string[];
         sessionId: string;
         [key: string]: any;
     };
 }
 
 /**
- * Middleware kiểm tra quyền truy cập dựa trên Role.
+ * Middleware kiểm tra quyền truy cập dựa trên mảng Roles.
  */
 export const authorizeRoles = (...allowedRoles: AccountRole[]) => {
     return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         const auth = req.auth;
 
-        // Kiểm tra xem auth đã được xác thực chưa
-        if (!auth || !auth.role) {
+        // Kiểm tra
+        if (!auth || !auth.roles || !Array.isArray(auth.roles)) {
             return res.status(401).json({
                 success: false,
                 error_code: 'UNAUTHORIZED_ROLE',
@@ -27,8 +26,10 @@ export const authorizeRoles = (...allowedRoles: AccountRole[]) => {
             });
         }
 
-        // Kiểm tra role của user có nằm trong danh sách cho phép không
-        if (!allowedRoles.includes(auth.role as AccountRole)) {
+        // Kiểm tra xem roles của user
+        const hasPermission = auth.roles.some((role: string) => allowedRoles.includes(role as AccountRole));
+
+        if (!hasPermission) {
             return res.status(403).json({
                 success: false,
                 error_code: 'FORBIDDEN_ACCESS',

@@ -197,16 +197,17 @@ export class AuthController {
      */
     static async verifyEmail(req: Request, res: Response): Promise<Response> {
         try {
-            const { email, otp } = req.body;
+            const { email, code } = req.body;
 
-            if (!email || !otp) {
+            if (!email || !code) {
                 return res.status(400).json({
                     success: false,
                     message: "Vui lòng cung cấp Email và mã OTP",
                 });
             }
 
-            await AuthService.verifyEmailOTP({ email, otp });
+            // Gọi AuthService dùng property otp: code
+            await AuthService.verifyEmailOTP({ email, otp: code });
 
             return res.status(200).json({
                 success: true,
