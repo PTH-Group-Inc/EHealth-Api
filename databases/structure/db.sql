@@ -112,7 +112,11 @@ CREATE TABLE roles (
     code VARCHAR(50) UNIQUE NOT NULL, -- vd: ADMIN, DOCTOR, NURSE, PATIENT,..
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    is_system BOOLEAN DEFAULT FALSE -- TRUE: Không cho phép admin sửa/xóa
+    is_system BOOLEAN DEFAULT FALSE, -- TRUE: Không cho phép admin sửa/xóa
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE / INACTIVE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- Bảng Quyền hạn (Gắn với từng tính năng cụ thể)
@@ -120,7 +124,10 @@ CREATE TABLE permissions (
     permissions_id VARCHAR(50) PRIMARY KEY,
     code VARCHAR(100) UNIQUE NOT NULL, -- vd: PATIENT_CREATE, EMR_VIEW
     module VARCHAR(100) NOT NULL, -- vd: PATIENT_MANAGEMENT, EMR
-    description TEXT
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- Bảng N/N: Vai trò - Quyền hạn
@@ -130,6 +137,56 @@ CREATE TABLE role_permissions (
     PRIMARY KEY (role_id, permission_id),
     FOREIGN KEY (role_id) REFERENCES roles(roles_id) ON DELETE CASCADE,
     FOREIGN KEY (permission_id) REFERENCES permissions(permissions_id) ON DELETE CASCADE
+);
+
+-- Bảng Danh mục Menu hiển thị trên giao diện
+CREATE TABLE menus (
+    menus_id VARCHAR(50) PRIMARY KEY,
+    code VARCHAR(100) UNIQUE NOT NULL, -- vd: DASHBOARD, USER, PATIENT...
+    name VARCHAR(100) NOT NULL,
+    url VARCHAR(255),
+    icon VARCHAR(100),
+    parent_id VARCHAR(50), -- Cho phép Menu đa cấp (Nested Menu)
+    sort_order INT DEFAULT 0,
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE / INACTIVE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES menus(menus_id) ON DELETE SET NULL
+);
+
+-- Bảng N/N: Vai trò - Menu hiển thị
+CREATE TABLE role_menus (
+    role_id VARCHAR(50) NOT NULL,
+    menu_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (role_id, menu_id),
+    FOREIGN KEY (role_id) REFERENCES roles(roles_id) ON DELETE CASCADE,
+    FOREIGN KEY (menu_id) REFERENCES menus(menus_id) ON DELETE CASCADE
+);
+
+-- Bảng Quản lý Danh mục API Endpoint
+CREATE TABLE api_permissions (
+    api_id VARCHAR(50) PRIMARY KEY,
+    method VARCHAR(10) NOT NULL, -- GET, POST, PUT, PATCH, DELETE, vv
+    endpoint VARCHAR(255) NOT NULL, -- /api/users, /api/patients, vv (Có thể dùng pattern)
+    description TEXT,
+    module VARCHAR(50), -- e.g. USER_MANAGEMENT, PATIENT_MANAGEMENT
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE / INACTIVE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
+    UNIQUE(method, endpoint)
+);
+
+-- Bảng N/N: Khớp Role với API Permission
+CREATE TABLE role_api_permissions (
+    role_id VARCHAR(50) NOT NULL,
+    api_id VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (role_id, api_id),
+    FOREIGN KEY (role_id) REFERENCES roles(roles_id) ON DELETE CASCADE,
+    FOREIGN KEY (api_id) REFERENCES api_permissions(api_id) ON DELETE CASCADE
 );
 
 -- Bảng N/N: Người dùng - Vai trò (Một người có thể có nhiều vai trò)

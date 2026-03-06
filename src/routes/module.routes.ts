@@ -1,0 +1,54 @@
+import { Router } from 'express';
+import { ModuleController } from '../controllers/module.controller';
+import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
+
+const moduleRoutes = Router();
+
+moduleRoutes.use(verifyAccessToken);
+const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Feature Module Permissions
+ *   description: API Phân quyền theo nhóm tính năng
+ */
+
+/**
+ * @swagger
+ * /api/modules:
+ *   get:
+ *     summary: Lấy danh sách các Module riêng biệt
+ *     description: API trả về mảng danh sách tên các Module có sẵn trong hệ thống phục vụ việc nhóm quyền hạn.
+ *     tags: [1.3.7 Danh mục Phân hệ Tính năng (Modules)]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Thành công
+ */
+moduleRoutes.get('/', requireAdmin, ModuleController.getModules);
+
+/**
+ * @swagger
+ * /api/modules/{moduleName}/permissions:
+ *   get:
+ *     summary: Lấy danh sách Quyền của một Module cụ thể
+ *     tags: [1.3.7 Danh mục Phân hệ Tính năng (Modules)]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: moduleName
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "USER_MANAGEMENT"
+ *     responses:
+ *       200:
+ *         description: Thành công
+ */
+moduleRoutes.get('/:moduleName/permissions', requireAdmin, ModuleController.getPermissionsByModule);
+
+export default moduleRoutes;

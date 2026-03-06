@@ -16,7 +16,7 @@ const facilityRoutes = Router();
  *   get:
  *     summary: Lấy danh sách Cơ sở Y tế (Dropdown)
  *     description: Lấy danh sách các Facility trạng thái ACTIVE để hiển thị trên Dropdown bộ lọc / Form.
- *     tags: [Facility Management]
+ *     tags: [1.4.1 Cấu hình Chi nhánh hệ thống]
  *     responses:
  *       200:
  *         description: Trả về thành công

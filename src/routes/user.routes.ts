@@ -16,11 +16,10 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 /**
  * @swagger
  * tags:
- *   name: User Management
- *   description: Quản lý người dùng (Dành cho Admin)
- *   
- *   name: Bulk Import Users
- *   description: Import danh sách nhân sự hàng loạt qua file Excel/CSV
+ *   - name: User Management
+ *     description: Quản lý người dùng (Dành cho Admin)
+ *   - name: Bulk Import Users
+ *     description: Import danh sách nhân sự hàng loạt qua file Excel/CSV
  */
 
 /**
@@ -29,7 +28,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
  *   post:
  *     summary: Kiểm tra (Validate) dữ liệu file Import
  *     description: Tải file dữ liệu danh sách người dùng lên để hệ thống phân tích và báo lỗi trước khi import thực sự. Hỗ trợ Excel (.xlsx, .xls) và CSV.
- *     tags: [Bulk Import Users]
+ *     tags: [1.1.2 Bulk Import Users]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -57,7 +56,7 @@ userRoutes.post('/import/validate', requireAdmin, upload.single('file'), UserImp
  *   post:
  *     summary: Thực thi Import Người dùng hàng loạt
  *     description: Tải file dữ liệu lên, hệ thống sẽ bỏ qua các dòng lỗi và chỉ import các dòng hợp lệ vào CSDL.
- *     tags: [Bulk Import Users]
+ *     tags: [1.1.2 Bulk Import Users]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -85,7 +84,7 @@ userRoutes.post('/import', requireAdmin, upload.single('file'), UserImportContro
  *   get:
  *     summary: Xem lịch sử Import
  *     description: Truy xuất tất cả các lần Import danh sách nhân sự trước đó.
- *     tags: [Bulk Import Users]
+ *     tags: [1.1.2 Bulk Import Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -100,7 +99,7 @@ userRoutes.get('/import/history', requireAdmin, UserImportController.getImportHi
  *   get:
  *     summary: Xuất danh sách người dùng (Excel)
  *     description: Tải xuống file Excel (.xlsx) chứa toàn bộ danh sách người dùng trong hệ thống (có thể lọc thông qua Query Params).
- *     tags: [User Management]
+ *     tags: [1.1.3 Trích xuất dữ liệu (Data Exporting)]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -147,7 +146,7 @@ userRoutes.get('/export', requireAdmin, UserExportController.exportUsers);
  *   post:
  *     summary: Xuất danh sách người dùng theo luồng POST (Nâng cao)
  *     description: Tương tự GET /export nhưng cho phép gửi filter phức tạp thông qua Request Body thay vì Query.
- *     tags: [User Management]
+ *     tags: [1.1.3 Trích xuất dữ liệu (Data Exporting)]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -191,7 +190,7 @@ userRoutes.post('/export', requireAdmin, UserExportController.exportUsers);
  *   get:
  *     summary: Lấy danh sách Trạng thái hiển thị Dropdown
  *     description: Lấy danh sách map các trạng thái tài khoản cố định của hệ thống.
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -205,7 +204,7 @@ userRoutes.get('/account-status', requireAdmin, UserController.getAccountStatuse
  * /api/users:
  *   post:
  *     summary: Tạo người dùng mới
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -264,7 +263,7 @@ userRoutes.post('/', requireAdmin, UserController.createUser);
  * /api/users:
  *   get:
  *     summary: Lấy danh sách người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -303,7 +302,7 @@ userRoutes.get('/', requireAdmin, UserController.getUsers);
  * /api/users/search:
  *   get:
  *     summary: Tìm kiếm người dùng nhanh (Alias của Get List)
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -337,7 +336,7 @@ userRoutes.get('/search', requireAdmin, UserController.searchUsers);
  * /api/users/{userId}:
  *   get:
  *     summary: Lấy chi tiết người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -359,7 +358,7 @@ userRoutes.get('/:userId', requireAdmin, UserController.getUserById);
  * /api/users/{userId}:
  *   put:
  *     summary: Cập nhật thông tin người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -425,7 +424,7 @@ userRoutes.patch('/:userId', requireAdmin, UserController.updateUser);
  * /api/users/{userId}:
  *   delete:
  *     summary: Vô hiệu hóa (Soft Delete) người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -447,7 +446,7 @@ userRoutes.delete('/:userId', requireAdmin, UserController.deleteUser);
  * /api/users/{userId}/lock:
  *   patch:
  *     summary: Khóa tài khoản
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -471,7 +470,7 @@ userRoutes.patch('/:userId/lock', requireAdmin, UserController.lockUser);
  * /api/users/{userId}/unlock:
  *   patch:
  *     summary: Mở khóa tài khoản
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -494,7 +493,7 @@ userRoutes.patch('/:userId/unlock', requireAdmin, UserController.unlockUser);
  * /api/users/{userId}/status:
  *   patch:
  *     summary: Cập nhật trạng thái người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -534,7 +533,7 @@ userRoutes.patch('/:userId/status', requireAdmin, UserController.updateUserStatu
  * /api/users/{userId}/status-history:
  *   get:
  *     summary: Lấy lịch sử thay đổi trạng thái người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -555,7 +554,7 @@ userRoutes.get('/:userId/status-history', requireAdmin, UserController.getStatus
  * /api/users/{userId}/reset-password:
  *   post:
  *     summary: Admin reset mật khẩu cho User
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -588,7 +587,7 @@ userRoutes.post('/:userId/reset-password', requireAdmin, UserController.resetPas
  * /api/users/{userId}/change-password:
  *   post:
  *     summary: User tự đổi mật khẩu cá nhân
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -629,7 +628,7 @@ userRoutes.post('/:userId/change-password', UserController.changePassword);
  * /api/users/{userId}/roles:
  *   get:
  *     summary: Lấy danh sách vai trò của người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -651,7 +650,7 @@ userRoutes.get('/:userId/roles', requireAdmin, UserController.getUserRoles);
  * /api/users/{userId}/roles:
  *   post:
  *     summary: Gán vai trò cho người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -688,7 +687,7 @@ userRoutes.post('/:userId/roles', requireAdmin, UserController.assignRole);
  * /api/users/{userId}/roles/{roleId}:
  *   delete:
  *     summary: Xoá vai trò của người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -717,7 +716,7 @@ userRoutes.delete('/:userId/roles/:roleId', requireAdmin, UserController.removeR
  * /api/users/{userId}/facilities:
  *   get:
  *     summary: Lấy danh sách Chi nhánh/Phòng ban của người dùng
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -739,7 +738,7 @@ userRoutes.get('/:userId/facilities', requireAdmin, UserFacilityController.getUs
  * /api/users/{userId}/facilities:
  *   post:
  *     summary: Gán nhân sự vào Chi nhánh / Phòng ban
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -782,7 +781,7 @@ userRoutes.post('/:userId/facilities', requireAdmin, UserFacilityController.assi
  * /api/users/{userId}/facilities/{facilityId}:
  *   delete:
  *     summary: Hủy gán nhân sự khỏi Chi nhánh
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -825,7 +824,7 @@ userRoutes.delete('/:userId/facilities/:facilityId', requireAdmin, UserFacilityC
  * /api/users/{userId}/facilities/{facilityId}:
  *   put:
  *     summary: Thuyên chuyển nhân sự sang Chi nhánh / Phòng ban khác
- *     tags: [User Management]
+ *     tags: [1.1.1 CRUD User]
  *     security:
  *       - bearerAuth: []
  *     parameters:

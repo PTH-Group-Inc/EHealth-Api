@@ -64,3 +64,63 @@ INSERT INTO hospital_beds (beds_id, medical_room_id, code, bed_type, status) VAL
 ('BED_HCM_01', 'RM_HCM_N101', 'G01', 'STANDARD', 'AVAILABLE'),
 ('BED_HCM_02', 'RM_HCM_N101', 'G02', 'STANDARD', 'AVAILABLE'),
 ('BED_HCM_03', 'RM_HCM_N102', 'G03', 'STANDARD', 'OCCUPIED');
+
+-- 8. KHỞI TẠO QUYỀN HẠN (PERMISSIONS)
+INSERT INTO permissions (permissions_id, code, module, description) VALUES
+('PERM_USER_VIEW', 'USER_VIEW', 'USER_MANAGEMENT', 'Xem danh sách và chi tiết người dùng'),
+('PERM_USER_CREATE', 'USER_CREATE', 'USER_MANAGEMENT', 'Tạo tài khoản người dùng mới'),
+('PERM_USER_UPDATE', 'USER_UPDATE', 'USER_MANAGEMENT', 'Cập nhật thông tin người dùng'),
+('PERM_USER_DELETE', 'USER_DELETE', 'USER_MANAGEMENT', 'Xóa người dùng'),
+
+('PERM_ROLE_VIEW', 'ROLE_VIEW', 'ROLE_MANAGEMENT', 'Xem danh sách và hệ thống vai trò'),
+('PERM_ROLE_CREATE', 'ROLE_CREATE', 'ROLE_MANAGEMENT', 'Tạo vai trò mới'),
+('PERM_ROLE_UPDATE', 'ROLE_UPDATE', 'ROLE_MANAGEMENT', 'Cập nhật vai trò'),
+('PERM_ROLE_DELETE', 'ROLE_DELETE', 'ROLE_MANAGEMENT', 'Xóa vai trò'),
+
+('PERM_PERM_VIEW', 'PERMISSION_VIEW', 'PERMISSION_MANAGEMENT', 'Xem danh sách hệ thống quyền hạn'),
+('PERM_PERM_CREATE', 'PERMISSION_CREATE', 'PERMISSION_MANAGEMENT', 'Thiết lập quyền hạn mới'),
+('PERM_PERM_UPDATE', 'PERMISSION_UPDATE', 'PERMISSION_MANAGEMENT', 'Cập nhật mô tả quyền'),
+('PERM_PERM_DELETE', 'PERMISSION_DELETE', 'PERMISSION_MANAGEMENT', 'Xóa quyền hệ thống'),
+
+('PERM_FAC_VIEW', 'FACILITY_VIEW', 'FACILITY_MANAGEMENT', 'Xem danh sách cơ sở, chi nhánh'),
+('PERM_FAC_UPDATE', 'FACILITY_UPDATE', 'FACILITY_MANAGEMENT', 'Cập nhật sơ đồ cơ sở y tế'),
+
+('PERM_PATIENT_VIEW', 'PATIENT_VIEW', 'PATIENT_MANAGEMENT', 'Xem hồ sơ bệnh án bệnh nhân'),
+('PERM_PATIENT_CREATE', 'PATIENT_CREATE', 'PATIENT_MANAGEMENT', 'Thêm mới hoặc tiếp nhận bệnh nhân'),
+('PERM_PATIENT_UPDATE', 'PATIENT_UPDATE', 'PATIENT_MANAGEMENT', 'Cập nhật hồ sơ bệnh án'),
+
+('PERM_APP_VIEW', 'APPOINTMENT_VIEW', 'APPOINTMENT_MANAGEMENT', 'Xem danh sách lịch hẹn'),
+('PERM_APP_CREATE', 'APPOINTMENT_CREATE', 'APPOINTMENT_MANAGEMENT', 'Đặt lịch khám / tiếp nhận'),
+('PERM_APP_UPDATE', 'APPOINTMENT_UPDATE', 'APPOINTMENT_MANAGEMENT', 'Cập nhật trạng thái lịch hẹn');
+
+-- 9. Danh mục Menu (menus)
+INSERT INTO menus (menus_id, code, name, icon, url, sort_order)
+VALUES
+    ('MENU_DASHBOARD', 'DASHBOARD', 'Bảng điều khiển', 'dashboard-icon', '/dashboard', 1),
+    ('MENU_USER_MANAGEMENT', 'USER_MANAGEMENT', 'Quản trị Người dùng', 'users-icon', '/users', 2),
+    ('MENU_PATIENT_MANAGEMENT', 'PATIENT_MANAGEMENT', 'Quản lý Bệnh nhân', 'patients-icon', '/patients', 3),
+    ('MENU_APPOINTMENT', 'APPOINTMENT', 'Quản lý Lịch hẹn', 'calendar-icon', '/appointments', 4),
+    ('MENU_PRESCRIPTION', 'PRESCRIPTION', 'Quản lý Đơn thuốc', 'pill-icon', '/prescriptions', 5),
+    ('MENU_INVENTORY', 'INVENTORY', 'Quản lý Kho thuốc', 'box-icon', '/inventory', 6),
+    ('MENU_REPORT', 'REPORT', 'Báo cáo Thống kê', 'chart-icon', '/reports', 7),
+    ('MENU_SYSTEM_SETTINGS', 'SYSTEM_SETTINGS', 'Cấu hình Hệ thống', 'settings-icon', '/settings', 8)
+ON CONFLICT (code) DO NOTHING;
+
+-- 10. Gán toàn bộ Menu cho Role SYSTEM_ADMIN
+INSERT INTO role_menus (role_id, menu_id)
+SELECT 'ROLE_ADMIN', menus_id FROM menus
+ON CONFLICT DO NOTHING;
+
+-- 11. Custom API Permissions Danh mục API mẫu
+INSERT INTO api_permissions (api_id, method, endpoint, description, module)
+VALUES
+    ('API_USER_GET', 'GET', '/api/users', 'Xem danh sách người dùng', 'USER_MANAGEMENT'),
+    ('API_USER_POST', 'POST', '/api/users', 'Tạo tài khoản', 'USER_MANAGEMENT'),
+    ('API_PATIENT_GET', 'GET', '/api/patients', 'Xem danh sách bệnh nhân', 'PATIENT_MANAGEMENT'),
+    ('API_APP_POST', 'POST', '/api/appointments', 'Tạo lịch hẹn', 'APPOINTMENT')
+ON CONFLICT (method, endpoint) DO NOTHING;
+
+-- 12. Gán quyền API cho Role ADMIN
+INSERT INTO role_api_permissions (role_id, api_id)
+SELECT 'ROLE_ADMIN', api_id FROM api_permissions
+ON CONFLICT DO NOTHING;
