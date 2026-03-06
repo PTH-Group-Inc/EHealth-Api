@@ -226,9 +226,21 @@ CREATE TABLE system_settings (
     system_settings_id VARCHAR(50) PRIMARY KEY,
     setting_key VARCHAR(100) UNIQUE NOT NULL, -- vd: MAX_APPOINTMENTS_PER_DAY
     setting_value JSON NOT NULL, -- Dùng JSON để lưu cấu hình đa dạng (string, array, object)
+    module VARCHAR(100) DEFAULT 'GENERAL', -- Nhóm phân loại: APPOINTMENT, SECURITY, GENERAL
     description TEXT,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE, -- Xóa mềm: TRUE = đã xóa, không hiển thị
     updated_by VARCHAR(50) REFERENCES users(users_id),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Phân quyền chỉnh sửa cấu hình theo module (1.4.8)
+CREATE TABLE system_config_permissions (
+    id          VARCHAR(50) PRIMARY KEY,
+    role_code   VARCHAR(50)  NOT NULL,          -- ADMIN, DOCTOR, NURSE, ...
+    module      VARCHAR(100) NOT NULL,          -- khớp với system_settings.module
+    updated_by  VARCHAR(50) REFERENCES users(users_id),
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (role_code, module)
 );
 
 -- Mẫu thông báo (Notification Templates)

@@ -194,7 +194,15 @@ const options = {
       { name: '1.3.4 Phân quyền theo module', description: 'Tra cứu Modules' },
       { name: '1.3.5 Kiểm soát hiển thị menu theo vai trò', description: 'Định nghĩa UI Menus & Gán Role' },
       { name: '1.3.6 Kiểm soát API theo vai trò', description: 'Định nghĩa Endpoints & Gán Role' },
-      { name: '1.3.7 Kiểm tra quyền của user', description: 'Lấy dữ liệu Context qua JWT cho Client' }
+      { name: '1.3.7 Kiểm tra quyền của user', description: 'Lấy dữ liệu Context qua JWT cho Client' },
+      { name: '1.4.1 Cấu hình thông tin cơ sở y tế', description: 'Xem và cập nhật thông tin cơ sở y tế, upload logo' },
+      { name: '1.4.2 Cấu hình thời gian làm việc', description: 'Giờ mở/đóng cửa 7 ngày và cấu hình slot khám' },
+      { name: '1.4.3 Cấu hình quy định nghiệp vụ', description: 'Tham số nghiệp vụ: hủy lịch, đặt lịch, bảo mật...' },
+      { name: '1.4.4 Cấu hình bảo mật', description: 'Tham số bảo mật: password, token, session, 2FA' },
+      { name: '1.4.5 Cấu hình đa ngôn ngữ', description: 'Ngôn ngữ mặc định, danh sách ngôn ngữ hỗ trợ' },
+      { name: '1.4.6 Cấu hình giao diện', description: 'Theme, màu sắc, font, date/time format, timezone' },
+      { name: '1.4.7 Quản lý tham số hệ thống', description: 'CRUD system_settings theo module, có protected key' },
+      { name: '1.4.8 Phân quyền chỉnh sửa cấu hình', description: 'Kiểm soát vai trò nào được phép chỉnh sửa các module tham số hệ thống' }
     ]
   },
   apis: [
