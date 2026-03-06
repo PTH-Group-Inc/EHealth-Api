@@ -151,3 +151,43 @@ VALUES
     ('SS_SEC_005', 'REFRESH_TOKEN_EXPIRY_DAYS',   '{"value": 14}',  'SECURITY', 'Thời hạn Refresh Token (ngày)')
 ON CONFLICT (setting_key) DO NOTHING;
 
+-- 16. Seed: Cấu hình đa ngôn ngữ (1.4.5)
+INSERT INTO system_settings (system_settings_id, setting_key, setting_value, module, description)
+VALUES
+    ('SS_I18N_001', 'DEFAULT_LANGUAGE',    '{"value": "vi"}',         'I18N', 'Ngôn ngữ mặc định của hệ thống'),
+    ('SS_I18N_002', 'SUPPORTED_LANGUAGES', '{"value": ["vi", "en"]}', 'I18N', 'Danh sách mã ngôn ngữ đang được kích hoạt')
+ON CONFLICT (setting_key) DO NOTHING;
+
+-- 17. Seed: Cấu hình hiển thị giao diện chung (1.4.6)
+INSERT INTO system_settings (system_settings_id, setting_key, setting_value, module, description)
+VALUES
+    ('SS_UI_001', 'UI_THEME',         '{"value": "light"}',            'UI', 'Chủ đề giao diện: light, dark, system'),
+    ('SS_UI_002', 'UI_PRIMARY_COLOR', '{"value": "#1677FF"}',          'UI', 'Màu sắc chủ đạo (hex #RRGGBB)'),
+    ('SS_UI_003', 'UI_FONT_FAMILY',   '{"value": "Inter"}',            'UI', 'Font chữ chính của giao diện'),
+    ('SS_UI_004', 'UI_DATE_FORMAT',   '{"value": "DD/MM/YYYY"}',       'UI', 'Định dạng ngày tháng hiển thị'),
+    ('SS_UI_005', 'UI_TIMEZONE',      '{"value": "Asia/Ho_Chi_Minh"}', 'UI', 'Múi giờ hệ thống'),
+    ('SS_UI_006', 'UI_TIME_FORMAT',   '{"value": "24h"}',              'UI', 'Định dạng giờ: 12h hoặc 24h')
+ON CONFLICT (setting_key) DO NOTHING;
+
+-- Migration: thêm cột is_deleted cho soft delete (chạy 1 lần nếu chưa có cột)
+ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Migration: tạo bảng phân quyền cấu hình (1.4.8)
+CREATE TABLE IF NOT EXISTS system_config_permissions (
+    id          VARCHAR(50) PRIMARY KEY,
+    role_code   VARCHAR(50)  NOT NULL,
+    module      VARCHAR(100) NOT NULL,
+    updated_by  VARCHAR(50) REFERENCES users(users_id),
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (role_code, module)
+);
+
+-- Seed: ADMIN có quyền chỉnh sửa tất cả modules
+INSERT INTO system_config_permissions (id, role_code, module) VALUES
+    ('SCP_001', 'ADMIN', 'GENERAL'),
+    ('SCP_002', 'ADMIN', 'APPOINTMENT'),
+    ('SCP_003', 'ADMIN', 'SECURITY'),
+    ('SCP_004', 'ADMIN', 'I18N'),
+    ('SCP_005', 'ADMIN', 'UI'),
+    ('SCP_006', 'ADMIN', 'WORKING_HOURS')
+ON CONFLICT (role_code, module) DO NOTHING;

@@ -142,7 +142,7 @@ export const BUSINESS_RULE_ERRORS = {
     },
 } as const;
 
-// SECURITY SETTINGS (1.4.4)
+// SECURITY SETTINGS
 /** Tất cả keys bảo mật – gồm 3 reuse từ 1.4.3 + 5 mới */
 export const SECURITY_SETTING_KEYS = {
     MAX_LOGIN_ATTEMPTS: 'MAX_LOGIN_ATTEMPTS',
@@ -184,3 +184,172 @@ export const SECURITY_SETTING_ERRORS = {
         message: 'Thời hạn token phải từ 5–1440 phút (access) hoặc 1–365 ngày (refresh).',
     },
 } as const;
+
+// CẤU HÌNH ĐA NGÔN NGỮ 
+
+export const I18N_SETTING_KEYS = {
+    DEFAULT_LANGUAGE: 'DEFAULT_LANGUAGE',
+    SUPPORTED_LANGUAGES: 'SUPPORTED_LANGUAGES',
+} as const;
+
+/** Danh sách ngôn ngữ tĩnh hệ thống hỗ trợ */
+export const AVAILABLE_LANGUAGES = [
+    { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'ko', name: '한국어', flag: '🇰🇷' },
+    { code: 'ja', name: '日本語', flag: '🇯🇵' },
+] as const;
+
+/** Tập hợp mã ngôn ngữ hợp lệ để validate nhanh */
+export const VALID_LANGUAGE_CODES = new Set(AVAILABLE_LANGUAGES.map(l => l.code));
+
+export const I18N_ERRORS = {
+    INVALID_LANGUAGE_CODE: {
+        httpCode: 400,
+        code: 'SYS_I18N_001',
+        message: 'Mã ngôn ngữ không hợp lệ hoặc chưa được hỗ trợ.',
+    },
+    DEFAULT_LANG_NOT_IN_SUPPORTED: {
+        httpCode: 400,
+        code: 'SYS_I18N_002',
+        message: 'Ngôn ngữ mặc định phải nằm trong danh sách ngôn ngữ hỗ trợ.',
+    },
+    MIN_ONE_LANGUAGE: {
+        httpCode: 400,
+        code: 'SYS_I18N_003',
+        message: 'Hệ thống phải hỗ trợ ít nhất 1 ngôn ngữ.',
+    },
+} as const;
+
+// UI SETTINGS
+
+// UI setting keys
+export const UI_SETTING_KEYS = {
+    THEME: 'UI_THEME',
+    PRIMARY_COLOR: 'UI_PRIMARY_COLOR',
+    FONT_FAMILY: 'UI_FONT_FAMILY',
+    DATE_FORMAT: 'UI_DATE_FORMAT',
+    TIMEZONE: 'UI_TIMEZONE',
+    TIME_FORMAT: 'UI_TIME_FORMAT',
+} as const;
+
+export const ALLOWED_THEMES = ['light', 'dark', 'system'] as const;
+export const ALLOWED_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Noto Sans'] as const;
+export const ALLOWED_DATE_FORMATS = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'] as const;
+export const ALLOWED_TIME_FORMATS = ['12h', '24h'] as const;
+export const ALLOWED_TIMEZONES = [
+    'Asia/Ho_Chi_Minh', 'Asia/Bangkok', 'Asia/Singapore', 'Asia/Tokyo',
+    'Asia/Seoul', 'Asia/Shanghai', 'Asia/Kolkata', 'Asia/Dubai',
+    'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Moscow',
+    'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+    'America/Sao_Paulo', 'Africa/Cairo', 'Australia/Sydney', 'Pacific/Auckland',
+] as const;
+
+/** Regex kiểm tra màu hex 6 ký tự (#RRGGBB) */
+export const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
+
+export const DEFAULT_UI_SETTINGS = {
+    theme: 'light',
+    primary_color: '#1677FF',
+    font_family: 'Inter',
+    date_format: 'DD/MM/YYYY',
+    timezone: 'Asia/Ho_Chi_Minh',
+    time_format: '24h',
+} as const;
+
+export const UI_ERRORS = {
+    INVALID_THEME: {
+        httpCode: 400, code: 'SYS_UI_001',
+        message: 'Chủ đề không hợp lệ. Giá trị cho phép: light, dark, system.',
+    },
+    INVALID_COLOR: {
+        httpCode: 400, code: 'SYS_UI_002',
+        message: 'Màu sắc phải đúng định dạng hex 6 ký tự (ví dụ: #2563EB).',
+    },
+    INVALID_FONT: {
+        httpCode: 400, code: 'SYS_UI_003',
+        message: 'Font chữ không hợp lệ. Giá trị cho phép: Inter, Roboto, Open Sans, Noto Sans.',
+    },
+    INVALID_DATE_FORMAT: {
+        httpCode: 400, code: 'SYS_UI_004',
+        message: 'Định dạng ngày không hợp lệ. Giá trị cho phép: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD.',
+    },
+    INVALID_TIMEZONE: {
+        httpCode: 400, code: 'SYS_UI_005',
+        message: 'Múi giờ không hợp lệ hoặc chưa được hỗ trợ.',
+    },
+    INVALID_TIME_FORMAT: {
+        httpCode: 400, code: 'SYS_UI_006',
+        message: 'Định dạng giờ không hợp lệ. Giá trị cho phép: 12h, 24h.',
+    },
+} as const;
+
+// SYSTEM PARAMS 
+
+export const SYSTEM_SETTINGS_MODULE_NAMES = [
+    'GENERAL', 'APPOINTMENT', 'SECURITY', 'I18N', 'UI', 'WORKING_HOURS',
+] as const;
+
+/**
+ * Tập hợp các setting key được seed bởi hệ thống (1.4.1–1.4.6).
+ * Những key này KHÔNG được phép xóa qua API.
+ */
+export const PROTECTED_SETTING_KEYS = new Set([
+    // Working Hours / Slot (1.4.2)
+    'SLOT_DURATION_MINUTES', 'MAX_PATIENTS_PER_SLOT',
+    // Business Rules (1.4.3)
+    'CANCEL_APPOINTMENT_BEFORE_HOURS', 'MAX_BOOKING_PER_DAY_PER_PATIENT',
+    'MAX_ADVANCE_BOOKING_DAYS', 'MAX_APPOINTMENTS_PER_DOCTOR_PER_DAY',
+    'ALLOW_PATIENT_SELF_CANCEL',
+    // Security (1.4.4)
+    'MAX_LOGIN_ATTEMPTS', 'LOCK_ACCOUNT_DURATION_MINUTES',
+    'REQUIRE_EMAIL_VERIFICATION', 'PASSWORD_MIN_LENGTH',
+    'SESSION_DURATION_DAYS', 'REQUIRE_2FA_ROLES',
+    'ACCESS_TOKEN_EXPIRY_MINUTES', 'REFRESH_TOKEN_EXPIRY_DAYS',
+    // I18N (1.4.5)
+    'DEFAULT_LANGUAGE', 'SUPPORTED_LANGUAGES',
+    // UI (1.4.6)
+    'UI_THEME', 'UI_PRIMARY_COLOR', 'UI_FONT_FAMILY',
+    'UI_DATE_FORMAT', 'UI_TIMEZONE', 'UI_TIME_FORMAT',
+]);
+
+export const SYSTEM_SETTINGS_ERRORS = {
+    KEY_EXISTS: {
+        httpCode: 409, code: 'SYS_SET_001',
+        message: 'Setting key đã tồn tại trong hệ thống.',
+    },
+    KEY_NOT_FOUND: {
+        httpCode: 404, code: 'SYS_SET_002',
+        message: 'Setting key không tồn tại.',
+    },
+    PROTECTED_KEY: {
+        httpCode: 403, code: 'SYS_SET_003',
+        message: 'Setting này là tham số hệ thống cốt lõi, không thể xóa.',
+    },
+    INVALID_VALUE: {
+        httpCode: 400, code: 'SYS_SET_004',
+        message: 'setting_value phải là JSON object hợp lệ.',
+    },
+} as const;
+
+// CONFIG PERMISSIONS
+
+export const CONFIG_PERMISSION_ERRORS = {
+    ADMIN_MUST_HAVE_SECURITY: {
+        httpCode: 400, code: 'SYS_CFG_001',
+        message: 'ADMIN phải giữ quyền chỉnh sửa module SECURITY để tránh mất quyền kiểm soát.',
+    },
+    INVALID_ROLE: {
+        httpCode: 400, code: 'SYS_CFG_002',
+        message: 'Role code không hợp lệ hoặc không tồn tại trong hệ thống.',
+    },
+    INVALID_MODULE: {
+        httpCode: 400, code: 'SYS_CFG_003',
+        message: 'Tên module không hợp lệ. Giá trị cho phép: GENERAL, APPOINTMENT, SECURITY, I18N, UI, WORKING_HOURS.',
+    },
+} as const;
+
+
+
+

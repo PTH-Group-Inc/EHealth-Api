@@ -1,6 +1,6 @@
 import { pool } from '../config/postgresdb';
-import { WorkingHoursDay, UpdateWorkingHoursInput, SlotConfig, UpdateSlotConfigInput, BusinessRule, SecurityConfig, UpdateSecurityConfigInput, } from '../models/system-settings.model';
-import { SLOT_CONFIG_KEYS, DEFAULT_SLOT_CONFIG, DAY_OF_WEEK_LABELS, SECURITY_SETTING_KEYS, DEFAULT_SECURITY_CONFIG, } from '../constants/system.constant';
+import { WorkingHoursDay, UpdateWorkingHoursInput, SlotConfig, UpdateSlotConfigInput, BusinessRule, SecurityConfig, UpdateSecurityConfigInput, I18nConfig, UpdateI18nConfigInput, UiSettings, UpdateUiSettingsInput } from '../models/system-settings.model';
+import { SLOT_CONFIG_KEYS, DEFAULT_SLOT_CONFIG, DAY_OF_WEEK_LABELS, SECURITY_SETTING_KEYS, DEFAULT_SECURITY_CONFIG, I18N_SETTING_KEYS, UI_SETTING_KEYS, DEFAULT_UI_SETTINGS } from '../constants/system.constant';
 
 export class SystemSettingsRepository {
     /**
@@ -350,4 +350,252 @@ export class SystemSettingsRepository {
             }
         }
     }
+
+    // SYSTEM PARAMS CRUD 
+
+    /**
+     * Lấy danh sách settings có phân trang + filter theo module/search.
+     */
+    static async listSettings(filters: {
+        module?: string;
+        search?: string;
+        page: number;
+        limit: number;
+    }): Promise<import('../models/system-settings.model').SystemSettingsPaginated> {
+        const { PROTECTED_SETTING_KEYS } = await import('../constants/system.constant');
+
+        const conditions: string[] = ['is_deleted = FALSE'];
+        const params: any[] = [];
+        let idx = 1;
+
+        if (filters.module) {
+            conditions.push(`module = $${idx++}`);
+            params.push(filters.module);
+        }
+        if (filters.search) {
+            conditions.push(`(setting_key ILIKE $${idx} OR description ILIKE $${idx})`);
+            params.push(`%${filters.search}%`);
+            idx++;
+        }
+
+        const where = `WHERE ${conditions.join(' AND ')}`;
+        const offset = (filters.page - 1) * filters.limit;
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*) FROM system_settings ${where}`, params,
+        );
+        const total = parseInt(countResult.rows[0].count, 10);
+
+        const dataResult = await pool.query(
+            `SELECT system_settings_id, setting_key, setting_value, module, description, updated_by, updated_at
+             FROM system_settings ${where}
+             ORDER BY module, setting_key
+             LIMIT $${idx} OFFSET $${idx + 1}`,
+            [...params, filters.limit, offset],
+        );
+
+        const data: import('../models/system-settings.model').SystemSettingRow[] = dataResult.rows.map((r: any) => ({
+            ...r,
+            is_protected: PROTECTED_SETTING_KEYS.has(r.setting_key),
+        }));
+
+        return { data, total, page: filters.page, limit: filters.limit, totalPages: Math.ceil(total / filters.limit) };
+    }
+
+    /** Lấy danh sách module distinct để dùng trong filter dropdown. */
+    static async getDistinctModules(): Promise<string[]> {
+        const result = await pool.query(
+            `SELECT DISTINCT module FROM system_settings WHERE module IS NOT NULL ORDER BY module`,
+        );
+        return result.rows.map((r: any) => r.module as string);
+    }
+
+    /** Lấy 1 setting theo key kèm is_protected. Trả null nếu không tìm thấy. */
+    static async getSettingByKey(
+        key: string,
+    ): Promise<import('../models/system-settings.model').SystemSettingRow | null> {
+        const { PROTECTED_SETTING_KEYS } = await import('../constants/system.constant');
+        const result = await pool.query(
+            `SELECT system_settings_id, setting_key, setting_value, module, description, updated_by, updated_at
+             FROM system_settings WHERE setting_key = $1 AND is_deleted = FALSE`,
+            [key],
+        );
+        if (!result.rows[0]) return null;
+        return { ...result.rows[0], is_protected: PROTECTED_SETTING_KEYS.has(key) };
+    }
+
+    /** Tạo mới setting. ID do service cung cấp để đảm bảo unique. */
+    static async createSetting(
+        input: import('../models/system-settings.model').CreateSystemSettingInput,
+        id: string,
+        updatedBy: string,
+    ): Promise<import('../models/system-settings.model').SystemSettingRow> {
+        const result = await pool.query(
+            `INSERT INTO system_settings
+                (system_settings_id, setting_key, setting_value, module, description, updated_by, updated_at)
+             VALUES ($1, $2, $3::json, $4, $5, $6, CURRENT_TIMESTAMP)
+             RETURNING system_settings_id, setting_key, setting_value, module, description, updated_by, updated_at`,
+            [id, input.setting_key, JSON.stringify(input.setting_value), input.module ?? 'GENERAL', input.description ?? null, updatedBy],
+        );
+        return { ...result.rows[0], is_protected: false };
+    }
+
+    /** Cập nhật setting_value (và optionally description) của 1 key. */
+    static async updateSetting(
+        key: string,
+        input: import('../models/system-settings.model').UpdateSystemSettingInput,
+        updatedBy: string,
+    ): Promise<import('../models/system-settings.model').SystemSettingRow> {
+        const { PROTECTED_SETTING_KEYS } = await import('../constants/system.constant');
+        const setParts = ['setting_value = $2::json', 'updated_by = $3', 'updated_at = CURRENT_TIMESTAMP'];
+        const params: any[] = [key, JSON.stringify(input.setting_value), updatedBy];
+
+        if (input.description !== undefined) {
+            setParts.push(`description = $${params.length + 1}`);
+            params.push(input.description);
+        }
+
+        const result = await pool.query(
+            `UPDATE system_settings SET ${setParts.join(', ')} WHERE setting_key = $1
+             RETURNING system_settings_id, setting_key, setting_value, module, description, updated_by, updated_at`,
+            params,
+        );
+        return { ...result.rows[0], is_protected: PROTECTED_SETTING_KEYS.has(key) };
+    }
+
+    // Xóa mềm setting theo key
+    static async deleteSetting(key: string): Promise<void> {
+        await pool.query(
+            `UPDATE system_settings SET is_deleted = TRUE, updated_at = CURRENT_TIMESTAMP WHERE setting_key = $1`,
+            [key],
+        );
+    }
+
+    // I18N (1.4.5)
+
+    /**
+     * Đọc DEFAULT_LANGUAGE và SUPPORTED_LANGUAGES từ DB.
+     */
+    static async getI18nConfig(): Promise<I18nConfig> {
+        const query = `
+            SELECT setting_key, setting_value
+            FROM system_settings
+            WHERE setting_key = ANY($1::text[])
+        `;
+        const keys = [I18N_SETTING_KEYS.DEFAULT_LANGUAGE, I18N_SETTING_KEYS.SUPPORTED_LANGUAGES];
+        const result = await pool.query(query, [keys]);
+
+        const map: Record<string, any> = {};
+        result.rows.forEach((row: any) => {
+            map[row.setting_key] = row.setting_value;
+        });
+
+        return {
+            default_language: map[I18N_SETTING_KEYS.DEFAULT_LANGUAGE]?.value ?? 'vi',
+            supported_languages: Array.isArray(map[I18N_SETTING_KEYS.SUPPORTED_LANGUAGES]?.value)
+                ? map[I18N_SETTING_KEYS.SUPPORTED_LANGUAGES].value
+                : ['vi'],
+        };
+    }
+
+    /**
+     * UPSERT DEFAULT_LANGUAGE và/hoặc SUPPORTED_LANGUAGES.
+     */
+    static async upsertI18nConfig(config: UpdateI18nConfigInput, updatedBy: string): Promise<void> {
+        const upsertQuery = `
+            INSERT INTO system_settings
+                (system_settings_id, setting_key, setting_value, module, updated_by, updated_at)
+            VALUES ($1, $2, $3::json, 'I18N', $4, CURRENT_TIMESTAMP)
+            ON CONFLICT (setting_key)
+            DO UPDATE SET
+                setting_value = EXCLUDED.setting_value,
+                updated_by    = EXCLUDED.updated_by,
+                updated_at    = CURRENT_TIMESTAMP
+        `;
+
+        if (config.default_language !== undefined) {
+            await pool.query(upsertQuery, [
+                'SS_I18N_001',
+                I18N_SETTING_KEYS.DEFAULT_LANGUAGE,
+                JSON.stringify({ value: config.default_language }),
+                updatedBy,
+            ]);
+        }
+
+        if (config.supported_languages !== undefined) {
+            await pool.query(upsertQuery, [
+                'SS_I18N_002',
+                I18N_SETTING_KEYS.SUPPORTED_LANGUAGES,
+                JSON.stringify({ value: config.supported_languages }),
+                updatedBy,
+            ]);
+        }
+    }
+
+    // UI SETTINGS 
+
+    /**
+     * Đọc 6 UI setting keys từ DB và map thành UiSettings object.
+     */
+    static async getUiSettings(): Promise<UiSettings> {
+        const allKeys = Object.values(UI_SETTING_KEYS);
+        const query = `
+            SELECT setting_key, setting_value
+            FROM system_settings
+            WHERE setting_key = ANY($1::text[])
+        `;
+        const result = await pool.query(query, [allKeys]);
+
+        const map: Record<string, any> = {};
+        result.rows.forEach((row: any) => {
+            map[row.setting_key] = row.setting_value;
+        });
+
+        const def = DEFAULT_UI_SETTINGS;
+        return {
+            theme: map[UI_SETTING_KEYS.THEME]?.value ?? def.theme,
+            primary_color: map[UI_SETTING_KEYS.PRIMARY_COLOR]?.value ?? def.primary_color,
+            font_family: map[UI_SETTING_KEYS.FONT_FAMILY]?.value ?? def.font_family,
+            date_format: map[UI_SETTING_KEYS.DATE_FORMAT]?.value ?? def.date_format,
+            timezone: map[UI_SETTING_KEYS.TIMEZONE]?.value ?? def.timezone,
+            time_format: map[UI_SETTING_KEYS.TIME_FORMAT]?.value ?? def.time_format,
+        };
+    }
+
+    /**
+     * Partial UPSERT từng UI setting key được truyền vào.
+     */
+    static async upsertUiSettings(config: UpdateUiSettingsInput, updatedBy: string): Promise<void> {
+        const upsertQuery = `
+            INSERT INTO system_settings
+                (system_settings_id, setting_key, setting_value, module, updated_by, updated_at)
+            VALUES ($1, $2, $3::json, 'UI', $4, CURRENT_TIMESTAMP)
+            ON CONFLICT (setting_key)
+            DO UPDATE SET
+                setting_value = EXCLUDED.setting_value,
+                updated_by    = EXCLUDED.updated_by,
+                updated_at    = CURRENT_TIMESTAMP
+        `;
+
+        const fieldKeyMap: Array<[keyof UpdateUiSettingsInput, string, string]> = [
+            ['theme', UI_SETTING_KEYS.THEME, 'SS_UI_001'],
+            ['primary_color', UI_SETTING_KEYS.PRIMARY_COLOR, 'SS_UI_002'],
+            ['font_family', UI_SETTING_KEYS.FONT_FAMILY, 'SS_UI_003'],
+            ['date_format', UI_SETTING_KEYS.DATE_FORMAT, 'SS_UI_004'],
+            ['timezone', UI_SETTING_KEYS.TIMEZONE, 'SS_UI_005'],
+            ['time_format', UI_SETTING_KEYS.TIME_FORMAT, 'SS_UI_006'],
+        ];
+
+        for (const [field, key, id] of fieldKeyMap) {
+            if (config[field] !== undefined) {
+                await pool.query(upsertQuery, [
+                    id,
+                    key,
+                    JSON.stringify({ value: config[field] }),
+                    updatedBy,
+                ]);
+            }
+        }
+    }
 }
+

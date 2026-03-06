@@ -89,3 +89,98 @@ export interface UpdateSecurityConfigInput {
     access_token_expiry_minutes?: number;
     refresh_token_expiry_days?: number;
 }
+
+// CẤU HÌNH ĐA NGÔN NGỮ
+
+/** Thông tin 1 ngôn ngữ (kèm trạng thái kích hoạt) */
+export interface LangMeta {
+    code: string;
+    name: string;
+    flag: string;
+    is_active: boolean;
+}
+
+/** Cấu hình ngôn ngữ hệ thống */
+export interface I18nConfig {
+    default_language: string;
+    supported_languages: string[];
+}
+
+/** Input cập nhật i18n – partial */
+export interface UpdateI18nConfigInput {
+    default_language?: string;
+    supported_languages?: string[];
+}
+
+// UI SETTINGS
+
+/** Cấu hình hiển thị giao diện chung */
+export interface UiSettings {
+    theme: string;
+    primary_color: string;
+    font_family: string;
+    date_format: string;
+    timezone: string;
+    time_format: string;
+}
+
+/** Input cập nhật UI settings – partial */
+export interface UpdateUiSettingsInput {
+    theme?: string;
+    primary_color?: string;
+    font_family?: string;
+    date_format?: string;
+    timezone?: string;
+    time_format?: string;
+}
+
+// SYSTEM PARAMS (1.4.7)
+
+/** 1 dòng setting trong bảng system_settings */
+export interface SystemSettingRow {
+    system_settings_id: string;
+    setting_key: string;
+    setting_value: Record<string, any>;
+    module: string | null;
+    description: string | null;
+    updated_by: string | null;
+    updated_at: Date;
+    /** Computed: key có thuộc PROTECTED_SETTING_KEYS không */
+    is_protected: boolean;
+}
+
+/** Response phân trang */
+export interface SystemSettingsPaginated {
+    data: SystemSettingRow[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+/** Input tạo mới setting */
+export interface CreateSystemSettingInput {
+    setting_key: string;
+    setting_value: Record<string, any>;
+    module?: string;
+    description?: string;
+}
+
+/** Input cập nhật setting */
+export interface UpdateSystemSettingInput {
+    setting_value: Record<string, any>;
+    description?: string;
+}
+
+// CONFIG PERMISSIONS
+
+export type ConfigPermissionMap = Record<string, string[]>;
+
+/** Input cập nhật phân quyền chỉnh sửa cấu hình */
+export interface UpdateConfigPermissionsInput {
+    permissions: ConfigPermissionMap;
+}
+
+
+
+

@@ -4,10 +4,14 @@ import { SystemFacilityController } from '../controllers/system-facility.control
 import { SystemSettingsController } from '../controllers/system-settings.controller';
 import { BusinessRulesController } from '../controllers/business-rules.controller';
 import { SecuritySettingsController } from '../controllers/security-settings.controller';
+import { I18nSettingsController } from '../controllers/i18n-settings.controller';
+import { UiSettingsController } from '../controllers/ui-settings.controller';
+import { SystemParamsController } from '../controllers/system-params.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
 import { CLOUDINARY_CONFIG } from '../constants/system.constant';
+import { ConfigPermissionsController } from '../controllers/config-permissions.controller';
 
 const systemRoutes = Router();
 
@@ -18,6 +22,632 @@ const upload = multer({
 });
 
 const requireAdmin = [verifyAccessToken, checkSessionStatus, authorizeRoles('ADMIN', 'SYSTEM')];
+
+
+// 1.4.8 – PHÂN QUYỀN CHỈNH SỬA CẤU HÌNH
+
+/**
+ * @swagger
+ * /api/system/config-permissions:
+ *   get:
+ *     summary: Lấy danh sách phân quyền chỉnh sửa cấu hình
+ *     description: Trả về danh sách mapping chi tiết các vai trò (role) nào được quyền chỉnh sửa nhóm cấu hình (module) nào trong hệ thống.
+ *     tags: [1.4.8 Phân quyền chỉnh sửa cấu hình]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   example:
+ *                     ADMIN: ["GENERAL", "APPOINTMENT", "SECURITY", "I18N", "UI", "WORKING_HOURS"]
+ *                     DOCTOR: ["APPOINTMENT"]
+ *                     NURSE: []
+ *       401:
+ *         description: Chưa xác thực token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Không có quyền truy cập (Yêu cầu quyền ADMIN)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+systemRoutes.get('/config-permissions', ...requireAdmin, ConfigPermissionsController.getConfigPermissions);
+
+/**
+ * @swagger
+ * /api/system/config-permissions:
+ *   put:
+ *     summary: Cập nhật phân quyền chỉnh sửa cấu hình
+ *     description: |
+ *       Cập nhật lại quyền chỉnh sửa các module cấu hình cho từng vai trò. Dữ liệu gửi lên sẽ ghi đè (replace) cấu hình cũ.
+ *       
+ *       **Ràng buộc nghiệp vụ (Business Rules):**
+ *       - `role_code` phải tồn tại trong danh sách hợp lệ (VD: `ADMIN`, `DOCTOR`, `NURSE`, `PATIENT`, `CUSTOMER`).
+ *       - `module` phải thuộc danh sách module hệ thống (VD: `GENERAL`, `APPOINTMENT`, `SECURITY`, `I18N`, `UI`, `WORKING_HOURS`).
+ *       - Riêng vai trò **ADMIN** bắt buộc phải giữ quyền trên module **SECURITY** để tránh mất quyền kiểm soát hệ thống.
+ *     tags: [1.4.8 Phân quyền chỉnh sửa cấu hình]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - permissions
+ *             properties:
+ *               permissions:
+ *                 type: object
+ *                 description: Map giữa Role Code và mảng các Module được cấp quyền
+ *                 additionalProperties:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *             example:
+ *               permissions:
+ *                 ADMIN: ["GENERAL", "APPOINTMENT", "SECURITY", "I18N", "UI", "WORKING_HOURS"]
+ *                 DOCTOR: ["APPOINTMENT", "WORKING_HOURS"]
+ *                 NURSE: []
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công, trả về cấu hình mới nhất
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *       400:
+ *         description: |
+ *           Dữ liệu đầu vào không hợp lệ hoặc vi phạm quy tắc nghiệp vụ:
+ *           - **SYS_CFG_001**: ADMIN phải giữ quyền chỉnh sửa module SECURITY.
+ *           - **SYS_CFG_002**: Role code không tồn tại.
+ *           - **SYS_CFG_003**: Tên module không hợp lệ.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Chưa xác thực token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Không có quyền thực hiện (Yêu cầu quyền ADMIN)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+systemRoutes.put('/config-permissions', ...requireAdmin, ConfigPermissionsController.updateConfigPermissions);
+
+// QUẢN LÝ THAM SỐ HỆ THỐNG THEO MODULE
+
+/**
+ * @swagger
+ * /api/system/settings/modules:
+ *   get:
+ *     summary: Lấy danh sách module (dropdown filter)
+ *     description: Trả về danh sách các module distinct từ bảng system_settings.
+ *     tags: [1.4.7 Quản lý tham số hệ thống]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Danh sách module
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["APPOINTMENT", "I18N", "SECURITY", "UI"]
+ */
+systemRoutes.get('/settings/modules', ...requireAdmin, SystemParamsController.getDistinctModules);
+
+/**
+ * @swagger
+ * /api/system/settings:
+ *   get:
+ *     summary: Lấy tất cả tham số hệ thống (phân trang)
+ *     tags: [1.4.7 Quản lý tham số hệ thống]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: module
+ *         schema:
+ *           type: string
+ *         example: "SECURITY"
+ *         description: Lọc theo module
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         example: "password"
+ *         description: Tìm kiếm theo key hoặc description
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *     responses:
+ *       200:
+ *         description: Danh sách settings phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       setting_key:
+ *                         type: string
+ *                         example: "MAX_LOGIN_ATTEMPTS"
+ *                       setting_value:
+ *                         type: object
+ *                         example: {"value": 5}
+ *                       module:
+ *                         type: string
+ *                         example: "SECURITY"
+ *                       is_protected:
+ *                         type: boolean
+ *                         example: true
+ *                 total:
+ *                   type: integer
+ *                   example: 30
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 2
+ */
+systemRoutes.get('/settings', ...requireAdmin, SystemParamsController.listSettings);
+
+/**
+ * @swagger
+ * /api/system/settings:
+ *   post:
+ *     summary: Tạo tham số hệ thống mới
+ *     tags: [1.4.7 Quản lý tham số hệ thống]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [setting_key, setting_value]
+ *             properties:
+ *               setting_key:
+ *                 type: string
+ *                 example: "MY_CUSTOM_PARAM"
+ *               setting_value:
+ *                 type: object
+ *                 example: {"value": "custom_value"}
+ *               module:
+ *                 type: string
+ *                 example: "GENERAL"
+ *               description:
+ *                 type: string
+ *                 example: "Tham số tuỳ chỉnh"
+ *     responses:
+ *       201:
+ *         description: Tạo thành công
+ *       409:
+ *         description: SYS_SET_001 – Key đã tồn tại
+ */
+systemRoutes.post('/settings', ...requireAdmin, SystemParamsController.createSetting);
+
+/**
+ * @swagger
+ * /api/system/settings/{key}:
+ *   get:
+ *     summary: Lấy 1 tham số theo key
+ *     tags: [1.4.7 Quản lý tham số hệ thống]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "MAX_LOGIN_ATTEMPTS"
+ *     responses:
+ *       200:
+ *         description: Chi tiết setting
+ *       404:
+ *         description: SYS_SET_002 – Không tìm thấy
+ */
+systemRoutes.get('/settings/:key', ...requireAdmin, SystemParamsController.getSettingByKey);
+
+/**
+ * @swagger
+ * /api/system/settings/{key}:
+ *   put:
+ *     summary: Cập nhật giá trị tham số
+ *     tags: [1.4.7 Quản lý tham số hệ thống]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "MY_CUSTOM_PARAM"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [setting_value]
+ *             properties:
+ *               setting_value:
+ *                 type: object
+ *                 example: {"value": "updated_value"}
+ *               description:
+ *                 type: string
+ *                 example: "Giá trị đã được cập nhật"
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công
+ *       404:
+ *         description: SYS_SET_002 – Không tìm thấy
+ */
+systemRoutes.put('/settings/:key', ...requireAdmin, SystemParamsController.updateSetting);
+
+/**
+ * @swagger
+ * /api/system/settings/{key}:
+ *   delete:
+ *     summary: Xóa tham số (non-protected)
+ *     description: Chỉ xóa được các setting do người dùng tự tạo. Các setting hệ thống sẽ trả về 403.
+ *     tags: [1.4.7 Quản lý tham số hệ thống]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "MY_CUSTOM_PARAM"
+ *     responses:
+ *       200:
+ *         description: Xóa thành công
+ *       403:
+ *         description: SYS_SET_003 – Setting được bảo vệ, không thể xóa
+ *       404:
+ *         description: SYS_SET_002 – Không tìm thấy
+ */
+systemRoutes.delete('/settings/:key', ...requireAdmin, SystemParamsController.deleteSetting);
+
+// CẤU HÌNH HIỂN Thị GIAO DIỆN CHUNG
+
+/**
+ * @swagger
+ * /api/system/ui-settings:
+ *   get:
+ *     summary: Lấy cấu hình giao diện hiện tại
+ *     description: Trả về toàn bộ các thiết lập hiển thị gồm theme, màu sắc, font, định dạng ngày tháng, múi giờ và format giờ.
+ *     tags: [1.4.6 Cấu hình giao diện]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cấu hình giao diện hiện tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     theme:
+ *                       type: string
+ *                       example: "light"
+ *                       description: "light | dark | system"
+ *                     primary_color:
+ *                       type: string
+ *                       example: "#1677FF"
+ *                       description: Màu chủ đạo (hex #RRGGBB)
+ *                     font_family:
+ *                       type: string
+ *                       example: "Inter"
+ *                     date_format:
+ *                       type: string
+ *                       example: "DD/MM/YYYY"
+ *                     timezone:
+ *                       type: string
+ *                       example: "Asia/Ho_Chi_Minh"
+ *                     time_format:
+ *                       type: string
+ *                       example: "24h"
+ *       401:
+ *         description: Chưa xác thực
+ */
+systemRoutes.get('/ui-settings', ...requireAdmin, UiSettingsController.getUiSettings);
+
+/**
+ * @swagger
+ * /api/system/ui-settings:
+ *   put:
+ *     summary: Cập nhật cấu hình giao diện
+ *     description: |
+ *       Partial update: chỉ cần gửi các field muốn thay đổi.
+ *
+ *       **Validation rules:**
+ *       - `theme`: `light` | `dark` | `system`
+ *       - `primary_color`: định dạng hex 6 ký tự (ví dụ: `#2563EB`)
+ *       - `font_family`: `Inter` | `Roboto` | `Open Sans` | `Noto Sans`
+ *       - `date_format`: `DD/MM/YYYY` | `MM/DD/YYYY` | `YYYY-MM-DD`
+ *       - `timezone`: whitelist 20 múi giờ phổ biến
+ *       - `time_format`: `12h` | `24h`
+ *     tags: [1.4.6 Cấu hình giao diện]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               theme:
+ *                 type: string
+ *                 enum: [light, dark, system]
+ *                 example: "dark"
+ *               primary_color:
+ *                 type: string
+ *                 example: "#2563EB"
+ *               font_family:
+ *                 type: string
+ *                 enum: [Inter, Roboto, Open Sans, Noto Sans]
+ *                 example: "Roboto"
+ *               date_format:
+ *                 type: string
+ *                 enum: [DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD]
+ *                 example: "DD/MM/YYYY"
+ *               timezone:
+ *                 type: string
+ *                 example: "Asia/Ho_Chi_Minh"
+ *               time_format:
+ *                 type: string
+ *                 enum: [12h, 24h]
+ *                 example: "24h"
+ *           examples:
+ *             darkMode:
+ *               summary: Đổi sang chế độ tối
+ *               value:
+ *                 theme: "dark"
+ *                 primary_color: "#2563EB"
+ *             fullUpdate:
+ *               summary: Cập nhật toàn bộ
+ *               value:
+ *                 theme: "light"
+ *                 primary_color: "#1677FF"
+ *                 font_family: "Inter"
+ *                 date_format: "DD/MM/YYYY"
+ *                 timezone: "Asia/Ho_Chi_Minh"
+ *                 time_format: "24h"
+ *             changeFont:
+ *               summary: Chỉ đổi font chữ
+ *               value:
+ *                 font_family: "Roboto"
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công, trả về UiSettings đầy đủ
+ *       400:
+ *         description: |
+ *           Dữ liệu không hợp lệ:
+ *           - SYS_UI_001: theme không hợp lệ
+ *           - SYS_UI_002: primary_color sai định dạng hex
+ *           - SYS_UI_003: font_family không hợp lệ
+ *           - SYS_UI_004: date_format không hợp lệ
+ *           - SYS_UI_005: timezone không hợp lệ
+ *           - SYS_UI_006: time_format không hợp lệ
+ *       401:
+ *         description: Chưa xác thực
+ *       403:
+ *         description: Không có quyền Admin
+ */
+systemRoutes.put('/ui-settings', ...requireAdmin, UiSettingsController.updateUiSettings);
+
+// 1.4.5 – CẤU HÌNH ĐA NGÔN NGỮ
+
+/**
+ * @swagger
+ * /api/system/i18n/supported:
+ *   get:
+ *     summary: Lấy danh sách ngôn ngữ có sẵn trong hệ thống
+ *     description: Trả về 5 ngôn ngữ được hỏ trợ kèm trạng thái `is_active` (có nằm trong supported_languages không).
+ *     tags: [1.4.5 Cấu hình đa ngôn ngữ]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Danh sách ngôn ngữ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       code:
+ *                         type: string
+ *                         example: "vi"
+ *                       name:
+ *                         type: string
+ *                         example: "Tiếng Việt"
+ *                       flag:
+ *                         type: string
+ *                         example: "🇻🇳"
+ *                       is_active:
+ *                         type: boolean
+ *                         example: true
+ *       401:
+ *         description: Chưa xác thực
+ */
+systemRoutes.get('/i18n/supported', ...requireAdmin, I18nSettingsController.getSupportedLanguages);
+
+/**
+ * @swagger
+ * /api/system/i18n:
+ *   get:
+ *     summary: Lấy cấu hình ngôn ngữ hiện tại
+ *     description: Trả về ngôn ngữ mặc định và danh sách ngôn ngữ đang kích hoạt.
+ *     tags: [1.4.5 Cấu hình đa ngôn ngữ]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cấu hình ngôn ngữ hiện tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     default_language:
+ *                       type: string
+ *                       example: "vi"
+ *                     supported_languages:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["vi", "en"]
+ *       401:
+ *         description: Chưa xác thực
+ */
+systemRoutes.get('/i18n', ...requireAdmin, I18nSettingsController.getI18nConfig);
+
+/**
+ * @swagger
+ * /api/system/i18n:
+ *   put:
+ *     summary: Cập nhật cấu hình ngôn ngữ
+ *     description: |
+ *       Cập nhật ngôn ngữ mặc định và/hoặc danh sách ngôn ngữ đang bật.
+ *
+ *       **Validation rules:**
+ *       - `supported_languages` phải là tập con của: `vi`, `en`, `zh`, `ko`, `ja`
+ *       - `supported_languages` không được rỗng (tối thiểu 1 ngôn ngữ)
+ *       - `default_language` phải nằm trong `supported_languages` sau khi cập nhật
+ *     tags: [1.4.5 Cấu hình đa ngôn ngữ]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               default_language:
+ *                 type: string
+ *                 enum: [vi, en, zh, ko, ja]
+ *                 example: "en"
+ *               supported_languages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["vi", "en"]
+ *           examples:
+ *             addEnglish:
+ *               summary: Bật cả tiếng Việt và tiếng Anh
+ *               value:
+ *                 supported_languages: ["vi", "en"]
+ *             switchToEnglish:
+ *               summary: Đổi ngôn ngữ mặc định sang tiếng Anh
+ *               value:
+ *                 default_language: "en"
+ *                 supported_languages: ["vi", "en"]
+ *             fullI18n:
+ *               summary: Bật 3 ngôn ngữ
+ *               value:
+ *                 default_language: "vi"
+ *                 supported_languages: ["vi", "en", "zh"]
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công, trả về I18nConfig mới
+ *       400:
+ *         description: |
+ *           Dữ liệu không hợp lệ:
+ *           - SYS_I18N_001: Mã ngôn ngữ không hợp lệ
+ *           - SYS_I18N_002: default_language không trong supported_languages
+ *           - SYS_I18N_003: supported_languages rỗng
+ *       401:
+ *         description: Chưa xác thực
+ *       403:
+ *         description: Không có quyền Admin
+ */
+systemRoutes.put('/i18n', ...requireAdmin, I18nSettingsController.updateI18nConfig);
 
 // 1.4.4 – CẤU HÌNH BẢO MẬT CƠ BẢN
 
