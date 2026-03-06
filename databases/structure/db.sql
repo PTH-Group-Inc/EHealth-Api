@@ -226,6 +226,7 @@ CREATE TABLE system_settings (
     system_settings_id VARCHAR(50) PRIMARY KEY,
     setting_key VARCHAR(100) UNIQUE NOT NULL, -- vd: MAX_APPOINTMENTS_PER_DAY
     setting_value JSON NOT NULL, -- Dùng JSON để lưu cấu hình đa dạng (string, array, object)
+    module VARCHAR(100) DEFAULT 'GENERAL', -- Nhóm phân loại: APPOINTMENT, SECURITY, GENERAL
     description TEXT,
     updated_by VARCHAR(50) REFERENCES users(users_id),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

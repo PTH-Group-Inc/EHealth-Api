@@ -124,3 +124,30 @@ ON CONFLICT (method, endpoint) DO NOTHING;
 INSERT INTO role_api_permissions (role_id, api_id)
 SELECT 'ROLE_ADMIN', api_id FROM api_permissions
 ON CONFLICT DO NOTHING;
+
+-- 13. Migration: Thêm cột module vào system_settings (nếu DB đã tồn tại)
+ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS module VARCHAR(100) DEFAULT 'GENERAL';
+
+-- 14. Seed: 8 Business Rules mặc định
+INSERT INTO system_settings (system_settings_id, setting_key, setting_value, module, description)
+VALUES
+    ('SS_BR_001', 'CANCEL_APPOINTMENT_BEFORE_HOURS',     '{"value": 24}',   'APPOINTMENT', 'Bệnh nhân phải hủy lịch trước ít nhất N giờ'),
+    ('SS_BR_002', 'MAX_BOOKING_PER_DAY_PER_PATIENT',     '{"value": 3}',    'APPOINTMENT', 'Số lịch đặt tối đa mỗi ngày của 1 bệnh nhân'),
+    ('SS_BR_003', 'MAX_ADVANCE_BOOKING_DAYS',            '{"value": 30}',   'APPOINTMENT', 'Đặt lịch khám trước tối đa N ngày'),
+    ('SS_BR_004', 'MAX_APPOINTMENTS_PER_DOCTOR_PER_DAY', '{"value": 20}',   'APPOINTMENT', 'Tổng số lịch hẹn tối đa của 1 bác sĩ trong 1 ngày'),
+    ('SS_BR_005', 'ALLOW_PATIENT_SELF_CANCEL',           '{"value": true}', 'APPOINTMENT', 'Cho phép bệnh nhân tự hủy lịch qua ứng dụng'),
+    ('SS_BR_006', 'MAX_LOGIN_ATTEMPTS',                  '{"value": 7}',    'SECURITY',    'Số lần đăng nhập sai tối đa trước khi khóa tài khoản'),
+    ('SS_BR_007', 'LOCK_ACCOUNT_DURATION_MINUTES',       '{"value": 30}',   'SECURITY',    'Thời gian khóa tài khoản sau khi đăng nhập sai quá số lần cho phép (phút)'),
+    ('SS_BR_008', 'REQUIRE_EMAIL_VERIFICATION',          '{"value": true}', 'SECURITY',    'Bắt buộc xác thực email sau khi đăng ký tài khoản')
+ON CONFLICT (setting_key) DO NOTHING;
+
+-- 15. Seed: 5 Security Settings mới (1.4.4)
+INSERT INTO system_settings (system_settings_id, setting_key, setting_value, module, description)
+VALUES
+    ('SS_SEC_001', 'PASSWORD_MIN_LENGTH',         '{"value": 8}',   'SECURITY', 'Độ dài mật khẩu tối thiểu (ký tự)'),
+    ('SS_SEC_002', 'SESSION_DURATION_DAYS',       '{"value": 14}',  'SECURITY', 'Thời hạn phiên đăng nhập (ngày)'),
+    ('SS_SEC_003', 'REQUIRE_2FA_ROLES',           '{"value": []}',  'SECURITY', 'Danh sách role bắt buộc xác thực 2 bước'),
+    ('SS_SEC_004', 'ACCESS_TOKEN_EXPIRY_MINUTES', '{"value": 15}',  'SECURITY', 'Thời hạn Access Token (phút)'),
+    ('SS_SEC_005', 'REFRESH_TOKEN_EXPIRY_DAYS',   '{"value": 14}',  'SECURITY', 'Thời hạn Refresh Token (ngày)')
+ON CONFLICT (setting_key) DO NOTHING;
+

@@ -29,3 +29,28 @@ export interface FacilityDropdown {
     code: string;
     name: string;
 }
+
+// Thông tin chi tiết cơ sở y tế
+export interface FacilityInfo {
+    facilities_id: string;
+    code: string;
+    name: string;
+    tax_code: string | null;
+    email: string | null;
+    phone: string | null;
+    website: string | null;
+    logo_url: string | null;
+    headquarters_address: string | null;
+    status: string;
+    updated_at: Date;
+}
+
+// Input để Admin cập nhật thông tin
+export interface UpdateFacilityInfoInput {
+    name?: string;
+    tax_code?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    headquarters_address?: string;
+}
