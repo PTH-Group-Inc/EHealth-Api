@@ -3,8 +3,8 @@ import { Product } from '../models/testProduct.models'
 
 export const getAllProductsRepo = async (): Promise<Product[]> => {
   const query = `
-    SELECT id, name, description, price, stock, created_at
-    FROM product
+    SELECT id, name, description, price, created_at
+    FROM public.product  -- Thêm "public." vào trước
     ORDER BY created_at DESC
   `
 
