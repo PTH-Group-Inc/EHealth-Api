@@ -176,6 +176,26 @@ const options = {
         bearerAuth: [],
       },
     ],
+    tags: [
+      { name: '1.1.1 Quản lý User', description: 'Các chức năng CRUD cơ bản' },
+      { name: '1.1.2 Khóa / mở khóa tài khoản', description: 'Action locking' },
+      { name: '1.1.3 Quản lý trạng thái tài khoản', description: 'Vòng đời tài khoản' },
+      { name: '1.1.4 Reset mật khẩu người dùng', description: 'Bảo mật mật khẩu' },
+      { name: '1.1.5 Gán vai trò cho người dùng', description: 'Map N-N Role cho User' },
+      { name: '1.1.6 Gán người dùng vào cơ sở y tế', description: 'Map N-N Facility cho User' },
+      { name: '1.1.7 Import người dùng hàng loạt', description: 'Upload file Excel/CSV' },
+      { name: '1.1.8 Export danh sách người dùng', description: 'Tải xuống xuất Excel' },
+      { name: '1.1.9 API phục vụ filter / dropdown', description: 'List nhanh Facility/Roles' },
+      { name: '1.2.1 Xác thực & Đăng nhập hệ thống', description: 'Login, Register, OTP' },
+      { name: '1.2.2 Quản lý Phiên đăng nhập', description: 'Tracking thiết bị, Kick User' },
+      { name: '1.3.1 Quản lý danh mục vai trò', description: 'Cấu hình System Roles' },
+      { name: '1.3.2 Quản lý danh sách quyền', description: 'Cấu hình Core Permission Codes' },
+      { name: '1.3.3 Gán quyền cho vai trò', description: 'Kế thừa Permission cho Role' },
+      { name: '1.3.4 Phân quyền theo module', description: 'Tra cứu Modules' },
+      { name: '1.3.5 Kiểm soát hiển thị menu theo vai trò', description: 'Định nghĩa UI Menus & Gán Role' },
+      { name: '1.3.6 Kiểm soát API theo vai trò', description: 'Định nghĩa Endpoints & Gán Role' },
+      { name: '1.3.7 Kiểm tra quyền của user', description: 'Lấy dữ liệu Context qua JWT cho Client' }
+    ]
   },
   apis: [
     './src/routes/*.ts',

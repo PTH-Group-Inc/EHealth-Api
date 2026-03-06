@@ -8,12 +8,7 @@ const permissionRoutes = Router();
 permissionRoutes.use(verifyAccessToken);
 const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
-/**
- * @swagger
- * tags:
- *   name: Role & Permission Management
- *   description: API Quản lý vai trò & phân quyền
- */
+
 
 /**
  * @swagger
@@ -21,7 +16,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *   get:
  *     summary: Lấy danh sách Quyền (Permissions)
  *     description: API trả về danh sách các quyền hạn trong hệ thống để gán cho Role.
- *     tags: [1.3 Quản lý vai trò & phân quyền (Role & Permission Management)]
+ *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -46,7 +41,7 @@ permissionRoutes.get('/', requireAdmin, PermissionController.getPermissions);
  * /api/permissions/{permissionId}:
  *   get:
  *     summary: Lấy chi tiết Quyền theo ID
- *     tags: [1.3 Quản lý vai trò & phân quyền (Role & Permission Management)]
+ *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -68,7 +63,7 @@ permissionRoutes.get('/:permissionId', requireAdmin, PermissionController.getPer
  * /api/permissions:
  *   post:
  *     summary: Tạo quyền hạn mới
- *     tags: [1.3 Quản lý vai trò & phân quyền (Role & Permission Management)]
+ *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -101,7 +96,7 @@ permissionRoutes.post('/', requireAdmin, PermissionController.createPermission);
  * /api/permissions/{permissionId}:
  *   patch:
  *     summary: Cập nhật quyền (Module, Mô tả)
- *     tags: [1.3 Quản lý vai trò & phân quyền (Role & Permission Management)]
+ *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -132,7 +127,7 @@ permissionRoutes.patch('/:permissionId', requireAdmin, PermissionController.upda
  * /api/permissions/{permissionId}:
  *   delete:
  *     summary: Xóa quyền
- *     tags: [1.3 Quản lý vai trò & phân quyền (Role & Permission Management)]
+ *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
  *     parameters:

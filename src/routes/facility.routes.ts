@@ -3,12 +3,7 @@ import { FacilityController } from '../controllers/facility.controller';
 
 const facilityRoutes = Router();
 
-/**
- * @swagger
- * tags:
- *   name: Facility Management
- *   description: Quản lý Cơ sở, Chi nhánh, Phòng ban
- */
+
 
 /**
  * @swagger
@@ -16,7 +11,7 @@ const facilityRoutes = Router();
  *   get:
  *     summary: Lấy danh sách Cơ sở Y tế (Dropdown)
  *     description: Lấy danh sách các Facility trạng thái ACTIVE để hiển thị trên Dropdown bộ lọc / Form.
- *     tags: [1.4.1 Cấu hình Chi nhánh hệ thống]
+ *     tags: [1.1.9 API phục vụ filter / dropdown]
  *     responses:
  *       200:
  *         description: Trả về thành công

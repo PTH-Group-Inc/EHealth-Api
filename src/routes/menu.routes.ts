@@ -8,19 +8,14 @@ const menuRoutes = Router();
 menuRoutes.use(verifyAccessToken);
 const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
-/**
- * @swagger
- * tags:
- *   name: System Menus
- *   description: API Quản lý danh mục Menu hệ thống
- */
+
 
 /**
  * @swagger
  * /api/menus:
  *   get:
  *     summary: Lấy danh sách toàn bộ Menu hệ thống
- *     tags: [1.3.2 Danh mục Giao diện UI (Menu Management)]
+ *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -34,7 +29,7 @@ menuRoutes.get('/', requireAdmin, MenuController.getMenus);
  * /api/menus:
  *   post:
  *     summary: Tạo mới Menu hệ thống
- *     tags: [1.3.2 Danh mục Giao diện UI (Menu Management)]
+ *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -74,7 +69,7 @@ menuRoutes.post('/', requireAdmin, MenuController.createMenu);
  * /api/menus/{menuId}:
  *   patch:
  *     summary: Cập nhật thông tin Menu
- *     tags: [1.3.2 Danh mục Giao diện UI (Menu Management)]
+ *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -124,7 +119,7 @@ menuRoutes.patch('/:menuId', requireAdmin, MenuController.updateMenu);
  * /api/menus/{menuId}:
  *   delete:
  *     summary: Xóa một Menu khỏi hệ thống
- *     tags: [1.3.2 Danh mục Giao diện UI (Menu Management)]
+ *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     parameters:

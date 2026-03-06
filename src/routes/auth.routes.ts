@@ -19,7 +19,7 @@ const authRoutes = Router()
  *       - Nếu gửi `clientInfo.deviceId`: Hệ thống sẽ tìm session cũ của device.
  *         Nếu có thì reuse, không có thì tạo mới (cho phép login từ nhiều device)
  *       - Nếu **không gửi** `clientInfo`: Vẫn cho login bình thường, mỗi lần login tạo session mới
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -68,7 +68,7 @@ authRoutes.post("/login/email", AuthController.loginByEmail);
  *       - Nếu gửi `clientInfo.deviceId`: Hệ thống sẽ tìm session cũ của device.
  *         Nếu có thì reuse, không có thì tạo mới (cho phép login từ nhiều device)
  *       - Nếu **không gửi** `clientInfo`: Vẫn cho login bình thường, mỗi lần login tạo session mới
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -116,7 +116,7 @@ authRoutes.post("/login/phone", AuthController.loginByPhone);
  * /api/auth/register/email:
  *   post:
  *     summary: Đăng ký tài khoản bằng Email
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -140,7 +140,7 @@ authRoutes.post('/register/email', AuthController.registerByEmail);
  * /api/auth/register/phone:
  *   post:
  *     summary: Đăng ký tài khoản bằng Số điện thoại
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -175,7 +175,7 @@ authRoutes.post('/register/phone', AuthController.registerByPhone);
  *   post:
  *     summary: Xác thực tài khoản (Bằng mã OTP gửi qua Email)
  *     description: API này được gọi sau khi gọi đăng ký thành công. User sẽ nhập mã OTP gồm 6 số gửi vào email để kích hoạt.
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -207,7 +207,7 @@ authRoutes.post('/verify-email', AuthController.verifyEmail);
  * /api/auth/forgot-password:
  *   post:
  *     summary: Yêu cầu đặt lại mật khẩu
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -236,7 +236,7 @@ authRoutes.post('/forgot-password', AuthController.forgotPassword);
  * /api/auth/reset-password:
  *   post:
  *     summary: Đặt lại mật khẩu
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -267,7 +267,7 @@ authRoutes.post('/reset-password', AuthController.resetPassword);
  * /api/auth/unlock-account:
  *   post:
  *     summary: Mở khóa tài khoản
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -311,7 +311,7 @@ authRoutes.post('/unlock-account', AuthController.unlockAccount);
  * /api/auth/refresh-token:
  *   post:
  *     summary: Làm mới Access Token
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -355,7 +355,7 @@ authRoutes.post('/refresh-token', AuthController.refreshToken);
  * /api/auth/logout:
  *   post:
  *     summary: Đăng xuất
- *     tags: [1.2.1 Xác thực Tài khoản (Credentials)]
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
  *     requestBody:
  *       required: true
  *       content:
@@ -395,7 +395,7 @@ authRoutes.post('/logout', AuthController.logout);
  * /api/auth/sessions:
  *   get:
  *     summary: Lấy danh sách các phiên đăng nhập
- *     tags: [1.2.2 Quản lý Phiên đăng nhập (Sessions)]
+ *     tags: [1.2.2 Quản lý Phiên đăng nhập]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -427,7 +427,7 @@ authRoutes.get('/sessions', verifyAccessToken, checkSessionStatus, SessionContro
  * /api/auth/sessions/logout-all:
  *   post:
  *     summary: Đăng xuất tất cả các phiên
- *     tags: [1.2.2 Quản lý Phiên đăng nhập (Sessions)]
+ *     tags: [1.2.2 Quản lý Phiên đăng nhập]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -447,7 +447,7 @@ authRoutes.post('/sessions/logout-all', verifyAccessToken, checkSessionStatus, S
  * /api/auth/sessions/{sessionId}:
  *   delete:
  *     summary: Đăng xuất một phiên cụ thể
- *     tags: [1.2.2 Quản lý Phiên đăng nhập (Sessions)]
+ *     tags: [1.2.2 Quản lý Phiên đăng nhập]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -484,7 +484,7 @@ authRoutes.delete('/sessions/:sessionId', verifyAccessToken, checkSessionStatus,
  * /api/auth/me/roles:
  *   get:
  *     summary: Lấy danh sách Vai trò của User đang đăng nhập
- *     tags: [1.2.3 Lấy thông tin ngữ cảnh (Auth Context)]
+ *     tags: [1.3.7 Kiểm tra quyền của user]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -498,7 +498,7 @@ authRoutes.get('/me/roles', verifyAccessToken, checkSessionStatus, AuthCheckCont
  * /api/auth/me/menus:
  *   get:
  *     summary: Lấy danh sách Menu hiển thị của User đang đăng nhập
- *     tags: [1.2.3 Lấy thông tin ngữ cảnh (Auth Context)]
+ *     tags: [1.3.7 Kiểm tra quyền của user]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -512,7 +512,7 @@ authRoutes.get('/me/menus', verifyAccessToken, checkSessionStatus, AuthCheckCont
  * /api/auth/me/permissions:
  *   get:
  *     summary: Lấy danh sách Đặc quyền thao tác thao (Permissions) của User đang đăng nhập
- *     tags: [1.2.3 Lấy thông tin ngữ cảnh (Auth Context)]
+ *     tags: [1.3.7 Kiểm tra quyền của user]
  *     security:
  *       - bearerAuth: []
  *     responses:

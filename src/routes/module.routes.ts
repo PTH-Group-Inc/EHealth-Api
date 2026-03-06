@@ -8,12 +8,7 @@ const moduleRoutes = Router();
 moduleRoutes.use(verifyAccessToken);
 const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
-/**
- * @swagger
- * tags:
- *   name: Feature Module Permissions
- *   description: API Phân quyền theo nhóm tính năng
- */
+
 
 /**
  * @swagger
@@ -21,7 +16,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *   get:
  *     summary: Lấy danh sách các Module riêng biệt
  *     description: API trả về mảng danh sách tên các Module có sẵn trong hệ thống phục vụ việc nhóm quyền hạn.
- *     tags: [1.3.7 Danh mục Phân hệ Tính năng (Modules)]
+ *     tags: [1.3.4 Phân quyền theo module]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -35,7 +30,7 @@ moduleRoutes.get('/', requireAdmin, ModuleController.getModules);
  * /api/modules/{moduleName}/permissions:
  *   get:
  *     summary: Lấy danh sách Quyền của một Module cụ thể
- *     tags: [1.3.7 Danh mục Phân hệ Tính năng (Modules)]
+ *     tags: [1.3.4 Phân quyền theo module]
  *     security:
  *       - bearerAuth: []
  *     parameters:

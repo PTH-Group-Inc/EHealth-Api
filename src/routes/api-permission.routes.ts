@@ -8,19 +8,14 @@ const apiPermissionRoutes = Router();
 apiPermissionRoutes.use(verifyAccessToken);
 const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
-/**
- * @swagger
- * tags:
- *   name: API Permission Settings
- *   description: Quản lý danh mục các API Endpoints trong hệ thống
- */
+
 
 /**
  * @swagger
  * /api/api-permissions:
  *   get:
  *     summary: Lấy danh sách API Endpoints
- *     tags: [1.3.3 Danh mục API Trạm (Network Endpoints)]
+ *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -56,7 +51,7 @@ apiPermissionRoutes.get('/', requireAdmin, ApiPermissionController.getApiPermiss
  * /api/api-permissions:
  *   post:
  *     summary: Đăng ký API Endpoint mới
- *     tags: [1.3.3 Danh mục API Trạm (Network Endpoints)]
+ *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -90,7 +85,7 @@ apiPermissionRoutes.post('/', requireAdmin, ApiPermissionController.createApiPer
  * /api/api-permissions/{apiId}:
  *   patch:
  *     summary: Chỉnh sửa thông số API Endpoint
- *     tags: [1.3.3 Danh mục API Trạm (Network Endpoints)]
+ *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -130,7 +125,7 @@ apiPermissionRoutes.patch('/:apiId', requireAdmin, ApiPermissionController.updat
  * /api/api-permissions/{apiId}:
  *   delete:
  *     summary: Xóa API Endpoint khỏi cấu hình
- *     tags: [1.3.3 Danh mục API Trạm (Network Endpoints)]
+ *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
  *     parameters:
