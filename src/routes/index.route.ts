@@ -1,7 +1,9 @@
-import { Express, } from 'express'
+import { Express } from 'express'
 import productRouter from './testProduct.route';
 import authRoutes from './auth.routes';
 import userRoutes from './user.routes';
+import roleRoutes from './role.routes';
+import facilityRoutes from './facility.routes';
 
 export const initRoutes = (app: Express) => {
     //test product routes
@@ -12,4 +14,10 @@ export const initRoutes = (app: Express) => {
 
     //user management routes
     app.use('/api/users', userRoutes);
+
+    //role dropdowns routes
+    app.use('/api/roles', roleRoutes);
+
+    //facility dropdown routes
+    app.use('/api/facilities', facilityRoutes);
 }

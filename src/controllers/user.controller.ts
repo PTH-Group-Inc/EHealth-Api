@@ -1,7 +1,27 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/user.service';
+import { CreateUserInput, UpdateUserByAdminInput, UpdateUserStatusInput, ResetPasswordAdminInput, ChangePasswordInput, AssignRoleInput } from '../models/user.model';
 
 export class UserController {
+    /**
+     * Dành cho Dropdown: Lấy danh sách trạng thái Account
+     */
+    static getAccountStatuses(req: Request, res: Response, next: NextFunction): void {
+        try {
+            const statuses = [
+                { code: 'ACTIVE', label: 'Hoạt động' },
+                { code: 'INACTIVE', label: 'Vô hiệu hóa (Đã xóa)' },
+                { code: 'BANNED', label: 'Bị khóa' },
+                { code: 'PENDING', label: 'Chờ xác thực' }
+            ];
+            res.status(200).json({
+                success: true,
+                data: statuses
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 
     /**
      * Tạo người dùng mới
@@ -10,7 +30,11 @@ export class UserController {
         try {
             const data = req.body;
 
-            const result = await UserService.createUser(data);
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            const result = await UserService.createUser(data, adminId, ipAddress, userAgent);
 
             return res.status(201).json({
                 success: true,
@@ -88,7 +112,11 @@ export class UserController {
             const userId = req.params.userId as string;
             const data = req.body;
 
-            await UserService.updateUser(userId, data);
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            await UserService.updateUser(userId, data, adminId, ipAddress, userAgent);
 
             return res.status(200).json({
                 success: true,
@@ -110,7 +138,11 @@ export class UserController {
         try {
             const userId = req.params.userId as string;
 
-            await UserService.deleteUser(userId);
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            await UserService.deleteUser(userId, adminId, ipAddress, userAgent);
 
             return res.status(200).json({
                 success: true,
@@ -163,7 +195,11 @@ export class UserController {
         try {
             const userId = req.params.userId as string;
 
-            await UserService.lockUser(userId);
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            await UserService.lockUser(userId, adminId, ipAddress, userAgent);
 
             return res.status(200).json({
                 success: true,
@@ -185,7 +221,11 @@ export class UserController {
         try {
             const userId = req.params.userId as string;
 
-            await UserService.unlockUser(userId);
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            await UserService.unlockUser(userId, adminId, ipAddress, userAgent);
 
             return res.status(200).json({
                 success: true,
@@ -195,6 +235,206 @@ export class UserController {
             return res.status(error.httpCode || 500).json({
                 success: false,
                 code: error.code || 'USER_UNLOCK_FAILED',
+                message: error.message || 'Lỗi hệ thống'
+            });
+        }
+    }
+
+    /**
+     * Thay đổi trạng thái tài khoản
+     */
+    static async updateUserStatus(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.params.userId as string;
+            const data: UpdateUserStatusInput = req.body;
+
+            // Lấy thông tin user thực hiện (từ middleware config)
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            if (!data.status) {
+                return res.status(400).json({
+                    success: false,
+                    code: 'INVALID_INPUT',
+                    message: 'Vui lòng cung cấp trạng thái mới (status).'
+                });
+            }
+
+            await UserService.updateUserStatus(userId, data, adminId, ipAddress, userAgent);
+
+            return res.status(200).json({
+                success: true,
+                message: "Thay đổi trạng thái tài khoản thành công"
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'USER_STATUS_UPDATE_FAILED',
+                message: error.message || 'Lỗi hệ thống'
+            });
+        }
+    }
+
+    /**
+     * Lấy lịch sử thay đổi trạng thái
+     */
+    static async getStatusHistory(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.params.userId as string;
+
+            const history = await UserService.getStatusHistory(userId);
+
+            return res.status(200).json({
+                success: true,
+                message: "Lấy lịch sử trạng thái thành công",
+                data: history
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'USER_HISTORY_FETCH_FAILED',
+                message: error.message || 'Lỗi hệ thống'
+            });
+        }
+    }
+
+    /**
+     * Admin reset mật khẩu cho User
+     */
+    static async resetPassword(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.params.userId as string;
+            const data: ResetPasswordAdminInput = req.body;
+
+            await UserService.resetPasswordByAdmin(userId, data);
+
+            return res.status(200).json({
+                success: true,
+                message: "Reset mật khẩu thành công. Mật khẩu điểm được gửi qua Email (nếu hệ thống tự tạo)."
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'USER_PASSWORD_RESET_FAILED',
+                message: error.message || 'Lỗi hệ thống'
+            });
+        }
+    }
+
+    /**
+     * User tự đổi mật khẩu cá nhân
+     */
+    static async changePassword(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.params.userId as string;
+            const data: ChangePasswordInput = req.body;
+
+            // Lấy ID thật của User từ Access Token ở header
+            const tokenUserId = (req as any).auth?.user_id;
+
+            if (!tokenUserId) {
+                return res.status(401).json({
+                    success: false,
+                    code: 'UNAUTHORIZED',
+                    message: 'Không tìm thấy thông tin xác thực'
+                });
+            }
+
+            await UserService.changePasswordByUser(userId, data, tokenUserId);
+
+            return res.status(200).json({
+                success: true,
+                message: "Đổi mật khẩu thành công"
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'USER_PASSWORD_CHANGE_FAILED',
+                message: error.message || 'Lỗi hệ thống'
+            });
+        }
+    }
+
+    /**
+     * Lấy các role của user
+     */
+    static async getUserRoles(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.params.userId as string;
+            const roles = await UserService.getUserRoles(userId);
+
+            return res.status(200).json({
+                success: true,
+                message: "Lấy danh sách vai trò thành công",
+                data: roles
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'USER_ROLES_FETCH_FAILED',
+                message: error.message || 'Lỗi hệ thống'
+            });
+        }
+    }
+
+    /**
+     * Gán role cho user
+     */
+    static async assignRole(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.params.userId as string;
+            const data: AssignRoleInput = req.body;
+
+            if (!data.role) {
+                return res.status(400).json({
+                    success: false,
+                    code: 'INVALID_INPUT',
+                    message: 'Vui lòng cung cấp mã hoặc ID của vai trò (role).'
+                });
+            }
+
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            await UserService.assignRole(userId, data, adminId, ipAddress, userAgent);
+
+            return res.status(200).json({
+                success: true,
+                message: "Gán vai trò thành công"
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'USER_ROLE_ASSIGN_FAILED',
+                message: error.message || 'Lỗi hệ thống'
+            });
+        }
+    }
+
+    /**
+     * Xoá role của user
+     */
+    static async removeRole(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.params.userId as string;
+            const roleId = req.params.roleId as string;
+
+            const adminId = (req as any).auth?.user_id || 'SYSTEM';
+            const ipAddress = req.ip || req.connection.remoteAddress || null;
+            const userAgent = req.get('User-Agent') || null;
+
+            await UserService.removeRole(userId, roleId, adminId, ipAddress, userAgent);
+
+            return res.status(200).json({
+                success: true,
+                message: "Xoá vai trò thành công"
+            });
+        } catch (error: any) {
+            return res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'USER_ROLE_REMOVE_FAILED',
                 message: error.message || 'Lỗi hệ thống'
             });
         }

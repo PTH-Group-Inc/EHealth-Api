@@ -52,6 +52,8 @@ export interface UserQueryFilter {
     search?: string;
     role?: string;
     status?: string;
+    fromDate?: string; // Format: YYYY-MM-DD
+    toDate?: string;   // Format: YYYY-MM-DD
 }
 
 export interface PaginatedUsers {
@@ -60,4 +62,34 @@ export interface PaginatedUsers {
     page: number;
     limit: number;
     totalPages: number;
+}
+
+export interface UpdateUserStatusInput {
+    status: User['status'];
+    reason?: string;
+}
+
+export interface AccountStatusHistory {
+    audit_logs_id: string;
+    user_id: string;
+    action: string;
+    old_values: any;
+    new_values: any;
+    ip_address: string | null;
+    user_agent: string | null;
+    created_at: Date;
+    changed_by_name?: string;
+}
+
+export interface ResetPasswordAdminInput {
+    newPassword?: string;
+}
+
+export interface ChangePasswordInput {
+    oldPassword: string;
+    newPassword: string;
+}
+
+export interface AssignRoleInput {
+    role: string;
 }

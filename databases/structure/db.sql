@@ -995,3 +995,158 @@ CREATE TABLE cashier_shifts (
     FOREIGN KEY (cashier_id) REFERENCES users(users_id)
 );
 
+--*******************************************************************
+-- 6. QUẢN LÝ CƠ SỞ Y TẾ (FACILITY MANAGEMENT - MULTI-CLINIC)
+
+-- 6.1 Cơ sở y tế (Healthcare Facilities) - Bảng gốc (Root)
+CREATE TABLE facilities (
+    facilities_id VARCHAR(50) PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL, -- Mã cơ sở (vd: EHEALTH_HCM)
+    name VARCHAR(255) NOT NULL, -- Tên cơ sở chính
+    tax_code VARCHAR(50), -- Mã số thuế
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    website VARCHAR(255),
+    logo_url TEXT,
+    headquarters_address TEXT, -- Địa chỉ trụ sở chính
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, INACTIVE, SUSPENDED
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bảng giờ hoạt động của cơ sở (Operation Hours)
+CREATE TABLE facility_operation_hours (
+    operation_hours_id VARCHAR(50) PRIMARY KEY,
+    facility_id VARCHAR(50) NOT NULL,
+    day_of_week INT NOT NULL, -- 0 (Chủ nhật) -> 6 (Thứ 7)
+    open_time TIME NOT NULL,
+    close_time TIME NOT NULL,
+    is_closed BOOLEAN DEFAULT FALSE, -- Đánh dấu ngày nghỉ bán thời gian hoặc toàn thời gian
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE,
+    UNIQUE(facility_id, day_of_week)
+);
+
+-- 6.2 Quản lý chi nhánh (Branches) thuộc Cơ sở y tế
+CREATE TABLE branches (
+    branches_id VARCHAR(50) PRIMARY KEY,
+    facility_id VARCHAR(50) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL, -- Mã chi nhánh (vd: CN01_HCM)
+    name VARCHAR(255) NOT NULL,
+    address TEXT NOT NULL,
+    phone VARCHAR(20),
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, INACTIVE, UNDER_MAINTENANCE
+    established_date DATE,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE
+);
+
+-- 6.3 Quản lý phòng ban / chuyên khoa (Departments)
+CREATE TABLE departments (
+    departments_id VARCHAR(50) PRIMARY KEY,
+    branch_id VARCHAR(50) NOT NULL,
+    code VARCHAR(50) NOT NULL, -- Mã khoa (vd: KHOA_NOI)
+    name VARCHAR(255) NOT NULL, -- Khoa Nội, Khoa Nhi
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
+    UNIQUE(branch_id, code) -- Trong 1 chi nhánh không trùng mã khoa
+);
+
+-- 6.4 Quản lý phòng khám / phòng chức năng (Medical Rooms)
+CREATE TABLE medical_rooms (
+    medical_rooms_id VARCHAR(50) PRIMARY KEY,
+    department_id VARCHAR(50) NOT NULL,
+    code VARCHAR(50) NOT NULL, -- Mã phòng (vd: P101)
+    name VARCHAR(100) NOT NULL, -- Tên phòng (Phòng Nội 1)
+    room_type VARCHAR(50), -- CONSULTATION (Khám), LAB (Xét nghiệm), IMAGING (CĐHA), OPERATING (Phẫu thuật)
+    capacity INT DEFAULT 1, -- Số lượng bệnh nhân có thể phục vụ cùng lúc
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, MAINTENANCE, INACTIVE
+    FOREIGN KEY (department_id) REFERENCES departments(departments_id) ON DELETE CASCADE,
+    UNIQUE(department_id, code) 
+);
+
+-- 6.5 Quản lý nhân sự y tế (Gắn Staff vào Chi nhánh/Khoa)
+CREATE TABLE user_branch_dept (
+    user_branch_dept_id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL, -- Liên kết accounts/users
+    branch_id VARCHAR(50) NOT NULL,
+    department_id VARCHAR(50), -- Có thể nhân sự thuộc khối back-office chi nhánh, không thuộc khoa
+    role_title VARCHAR(100), -- VD: Trưởng khoa, Bác sĩ điều trị, Y tá trưởng
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    FOREIGN KEY (user_id) REFERENCES users(users_id) ON DELETE CASCADE,
+    FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES departments(departments_id) ON DELETE SET NULL,
+    UNIQUE(user_id, branch_id) -- 1 Staff chỉ gán 1 lần tại 1 chi nhánh
+);
+
+-- Quản lý bằng cấp, chứng chỉ hành nghề của nhân sự (Licenses)
+CREATE TABLE user_licenses (
+    licenses_id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL,
+    license_type VARCHAR(100) NOT NULL, -- Chứng chỉ hành nghề (CCHN), Bằng ĐH...
+    license_number VARCHAR(100) NOT NULL UNIQUE,
+    issue_date DATE NOT NULL,
+    expiry_date DATE, -- Cảnh báo hết hạn dựa vào cột này
+    issued_by VARCHAR(255), -- Nơi cấp (vd: Sở Y tế TP.HCM)
+    document_url TEXT, -- Link ảnh chụp/PDF bằng cấp
+    FOREIGN KEY (user_id) REFERENCES users(users_id) ON DELETE CASCADE
+);
+
+-- 6.6 Quản lý lịch làm việc linh hoạt (Staff Schedules)
+CREATE TABLE staff_schedules (
+    staff_schedules_id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL,
+    medical_room_id VARCHAR(50) NOT NULL, -- Lịch làm việc tại phòng cụ thể
+    working_date DATE NOT NULL,
+    shift_type VARCHAR(50), -- MORNING, AFTERNOON, EVENING
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    is_leave BOOLEAN DEFAULT FALSE, -- Cờ báo nghỉ phép/tạm ngưng lịch
+    leave_reason TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(users_id) ON DELETE CASCADE,
+    FOREIGN KEY (medical_room_id) REFERENCES medical_rooms(medical_rooms_id) ON DELETE CASCADE
+);
+
+-- 6.9 Quản lý Danh mục Dịch vụ theo Cơ sở (Medical Services)
+CREATE TABLE facility_services (
+    facility_services_id VARCHAR(50) PRIMARY KEY,
+    facility_id VARCHAR(50) NOT NULL,
+    department_id VARCHAR(50), -- Có thể map gán DV vào chuyên khoa cụ thể
+    code VARCHAR(50) NOT NULL, -- Mã dịch vụ (vd: XN_MAU)
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    base_price DECIMAL(15,2) NOT NULL, -- Giá gốc
+    insurance_price DECIMAL(15,2), -- Giá BHYT (nếu có)
+    vip_price DECIMAL(15,2), -- Giá dịch vụ chất lượng cao
+    estimated_duration_minutes INT DEFAULT 15, -- Thời gian định mức (giúp chia slot)
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES departments(departments_id) ON DELETE SET NULL,
+    UNIQUE(facility_id, code)
+);
+
+-- 6.10 Quản lý Trang thiết bị Y tế (Assets/Equipment)
+CREATE TABLE medical_equipment (
+    equipment_id VARCHAR(50) PRIMARY KEY,
+    medical_room_id VARCHAR(50), -- Đặt tại phòng nào
+    code VARCHAR(50) UNIQUE NOT NULL, -- Mã thiết bị, Barcode
+    name VARCHAR(255) NOT NULL,
+    manufacturer VARCHAR(150),
+    serial_number VARCHAR(100),
+    manufacturing_date DATE,
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, MAINTENANCE, BROKEN, RETIRED
+    next_maintenance_date DATE,
+    FOREIGN KEY (medical_room_id) REFERENCES medical_rooms(medical_rooms_id) ON DELETE SET NULL
+);
+
+-- 6.11 Quản lý Giường bệnh (Bed Management)
+CREATE TABLE hospital_beds (
+    beds_id VARCHAR(50) PRIMARY KEY,
+    medical_room_id VARCHAR(50) NOT NULL, -- Nằm ở phòng nào
+    code VARCHAR(10) NOT NULL, -- Số/Mã giường (G01, G02)
+    bed_type VARCHAR(50) DEFAULT 'STANDARD', -- STANDARD (Thường), ICU (Hồi sức), EMERGENCY
+    status VARCHAR(50) DEFAULT 'AVAILABLE', -- AVAILABLE, OCCUPIED, CLEANING, BROKEN
+    current_patient_id VARCHAR(50), -- Ai đang nằm
+    FOREIGN KEY (medical_room_id) REFERENCES medical_rooms(medical_rooms_id) ON DELETE CASCADE,
+    FOREIGN KEY (current_patient_id) REFERENCES patients(patients_id) ON DELETE SET NULL,
+    UNIQUE(medical_room_id, code)
+);

@@ -145,4 +145,19 @@ export class SecurityUtil {
 
         return `UPRF_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
     }
+
+    /**
+     * Tạo ID cho record gán Cơ sở/Chi nhánh (User Branch Dept)
+     */
+    static generateUserFacilityId(userId: string): string {
+        const now = new Date();
+
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+
+        const datePart = `${yy}${mm}${dd}`;
+
+        return `UBD_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
+    }
 }

@@ -1,19 +1,204 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
+import { UserFacilityController } from '../controllers/user-facility.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import multer from 'multer';
+import { UserImportController } from '../controllers/user-import.controller';
+import { UserExportController } from '../controllers/user-export.controller';
 
 const userRoutes = Router();
 
 userRoutes.use(verifyAccessToken);
-userRoutes.use(authorizeRoles('ADMIN', 'SYSTEM'));
+const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 /**
  * @swagger
  * tags:
  *   name: User Management
  *   description: Quản lý người dùng (Dành cho Admin)
+ *   
+ *   name: Bulk Import Users
+ *   description: Import danh sách nhân sự hàng loạt qua file Excel/CSV
  */
+
+/**
+ * @swagger
+ * /api/users/import/validate:
+ *   post:
+ *     summary: Kiểm tra (Validate) dữ liệu file Import
+ *     description: Tải file dữ liệu danh sách người dùng lên để hệ thống phân tích và báo lỗi trước khi import thực sự. Hỗ trợ Excel (.xlsx, .xls) và CSV.
+ *     tags: [Bulk Import Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: File cần import (Excel/CSV)
+ *     responses:
+ *       200:
+ *         description: Phân tích kết quả thành công
+ *       400:
+ *         description: Thiếu file hoặc định dạng không hợp lệ
+ */
+userRoutes.post('/import/validate', requireAdmin, upload.single('file'), UserImportController.validateImport);
+
+/**
+ * @swagger
+ * /api/users/import:
+ *   post:
+ *     summary: Thực thi Import Người dùng hàng loạt
+ *     description: Tải file dữ liệu lên, hệ thống sẽ bỏ qua các dòng lỗi và chỉ import các dòng hợp lệ vào CSDL.
+ *     tags: [Bulk Import Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: File cần import (Excel/CSV)
+ *     responses:
+ *       200:
+ *         description: Import dữ liệu thành công
+ *       400:
+ *         description: File lỗi / không có dòng nào import được
+ */
+userRoutes.post('/import', requireAdmin, upload.single('file'), UserImportController.executeImport);
+
+/**
+ * @swagger
+ * /api/users/import/history:
+ *   get:
+ *     summary: Xem lịch sử Import
+ *     description: Truy xuất tất cả các lần Import danh sách nhân sự trước đó.
+ *     tags: [Bulk Import Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Trả về thành công dữ liệu Audit Logs
+ */
+userRoutes.get('/import/history', requireAdmin, UserImportController.getImportHistory);
+
+/**
+ * @swagger
+ * /api/users/export:
+ *   get:
+ *     summary: Xuất danh sách người dùng (Excel)
+ *     description: Tải xuống file Excel (.xlsx) chứa toàn bộ danh sách người dùng trong hệ thống (có thể lọc thông qua Query Params).
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Tìm kiếm theo tên, email, sđt
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, BANNED, PENDING]
+ *       - in: query
+ *         name: fromDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Từ ngày đăng ký (YYYY-MM-DD)
+ *       - in: query
+ *         name: toDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Đến ngày đăng ký (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: File Excel (binary stream)
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+userRoutes.get('/export', requireAdmin, UserExportController.exportUsers);
+
+/**
+ * @swagger
+ * /api/users/export:
+ *   post:
+ *     summary: Xuất danh sách người dùng theo luồng POST (Nâng cao)
+ *     description: Tương tự GET /export nhưng cho phép gửi filter phức tạp thông qua Request Body thay vì Query.
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               search:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 example: DOCTOR
+ *               status:
+ *                 type: string
+ *                 enum: [ACTIVE, INACTIVE, BANNED, PENDING]
+ *                 example: ACTIVE
+ *               fromDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-01-01"
+ *               toDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-12-31"
+ *     responses:
+ *       200:
+ *         description: File Excel (binary stream)
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+userRoutes.post('/export', requireAdmin, UserExportController.exportUsers);
+
+/**
+ * @swagger
+ * /api/users/account-status:
+ *   get:
+ *     summary: Lấy danh sách Trạng thái hiển thị Dropdown
+ *     description: Lấy danh sách map các trạng thái tài khoản cố định của hệ thống.
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Trả về thành công dữ liệu Trạng thái
+ */
+userRoutes.get('/account-status', requireAdmin, UserController.getAccountStatuses);
 
 /**
  * @swagger
@@ -72,7 +257,7 @@ userRoutes.use(authorizeRoles('ADMIN', 'SYSTEM'));
  *       403:
  *         description: Không có quyền truy cập (Not Admin)
  */
-userRoutes.post('/', UserController.createUser);
+userRoutes.post('/', requireAdmin, UserController.createUser);
 
 /**
  * @swagger
@@ -111,7 +296,7 @@ userRoutes.post('/', UserController.createUser);
  *       200:
  *         description: Lấy danh sách thành công
  */
-userRoutes.get('/', UserController.getUsers);
+userRoutes.get('/', requireAdmin, UserController.getUsers);
 
 /**
  * @swagger
@@ -145,7 +330,7 @@ userRoutes.get('/', UserController.getUsers);
  *       200:
  *         description: Lấy danh sách thành công
  */
-userRoutes.get('/search', UserController.searchUsers);
+userRoutes.get('/search', requireAdmin, UserController.searchUsers);
 
 /**
  * @swagger
@@ -167,7 +352,7 @@ userRoutes.get('/search', UserController.searchUsers);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.get('/:userId', UserController.getUserById);
+userRoutes.get('/:userId', requireAdmin, UserController.getUserById);
 
 /**
  * @swagger
@@ -232,8 +417,8 @@ userRoutes.get('/:userId', UserController.getUserById);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.put('/:userId', UserController.updateUser);
-userRoutes.patch('/:userId', UserController.updateUser);
+userRoutes.put('/:userId', requireAdmin, UserController.updateUser);
+userRoutes.patch('/:userId', requireAdmin, UserController.updateUser);
 
 /**
  * @swagger
@@ -255,7 +440,7 @@ userRoutes.patch('/:userId', UserController.updateUser);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.delete('/:userId', UserController.deleteUser);
+userRoutes.delete('/:userId', requireAdmin, UserController.deleteUser);
 
 /**
  * @swagger
@@ -279,7 +464,7 @@ userRoutes.delete('/:userId', UserController.deleteUser);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.patch('/:userId/lock', UserController.lockUser);
+userRoutes.patch('/:userId/lock', requireAdmin, UserController.lockUser);
 
 /**
  * @swagger
@@ -303,6 +488,385 @@ userRoutes.patch('/:userId/lock', UserController.lockUser);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.patch('/:userId/unlock', UserController.unlockUser);
+userRoutes.patch('/:userId/unlock', requireAdmin, UserController.unlockUser);
+/**
+ * @swagger
+ * /api/users/{userId}/status:
+ *   patch:
+ *     summary: Cập nhật trạng thái người dùng
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [ACTIVE, INACTIVE, BANNED, PENDING]
+ *                 example: "INACTIVE"
+ *               reason:
+ *                 type: string
+ *                 example: "Nghỉ việc tạm thời"
+ *     responses:
+ *       200:
+ *         description: Cập nhật trạng thái thành công
+ *       400:
+ *         description: Trạng thái không hợp lệ hoặc không thay đổi
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.patch('/:userId/status', requireAdmin, UserController.updateUserStatus);
+
+/**
+ * @swagger
+ * /api/users/{userId}/status-history:
+ *   get:
+ *     summary: Lấy lịch sử thay đổi trạng thái người dùng
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.get('/:userId/status-history', requireAdmin, UserController.getStatusHistory);
+/**
+ * @swagger
+ * /api/users/{userId}/reset-password:
+ *   post:
+ *     summary: Admin reset mật khẩu cho User
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               newPassword:
+ *                 type: string
+ *                 example: "matkhaumoi123"
+ *                 description: Mật khẩu mới thiết lập (Nếu để trống, hệ thống sẽ tự sinh pass ngẫu nhiên và gửi mail)
+ *     responses:
+ *       200:
+ *         description: Reset mật khẩu thành công
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.post('/:userId/reset-password', requireAdmin, UserController.resetPassword);
+
+/**
+ * @swagger
+ * /api/users/{userId}/change-password:
+ *   post:
+ *     summary: User tự đổi mật khẩu cá nhân
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 example: "matkhaucu"
+ *               newPassword:
+ *                 type: string
+ *                 example: "matkhaumoi"
+ *     responses:
+ *       200:
+ *         description: Đổi mật khẩu thành công
+ *       400:
+ *         description: Thông tin không hợp lệ, hoặc mật khẩu cũ sai
+ *       403:
+ *         description: Không thể đổi mật khẩu của người dùng khác
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.post('/:userId/change-password', UserController.changePassword);
+/**
+ * @swagger
+ * /api/users/{userId}/roles:
+ *   get:
+ *     summary: Lấy danh sách vai trò của người dùng
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.get('/:userId/roles', requireAdmin, UserController.getUserRoles);
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles:
+ *   post:
+ *     summary: Gán vai trò cho người dùng
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 example: "DOCTOR"
+ *                 description: "Mã code của Role (VD: DOCTOR, NURSE) hoặc UUID của Role đó"
+ *     responses:
+ *       200:
+ *         description: Gán thành công
+ *       400:
+ *         description: Role không tồn tại
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.post('/:userId/roles', requireAdmin, UserController.assignRole);
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles/{roleId}:
+ *   delete:
+ *     summary: Xoá vai trò của người dùng
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: roleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: "Mã code của Role (VD: DOCTOR) hoặc UUID của Role"
+ *     responses:
+ *       200:
+ *         description: Xoá thành công
+ *       400:
+ *         description: User không có role này
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.delete('/:userId/roles/:roleId', requireAdmin, UserController.removeRole);
+/**
+ * @swagger
+ * /api/users/{userId}/facilities:
+ *   get:
+ *     summary: Lấy danh sách Chi nhánh/Phòng ban của người dùng
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.get('/:userId/facilities', requireAdmin, UserFacilityController.getUserFacilities);
+
+/**
+ * @swagger
+ * /api/users/{userId}/facilities:
+ *   post:
+ *     summary: Gán nhân sự vào Chi nhánh / Phòng ban
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - branchId
+ *             properties:
+ *               branchId:
+ *                 type: string
+ *                 description: ID của Chi nhánh
+ *               departmentId:
+ *                 type: string
+ *                 description: ID của Khoa/Phòng (Tùy chọn)
+ *               roleTitle:
+ *                 type: string
+ *                 example: "Bác sĩ Trưởng khoa"
+ *                 description: Chức danh tại cơ sở (Tùy chọn)
+ *     responses:
+ *       200:
+ *         description: Gán thành công
+ *       400:
+ *         description: Lỗi dữ liệu hoặc Chi nhánh/Khoa không tồn tại
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.post('/:userId/facilities', requireAdmin, UserFacilityController.assignUserToFacility);
+
+/**
+ * @swagger
+ * /api/users/{userId}/facilities/{facilityId}:
+ *   delete:
+ *     summary: Hủy gán nhân sự khỏi Chi nhánh
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: facilityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của Chi nhánh (branchId) cũ muốn xóa
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reason
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 example: "Nghỉ việc"
+ *                 description: Lý do hủy bổ nhiệm
+ *     responses:
+ *       200:
+ *         description: Hủy gán thành công
+ *       400:
+ *         description: Nhân sự không thuộc Chi nhánh này hoặc thiếu lý do
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.delete('/:userId/facilities/:facilityId', requireAdmin, UserFacilityController.removeUserFromFacility);
+
+/**
+ * @swagger
+ * /api/users/{userId}/facilities/{facilityId}:
+ *   put:
+ *     summary: Thuyên chuyển nhân sự sang Chi nhánh / Phòng ban khác
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: facilityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của Chi nhánh (branchId) hiện tại đang làm việc
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - branchId
+ *             properties:
+ *               branchId:
+ *                 type: string
+ *                 description: ID của Chi nhánh MỚI muốn chuyển đến
+ *               departmentId:
+ *                 type: string
+ *                 description: ID của Khoa/Phòng MỚI (Tùy chọn)
+ *               roleTitle:
+ *                 type: string
+ *                 example: "Bác sĩ Trưởng khoa"
+ *                 description: Chức danh tại cơ sở MỚI (Tùy chọn)
+ *     responses:
+ *       200:
+ *         description: Thuyên chuyển thành công
+ *       400:
+ *         description: Lỗi dữ liệu hoặc Chi nhánh/Khoa mới không tồn tại hoặc Nhân sự k thuộc chi nhánh cũ
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.put('/:userId/facilities/:facilityId', requireAdmin, UserFacilityController.transferUserToFacility);
 
 export default userRoutes;
