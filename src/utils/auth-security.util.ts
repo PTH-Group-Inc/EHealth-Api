@@ -106,6 +106,51 @@ export class SecurityUtil {
     }
 
     /**
+     * Sinh ID cho bảng roles tự động
+     */
+    static generateRoleId(): string {
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const rolePrefix = "ROL";
+
+        return `${rolePrefix}_${yy}${mm}_${randomUUID().substring(0, 8)}`;
+    }
+
+    /**
+     * Sinh ID cho bảng permissions tự động
+     */
+    static generatePermissionId(): string {
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const permissionPrefix = "PER";
+
+        return `${permissionPrefix}_${yy}${mm}_${randomUUID().substring(0, 8)}`;
+    }
+
+    /**
+     * Sinh ID cho bảng menus tự động
+     */
+    static generateMenuId(): string {
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const menuPrefix = "MNU";
+
+        return `${menuPrefix}_${yy}${mm}_${randomUUID().substring(0, 8)}`;
+    }
+
+    /**
+     * Sinh mã định danh cho API Permission
+     */
+    static generateApiPermissionId(): string {
+        const timestamp = Date.now();
+        const shortUuid = crypto.randomUUID().substring(0, 8);
+        return `API_${timestamp}_${shortUuid}`;
+    }
+
+    /**
      * Tạo ID cho record Verification
      */
     static generateVerificationId(userId: string): string {
@@ -144,5 +189,20 @@ export class SecurityUtil {
         const datePart = `${yy}${mm}${dd}`;
 
         return `UPRF_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
+    }
+
+    /**
+     * Tạo ID cho record gán Cơ sở/Chi nhánh (User Branch Dept)
+     */
+    static generateUserFacilityId(userId: string): string {
+        const now = new Date();
+
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+
+        const datePart = `${yy}${mm}${dd}`;
+
+        return `UBD_${datePart}_${userId}_${randomUUID().substring(0, 8)}`;
     }
 }

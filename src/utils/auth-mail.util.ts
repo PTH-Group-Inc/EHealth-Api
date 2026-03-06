@@ -8,7 +8,7 @@ export class AuthMailUtil {
 
     private static getTemplate(title: string, contentBody: string): string {
         const currentYear = new Date().getFullYear();
-        
+
         return `
         <!DOCTYPE html>
         <html>
@@ -52,25 +52,24 @@ export class AuthMailUtil {
         `;
     }
     /**
-     * Gửi email reset password
+     * Gửi email reset password bằng OTP
      */
-    static async sendResetPasswordEmail(toEmail: string, resetLink: string): Promise<void> {
-        const subject = '[E-Health] Yêu cầu đặt lại mật khẩu';
-        
+    static async sendResetPasswordOtpEmail(toEmail: string, otp: string): Promise<void> {
+        const subject = `[E-Health] Mã xác thực đặt lại mật khẩu: ${otp}`;
+
         const body = `
             <p>Xin chào,</p>
-            <p>Chúng tôi vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với email <strong>${toEmail}</strong>.</p>
-            <p>Để đảm bảo an toàn, vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới. Đường dẫn này chỉ có hiệu lực trong vòng <strong>15 phút</strong>.</p>
+            <p>Chúng tôi vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với email <strong>${toEmail}</strong>. Dưới đây là mã xác thực (OTP) của bạn:</p>
             
-            <div style="text-align: center;">
-                <a href="${resetLink}" class="btn">Đặt Lại Mật Khẩu</a>
-            </div>
-
-            <p class="warning">Nếu nút bấm không hoạt động, bạn hãy sao chép và dán đường dẫn sau vào trình duyệt:</p>
-            <p><a href="${resetLink}" class="link-text">${resetLink}</a></p>
+            <div class="otp-box">${otp}</div>
             
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 13px; color: #999;">Nếu bạn không yêu cầu thay đổi mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn được bảo mật an toàn.</p>
+            <p><strong>Lưu ý:</strong></p>
+            <ul>
+                <li>Mã này có hiệu lực trong vòng <strong>15 phút</strong>.</li>
+                <li>Tuyệt đối không chia sẻ mã này cho bất kỳ ai, kể cả nhân viên hỗ trợ.</li>
+            </ul>
+            
+            <p>Nếu bạn không yêu cầu thay đổi mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn được bảo mật an toàn.</p>
         `;
 
         await MailService.send({
@@ -130,6 +129,35 @@ export class AuthMailUtil {
             to: email,
             subject,
             html: this.getTemplate('Mã Xác Thực OTP', body)
+        });
+    }
+    /**
+     * Gửi email thông báo tài khoản mới được tạo bởi Admin
+     */
+    static async sendNewAccountEmail(email: string, rawPassword?: string): Promise<void> {
+        const subject = `[E-Health] Tài khoản của bạn đã được tạo`;
+
+        const passwordHtml = rawPassword
+            ? `<p>Mật khẩu tạm thời đăng nhập của bạn là:</p><div class="otp-box">${rawPassword}</div><p><i>Vui lòng đổi mật khẩu ngay trong lần đăng nhập đầu tiên để bảo mật tài khoản.</i></p>`
+            : `<p>Vui lòng liên hệ với Quản trị viên để nhận mật khẩu hoặc sử dụng chức năng Quên Mật Khẩu trên hệ thống.</p>`;
+
+        const body = `
+            <p>Xin chào,</p>
+            <p>Một tài khoản mới đã được tạo cho bạn bằng địa chỉ email <strong>${email}</strong> trên hệ thống <strong>E-Health</strong>.</p>
+            
+            ${passwordHtml}
+            
+            <div style="text-align: center;">
+                <a href="${process.env.FRONTEND_URL || '#'}/login" class="btn">Đăng Nhập Ngay</a>
+            </div>
+            
+            <p>Trân trọng,<br>Ban Quản Trị Hệ Thống E-Health.</p>
+        `;
+
+        await MailService.send({
+            to: email,
+            subject,
+            html: this.getTemplate('Chào Mừng Thành Viên Mới', body)
         });
     }
 }

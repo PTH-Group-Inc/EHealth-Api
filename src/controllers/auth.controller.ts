@@ -125,9 +125,16 @@ export class AuthController {
      */
     static async resetPassword(req: Request, res: Response): Promise<Response> {
         try {
-            const { resetToken, newPassword } = req.body;
+            const { otp, newPassword } = req.body;
 
-            await AuthService.resetPassword({ resetToken, newPassword });
+            if (!otp || !newPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Vui lòng cung cấp mã OTP và mật khẩu mới",
+                });
+            }
+
+            await AuthService.resetPassword({ otp, newPassword });
 
             return res.status(200).json({
                 success: true,

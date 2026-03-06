@@ -158,7 +158,7 @@ export class AuthService {
   }
 
   /**
-   * Quên mật khẩu – gửi link reset
+   * Quên mật khẩu – gửi OTP
    */
   static async forgotPassword(input: { email: string }): Promise<void> {
     try {
@@ -172,9 +172,7 @@ export class AuthService {
 
       const resetId = SecurityUtil.generateResetPasswordId(user.users_id);
 
-      const resetToken = SecurityUtil.generateRandomTokenResetPassword(
-        AUTH_CONSTANTS.RESET_PASSWORD.TOKEN_LENGTH,
-      );
+      const resetToken = SecurityUtil.generateOTP(6);
       const resetTokenHash = SecurityUtil.hashTokenResetPassword(resetToken);
 
       const expiredAt = new Date(
@@ -188,9 +186,7 @@ export class AuthService {
         expiredAt,
       );
 
-      const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-      await AuthMailUtil.sendResetPasswordEmail(user.email, resetLink);
+      await AuthMailUtil.sendResetPasswordOtpEmail(user.email, resetToken);
     } catch (error) {
       console.error("Lỗi quên mật khẩu:", error);
     }
@@ -200,14 +196,14 @@ export class AuthService {
    * Đặt lại mật khẩu
    */
   static async resetPassword(input: {
-    resetToken: string;
+    otp: string;
     newPassword: string;
   }): Promise<void> {
-    const { resetToken, newPassword } = input;
+    const { otp, newPassword } = input;
 
     AuthValidation.validatePasswordOnly(newPassword);
 
-    const resetTokenHash = SecurityUtil.hashTokenResetPassword(resetToken);
+    const resetTokenHash = SecurityUtil.hashTokenResetPassword(otp);
 
     const resetRecord =
       await PasswordResetRepository.findValidToken(resetTokenHash);
