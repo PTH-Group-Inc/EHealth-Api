@@ -191,3 +191,6 @@ INSERT INTO system_config_permissions (id, role_code, module) VALUES
     ('SCP_005', 'ADMIN', 'UI'),
     ('SCP_006', 'ADMIN', 'WORKING_HOURS')
 ON CONFLICT (role_code, module) DO NOTHING;
+
+
+

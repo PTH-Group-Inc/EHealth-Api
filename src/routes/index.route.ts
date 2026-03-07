@@ -9,6 +9,7 @@ import moduleRoutes from './module.routes';
 import menuRoutes from './menu.routes';
 import apiPermissionRoutes from './api-permission.routes';
 import systemRoutes from './system.routes';
+import specialtyRouter from './specialty.route';
 
 export const initRoutes = (app: Express) => {
     //test product routes
@@ -35,9 +36,12 @@ export const initRoutes = (app: Express) => {
     // system menus routes
     app.use('/api/menus', menuRoutes);
 
-    // api permission settings wrapper
+    // api permission settings
     app.use('/api/api-permissions', apiPermissionRoutes);
 
-    // system settings routes (module 1.4)
+    // system settings routes
     app.use('/api/system', systemRoutes);
+
+    // specialty routes
+    app.use('/api/specialties', specialtyRouter);
 }
