@@ -3,4 +3,3 @@ node_modules
 .agents
 dist
 env
-src/config/*.json
