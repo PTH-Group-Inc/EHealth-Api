@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { RoleController } from '../controllers/role.controller';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 
 const roleRoutes = Router();
 
 roleRoutes.use(verifyAccessToken);
-const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
 
 
@@ -38,7 +37,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *       200:
  *         description: Thành công
  */
-roleRoutes.get('/', requireAdmin, RoleController.getRoles);
+roleRoutes.get('/', authorizePermissions('ROLE_VIEW'), RoleController.getRoles);
 
 /**
  * @swagger
@@ -60,7 +59,7 @@ roleRoutes.get('/', requireAdmin, RoleController.getRoles);
  *       404:
  *         description: Không tìm thấy vai trò
  */
-roleRoutes.get('/:roleId', requireAdmin, RoleController.getRoleById);
+roleRoutes.get('/:roleId', authorizePermissions('ROLE_VIEW'), RoleController.getRoleById);
 
 /**
  * @swagger
@@ -93,7 +92,7 @@ roleRoutes.get('/:roleId', requireAdmin, RoleController.getRoleById);
  *       400:
  *         description: Dữ liệu không hợp lệ hoặc trùng lặp mã Code
  */
-roleRoutes.post('/', requireAdmin, RoleController.createRole);
+roleRoutes.post('/', authorizePermissions('ROLE_CREATE'), RoleController.createRole);
 
 /**
  * @swagger
@@ -124,7 +123,7 @@ roleRoutes.post('/', requireAdmin, RoleController.createRole);
  *       200:
  *         description: Thành công
  */
-roleRoutes.patch('/:roleId', requireAdmin, RoleController.updateRole);
+roleRoutes.patch('/:roleId', authorizePermissions('ROLE_UPDATE'), RoleController.updateRole);
 
 /**
  * @swagger
@@ -158,7 +157,7 @@ roleRoutes.patch('/:roleId', requireAdmin, RoleController.updateRole);
  *       400:
  *         description: Đang có người dùng đang giữ vai trò này
  */
-roleRoutes.patch('/:roleId/status', requireAdmin, RoleController.updateRoleStatus);
+roleRoutes.patch('/:roleId/status', authorizePermissions('ROLE_UPDATE'), RoleController.updateRoleStatus);
 
 /**
  * @swagger
@@ -180,7 +179,7 @@ roleRoutes.patch('/:roleId/status', requireAdmin, RoleController.updateRoleStatu
  *       403:
  *         description: Không cho phép xóa Role mặc định của hệ thống
  */
-roleRoutes.delete('/:roleId', requireAdmin, RoleController.deleteRole);
+roleRoutes.delete('/:roleId', authorizePermissions('ROLE_DELETE'), RoleController.deleteRole);
 
 // =========================================================================
 // PHÂN QUYỀN (ROLE-PERMISSIONS)
@@ -204,7 +203,7 @@ roleRoutes.delete('/:roleId', requireAdmin, RoleController.deleteRole);
  *       200:
  *         description: Thành công
  */
-roleRoutes.get('/:roleId/permissions', requireAdmin, RoleController.getRolePermissions);
+roleRoutes.get('/:roleId/permissions', authorizePermissions('ROLE_VIEW'), RoleController.getRolePermissions);
 
 /**
  * @swagger
@@ -237,7 +236,7 @@ roleRoutes.get('/:roleId/permissions', requireAdmin, RoleController.getRolePermi
  *       200:
  *         description: Cập nhật quyền thành công
  */
-roleRoutes.put('/:roleId/permissions', requireAdmin, RoleController.replaceRolePermissions);
+roleRoutes.put('/:roleId/permissions', authorizePermissions('ROLE_UPDATE'), RoleController.replaceRolePermissions);
 
 /**
  * @swagger
@@ -268,7 +267,7 @@ roleRoutes.put('/:roleId/permissions', requireAdmin, RoleController.replaceRoleP
  *       201:
  *         description: Gán quyền thành công
  */
-roleRoutes.post('/:roleId/permissions', requireAdmin, RoleController.assignRolePermission);
+roleRoutes.post('/:roleId/permissions', authorizePermissions('ROLE_CREATE'), RoleController.assignRolePermission);
 
 /**
  * @swagger
@@ -294,7 +293,7 @@ roleRoutes.post('/:roleId/permissions', requireAdmin, RoleController.assignRoleP
  *       200:
  *         description: Xóa quyền thành công
  */
-roleRoutes.delete('/:roleId/permissions/:permissionId', requireAdmin, RoleController.removeRolePermission);
+roleRoutes.delete('/:roleId/permissions/:permissionId', authorizePermissions('ROLE_DELETE'), RoleController.removeRolePermission);
 
 // =========================================================================
 // QUẢN LÝ MENU (ROLE-MENUS)
@@ -318,7 +317,7 @@ roleRoutes.delete('/:roleId/permissions/:permissionId', requireAdmin, RoleContro
  *       200:
  *         description: Thành công
  */
-roleRoutes.get('/:roleId/menus', requireAdmin, RoleController.getRoleMenus);
+roleRoutes.get('/:roleId/menus', authorizePermissions('ROLE_VIEW'), RoleController.getRoleMenus);
 
 /**
  * @swagger
@@ -349,7 +348,7 @@ roleRoutes.get('/:roleId/menus', requireAdmin, RoleController.getRoleMenus);
  *       201:
  *         description: Gán Menu thành công
  */
-roleRoutes.post('/:roleId/menus', requireAdmin, RoleController.assignRoleMenu);
+roleRoutes.post('/:roleId/menus', authorizePermissions('ROLE_CREATE'), RoleController.assignRoleMenu);
 
 /**
  * @swagger
@@ -375,7 +374,7 @@ roleRoutes.post('/:roleId/menus', requireAdmin, RoleController.assignRoleMenu);
  *       200:
  *         description: Gỡ Menu thành công
  */
-roleRoutes.delete('/:roleId/menus/:menuId', requireAdmin, RoleController.removeRoleMenu);
+roleRoutes.delete('/:roleId/menus/:menuId', authorizePermissions('ROLE_DELETE'), RoleController.removeRoleMenu);
 
 // =========================================================================
 // QUẢN LÝ API PERMISSIONS (ROLE-API)
@@ -399,7 +398,7 @@ roleRoutes.delete('/:roleId/menus/:menuId', requireAdmin, RoleController.removeR
  *       200:
  *         description: Trả về danh sách API
  */
-roleRoutes.get('/:roleId/api-permissions', requireAdmin, RoleController.getRoleApiPermissions);
+roleRoutes.get('/:roleId/api-permissions', authorizePermissions('ROLE_VIEW'), RoleController.getRoleApiPermissions);
 
 /**
  * @swagger
@@ -429,7 +428,7 @@ roleRoutes.get('/:roleId/api-permissions', requireAdmin, RoleController.getRoleA
  *       201:
  *         description: Gán API Role thành công
  */
-roleRoutes.post('/:roleId/api-permissions', requireAdmin, RoleController.assignRoleApiPermission);
+roleRoutes.post('/:roleId/api-permissions', authorizePermissions('ROLE_CREATE'), RoleController.assignRoleApiPermission);
 
 /**
  * @swagger
@@ -454,6 +453,6 @@ roleRoutes.post('/:roleId/api-permissions', requireAdmin, RoleController.assignR
  *       200:
  *         description: Gỡ API Role thành công
  */
-roleRoutes.delete('/:roleId/api-permissions/:apiId', requireAdmin, RoleController.removeRoleApiPermission);
+roleRoutes.delete('/:roleId/api-permissions/:apiId', authorizePermissions('ROLE_DELETE'), RoleController.removeRoleApiPermission);
 
 export default roleRoutes;

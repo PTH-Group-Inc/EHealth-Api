@@ -92,13 +92,8 @@ export class ApiPermissionRepository {
             const result = await client.query(insertQuery, params);
             const newApi = result.rows[0];
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `, [auditId, adminId, 'CREATE_API_PERMISSION', 'api_permissions', apiId, JSON.stringify(newApi), ipAddress, userAgent]);
+
+
 
             await client.query('COMMIT');
             return newApi;
@@ -163,13 +158,8 @@ export class ApiPermissionRepository {
             const result = await client.query(updateQuery, params);
             const updatedApi = result.rows[0];
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [auditId, adminId, 'UPDATE_API_PERMISSION', 'api_permissions', apiId, JSON.stringify(oldApi), JSON.stringify(updatedApi), ipAddress, userAgent]);
+
+
 
             await client.query('COMMIT');
             return updatedApi;
@@ -206,13 +196,8 @@ export class ApiPermissionRepository {
             // Cascade Role-API
             await client.query(`DELETE FROM role_api_permissions WHERE api_id = $1`, [apiId]);
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, old_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `, [auditId, adminId, 'DELETE_API_PERMISSION', 'api_permissions', apiId, JSON.stringify(oldApi), ipAddress, userAgent]);
+
+
 
             await client.query('COMMIT');
         } catch (error) {

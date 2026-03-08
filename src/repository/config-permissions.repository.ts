@@ -30,6 +30,21 @@ export class ConfigPermissionsRepository {
     }
 
     /**
+     * Lấy danh sách các module mà một User được phép chỉnh sửa (dựa trên các Roles của họ)
+     */
+    static async getModulesByUserId(userId: string): Promise<string[]> {
+        const query = `
+            SELECT DISTINCT scp.module
+            FROM user_roles ur
+            JOIN roles r ON ur.role_id = r.roles_id
+            JOIN system_config_permissions scp ON r.code = scp.role_code
+            WHERE ur.user_id = $1
+        `;
+        const result = await pool.query(query, [userId]);
+        return result.rows.map(row => row.module);
+    }
+
+    /**
      * Thay thế toàn bộ phân quyền trong 1 transaction.
      */
     static async bulkReplace(permissions: ConfigPermissionMap, updatedBy: string): Promise<void> {

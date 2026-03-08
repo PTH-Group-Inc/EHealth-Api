@@ -75,14 +75,8 @@ export class MenuRepository {
             const result = await client.query(insertQuery, params);
             const newMenu = result.rows[0];
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            const action = 'CREATE_MENU';
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `, [auditId, adminId, action, 'menus', menuId, JSON.stringify(newMenu), ipAddress, userAgent]);
+
+ 
 
             await client.query('COMMIT');
             return newMenu;
@@ -152,14 +146,8 @@ export class MenuRepository {
             const result = await client.query(updateQuery, params);
             const updatedMenu = result.rows[0];
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            const action = 'UPDATE_MENU';
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [auditId, adminId, action, 'menus', menuId, JSON.stringify(oldMenu), JSON.stringify(updatedMenu), ipAddress, userAgent]);
+
+ 
 
             await client.query('COMMIT');
             return updatedMenu;
@@ -199,14 +187,8 @@ export class MenuRepository {
             // Nếu menu này là gốc của menu khác, thì các menu con sẽ set parent_id = NULL
             await client.query(`UPDATE menus SET parent_id = NULL WHERE parent_id = $1`, [menuId]);
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            const action = 'DELETE_MENU';
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, old_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `, [auditId, adminId, action, 'menus', menuId, JSON.stringify(oldMenu), ipAddress, userAgent]);
+
+ 
 
             await client.query('COMMIT');
         } catch (error) {

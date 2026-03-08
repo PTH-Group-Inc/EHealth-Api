@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { PermissionController } from '../controllers/permission.controller';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 
 const permissionRoutes = Router();
 
 permissionRoutes.use(verifyAccessToken);
-const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
 
 
@@ -34,7 +33,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *       200:
  *         description: Thành công
  */
-permissionRoutes.get('/', requireAdmin, PermissionController.getPermissions);
+permissionRoutes.get('/', authorizePermissions('PERMISSION_VIEW'), PermissionController.getPermissions);
 
 /**
  * @swagger
@@ -56,7 +55,7 @@ permissionRoutes.get('/', requireAdmin, PermissionController.getPermissions);
  *       404:
  *         description: Không tìm thấy quyền
  */
-permissionRoutes.get('/:permissionId', requireAdmin, PermissionController.getPermissionById);
+permissionRoutes.get('/:permissionId', authorizePermissions('PERMISSION_VIEW'), PermissionController.getPermissionById);
 
 /**
  * @swagger
@@ -89,7 +88,7 @@ permissionRoutes.get('/:permissionId', requireAdmin, PermissionController.getPer
  *       400:
  *         description: Thiếu dữ liệu hoặc trùng mã Code
  */
-permissionRoutes.post('/', requireAdmin, PermissionController.createPermission);
+permissionRoutes.post('/', authorizePermissions('PERMISSION_CREATE'), PermissionController.createPermission);
 
 /**
  * @swagger
@@ -120,7 +119,7 @@ permissionRoutes.post('/', requireAdmin, PermissionController.createPermission);
  *       200:
  *         description: Thành công
  */
-permissionRoutes.patch('/:permissionId', requireAdmin, PermissionController.updatePermission);
+permissionRoutes.patch('/:permissionId', authorizePermissions('PERMISSION_UPDATE'), PermissionController.updatePermission);
 
 /**
  * @swagger
@@ -142,6 +141,6 @@ permissionRoutes.patch('/:permissionId', requireAdmin, PermissionController.upda
  *       400:
  *         description: Đang có Role sử dụng quyền này, không thể xóa
  */
-permissionRoutes.delete('/:permissionId', requireAdmin, PermissionController.deletePermission);
+permissionRoutes.delete('/:permissionId', authorizePermissions('PERMISSION_DELETE'), PermissionController.deletePermission);
 
 export default permissionRoutes;

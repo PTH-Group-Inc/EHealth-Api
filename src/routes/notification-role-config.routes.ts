@@ -2,12 +2,12 @@ import { Router } from 'express';
 import { NotificationRoleConfigController } from '../controllers/notification-role-config.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 
 const notificationRoleConfigRoutes = Router();
 
 // Toàn bộ chức năng cài đặt này chỉ dành cho ADMIN/SYSTEM
-notificationRoleConfigRoutes.use(verifyAccessToken, checkSessionStatus, authorizeRoles('ADMIN', 'SYSTEM'));
+notificationRoleConfigRoutes.use(verifyAccessToken, checkSessionStatus, authorizePermissions('NOTIFICATION_ROLE_CONFIG_VIEW', 'NOTIFICATION_ROLE_CONFIG_CREATE', 'NOTIFICATION_ROLE_CONFIG_UPDATE', 'NOTIFICATION_ROLE_CONFIG_DELETE'));
 
 /**
  * @swagger

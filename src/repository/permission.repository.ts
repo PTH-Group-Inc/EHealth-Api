@@ -1,6 +1,5 @@
 import { pool } from '../config/postgresdb';
 import { PermissionDetail, CreatePermissionInput, UpdatePermissionInput, PermissionQueryFilter } from '../models/permission.model';
-import { randomUUID } from 'crypto';
 import { AppError } from '../utils/app-error.util';
 import { SecurityUtil } from '../utils/auth-security.util';
 
@@ -85,40 +84,16 @@ export class PermissionRepository {
         userAgent: string | null = null
     ): Promise<PermissionDetail> {
         const permissionId = SecurityUtil.generatePermissionId();
-        const client = await pool.connect();
 
-        try {
-            await client.query('BEGIN');
+        const query = `
+            INSERT INTO permissions (permissions_id, code, module, description)
+            VALUES ($1, $2, $3, $4)
+            RETURNING permissions_id, code, module, description
+        `;
+        const params = [permissionId, data.code, data.module, data.description || ''];
+        const result = await pool.query(query, params);
 
-            const query = `
-                INSERT INTO permissions (permissions_id, code, module, description)
-                VALUES ($1, $2, $3, $4)
-                RETURNING permissions_id, code, module, description
-            `;
-            const params = [permissionId, data.code, data.module, data.description || ''];
-            const result = await client.query(query, params);
-            const newPermission = result.rows[0];
-
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'CREATE_PERMISSION', 'permissions', permissionId,
-                null, JSON.stringify(newPermission), ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return newPermission;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return result.rows[0];
     }
 
     /**
@@ -162,32 +137,8 @@ export class PermissionRepository {
             RETURNING permissions_id, code, module, description
         `;
 
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            const result = await client.query(query, params);
-
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'UPDATE_PERMISSION', 'permissions', permissionId,
-                JSON.stringify(currentPermission), JSON.stringify(result.rows[0]), ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return result.rows[0];
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        const result = await pool.query(query, params);
+        return result.rows[0];
     }
 
     /**
@@ -202,34 +153,9 @@ export class PermissionRepository {
         const currentPermission = await this.getPermissionById(permissionId);
         if (!currentPermission) return;
 
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            // Soft delete
-            const query = `UPDATE permissions SET deleted_at = CURRENT_TIMESTAMP WHERE permissions_id = $1`;
-            await client.query(query, [permissionId]);
-
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'DELETE_PERMISSION', 'permissions', permissionId,
-                JSON.stringify(currentPermission), JSON.stringify({ deleted_at: 'CURRENT_TIMESTAMP' }),
-                ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        // Soft delete
+        const query = `UPDATE permissions SET deleted_at = CURRENT_TIMESTAMP WHERE permissions_id = $1`;
+        await pool.query(query, [permissionId]);
     }
 
     /**
@@ -239,5 +165,20 @@ export class PermissionRepository {
         const query = `SELECT COUNT(*) as count FROM role_permissions WHERE permission_id = $1`;
         const result = await pool.query(query, [permissionId]);
         return parseInt(result.rows[0].count, 10);
+    }
+
+    /**
+     * Lấy danh sách toàn bộ mã quyền (code) của người dùng thông qua các Role họ sở hữu
+     */
+    static async getAggregatedPermissionsForUser(userId: string): Promise<string[]> {
+        const query = `
+            SELECT DISTINCT p.code
+            FROM user_roles ur
+            JOIN role_permissions rp ON ur.role_id = rp.role_id
+            JOIN permissions p ON rp.permission_id = p.permissions_id
+            WHERE ur.user_id = $1 AND p.deleted_at IS NULL
+        `;
+        const result = await pool.query(query, [userId]);
+        return result.rows.map(row => row.code);
     }
 }

@@ -2,12 +2,12 @@ import { Router } from 'express';
 import { SpecialtyController } from '../controllers/specialty.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 
 const specialtyRouter = Router();
 
 specialtyRouter.use(verifyAccessToken);
-const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
+specialtyRouter.use(checkSessionStatus);
 
 /**
  * @swagger
@@ -103,7 +103,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.get('/', requireAdmin, SpecialtyController.getSpecialties);
+specialtyRouter.get('/', authorizePermissions('SPECIALTY_VIEW', 'SPECIALTY_VIEW_ALL'), SpecialtyController.getSpecialties);
 
 /**
  * @swagger
@@ -165,7 +165,7 @@ specialtyRouter.get('/', requireAdmin, SpecialtyController.getSpecialties);
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.get('/:id', requireAdmin, SpecialtyController.getSpecialtyById);
+specialtyRouter.get('/:id', authorizePermissions('SPECIALTY_VIEW'), SpecialtyController.getSpecialtyById);
 
 /**
  * @swagger
@@ -242,7 +242,7 @@ specialtyRouter.get('/:id', requireAdmin, SpecialtyController.getSpecialtyById);
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.post('/', requireAdmin, SpecialtyController.createSpecialty);
+specialtyRouter.post('/', authorizePermissions('SPECIALTY_CREATE'), SpecialtyController.createSpecialty);
 
 /**
  * @swagger
@@ -328,7 +328,7 @@ specialtyRouter.post('/', requireAdmin, SpecialtyController.createSpecialty);
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.put('/:id', requireAdmin, SpecialtyController.updateSpecialty);
+specialtyRouter.put('/:id', authorizePermissions('SPECIALTY_UPDATE'), SpecialtyController.updateSpecialty);
 
 /**
  * @swagger
@@ -378,6 +378,6 @@ specialtyRouter.put('/:id', requireAdmin, SpecialtyController.updateSpecialty);
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.delete('/:id', requireAdmin, SpecialtyController.deleteSpecialty);
+specialtyRouter.delete('/:id', authorizePermissions('SPECIALTY_DELETE'), SpecialtyController.deleteSpecialty);
 
 export default specialtyRouter;

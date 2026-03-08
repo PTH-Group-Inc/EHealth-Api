@@ -2,12 +2,12 @@ import { Router } from 'express';
 import { NotificationTemplateController } from '../controllers/notification-template.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 
 const notificationTemplateRoutes = Router();
 
 // Middleware yêu cầu quyền truy cập (Dành cho Admin/System) quản lý cấu hình cốt lõi Notifications
-notificationTemplateRoutes.use(verifyAccessToken, checkSessionStatus, authorizeRoles('ADMIN', 'SYSTEM'));
+notificationTemplateRoutes.use(verifyAccessToken, checkSessionStatus, authorizePermissions('NOTIFICATION_TEMPLATE_VIEW', 'NOTIFICATION_TEMPLATE_CREATE', 'NOTIFICATION_TEMPLATE_UPDATE', 'NOTIFICATION_TEMPLATE_DELETE'));
 
 /**
  * @swagger

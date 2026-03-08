@@ -3,23 +3,14 @@ import { DrugCategoryController } from '../controllers/drug-category.controller'
 import { DrugController } from '../controllers/drug.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
 import { uploadExcel } from '../middleware/upload.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 
 const pharmacyRoutes = Router();
 
 // Middleware quyền truy cập
-const requireAdminOrManager = [
-    verifyAccessToken,
-    checkSessionStatus,
-    authorizeRoles('ADMIN', 'SYSTEM')
-];
-
-const requireMedicalStaff = [
-    verifyAccessToken,
-    checkSessionStatus,
-    authorizeRoles('ADMIN', 'SYSTEM', 'DOCTOR', 'PHARMACIST', 'NURSE')
-];
+pharmacyRoutes.use(verifyAccessToken);
+pharmacyRoutes.use(checkSessionStatus);
 
 /**
  * PHARMACY - DRUG CATEGORIES (NHÓM THUỐC)
@@ -53,7 +44,7 @@ const requireMedicalStaff = [
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/categories', ...requireMedicalStaff, DrugCategoryController.getCategories);
+pharmacyRoutes.get('/categories', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugCategoryController.getCategories);
 
 /**
  * @swagger
@@ -86,7 +77,7 @@ pharmacyRoutes.get('/categories', ...requireMedicalStaff, DrugCategoryController
  *       201:
  *         description: Thành công
  */
-pharmacyRoutes.post('/categories', ...requireAdminOrManager, DrugCategoryController.createCategory);
+pharmacyRoutes.post('/categories', authorizePermissions('DRUG_CATEGORY_CREATE'), DrugCategoryController.createCategory);
 
 /**
  * @swagger
@@ -105,7 +96,7 @@ pharmacyRoutes.post('/categories', ...requireAdminOrManager, DrugCategoryControl
  *               type: string
  *               format: binary
  */
-pharmacyRoutes.get('/categories/export', ...requireAdminOrManager, DrugCategoryController.exportCategories);
+pharmacyRoutes.get('/categories/export', authorizePermissions('DRUG_CATEGORY_EXPORT'), DrugCategoryController.exportCategories);
 
 /**
  * @swagger
@@ -132,7 +123,7 @@ pharmacyRoutes.get('/categories/export', ...requireAdminOrManager, DrugCategoryC
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-pharmacyRoutes.post('/categories/import', ...requireAdminOrManager, uploadExcel.single('file'), DrugCategoryController.importCategories);
+pharmacyRoutes.post('/categories/import', authorizePermissions('DRUG_CATEGORY_IMPORT'), uploadExcel.single('file'), DrugCategoryController.importCategories);
 
 /**
  * @swagger
@@ -152,7 +143,7 @@ pharmacyRoutes.post('/categories/import', ...requireAdminOrManager, uploadExcel.
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/categories/:id', ...requireMedicalStaff, DrugCategoryController.getCategoryById);
+pharmacyRoutes.get('/categories/:id', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugCategoryController.getCategoryById);
 
 /**
  * @swagger
@@ -184,7 +175,7 @@ pharmacyRoutes.get('/categories/:id', ...requireMedicalStaff, DrugCategoryContro
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.put('/categories/:id', ...requireAdminOrManager, DrugCategoryController.updateCategory);
+pharmacyRoutes.put('/categories/:id', authorizePermissions('DRUG_CATEGORY_UPDATE'), DrugCategoryController.updateCategory);
 
 /**
  * @swagger
@@ -204,7 +195,7 @@ pharmacyRoutes.put('/categories/:id', ...requireAdminOrManager, DrugCategoryCont
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.delete('/categories/:id', ...requireAdminOrManager, DrugCategoryController.deleteCategory);
+pharmacyRoutes.delete('/categories/:id', authorizePermissions('DRUG_CATEGORY_DELETE'), DrugCategoryController.deleteCategory);
 
 /**
  * =========================================================================
@@ -231,7 +222,7 @@ pharmacyRoutes.delete('/categories/:id', ...requireAdminOrManager, DrugCategoryC
  *       200:
  *         description: Thành công (Limit 50 theo query)
  */
-pharmacyRoutes.get('/drugs/active', ...requireMedicalStaff, DrugController.getActiveDrugs);
+pharmacyRoutes.get('/drugs/active', authorizePermissions('DRUG_VIEW'), DrugController.getActiveDrugs);
 
 /**
  * @swagger
@@ -250,7 +241,7 @@ pharmacyRoutes.get('/drugs/active', ...requireMedicalStaff, DrugController.getAc
  *               type: string
  *               format: binary
  */
-pharmacyRoutes.get('/drugs/export', ...requireAdminOrManager, DrugController.exportDrugs);
+pharmacyRoutes.get('/drugs/export', authorizePermissions('DRUG_EXPORT'), DrugController.exportDrugs);
 
 /**
  * @swagger
@@ -277,7 +268,7 @@ pharmacyRoutes.get('/drugs/export', ...requireAdminOrManager, DrugController.exp
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-pharmacyRoutes.post('/drugs/import', ...requireAdminOrManager, uploadExcel.single('file'), DrugController.importDrugs);
+pharmacyRoutes.post('/drugs/import', authorizePermissions('DRUG_IMPORT'), uploadExcel.single('file'), DrugController.importDrugs);
 
 /**
  * @swagger
@@ -316,7 +307,7 @@ pharmacyRoutes.post('/drugs/import', ...requireAdminOrManager, uploadExcel.singl
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/drugs', ...requireAdminOrManager, DrugController.getDrugsAdmin);
+pharmacyRoutes.get('/drugs', authorizePermissions('DRUG_VIEW_ALL'), DrugController.getDrugsAdmin);
 
 /**
  * @swagger
@@ -370,7 +361,7 @@ pharmacyRoutes.get('/drugs', ...requireAdminOrManager, DrugController.getDrugsAd
  *       201:
  *         description: Tạo mới thành công
  */
-pharmacyRoutes.post('/drugs', ...requireAdminOrManager, DrugController.createDrug);
+pharmacyRoutes.post('/drugs', authorizePermissions('DRUG_CREATE'), DrugController.createDrug);
 
 /**
  * @swagger
@@ -390,7 +381,7 @@ pharmacyRoutes.post('/drugs', ...requireAdminOrManager, DrugController.createDru
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/drugs/:id', ...requireMedicalStaff, DrugController.getDrugById);
+pharmacyRoutes.get('/drugs/:id', authorizePermissions('DRUG_VIEW'), DrugController.getDrugById);
 
 /**
  * @swagger
@@ -438,7 +429,7 @@ pharmacyRoutes.get('/drugs/:id', ...requireMedicalStaff, DrugController.getDrugB
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.put('/drugs/:id', ...requireAdminOrManager, DrugController.updateDrug);
+pharmacyRoutes.put('/drugs/:id', authorizePermissions('DRUG_UPDATE'), DrugController.updateDrug);
 
 /**
  * @swagger
@@ -471,6 +462,6 @@ pharmacyRoutes.put('/drugs/:id', ...requireAdminOrManager, DrugController.update
  *       200:
  *         description: Vô hiệu hóa thành công
  */
-pharmacyRoutes.patch('/drugs/:id/status', ...requireAdminOrManager, DrugController.toggleDrugStatus);
+pharmacyRoutes.patch('/drugs/:id/status', authorizePermissions('DRUG_UPDATE'), DrugController.toggleDrugStatus);
 
 export default pharmacyRoutes;

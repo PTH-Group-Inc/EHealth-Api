@@ -10,6 +10,7 @@ import { PasswordResetRepository } from "../repository/auth_password-reset.repos
 import { AuthMailUtil } from "../utils/auth-mail.util";
 import { AccountVerificationRepository } from "../repository/auth_verification.repository";
 import { AUTH_CONSTANTS } from "../constants/auth.constant";
+import { PermissionRepository } from "../repository/permission.repository";
 
 export class AuthService {
   /**
@@ -95,8 +96,10 @@ export class AuthService {
       sessionId = AuthSessionUtil.generate(user.users_id);
     }
 
+    const permissions = await PermissionRepository.getAggregatedPermissionsForUser(user.users_id);
+
     const { accessToken, refreshToken, refreshTokenHash, expiresIn } =
-      SecurityUtil.generateToken(user, sessionId);
+      SecurityUtil.generateToken(user, sessionId, permissions);
 
     await AuthSessionUtil.upsertSession(
       sessionId,
@@ -424,8 +427,10 @@ export class AuthService {
       throw AUTH_ERRORS.ACCOUNT_NOT_ACTIVE;
     }
 
+    const permissions = await PermissionRepository.getAggregatedPermissionsForUser(user.users_id);
+
     const { accessToken, refreshToken: newRefreshToken, expiresIn } =
-      SecurityUtil.generateToken(user, session.user_sessions_id);
+      SecurityUtil.generateToken(user, session.user_sessions_id, permissions);
 
     await UserSessionRepository.updateSessionBySessionId(session.user_sessions_id, {
       refreshTokenHash: SecurityUtil.hashRefreshToken(newRefreshToken),

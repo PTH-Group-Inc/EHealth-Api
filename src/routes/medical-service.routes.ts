@@ -3,29 +3,14 @@ import { MasterServiceController } from '../controllers/service.controller';
 import { FacilityServiceController } from '../controllers/facility-service.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import { uploadExcel } from '../middleware/upload.middleware';
 
 const router = Router();
 
 // Middleware chung cho nhóm API này
-const requireAdmin = [
-    verifyAccessToken,
-    checkSessionStatus,
-    authorizeRoles('ADMIN', 'SYSTEM')
-];
-
-const requireAdminOrManager = [
-    verifyAccessToken,
-    checkSessionStatus,
-    authorizeRoles('ADMIN', 'SYSTEM', 'STAFF')
-];
-
-const requireMedicalStaff = [
-    verifyAccessToken,
-    checkSessionStatus,
-    authorizeRoles('ADMIN', 'SYSTEM', 'DOCTOR', 'NURSE', 'STAFF')
-];
+router.use(verifyAccessToken);
+router.use(checkSessionStatus);
 
 /**
  * 1. DANH MỤC DỊCH VỤ CHUẨN QUỐC GIA (MASTER SERVICES)
@@ -77,7 +62,7 @@ const requireMedicalStaff = [
  *       200:
  *         description: Danh sách dịch vụ chuẩn
  */
-router.get('/master', requireMedicalStaff, MasterServiceController.getServices);
+router.get('/master', authorizePermissions('SERVICE_VIEW'), MasterServiceController.getServices);
 
 /**
  * @swagger
@@ -96,7 +81,7 @@ router.get('/master', requireMedicalStaff, MasterServiceController.getServices);
  *               type: string
  *               format: binary
  */
-router.get('/master/export', requireAdminOrManager, MasterServiceController.exportServices);
+router.get('/master/export', authorizePermissions('SERVICE_EXPORT'), MasterServiceController.exportServices);
 
 /**
  * @swagger
@@ -123,7 +108,7 @@ router.get('/master/export', requireAdminOrManager, MasterServiceController.expo
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-router.post('/master/import', requireAdminOrManager, uploadExcel.single('file'), MasterServiceController.importServices);
+router.post('/master/import', authorizePermissions('SERVICE_IMPORT'), uploadExcel.single('file'), MasterServiceController.importServices);
 
 /**
  * @swagger
@@ -145,7 +130,7 @@ router.post('/master/import', requireAdminOrManager, uploadExcel.single('file'),
  *       404:
  *         description: Không tìm thấy (SRV_001)
  */
-router.get('/master/:id', requireMedicalStaff, MasterServiceController.getServiceById);
+router.get('/master/:id', authorizePermissions('SERVICE_VIEW'), MasterServiceController.getServiceById);
 
 /**
  * @swagger
@@ -186,7 +171,7 @@ router.get('/master/:id', requireMedicalStaff, MasterServiceController.getServic
  *       400:
  *         description: Lỗi trùng mã (SRV_002)
  */
-router.post('/master', requireAdmin, MasterServiceController.createService);
+router.post('/master', authorizePermissions('SERVICE_CREATE'), MasterServiceController.createService);
 
 /**
  * @swagger
@@ -227,7 +212,7 @@ router.post('/master', requireAdmin, MasterServiceController.createService);
  *       404:
  *         description: Không tìm thấy (SRV_001)
  */
-router.put('/master/:id', requireAdminOrManager, MasterServiceController.updateService);
+router.put('/master/:id', authorizePermissions('SERVICE_UPDATE'), MasterServiceController.updateService);
 
 /**
  * @swagger
@@ -259,7 +244,7 @@ router.put('/master/:id', requireAdminOrManager, MasterServiceController.updateS
  *       200:
  *         description: Thành công
  */
-router.patch('/master/:id/status', requireAdminOrManager, MasterServiceController.toggleServiceStatus);
+router.patch('/master/:id/status', authorizePermissions('SERVICE_UPDATE'), MasterServiceController.toggleServiceStatus);
 
 /**
  * @swagger
@@ -281,7 +266,7 @@ router.patch('/master/:id/status', requireAdminOrManager, MasterServiceControlle
  *       404:
  *         description: Không tìm thấy
  */
-router.delete('/master/:id', requireAdminOrManager, MasterServiceController.deleteService);
+router.delete('/master/:id', authorizePermissions('SERVICE_DELETE'), MasterServiceController.deleteService);
 
 /**
  * =========================================================================
@@ -340,7 +325,7 @@ router.delete('/master/:id', requireAdminOrManager, MasterServiceController.dele
  *       200:
  *         description: Danh sách dịch vụ kèm giá
  */
-router.get('/facilities/:facilityId/services', requireMedicalStaff, FacilityServiceController.getFacilityServices);
+router.get('/facilities/:facilityId/services', authorizePermissions('FACILITY_SERVICE_VIEW'), FacilityServiceController.getFacilityServices);
 
 /**
  * @swagger
@@ -365,7 +350,7 @@ router.get('/facilities/:facilityId/services', requireMedicalStaff, FacilityServ
  *               type: string
  *               format: binary
  */
-router.get('/facilities/:facilityId/services/export', requireAdminOrManager, FacilityServiceController.exportFacilityServices);
+router.get('/facilities/:facilityId/services/export', authorizePermissions('FACILITY_SERVICE_EXPORT'), FacilityServiceController.exportFacilityServices);
 
 /**
  * @swagger
@@ -398,7 +383,7 @@ router.get('/facilities/:facilityId/services/export', requireAdminOrManager, Fac
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-router.post('/facilities/:facilityId/services/import', requireAdminOrManager, uploadExcel.single('file'), FacilityServiceController.importFacilityServices);
+router.post('/facilities/:facilityId/services/import', authorizePermissions('FACILITY_SERVICE_IMPORT'), uploadExcel.single('file'), FacilityServiceController.importFacilityServices);
 
 /**
  * @swagger
@@ -427,7 +412,7 @@ router.post('/facilities/:facilityId/services/import', requireAdminOrManager, up
  *       200:
  *         description: Danh sách tối đa 50 dịch vụ khớp tiêu chí
  */
-router.get('/facilities/:facilityId/active-services', requireMedicalStaff, FacilityServiceController.getActiveFacilityServices);
+router.get('/facilities/:facilityId/active-services', authorizePermissions('FACILITY_SERVICE_VIEW'), FacilityServiceController.getActiveFacilityServices);
 
 /**
  * @swagger
@@ -449,7 +434,7 @@ router.get('/facilities/:facilityId/active-services', requireMedicalStaff, Facil
  *       404:
  *         description: Không tìm thấy (FSRV_001)
  */
-router.get('/facilities/services/:id', requireMedicalStaff, FacilityServiceController.getFacilityServiceById);
+router.get('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_VIEW'), FacilityServiceController.getFacilityServiceById);
 
 /**
  * @swagger
@@ -502,7 +487,7 @@ router.get('/facilities/services/:id', requireMedicalStaff, FacilityServiceContr
  *       400:
  *         description: Lỗi trùng lặp hoặc sai ID (FSRV_002, SRV_001)
  */
-router.post('/facilities/:facilityId/services', requireAdminOrManager, FacilityServiceController.createFacilityService);
+router.post('/facilities/:facilityId/services', authorizePermissions('FACILITY_SERVICE_CREATE'), FacilityServiceController.createFacilityService);
 
 /**
  * @swagger
@@ -543,7 +528,7 @@ router.post('/facilities/:facilityId/services', requireAdminOrManager, FacilityS
  *       200:
  *         description: Cập nhật thành công
  */
-router.put('/facilities/services/:id', requireAdminOrManager, FacilityServiceController.updateFacilityService);
+router.put('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_UPDATE'), FacilityServiceController.updateFacilityService);
 
 /**
  * @swagger
@@ -575,6 +560,6 @@ router.put('/facilities/services/:id', requireAdminOrManager, FacilityServiceCon
  *       200:
  *         description: Ngưng cung cấp thành công
  */
-router.patch('/facilities/services/:id/status', requireAdminOrManager, FacilityServiceController.toggleFacilityServiceStatus);
+router.patch('/facilities/services/:id/status', authorizePermissions('FACILITY_SERVICE_UPDATE'), FacilityServiceController.toggleFacilityServiceStatus);
 
 export default router;

@@ -267,3 +267,40 @@ INSERT INTO drugs (drugs_id, drug_code, national_drug_code, brand_name, active_i
 ('DRG_260308_ababcdcdcdcd', 'DRG_CB_C1000', 'VN-22222-22', 'Berocca', 'Vitamin B, Vitamin C, Canxi, Magie', 'DRC_260308_VIT_2222222', 'ORAL', 'Viên sủi', false, true)
 ON CONFLICT (drug_code) DO NOTHING;
 
+-- =========================================================================
+-- MOCK DATA: BỔ SUNG QUYỀN HẠN MỚI (PHARMACY & SPECIALTY & CONFIG)
+-- =========================================================================
+
+INSERT INTO permissions (permissions_id, code, module, description) VALUES
+-- Pharmacy: Danh mục thuốc
+('PERM_DRUGCAT_VIEW', 'DRUG_CATEGORY_VIEW', 'PHARMACY_MANAGEMENT', 'Xem danh sách nhóm thuốc'),
+('PERM_DRUGCAT_CREATE', 'DRUG_CATEGORY_CREATE', 'PHARMACY_MANAGEMENT', 'Tạo mới nhóm thuốc'),
+('PERM_DRUGCAT_UPDATE', 'DRUG_CATEGORY_UPDATE', 'PHARMACY_MANAGEMENT', 'Cập nhật nhóm thuốc'),
+('PERM_DRUGCAT_DELETE', 'DRUG_CATEGORY_DELETE', 'PHARMACY_MANAGEMENT', 'Xóa nhóm thuốc'),
+('PERM_DRUGCAT_IMPORT', 'DRUG_CATEGORY_IMPORT', 'PHARMACY_MANAGEMENT', 'Import Excel nhóm thuốc'),
+('PERM_DRUGCAT_EXPORT', 'DRUG_CATEGORY_EXPORT', 'PHARMACY_MANAGEMENT', 'Export Excel nhóm thuốc'),
+
+-- Pharmacy: Thuốc
+('PERM_DRUG_VIEW', 'DRUG_VIEW', 'PHARMACY_MANAGEMENT', 'Xem thông tin thuốc active'),
+('PERM_DRUG_VIEW_ALL', 'DRUG_VIEW_ALL', 'PHARMACY_MANAGEMENT', 'Xem toàn bộ thông tin thuốc (Admin)'),
+('PERM_DRUG_CREATE', 'DRUG_CREATE', 'PHARMACY_MANAGEMENT', 'Thêm mới thuốc'),
+('PERM_DRUG_UPDATE', 'DRUG_UPDATE', 'PHARMACY_MANAGEMENT', 'Cập nhật thiết lập thuốc'),
+('PERM_DRUG_DELETE', 'DRUG_DELETE', 'PHARMACY_MANAGEMENT', 'Xóa thuốc (Ngừng kinh doanh)'),
+('PERM_DRUG_IMPORT', 'DRUG_IMPORT', 'PHARMACY_MANAGEMENT', 'Import Excel thuốc'),
+('PERM_DRUG_EXPORT', 'DRUG_EXPORT', 'PHARMACY_MANAGEMENT', 'Export Excel thuốc'),
+
+-- Specialty: Chuyên khoa
+('PERM_SPC_VIEW', 'SPECIALTY_VIEW', 'SPECIALTY_MANAGEMENT', 'Xem thông tin chuyên khoa active'),
+('PERM_SPC_VIEW_ALL', 'SPECIALTY_VIEW_ALL', 'SPECIALTY_MANAGEMENT', 'Xem toàn bộ danh sách chuyên khoa'),
+('PERM_SPC_CREATE', 'SPECIALTY_CREATE', 'SPECIALTY_MANAGEMENT', 'Tạo tài liệu chuyên khoa mới'),
+('PERM_SPC_UPDATE', 'SPECIALTY_UPDATE', 'SPECIALTY_MANAGEMENT', 'Sửa đổi mô tả chuyên khoa'),
+('PERM_SPC_DELETE', 'SPECIALTY_DELETE', 'SPECIALTY_MANAGEMENT', 'Xóa chuyên khoa')
+ON CONFLICT (code) DO NOTHING;
+
+-- Gán toàn bộ Quyền mới nói trên vào ROLE_ADMIN
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 'ROLE_ADMIN', permissions_id FROM permissions
+WHERE code LIKE 'DRUG_%' OR code LIKE 'SPECIALTY_%'
+ON CONFLICT DO NOTHING;
+
+

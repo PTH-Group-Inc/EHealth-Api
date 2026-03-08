@@ -38,18 +38,8 @@ export class RoleMenuRepository {
                 ON CONFLICT (role_id, menu_id) DO NOTHING
             `, [roleId, menuId]);
 
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'ASSIGN_ROLE_MENU', 'role_menus', roleId,
-                null, JSON.stringify({ assigned_menu_id: menuId }),
-                ipAddress, userAgent
-            ]);
+
+ 
 
             await client.query('COMMIT');
         } catch (error) {
@@ -79,18 +69,8 @@ export class RoleMenuRepository {
                 WHERE role_id = $1 AND menu_id = $2
             `, [roleId, menuId]);
 
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'REMOVE_ROLE_MENU', 'role_menus', roleId,
-                JSON.stringify({ removed_menu_id: menuId }), null,
-                ipAddress, userAgent
-            ]);
+
+ 
 
             await client.query('COMMIT');
         } catch (error) {

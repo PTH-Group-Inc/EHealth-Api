@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { ApiPermissionController } from '../controllers/api-permission.controller';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 
 const apiPermissionRoutes = Router();
 
 apiPermissionRoutes.use(verifyAccessToken);
-const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
 
 
@@ -44,7 +43,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *       200:
  *         description: Danh sách API trả về.
  */
-apiPermissionRoutes.get('/', requireAdmin, ApiPermissionController.getApiPermissions);
+apiPermissionRoutes.get('/', authorizePermissions('API_PERMISSION_VIEW'), ApiPermissionController.getApiPermissions);
 
 /**
  * @swagger
@@ -78,7 +77,7 @@ apiPermissionRoutes.get('/', requireAdmin, ApiPermissionController.getApiPermiss
  *       201:
  *         description: Trả về API vừa khai báo
  */
-apiPermissionRoutes.post('/', requireAdmin, ApiPermissionController.createApiPermission);
+apiPermissionRoutes.post('/', authorizePermissions('API_PERMISSION_CREATE'), ApiPermissionController.createApiPermission);
 
 /**
  * @swagger
@@ -118,7 +117,7 @@ apiPermissionRoutes.post('/', requireAdmin, ApiPermissionController.createApiPer
  *       200:
  *         description: Cập nhật thành công
  */
-apiPermissionRoutes.patch('/:apiId', requireAdmin, ApiPermissionController.updateApiPermission);
+apiPermissionRoutes.patch('/:apiId', authorizePermissions('API_PERMISSION_UPDATE'), ApiPermissionController.updateApiPermission);
 
 /**
  * @swagger
@@ -139,6 +138,6 @@ apiPermissionRoutes.patch('/:apiId', requireAdmin, ApiPermissionController.updat
  *       200:
  *         description: Xóa API thành công
  */
-apiPermissionRoutes.delete('/:apiId', requireAdmin, ApiPermissionController.deleteApiPermission);
+apiPermissionRoutes.delete('/:apiId', authorizePermissions('API_PERMISSION_DELETE'), ApiPermissionController.deleteApiPermission);
 
 export default apiPermissionRoutes;

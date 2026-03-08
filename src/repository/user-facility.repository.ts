@@ -91,25 +91,7 @@ export class UserFacilityRepository {
             ]);
 
             if ((result.rowCount ?? 0) > 0) {
-                const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-                const newValues = JSON.stringify({
-                    assigned_branch: data.branchId,
-                    department: data.departmentId || null,
-                    role_title: data.roleTitle || null,
-                    action: 'ASSIGN_FACILITY'
-                });
-
-                const auditQuery = `
-                    INSERT INTO audit_logs (
-                        audit_logs_id, user_id, action, table_name, record_id,
-                        old_values, new_values, ip_address, user_agent
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                `;
-
-                await client.query(auditQuery, [
-                    auditId, adminId, 'UPDATE', 'user_branch_dept', userId,
-                    null, newValues, ipAddress, userAgent
-                ]);
+ 
             }
 
             await client.query('COMMIT');
@@ -148,20 +130,7 @@ export class UserFacilityRepository {
                 return false;
             }
 
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const oldValues = JSON.stringify({ removed_branch: branchId, reason, action: 'REMOVE_FACILITY' });
-
-            const auditQuery = `
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `;
-
-            await client.query(auditQuery, [
-                auditId, adminId, 'UPDATE', 'user_branch_dept', userId,
-                oldValues, null, ipAddress, userAgent
-            ]);
+ 
 
             await client.query('COMMIT');
             return true;
@@ -227,26 +196,7 @@ export class UserFacilityRepository {
             ]);
 
             // 3. Log Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const oldValues = JSON.stringify({ branch_id: oldBranchId });
-            const newValues = JSON.stringify({
-                assigned_branch: newData.branchId,
-                department: newData.departmentId || null,
-                role_title: newData.roleTitle || null,
-                action: 'TRANSFER_FACILITY'
-            });
-
-            const auditQuery = `
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `;
-
-            await client.query(auditQuery, [
-                auditId, adminId, 'UPDATE', 'user_branch_dept', userId,
-                oldValues, newValues, ipAddress, userAgent
-            ]);
+ 
 
             await client.query('COMMIT');
             return true;

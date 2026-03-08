@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { UserFacilityController } from '../controllers/user-facility.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import multer from 'multer';
 import { UserImportController } from '../controllers/user-import.controller';
 import { UserExportController } from '../controllers/user-export.controller';
@@ -10,7 +10,6 @@ import { UserExportController } from '../controllers/user-export.controller';
 const userRoutes = Router();
 
 userRoutes.use(verifyAccessToken);
-const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 
@@ -41,7 +40,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
  *       400:
  *         description: Thiếu file hoặc định dạng không hợp lệ
  */
-userRoutes.post('/import/validate', requireAdmin, upload.single('file'), UserImportController.validateImport);
+userRoutes.post('/import/validate', authorizePermissions('USER_CREATE'), upload.single('file'), UserImportController.validateImport);
 
 /**
  * @swagger
@@ -69,7 +68,7 @@ userRoutes.post('/import/validate', requireAdmin, upload.single('file'), UserImp
  *       400:
  *         description: File lỗi / không có dòng nào import được
  */
-userRoutes.post('/import', requireAdmin, upload.single('file'), UserImportController.executeImport);
+userRoutes.post('/import', authorizePermissions('USER_CREATE'), upload.single('file'), UserImportController.executeImport);
 
 /**
  * @swagger
@@ -84,7 +83,7 @@ userRoutes.post('/import', requireAdmin, upload.single('file'), UserImportContro
  *       200:
  *         description: Trả về thành công dữ liệu Audit Logs
  */
-userRoutes.get('/import/history', requireAdmin, UserImportController.getImportHistory);
+userRoutes.get('/import/history', authorizePermissions('USER_VIEW'), UserImportController.getImportHistory);
 
 /**
  * @swagger
@@ -131,7 +130,7 @@ userRoutes.get('/import/history', requireAdmin, UserImportController.getImportHi
  *               type: string
  *               format: binary
  */
-userRoutes.get('/export', requireAdmin, UserExportController.exportUsers);
+userRoutes.get('/export', authorizePermissions('USER_EXPORT'), UserExportController.exportUsers);
 
 /**
  * @swagger
@@ -175,7 +174,7 @@ userRoutes.get('/export', requireAdmin, UserExportController.exportUsers);
  *               type: string
  *               format: binary
  */
-userRoutes.post('/export', requireAdmin, UserExportController.exportUsers);
+userRoutes.post('/export', authorizePermissions('USER_EXPORT'), UserExportController.exportUsers);
 
 /**
  * @swagger
@@ -190,7 +189,7 @@ userRoutes.post('/export', requireAdmin, UserExportController.exportUsers);
  *       200:
  *         description: Trả về thành công dữ liệu Trạng thái
  */
-userRoutes.get('/account-status', requireAdmin, UserController.getAccountStatuses);
+userRoutes.get('/account-status', authorizePermissions('USER_VIEW'), UserController.getAccountStatuses);
 
 /**
  * @swagger
@@ -249,7 +248,7 @@ userRoutes.get('/account-status', requireAdmin, UserController.getAccountStatuse
  *       403:
  *         description: Không có quyền truy cập (Not Admin)
  */
-userRoutes.post('/', requireAdmin, UserController.createUser);
+userRoutes.post('/', authorizePermissions('USER_CREATE'), UserController.createUser);
 
 /**
  * @swagger
@@ -288,7 +287,7 @@ userRoutes.post('/', requireAdmin, UserController.createUser);
  *       200:
  *         description: Lấy danh sách thành công
  */
-userRoutes.get('/', requireAdmin, UserController.getUsers);
+userRoutes.get('/', authorizePermissions('USER_VIEW'), UserController.getUsers);
 
 /**
  * @swagger
@@ -322,7 +321,7 @@ userRoutes.get('/', requireAdmin, UserController.getUsers);
  *       200:
  *         description: Lấy danh sách thành công
  */
-userRoutes.get('/search', requireAdmin, UserController.searchUsers);
+userRoutes.get('/search', authorizePermissions('USER_VIEW'), UserController.searchUsers);
 
 /**
  * @swagger
@@ -344,7 +343,7 @@ userRoutes.get('/search', requireAdmin, UserController.searchUsers);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.get('/:userId', requireAdmin, UserController.getUserById);
+userRoutes.get('/:userId', authorizePermissions('USER_VIEW'), UserController.getUserById);
 
 /**
  * @swagger
@@ -409,8 +408,8 @@ userRoutes.get('/:userId', requireAdmin, UserController.getUserById);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.put('/:userId', requireAdmin, UserController.updateUser);
-userRoutes.patch('/:userId', requireAdmin, UserController.updateUser);
+userRoutes.put('/:userId', authorizePermissions('USER_UPDATE'), UserController.updateUser);
+userRoutes.patch('/:userId', authorizePermissions('USER_UPDATE'), UserController.updateUser);
 
 /**
  * @swagger
@@ -432,7 +431,7 @@ userRoutes.patch('/:userId', requireAdmin, UserController.updateUser);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.delete('/:userId', requireAdmin, UserController.deleteUser);
+userRoutes.delete('/:userId', authorizePermissions('USER_DELETE'), UserController.deleteUser);
 
 /**
  * @swagger
@@ -456,7 +455,7 @@ userRoutes.delete('/:userId', requireAdmin, UserController.deleteUser);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.patch('/:userId/lock', requireAdmin, UserController.lockUser);
+userRoutes.patch('/:userId/lock', authorizePermissions('USER_UPDATE'), UserController.lockUser);
 
 /**
  * @swagger
@@ -480,7 +479,7 @@ userRoutes.patch('/:userId/lock', requireAdmin, UserController.lockUser);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.patch('/:userId/unlock', requireAdmin, UserController.unlockUser);
+userRoutes.patch('/:userId/unlock', authorizePermissions('USER_UPDATE'), UserController.unlockUser);
 /**
  * @swagger
  * /api/users/{userId}/status:
@@ -519,7 +518,7 @@ userRoutes.patch('/:userId/unlock', requireAdmin, UserController.unlockUser);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.patch('/:userId/status', requireAdmin, UserController.updateUserStatus);
+userRoutes.patch('/:userId/status', authorizePermissions('USER_UPDATE'), UserController.updateUserStatus);
 
 /**
  * @swagger
@@ -541,7 +540,7 @@ userRoutes.patch('/:userId/status', requireAdmin, UserController.updateUserStatu
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.get('/:userId/status-history', requireAdmin, UserController.getStatusHistory);
+userRoutes.get('/:userId/status-history', authorizePermissions('USER_VIEW'), UserController.getStatusHistory);
 /**
  * @swagger
  * /api/users/{userId}/reset-password:
@@ -573,7 +572,7 @@ userRoutes.get('/:userId/status-history', requireAdmin, UserController.getStatus
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.post('/:userId/reset-password', requireAdmin, UserController.resetPassword);
+userRoutes.post('/:userId/reset-password', authorizePermissions('USER_UPDATE'), UserController.resetPassword);
 
 /**
  * @swagger
@@ -636,7 +635,7 @@ userRoutes.post('/:userId/change-password', UserController.changePassword);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.get('/:userId/roles', requireAdmin, UserController.getUserRoles);
+userRoutes.get('/:userId/roles', authorizePermissions('ROLE_VIEW'), UserController.getUserRoles);
 
 /**
  * @swagger
@@ -673,7 +672,7 @@ userRoutes.get('/:userId/roles', requireAdmin, UserController.getUserRoles);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.post('/:userId/roles', requireAdmin, UserController.assignRole);
+userRoutes.post('/:userId/roles', authorizePermissions('ROLE_UPDATE'), UserController.assignRole);
 
 /**
  * @swagger
@@ -703,7 +702,7 @@ userRoutes.post('/:userId/roles', requireAdmin, UserController.assignRole);
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.delete('/:userId/roles/:roleId', requireAdmin, UserController.removeRole);
+userRoutes.delete('/:userId/roles/:roleId', authorizePermissions('ROLE_UPDATE'), UserController.removeRole);
 /**
  * @swagger
  * /api/users/{userId}/facilities:
@@ -724,7 +723,7 @@ userRoutes.delete('/:userId/roles/:roleId', requireAdmin, UserController.removeR
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.get('/:userId/facilities', requireAdmin, UserFacilityController.getUserFacilities);
+userRoutes.get('/:userId/facilities', authorizePermissions('FACILITY_VIEW'), UserFacilityController.getUserFacilities);
 
 /**
  * @swagger
@@ -767,7 +766,7 @@ userRoutes.get('/:userId/facilities', requireAdmin, UserFacilityController.getUs
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.post('/:userId/facilities', requireAdmin, UserFacilityController.assignUserToFacility);
+userRoutes.post('/:userId/facilities', authorizePermissions('FACILITY_UPDATE'), UserFacilityController.assignUserToFacility);
 
 /**
  * @swagger
@@ -810,7 +809,7 @@ userRoutes.post('/:userId/facilities', requireAdmin, UserFacilityController.assi
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.delete('/:userId/facilities/:facilityId', requireAdmin, UserFacilityController.removeUserFromFacility);
+userRoutes.delete('/:userId/facilities/:facilityId', authorizePermissions('FACILITY_UPDATE'), UserFacilityController.removeUserFromFacility);
 
 /**
  * @swagger
@@ -859,6 +858,6 @@ userRoutes.delete('/:userId/facilities/:facilityId', requireAdmin, UserFacilityC
  *       404:
  *         description: Không tìm thấy người dùng
  */
-userRoutes.put('/:userId/facilities/:facilityId', requireAdmin, UserFacilityController.transferUserToFacility);
+userRoutes.put('/:userId/facilities/:facilityId', authorizePermissions('FACILITY_UPDATE'), UserFacilityController.transferUserToFacility);
 
 export default userRoutes;

@@ -2,13 +2,13 @@ import { Router } from 'express';
 import { NotificationCategoryController } from '../controllers/notification-category.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 
 const notificationCategoryRoutes = Router();
 
 notificationCategoryRoutes.get('/dropdown', verifyAccessToken, checkSessionStatus, NotificationCategoryController.getActiveCategories);
 
-notificationCategoryRoutes.use(verifyAccessToken, checkSessionStatus, authorizeRoles('ADMIN', 'SYSTEM'));
+notificationCategoryRoutes.use(verifyAccessToken, checkSessionStatus, authorizePermissions('NOTIFICATION_CATEGORY_VIEW', 'NOTIFICATION_CATEGORY_CREATE', 'NOTIFICATION_CATEGORY_UPDATE', 'NOTIFICATION_CATEGORY_DELETE'));
 
 /**
  * @swagger

@@ -18,8 +18,12 @@ import notificationCategoryRoutes from './notification-category.routes';
 import notificationTemplateRoutes from './notification-template.routes';
 import notificationRoleConfigRoutes from './notification-role-config.routes';
 import userNotificationRoutes from './user-notification.routes';
+import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
+    // Audit Middleware
+    app.use(auditMiddleware);
+
     //test product routes
     app.use('/api/test', productRouter)
 

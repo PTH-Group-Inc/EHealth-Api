@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { ModuleController } from '../controllers/module.controller';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 
 const moduleRoutes = Router();
 
 moduleRoutes.use(verifyAccessToken);
-const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
 
 
@@ -23,7 +22,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *       200:
  *         description: Thành công
  */
-moduleRoutes.get('/', requireAdmin, ModuleController.getModules);
+moduleRoutes.get('/', authorizePermissions('MODULE_VIEW'), ModuleController.getModules);
 
 /**
  * @swagger
@@ -44,6 +43,6 @@ moduleRoutes.get('/', requireAdmin, ModuleController.getModules);
  *       200:
  *         description: Thành công
  */
-moduleRoutes.get('/:moduleName/permissions', requireAdmin, ModuleController.getPermissionsByModule);
+moduleRoutes.get('/:moduleName/permissions', authorizePermissions('MODULE_VIEW'), ModuleController.getPermissionsByModule);
 
 export default moduleRoutes;
