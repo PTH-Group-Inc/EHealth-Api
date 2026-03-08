@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiPermissionCache } from '../cache/api-permission.cache';
 import { AppError } from '../utils/app-error.util';
 import { AuthenticatedRequest } from '../middleware/verifyAccessToken.middleware';
 
