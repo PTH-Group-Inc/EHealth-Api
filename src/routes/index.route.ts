@@ -13,6 +13,11 @@ import specialtyRouter from './specialty.route';
 import masterDataRoutes from './master-data.routes';
 import pharmacyRoutes from './pharmacy.routes';
 import medicalServiceRoutes from './medical-service.routes';
+import profileRoutes from './profile.routes';
+import notificationCategoryRoutes from './notification-category.routes';
+import notificationTemplateRoutes from './notification-template.routes';
+import notificationRoleConfigRoutes from './notification-role-config.routes';
+import userNotificationRoutes from './user-notification.routes';
 
 export const initRoutes = (app: Express) => {
     //test product routes
@@ -56,4 +61,13 @@ export const initRoutes = (app: Express) => {
 
     // medical services
     app.use('/api/medical-services', medicalServiceRoutes);
+
+    // profile routes
+    app.use('/api/profile', profileRoutes);
+
+    // 1.7 Notification Core Module Routes
+    app.use('/api/notifications/categories', notificationCategoryRoutes);
+    app.use('/api/notifications/templates', notificationTemplateRoutes);
+    app.use('/api/notifications/role-configs', notificationRoleConfigRoutes);
+    app.use('/api/notifications/inbox', userNotificationRoutes);
 }

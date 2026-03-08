@@ -1237,3 +1237,13 @@ CREATE TABLE hospital_beds (
     FOREIGN KEY (current_patient_id) REFERENCES patients(patients_id) ON DELETE SET NULL,
     UNIQUE(medical_room_id, code)
 );
+
+
+
+CREATE TABLE user_fcm_tokens (
+    token_id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL REFERENCES users(users_id) ON DELETE CASCADE,
+    fcm_token TEXT NOT NULL UNIQUE,
+    device_name VARCHAR(100), -- VD: iPhone 13 Pro
+    last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
