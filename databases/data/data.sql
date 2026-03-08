@@ -47,12 +47,21 @@ INSERT INTO medical_rooms (medical_rooms_id, department_id, code, name, room_typ
 ('RM_HCM_XN1', 'DEPT_HCM_XN', 'LAB_01', 'Phòng Lấy Máu Xét Nghiệm', 'LAB', 3),
 ('RM_HN_N101', 'DEPT_HN_NOI', 'P101_HN', 'Phòng Khám Nội HN', 'CONSULTATION', 1);
 
--- 5. Thêm Dịch vụ Cơ sở (Facility Services)
-INSERT INTO facility_services (facility_services_id, facility_id, department_id, code, name, base_price, insurance_price, estimated_duration_minutes) VALUES
-('SRV_KHAMNOI', 'FAC_01', 'DEPT_HCM_NOI', 'KHAM_NOI', 'Khám Nội Tổng Quát', 200000, 50000, 15),
-('SRV_KHAMNHI', 'FAC_01', 'DEPT_HCM_NHI', 'KHAM_NHI', 'Khám Nhi Khoa', 250000, 50000, 15),
-('SRV_SA_BUNG', 'FAC_01', NULL, 'SA_BUNG', 'Siêu âm ổ bụng', 300000, 100000, 20),
-('SRV_XN_MAU', 'FAC_01', 'DEPT_HCM_XN', 'XN_MAU_CB', 'Xét nghiệm Máu Cơ Bản', 150000, 30000, 10);
+-- 5. Thêm Dịch vụ Chuẩn Quốc Gia (Master Services)
+INSERT INTO services (services_id, code, name, service_group, description) VALUES
+('SRV_MASTER_KHAMNOI', 'KHAM_NOI', 'Khám Nội Tổng Quát', 'KHAM', 'Khám bệnh lý nội khoa'),
+('SRV_MASTER_KHAMNHI', 'KHAM_NHI', 'Khám Nhi Khoa', 'KHAM', 'Khám bệnh lý nhi khoa'),
+('SRV_MASTER_SA_BUNG', 'SA_BUNG', 'Siêu âm ổ bụng', 'CDHA', 'Siêu âm ổ bụng tổng quát'),
+('SRV_MASTER_XN_MAU', 'XN_MAU_CB', 'Xét nghiệm Máu Cơ Bản', 'XN', 'Công thức máu, đường huyết, mỡ máu')
+ON CONFLICT (code) DO NOTHING;
+
+-- 5.1 Thêm Dịch vụ Cơ sở (Facility Services)
+INSERT INTO facility_services (facility_services_id, facility_id, service_id, department_id, base_price, insurance_price, estimated_duration_minutes) VALUES
+('FSRV_KHAMNOI', 'FAC_01', 'SRV_MASTER_KHAMNOI', 'DEPT_HCM_NOI', 200000, 50000, 15),
+('FSRV_KHAMNHI', 'FAC_01', 'SRV_MASTER_KHAMNHI', 'DEPT_HCM_NHI', 250000, 50000, 15),
+('FSRV_SA_BUNG', 'FAC_01', 'SRV_MASTER_SA_BUNG', NULL, 300000, 100000, 20),
+('FSRV_XN_MAU', 'FAC_01', 'SRV_MASTER_XN_MAU', 'DEPT_HCM_XN', 150000, 30000, 10)
+ON CONFLICT (facility_id, service_id) DO NOTHING;
 
 -- 6. Thêm Thiết bị y tế (Medical Equipment)
 INSERT INTO medical_equipment (equipment_id, medical_room_id, code, name, manufacturer, status) VALUES
@@ -189,8 +198,72 @@ INSERT INTO system_config_permissions (id, role_code, module) VALUES
     ('SCP_003', 'ADMIN', 'SECURITY'),
     ('SCP_004', 'ADMIN', 'I18N'),
     ('SCP_005', 'ADMIN', 'UI'),
-    ('SCP_006', 'ADMIN', 'WORKING_HOURS')
-ON CONFLICT (role_code, module) DO NOTHING;
+-- =========================================================================
+-- MOCK DATA: MASTER DATA (DANH MỤC NỀN)
+-- =========================================================================
 
+-- 1. Insert Categories (Nhóm danh mục)
+INSERT INTO master_data_categories (master_data_categories_id, code, name, description) VALUES
+('MDC_260308_GENDER_a1b2', 'GENDER', 'Giới tính', 'Danh mục giới tính bệnh nhân'),
+('MDC_260308_BLOOD_T_c3d4', 'BLOOD_TYPE', 'Nhóm máu', 'Danh mục nhóm máu hệ ABO'),
+('MDC_260308_ETHNICI_e5f6', 'ETHNICITY', 'Dân tộc', 'Danh mục dân tộc Việt Nam'),
+('MDC_260308_MARTIAL_g7h8', 'MARITAL_STATUS', 'Tình trạng hôn nhân', 'Tình trạng hôn nhân của bệnh nhân')
+ON CONFLICT (code) DO NOTHING;
 
+-- 2. Insert Items (Chi tiết danh mục)
+INSERT INTO master_data_items (master_data_items_id, category_code, code, value, sort_order) VALUES
+-- Render GENDER items
+('MDI_260308_GENDE_MALE_1111', 'GENDER', 'MALE', 'Nam', 1),
+('MDI_260308_GENDE_FEMAL_2222', 'GENDER', 'FEMALE', 'Nữ', 2),
+('MDI_260308_GENDE_OTHER_3333', 'GENDER', 'OTHER', 'Khác', 3),
+
+-- Render BLOOD_TYPE items
+('MDI_260308_BLOOD_A_PLU_4444', 'BLOOD_TYPE', 'A_PLUS', 'A+', 1),
+('MDI_260308_BLOOD_A_MIN_5555', 'BLOOD_TYPE', 'A_MINUS', 'A-', 2),
+('MDI_260308_BLOOD_B_PLU_6666', 'BLOOD_TYPE', 'B_PLUS', 'B+', 3),
+('MDI_260308_BLOOD_B_MIN_7777', 'BLOOD_TYPE', 'B_MINUS', 'B-', 4),
+('MDI_260308_BLOOD_O_PLU_8888', 'BLOOD_TYPE', 'O_PLUS', 'O+', 5),
+('MDI_260308_BLOOD_O_MIN_9999', 'BLOOD_TYPE', 'O_MINUS', 'O-', 6),
+('MDI_260308_BLOOD_AB_PL_0000', 'BLOOD_TYPE', 'AB_PLUS', 'AB+', 7),
+('MDI_260308_BLOOD_AB_MI_aaaa', 'BLOOD_TYPE', 'AB_MINUS', 'AB-', 8),
+
+-- Render ETHNICITY items
+('MDI_260308_ETHNI_KINH_bbbb', 'ETHNICITY', 'KINH', 'Kinh', 1),
+('MDI_260308_ETHNI_TAY_cccc', 'ETHNICITY', 'TAY', 'Tày', 2),
+('MDI_260308_ETHNI_THAI_dddd', 'ETHNICITY', 'THAI', 'Thái', 3),
+('MDI_260308_ETHNI_MUONG_eeee', 'ETHNICITY', 'MUONG', 'Mường', 4),
+('MDI_260308_ETHNI_KHMER_ffff', 'ETHNICITY', 'KHMER', 'Khmer', 5),
+
+-- Render MARITAL_STATUS items
+('MDI_260308_MARTI_SINGL_1a2b', 'MARITAL_STATUS', 'SINGLE', 'Độc thân', 1),
+('MDI_260308_MARTI_MARRI_3c4d', 'MARITAL_STATUS', 'MARRIED', 'Đ ã kết hôn', 2),
+('MDI_260308_MARTI_DIVOR_5e6f', 'MARITAL_STATUS', 'DIVORCED', 'Ly hôn', 3),
+('MDI_260308_MARTI_WIDOW_7g8h', 'MARITAL_STATUS', 'WIDOWED', 'Góa', 4)
+ON CONFLICT (category_code, code) DO NOTHING;
+
+-- PHARMACY (QUẢN LÝ THUỐC)
+
+-- Migration drug_categories soft delete
+ALTER TABLE drug_categories ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+
+-- 1. Insert Drug Categories
+INSERT INTO drug_categories (drug_categories_id, code, name, description) VALUES
+('DRC_260308_KS_00000000', 'KS', 'Kháng sinh', 'Thuốc kháng sinh diệt khuẩn'),
+('DRC_260308_GD_11111111', 'GD', 'Giảm đau, hạ sốt', 'Thuốc giảm đau, hạ sốt, chống viêm không steroid'),
+('DRC_260308_VIT_2222222', 'VIT', 'Vitamin & Khoáng chất', 'Thực phẩm chức năng, Vitamin')
+ON CONFLICT (code) DO NOTHING;
+
+-- 2. Insert Drugs
+INSERT INTO drugs (drugs_id, drug_code, national_drug_code, brand_name, active_ingredients, category_id, route_of_administration, dispensing_unit, is_prescription_only, is_active) VALUES
+-- Kháng sinh (ETC)
+('DRG_260308_aaaabbbbcccc', 'DRG_AUG_1g', 'VN-12345-19', 'Augmentin 1g', 'Amoxicillin 875mg, Acid Clavulanic 125mg', 'DRC_260308_KS_00000000', 'ORAL', 'Viên', true, true),
+('DRG_260308_ddddeeeeffff', 'DRG_ZIN_500', 'VN-54321-20', 'Zinnat 500mg', 'Cefuroxim axetil 500mg', 'DRC_260308_KS_00000000', 'ORAL', 'Viên', true, true),
+
+-- Giảm đau (OTC)
+('DRG_260308_111122223333', 'DRG_PANA_X', 'VN-98765-21', 'Panadol Extra', 'Paracetamol 500mg, Caffeine 65mg', 'DRC_260308_GD_11111111', 'ORAL', 'Viên', false, true),
+('DRG_260308_444455556666', 'DRG_EFE_500', 'VN-11111-20', 'Efferalgan 500mg', 'Paracetamol 500mg', 'DRC_260308_GD_11111111', 'ORAL', 'Viên sủi', false, true),
+
+-- Vitamin (OTC)
+('DRG_260308_ababcdcdcdcd', 'DRG_CB_C1000', 'VN-22222-22', 'Berocca', 'Vitamin B, Vitamin C, Canxi, Magie', 'DRC_260308_VIT_2222222', 'ORAL', 'Viên sủi', false, true)
+ON CONFLICT (drug_code) DO NOTHING;
 

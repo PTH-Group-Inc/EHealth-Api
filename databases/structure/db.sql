@@ -204,7 +204,8 @@ CREATE TABLE master_data_categories (
     master_data_categories_id VARCHAR(50) PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL, -- vd: ETHNICITY, RELIGION, CITY
     name VARCHAR(100) NOT NULL,
-    description TEXT
+    description TEXT,
+    deleted_at TIMESTAMP NULL
 );
 
 -- Giá trị chi tiết của danh mục
@@ -656,7 +657,8 @@ CREATE TABLE drug_categories (
     drug_categories_id VARCHAR(50) PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL, -- vd: KS (Kháng sinh), DGD (Giảm đau)
     name VARCHAR(150) NOT NULL,
-    description TEXT
+    description TEXT,
+    deleted_at TIMESTAMP
 );
 
 -- Bảng Danh mục Thuốc (Master Drugs)
@@ -1175,22 +1177,38 @@ CREATE TABLE staff_schedules (
     FOREIGN KEY (medical_room_id) REFERENCES medical_rooms(medical_rooms_id) ON DELETE CASCADE
 );
 
--- 6.9 Quản lý Danh mục Dịch vụ theo Cơ sở (Medical Services)
+-- 5. Danh mục Dịch vụ Chuẩn & Dịch vụ Cơ sở (Medical Services)
+
+-- Bảng Danh mục Dịch vụ Chuẩn (Master Services)
+CREATE TABLE services (
+    services_id VARCHAR(50) PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL, -- Mã dịch vụ chuẩn (vd: KHAM_NOI, XN_MAU)
+    name VARCHAR(255) NOT NULL,
+    service_group VARCHAR(50), -- Nhóm dịch vụ (KHAM, XN, CDHA, THUTHUAT)
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+-- Bảng Dịch vụ tại Cơ sở (Facility Services)
 CREATE TABLE facility_services (
     facility_services_id VARCHAR(50) PRIMARY KEY,
     facility_id VARCHAR(50) NOT NULL,
-    department_id VARCHAR(50), -- Có thể map gán DV vào chuyên khoa cụ thể
-    code VARCHAR(50) NOT NULL, -- Mã dịch vụ (vd: XN_MAU)
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    base_price DECIMAL(15,2) NOT NULL, -- Giá gốc
-    insurance_price DECIMAL(15,2), -- Giá BHYT (nếu có)
-    vip_price DECIMAL(15,2), -- Giá dịch vụ chất lượng cao
-    estimated_duration_minutes INT DEFAULT 15, -- Thời gian định mức (giúp chia slot)
+    service_id VARCHAR(50) NOT NULL, -- Liên kết với danh mục chuẩn
+    department_id VARCHAR(50), -- Có thể map gán DV vào chuyên khoa cụ thể (vd: Khoa Xét Nghiệm)
+    
+    base_price DECIMAL(12,2) NOT NULL, -- Giá dịch vụ (VNĐ)
+    insurance_price DECIMAL(12,2), -- Giá BHYT chi trả
+    
+    estimated_duration_minutes INT DEFAULT 15, -- Thời gian dự kiến thực hiện
     is_active BOOLEAN DEFAULT TRUE,
+    
     FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE,
+    FOREIGN KEY (service_id) REFERENCES services(services_id),
     FOREIGN KEY (department_id) REFERENCES departments(departments_id) ON DELETE SET NULL,
-    UNIQUE(facility_id, code)
+    UNIQUE (facility_id, service_id) -- Mỗi cơ sở chỉ có 1 cấu hình giá cho 1 dịch vụ chuẩn
 );
 
 -- 6.10 Quản lý Trang thiết bị Y tế (Assets/Equipment)

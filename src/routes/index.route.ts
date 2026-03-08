@@ -10,6 +10,9 @@ import menuRoutes from './menu.routes';
 import apiPermissionRoutes from './api-permission.routes';
 import systemRoutes from './system.routes';
 import specialtyRouter from './specialty.route';
+import masterDataRoutes from './master-data.routes';
+import pharmacyRoutes from './pharmacy.routes';
+import medicalServiceRoutes from './medical-service.routes';
 
 export const initRoutes = (app: Express) => {
     //test product routes
@@ -44,4 +47,13 @@ export const initRoutes = (app: Express) => {
 
     // specialty routes
     app.use('/api/specialties', specialtyRouter);
+
+    // master data routes
+    app.use('/api/master-data', masterDataRoutes);
+
+    // pharmacy routes
+    app.use('/api/pharmacy', pharmacyRoutes);
+
+    // medical services
+    app.use('/api/medical-services', medicalServiceRoutes);
 }
