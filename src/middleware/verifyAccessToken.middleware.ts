@@ -16,6 +16,7 @@ export function verifyAccessToken(req: Request, res: Response, next: NextFunctio
     (req as any).auth = {
       user_id: payload.sub,
       roles: payload.roles,
+      permissions: payload.permissions || [],
       sessionId: payload.sessionId,
     };
 

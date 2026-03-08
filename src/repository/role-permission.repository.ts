@@ -59,19 +59,7 @@ export class RolePermissionRepository {
             }
 
             // Ghi Audit Log
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const action = 'REPLACE_ROLE_PERMISSIONS';
-
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, action, 'role_permissions', roleId,
-                JSON.stringify({ permissions: oldPermissions }), JSON.stringify({ permissions: permissionIds }),
-                ipAddress, userAgent
-            ]);
+ 
 
             await client.query('COMMIT');
         } catch (error) {
@@ -102,18 +90,8 @@ export class RolePermissionRepository {
                 ON CONFLICT (role_id, permission_id) DO NOTHING
             `, [roleId, permissionId]);
 
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'ASSIGN_ROLE_PERMISSION', 'role_permissions', roleId,
-                null, JSON.stringify({ assigned_permission_id: permissionId }),
-                ipAddress, userAgent
-            ]);
+
+ 
 
             await client.query('COMMIT');
         } catch (error) {
@@ -143,18 +121,8 @@ export class RolePermissionRepository {
                 WHERE role_id = $1 AND permission_id = $2
             `, [roleId, permissionId]);
 
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'REMOVE_ROLE_PERMISSION', 'role_permissions', roleId,
-                JSON.stringify({ removed_permission_id: permissionId }), null,
-                ipAddress, userAgent
-            ]);
+
+ 
 
             await client.query('COMMIT');
         } catch (error) {

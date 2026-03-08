@@ -77,24 +77,6 @@ export class UserRepository {
                 `, values);
             }
 
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const newValues = JSON.stringify({
-                email: data.email,
-                phone: data.phone,
-                full_name: data.full_name,
-                roles: data.roles
-            });
-
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'CREATE', 'users', userId,
-                null, newValues, ipAddress, userAgent
-            ]);
-
             await client.query('COMMIT');
             return userId;
         } catch (error: any) {
@@ -514,19 +496,6 @@ export class UserRepository {
                 }
             }
 
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const newValues = JSON.stringify(data);
-
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'UPDATE', 'users', userId,
-                null, newValues, ipAddress, userAgent
-            ]);
-
             await client.query('COMMIT');
         } catch (error: any) {
             await client.query('ROLLBACK');
@@ -556,48 +525,16 @@ export class UserRepository {
         ipAddress: string | null = null,
         userAgent: string | null = null
     ): Promise<boolean> {
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
+        const query = `
+            UPDATE users
+            SET deleted_at = CURRENT_TIMESTAMP, 
+                status = 'INACTIVE',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE users_id = $1 AND deleted_at IS NULL
+        `;
+        const result = await pool.query(query, [userId]);
 
-            const query = `
-                UPDATE users
-                SET deleted_at = CURRENT_TIMESTAMP, 
-                    status = 'INACTIVE',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE users_id = $1 AND deleted_at IS NULL
-            `;
-            const result = await client.query(query, [userId]);
-
-            if ((result.rowCount ?? 0) === 0) {
-                await client.query('ROLLBACK');
-                return false;
-            }
-
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const oldValues = JSON.stringify({ status: 'ACTIVE' }); // Hoặc status cũ nếu có lấy ra trước
-            const newValues = JSON.stringify({ status: 'INACTIVE', deleted_at: new Date().toISOString() });
-
-            const auditQuery = `
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `;
-
-            await client.query(auditQuery, [
-                auditId, adminId, 'DELETE', 'users', userId,
-                oldValues, newValues, ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return true;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return (result.rowCount ?? 0) > 0;
     }
 
     /**
@@ -609,45 +546,14 @@ export class UserRepository {
         ipAddress: string | null = null,
         userAgent: string | null = null
     ): Promise<boolean> {
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
+        const query = `
+            UPDATE users
+            SET status = 'BANNED', updated_at = CURRENT_TIMESTAMP
+            WHERE users_id = $1 AND deleted_at IS NULL
+        `;
+        const result = await pool.query(query, [userId]);
 
-            const query = `
-                UPDATE users
-                SET status = 'BANNED', updated_at = CURRENT_TIMESTAMP
-                WHERE users_id = $1 AND deleted_at IS NULL
-            `;
-            const result = await client.query(query, [userId]);
-
-            if ((result.rowCount ?? 0) === 0) {
-                await client.query('ROLLBACK');
-                return false;
-            }
-
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const newValues = JSON.stringify({ status: 'BANNED' });
-
-            const auditQuery = `
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `;
-
-            await client.query(auditQuery, [
-                auditId, adminId, 'UPDATE', 'users', userId,
-                null, newValues, ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return true;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return (result.rowCount ?? 0) > 0;
     }
 
     /**
@@ -659,49 +565,17 @@ export class UserRepository {
         ipAddress: string | null = null,
         userAgent: string | null = null
     ): Promise<boolean> {
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
+        const query = `
+            UPDATE users
+            SET status = 'ACTIVE', 
+                failed_login_count = 0, 
+                locked_until = NULL, 
+                updated_at = CURRENT_TIMESTAMP
+            WHERE users_id = $1 AND deleted_at IS NULL
+        `;
+        const result = await pool.query(query, [userId]);
 
-            const query = `
-                UPDATE users
-                SET status = 'ACTIVE', 
-                    failed_login_count = 0, 
-                    locked_until = NULL, 
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE users_id = $1 AND deleted_at IS NULL
-            `;
-            const result = await client.query(query, [userId]);
-
-            if ((result.rowCount ?? 0) === 0) {
-                await client.query('ROLLBACK');
-                return false;
-            }
-
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const oldValues = JSON.stringify({ status: 'BANNED' });
-            const newValues = JSON.stringify({ status: 'ACTIVE', failed_login_count: 0, locked_until: null });
-
-            const auditQuery = `
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `;
-
-            await client.query(auditQuery, [
-                auditId, adminId, 'UPDATE', 'users', userId,
-                oldValues, newValues, ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return true;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return (result.rowCount ?? 0) > 0;
     }
 
     /**
@@ -716,47 +590,14 @@ export class UserRepository {
         ipAddress: string | null,
         userAgent: string | null
     ): Promise<boolean> {
-        const client = await pool.connect();
+        const updateQuery = `
+            UPDATE users
+            SET status = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE users_id = $2 AND deleted_at IS NULL
+        `;
+        const result = await pool.query(updateQuery, [newStatus, userId]);
 
-        try {
-            await client.query('BEGIN');
-
-            const updateQuery = `
-                UPDATE users
-                SET status = $1, updated_at = CURRENT_TIMESTAMP
-                WHERE users_id = $2 AND deleted_at IS NULL
-            `;
-            const result = await client.query(updateQuery, [newStatus, userId]);
-
-            if ((result.rowCount ?? 0) === 0) {
-                await client.query('ROLLBACK');
-                return false;
-            }
-
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const oldValues = JSON.stringify({ status: oldStatus });
-            const newValues = JSON.stringify({ status: newStatus, reason: reason });
-
-            const auditQuery = `
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `;
-
-            await client.query(auditQuery, [
-                auditId, adminId, 'UPDATE', 'users', userId,
-                oldValues, newValues, ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return true;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return (result.rowCount ?? 0) > 0;
     }
 
     /**
@@ -833,45 +674,15 @@ export class UserRepository {
 
         if (roleResult.rowCount === 0) return false;
         const roleId = roleResult.rows[0].roles_id;
-        const roleCode = roleResult.rows[0].code;
 
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
+        const query = `
+            INSERT INTO user_roles (user_id, role_id)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id, role_id) DO NOTHING
+        `;
+        await pool.query(query, [userId, roleId]);
 
-            const query = `
-                INSERT INTO user_roles (user_id, role_id)
-                VALUES ($1, $2)
-                ON CONFLICT (user_id, role_id) DO NOTHING
-            `;
-            const result = await client.query(query, [userId, roleId]);
-
-            // Nếu thực sự insert (chưa có role đó) thì log
-            if ((result.rowCount ?? 0) > 0) {
-                const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-                const newValues = JSON.stringify({ assigned_role: roleCode, action: 'ASSIGN_ROLE' });
-
-                const auditQuery = `
-                    INSERT INTO audit_logs (
-                        audit_logs_id, user_id, action, table_name, record_id,
-                        old_values, new_values, ip_address, user_agent
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                `;
-
-                await client.query(auditQuery, [
-                    auditId, adminId, 'UPDATE', 'user_roles', userId,
-                    null, newValues, ipAddress, userAgent
-                ]);
-            }
-
-            await client.query('COMMIT');
-            return true;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return true;
     }
 
     /**
@@ -884,49 +695,14 @@ export class UserRepository {
         ipAddress: string | null = null,
         userAgent: string | null = null
     ): Promise<boolean> {
-        const roleQuery = `SELECT code FROM roles WHERE code = $1 OR roles_id = $1`;
-        const roleResult = await pool.query(roleQuery, [roleIdOrCode]);
-        const roleCode = roleResult.rowCount && roleResult.rowCount > 0 ? roleResult.rows[0].code : roleIdOrCode;
+        const query = `
+            DELETE FROM user_roles 
+            WHERE user_id = $1 
+            AND role_id IN (SELECT roles_id FROM roles WHERE code = $2 OR roles_id = $2)
+        `;
+        const result = await pool.query(query, [userId, roleIdOrCode]);
 
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            const query = `
-                DELETE FROM user_roles 
-                WHERE user_id = $1 
-                AND role_id IN (SELECT roles_id FROM roles WHERE code = $2 OR roles_id = $2)
-            `;
-            const result = await client.query(query, [userId, roleIdOrCode]);
-
-            if ((result.rowCount ?? 0) === 0) {
-                await client.query('ROLLBACK');
-                return false;
-            }
-
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const oldValues = JSON.stringify({ removed_role: roleCode, action: 'REMOVE_ROLE' });
-
-            const auditQuery = `
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `;
-
-            await client.query(auditQuery, [
-                auditId, adminId, 'UPDATE', 'user_roles', userId,
-                oldValues, null, ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return true;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return (result.rowCount ?? 0) > 0;
     }
 
     /**
@@ -992,23 +768,6 @@ export class UserRepository {
                     }
                 }
             }
-
-            // Audit Log
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            const newValues = JSON.stringify({
-                imported_count: usersData.length,
-                action: 'BULK_IMPORT_USERS'
-            });
-
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'CREATE', 'users', 'BULK',
-                null, newValues, ipAddress, userAgent
-            ]);
 
             await client.query('COMMIT');
             return usersData.length;

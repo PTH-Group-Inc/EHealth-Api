@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { MenuController } from '../controllers/menu.controller';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
 
 const menuRoutes = Router();
 
 menuRoutes.use(verifyAccessToken);
-const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
 
 
 
@@ -22,7 +21,7 @@ const requireAdmin = authorizeRoles('ADMIN', 'SYSTEM');
  *       200:
  *         description: Thành công
  */
-menuRoutes.get('/', requireAdmin, MenuController.getMenus);
+menuRoutes.get('/', authorizePermissions('MENU_VIEW'), MenuController.getMenus);
 
 /**
  * @swagger
@@ -62,7 +61,7 @@ menuRoutes.get('/', requireAdmin, MenuController.getMenus);
  *       201:
  *         description: Trả về Menu vừa tạo
  */
-menuRoutes.post('/', requireAdmin, MenuController.createMenu);
+menuRoutes.post('/', authorizePermissions('MENU_CREATE'), MenuController.createMenu);
 
 /**
  * @swagger
@@ -112,7 +111,7 @@ menuRoutes.post('/', requireAdmin, MenuController.createMenu);
  *       200:
  *         description: Cập nhật thành công
  */
-menuRoutes.patch('/:menuId', requireAdmin, MenuController.updateMenu);
+menuRoutes.patch('/:menuId', authorizePermissions('MENU_UPDATE'), MenuController.updateMenu);
 
 /**
  * @swagger
@@ -133,6 +132,6 @@ menuRoutes.patch('/:menuId', requireAdmin, MenuController.updateMenu);
  *       200:
  *         description: Xóa Menu thành công
  */
-menuRoutes.delete('/:menuId', requireAdmin, MenuController.deleteMenu);
+menuRoutes.delete('/:menuId', authorizePermissions('MENU_DELETE'), MenuController.deleteMenu);
 
 export default menuRoutes;

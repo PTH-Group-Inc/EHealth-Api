@@ -23,6 +23,7 @@
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
+    "firebase-admin": "^13.7.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "node-cron": "^4.2.1",
@@ -33,6 +34,7 @@
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.28",
     "ua-parser-js": "^2.0.8",
+    "urlpattern-polyfill": "^10.1.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -42,7 +44,7 @@
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/multer": "^2.0.0",
+    "@types/multer": "^2.1.0",
     "@types/node": "^25.0.10",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.9",

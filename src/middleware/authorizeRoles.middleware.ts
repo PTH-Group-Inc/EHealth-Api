@@ -5,6 +5,7 @@ export interface AuthenticatedRequest extends Request {
     auth?: {
         user_id: string;
         roles: string[];
+        permissions: string[];
         sessionId: string;
         [key: string]: any;
     };

@@ -202,10 +202,22 @@ const options = {
       { name: '1.4.5 Cấu hình đa ngôn ngữ', description: 'Ngôn ngữ mặc định, danh sách ngôn ngữ hỗ trợ' },
       { name: '1.4.6 Cấu hình giao diện', description: 'Theme, màu sắc, font, date/time format, timezone' },
       { name: '1.4.7 Quản lý tham số hệ thống', description: 'CRUD system_settings theo module, có protected key' },
-      { name: '1.4.8 Phân quyền chỉnh sửa cấu hình', description: 'Kiểm soát vai trò nào được phép chỉnh sửa các module tham số hệ thống' }
+      { name: '1.4.8 Phân quyền chỉnh sửa cấu hình', description: 'Kiểm soát vai trò nào được phép chỉnh sửa các module tham số hệ thống' },
+      { name: '1.5.1 Quản lý danh mục chuyên khoa', description: 'CRUD chuyên khoa, hỗ trợ phân trang và tìm kiếm' },
+      { name: '1.5.2 Quản lý danh mục', description: 'CRUD bệnh viện, hỗ trợ phân trang và tìm kiếm' },
+      { name: '1.5.3 Quản lý danh mục thuốc', description: 'Quản lý Nhóm thuốc (Drug Categories) và Từ điển thuốc (Drugs)' },
+      { name: '1.5.4 Quản lý danh mục dịch vụ chuẩn', description: 'Các API liên quan đến quản lý danh mục gốc các dịch vụ y tế' },
+      { name: '1.5.5 Quản lý dịch vụ cơ sở', description: 'Cấu hình giá và quy định đối với dịch vụ chuẩn áp dụng riêng tại từng cơ sở' },
+      { name: '1.6 Quản lý hồ sơ người dùng (User Profile)', description: 'Xem và cập nhật thông tin cá nhân của người dùng đang đăng nhập' },
+      { name: '1.7.1 Quản lý Loại Thông báo (Notification Categories)', description: 'Thiết lập các cấu hình nhóm thông báo cốt lõi của hệ thống' },
+      { name: '1.7.2 Quản lý Mẫu Thông báo (Notification Templates)', description: 'Thiết lập và tùy chỉnh các mẫu thông báo đa kênh' },
+      { name: '1.7.3 Cấu hình Thông báo theo Vai trò', description: 'Thiết lập cấu trúc Role nào nhận thông báo qua kênh nào' },
+      { name: '1.7.4 Broadcast & Lõi Thông báo (Engine)', description: 'Trigger sự kiện và bắn thông báo thủ công hàng loạt' },
+      { name: '1.7.5 Hộp thư Thông báo cá nhân (User Inbox)', description: 'Xem danh sách và đánh dấu đọc In-app Notifications' },
     ]
   },
   apis: [
+
     './src/routes/*.ts',
   ],
 };

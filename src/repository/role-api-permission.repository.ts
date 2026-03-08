@@ -41,13 +41,8 @@ export class RoleApiPermissionRepository {
                 ON CONFLICT DO NOTHING
             `, [roleId, apiId]);
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `, [auditId, adminId, 'ASSIGN_ROLE_API_PERMISSION', 'role_api_permissions', `${roleId}_${apiId}`, JSON.stringify({ role_id: roleId, api_id: apiId }), ipAddress, userAgent]);
+
+ 
 
             await client.query('COMMIT');
         } catch (error) {
@@ -82,13 +77,8 @@ export class RoleApiPermissionRepository {
                 WHERE role_id = $1 AND api_id = $2
             `, [roleId, apiId]);
 
-            // Audit
-            const auditId = 'AUDIT_' + Date.now() + '_' + randomUUID().substring(0, 8);
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id, old_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            `, [auditId, adminId, 'REMOVE_ROLE_API_PERMISSION', 'role_api_permissions', `${roleId}_${apiId}`, JSON.stringify({ role_id: roleId, api_id: apiId }), ipAddress, userAgent]);
+
+ 
 
             await client.query('COMMIT');
         } catch (error) {

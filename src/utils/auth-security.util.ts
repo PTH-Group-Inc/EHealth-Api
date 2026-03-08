@@ -8,8 +8,8 @@ export class SecurityUtil {
     /*
       * Tạo access token và refresh token
       */
-    static generateToken(user: User, sessionId: string) {
-        const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(user, sessionId);
+    static generateToken(user: User, sessionId: string, permissions?: string[]) {
+        const { accessToken, refreshToken, expiresIn } = TokenUtil.generateAuthTokens(user, sessionId, permissions);
 
         const refreshTokenHash = SecurityUtil.hashRefreshToken(refreshToken);
 

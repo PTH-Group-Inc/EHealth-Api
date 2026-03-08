@@ -5,12 +5,12 @@ import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 export class TokenUtil {
     /*
      * Tạo access token và refresh token
-     * CẬP NHẬT: Thêm tham số sessionId
      */
-    static generateAuthTokens(user: User, sessionId: string) {
+    static generateAuthTokens(user: User, sessionId: string, permissions?: string[]) {
         const payload = {
             sub: user.users_id,
             roles: user.roles,
+            permissions: permissions || [],
             sessionId: sessionId, // Thêm sessionId vào payload
         };
 

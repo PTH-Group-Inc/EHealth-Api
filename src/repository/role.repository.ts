@@ -1,6 +1,5 @@
 import { pool } from '../config/postgresdb';
 import { RoleDetail, CreateRoleInput, UpdateRoleInput, RoleQueryFilter } from '../models/role.model';
-import { randomUUID } from 'crypto';
 import { AppError } from '../utils/app-error.util';
 import { SecurityUtil } from '../utils/auth-security.util';
 
@@ -77,39 +76,15 @@ export class RoleRepository {
         userAgent: string | null = null
     ): Promise<RoleDetail> {
         const roleId = SecurityUtil.generateRoleId();
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
+        const query = `
+            INSERT INTO roles (roles_id, code, name, description)
+            VALUES ($1, $2, $3, $4)
+            RETURNING roles_id, code, name, description, is_system, status
+        `;
+        const params = [roleId, data.code, data.name, data.description || ''];
+        const result = await pool.query(query, params);
 
-            const query = `
-                INSERT INTO roles (roles_id, code, name, description)
-                VALUES ($1, $2, $3, $4)
-                RETURNING roles_id, code, name, description, is_system, status
-            `;
-            const params = [roleId, data.code, data.name, data.description || ''];
-            const result = await client.query(query, params);
-            const newRole = result.rows[0];
-
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'CREATE_ROLE', 'roles', roleId,
-                null, JSON.stringify(newRole), ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return newRole;
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        return result.rows[0];
     }
 
     /**
@@ -159,32 +134,8 @@ export class RoleRepository {
             RETURNING roles_id, code, name, description, is_system, status
         `;
 
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            const result = await client.query(query, params);
-
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'UPDATE_ROLE', 'roles', roleId,
-                JSON.stringify(currentRole), JSON.stringify(result.rows[0]), ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-            return result.rows[0];
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        const result = await pool.query(query, params);
+        return result.rows[0];
     }
 
     /**
@@ -199,34 +150,9 @@ export class RoleRepository {
         const currentRole = await this.getRoleById(roleId);
         if (!currentRole) return;
 
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            // Soft delete
-            const query = `UPDATE roles SET deleted_at = CURRENT_TIMESTAMP, status = 'INACTIVE' WHERE roles_id = $1`;
-            await client.query(query, [roleId]);
-
-            // Audit
-            const auditId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
-            await client.query(`
-                INSERT INTO audit_logs (
-                    audit_logs_id, user_id, action, table_name, record_id,
-                    old_values, new_values, ip_address, user_agent
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            `, [
-                auditId, adminId, 'DELETE_ROLE', 'roles', roleId,
-                JSON.stringify(currentRole), JSON.stringify({ deleted_at: 'CURRENT_TIMESTAMP', status: 'INACTIVE' }),
-                ipAddress, userAgent
-            ]);
-
-            await client.query('COMMIT');
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        // Soft delete
+        const query = `UPDATE roles SET deleted_at = CURRENT_TIMESTAMP, status = 'INACTIVE' WHERE roles_id = $1`;
+        await pool.query(query, [roleId]);
     }
 
     /**

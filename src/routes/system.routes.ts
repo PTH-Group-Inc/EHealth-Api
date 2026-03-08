@@ -8,10 +8,12 @@ import { I18nSettingsController } from '../controllers/i18n-settings.controller'
 import { UiSettingsController } from '../controllers/ui-settings.controller';
 import { SystemParamsController } from '../controllers/system-params.controller';
 import { verifyAccessToken } from '../middleware/verifyAccessToken.middleware';
-import { authorizeRoles } from '../middleware/authorizeRoles.middleware';
+import { authorizePermissions } from '../middleware/authorizePermissions.middleware';
 import { checkSessionStatus } from '../middleware/checkSessionStatus.middleware';
 import { CLOUDINARY_CONFIG } from '../constants/system.constant';
 import { ConfigPermissionsController } from '../controllers/config-permissions.controller';
+import { checkConfigPermission } from '../middleware/checkConfigPermission.middleware';
+import auditLogRoutes from './audit-log.routes';
 
 const systemRoutes = Router();
 
@@ -21,8 +23,10 @@ const upload = multer({
     limits: { fileSize: CLOUDINARY_CONFIG.MAX_FILE_SIZE },
 });
 
-const requireAdmin = [verifyAccessToken, checkSessionStatus, authorizeRoles('ADMIN', 'SYSTEM')];
+const requireAdmin = [verifyAccessToken, checkSessionStatus, authorizePermissions('SYSTEM_CONFIG_VIEW', 'SYSTEM_CONFIG_UPDATE')];
 
+// 1.8 QUẢN LÝ NHẬT KÝ HỆ THỐNG (AUDIT LOGS)
+systemRoutes.use('/audit-logs', auditLogRoutes);
 
 // 1.4.8 – PHÂN QUYỀN CHỈNH SỬA CẤU HÌNH
 
@@ -284,7 +288,7 @@ systemRoutes.get('/settings', ...requireAdmin, SystemParamsController.listSettin
  *       409:
  *         description: SYS_SET_001 – Key đã tồn tại
  */
-systemRoutes.post('/settings', ...requireAdmin, SystemParamsController.createSetting);
+systemRoutes.post('/settings', ...requireAdmin, checkConfigPermission(), SystemParamsController.createSetting);
 
 /**
  * @swagger
@@ -344,7 +348,7 @@ systemRoutes.get('/settings/:key', ...requireAdmin, SystemParamsController.getSe
  *       404:
  *         description: SYS_SET_002 – Không tìm thấy
  */
-systemRoutes.put('/settings/:key', ...requireAdmin, SystemParamsController.updateSetting);
+systemRoutes.put('/settings/:key', ...requireAdmin, checkConfigPermission(), SystemParamsController.updateSetting);
 
 /**
  * @swagger
@@ -370,7 +374,7 @@ systemRoutes.put('/settings/:key', ...requireAdmin, SystemParamsController.updat
  *       404:
  *         description: SYS_SET_002 – Không tìm thấy
  */
-systemRoutes.delete('/settings/:key', ...requireAdmin, SystemParamsController.deleteSetting);
+systemRoutes.delete('/settings/:key', ...requireAdmin, checkConfigPermission(), SystemParamsController.deleteSetting);
 
 // CẤU HÌNH HIỂN Thị GIAO DIỆN CHUNG
 
@@ -505,7 +509,7 @@ systemRoutes.get('/ui-settings', ...requireAdmin, UiSettingsController.getUiSett
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/ui-settings', ...requireAdmin, UiSettingsController.updateUiSettings);
+systemRoutes.put('/ui-settings', ...requireAdmin, checkConfigPermission('UI'), UiSettingsController.updateUiSettings);
 
 // 1.4.5 – CẤU HÌNH ĐA NGÔN NGỮ
 
@@ -647,7 +651,7 @@ systemRoutes.get('/i18n', ...requireAdmin, I18nSettingsController.getI18nConfig)
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/i18n', ...requireAdmin, I18nSettingsController.updateI18nConfig);
+systemRoutes.put('/i18n', ...requireAdmin, checkConfigPermission('I18N'), I18nSettingsController.updateI18nConfig);
 
 // 1.4.4 – CẤU HÌNH BẢO MẬT CƠ BẢN
 
@@ -812,7 +816,7 @@ systemRoutes.get('/security-settings', ...requireAdmin, SecuritySettingsControll
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/security-settings', ...requireAdmin, SecuritySettingsController.updateSecurityConfig);
+systemRoutes.put('/security-settings', ...requireAdmin, checkConfigPermission('SECURITY'), SecuritySettingsController.updateSecurityConfig);
 
 // 1.4.3 – CẤU HÌNH QUY ĐỊNH NGHIỆP VỤ\
 
@@ -940,7 +944,7 @@ systemRoutes.get('/business-rules', ...requireAdmin, BusinessRulesController.get
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/business-rules/bulk', ...requireAdmin, BusinessRulesController.bulkUpdateBusinessRules);
+systemRoutes.put('/business-rules/bulk', ...requireAdmin, checkConfigPermission('BUSINESS_RULES'), BusinessRulesController.bulkUpdateBusinessRules);
 
 /**
  * @swagger
@@ -1052,7 +1056,7 @@ systemRoutes.get('/business-rules/:ruleKey', ...requireAdmin, BusinessRulesContr
  *       404:
  *         description: Không tìm thấy quy định
  */
-systemRoutes.put('/business-rules/:ruleKey', ...requireAdmin, BusinessRulesController.updateBusinessRule);
+systemRoutes.put('/business-rules/:ruleKey', ...requireAdmin, checkConfigPermission('BUSINESS_RULES'), BusinessRulesController.updateBusinessRule);
 
 // =========================================================================
 // 1.4.2 – CẤU HÌNH THỜI GIAN LÀM VIỆC MẶC ĐỊNH
@@ -1194,7 +1198,7 @@ systemRoutes.get('/working-hours', ...requireAdmin, SystemSettingsController.get
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.put('/working-hours', ...requireAdmin, SystemSettingsController.updateWorkingHours);
+systemRoutes.put('/working-hours', ...requireAdmin, checkConfigPermission('WORKING_HOURS'), SystemSettingsController.updateWorkingHours);
 
 /**
  * @swagger
@@ -1324,7 +1328,7 @@ systemRoutes.get('/working-hours/slot-config', ...requireAdmin, SystemSettingsCo
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.put('/working-hours/slot-config', ...requireAdmin, SystemSettingsController.updateSlotConfig);
+systemRoutes.put('/working-hours/slot-config', ...requireAdmin, checkConfigPermission('APPOINTMENT'), SystemSettingsController.updateSlotConfig);
 
 
 
