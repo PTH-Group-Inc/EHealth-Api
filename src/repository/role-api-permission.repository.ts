@@ -9,10 +9,10 @@ export class RoleApiPermissionRepository {
     static async getApiPermissionsByRoleId(roleId: string): Promise<RoleApiPermissionDetail[]> {
         const query = `
             SELECT 
-                r.role_id, r.role_name, r.role_code,
+                r.roles_id AS role_id, r.name AS role_name, r.code AS role_code,
                 a.api_id, a.method, a.endpoint, a.description, a.module, a.status
             FROM role_api_permissions rap
-            JOIN roles r ON rap.role_id = r.role_id
+            JOIN roles r ON rap.role_id = r.roles_id
             JOIN api_permissions a ON rap.api_id = a.api_id
             WHERE rap.role_id = $1 AND r.deleted_at IS NULL AND a.deleted_at IS NULL AND a.status = 'ACTIVE'
             ORDER BY a.module ASC, a.endpoint ASC, a.method ASC
@@ -42,7 +42,7 @@ export class RoleApiPermissionRepository {
             `, [roleId, apiId]);
 
 
- 
+
 
             await client.query('COMMIT');
         } catch (error) {
@@ -78,7 +78,7 @@ export class RoleApiPermissionRepository {
             `, [roleId, apiId]);
 
 
- 
+
 
             await client.query('COMMIT');
         } catch (error) {

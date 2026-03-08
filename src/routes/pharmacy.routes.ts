@@ -21,6 +21,9 @@ pharmacyRoutes.use(checkSessionStatus);
  * /api/pharmacy/categories:
  *   get:
  *     summary: Lấy danh sách nhóm thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -51,6 +54,9 @@ pharmacyRoutes.get('/categories', authorizePermissions('DRUG_CATEGORY_VIEW'), Dr
  * /api/pharmacy/categories:
  *   post:
  *     summary: Tạo mới nhóm thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -84,6 +90,9 @@ pharmacyRoutes.post('/categories', authorizePermissions('DRUG_CATEGORY_CREATE'),
  * /api/pharmacy/categories/export:
  *   get:
  *     summary: Xuất danh sách nhóm thuốc ra file Excel
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -103,7 +112,10 @@ pharmacyRoutes.get('/categories/export', authorizePermissions('DRUG_CATEGORY_EXP
  * /api/pharmacy/categories/import:
  *   post:
  *     summary: Import danh sách nhóm thuốc bằng file Excel
- *     description: Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật nhóm thuốc. Yêu cầu cột "Mã Nhóm Thuốc (*)" và "Tên Nhóm Thuốc (*)".
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
+ *       Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật nhóm thuốc. Yêu cầu cột "Mã Nhóm Thuốc (*)" và "Tên Nhóm Thuốc (*)".
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -130,6 +142,9 @@ pharmacyRoutes.post('/categories/import', authorizePermissions('DRUG_CATEGORY_IM
  * /api/pharmacy/categories/{id}:
  *   get:
  *     summary: Lấy chi tiết nhóm thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -150,6 +165,9 @@ pharmacyRoutes.get('/categories/:id', authorizePermissions('DRUG_CATEGORY_VIEW')
  * /api/pharmacy/categories/{id}:
  *   put:
  *     summary: Cập nhật nhóm thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -182,6 +200,9 @@ pharmacyRoutes.put('/categories/:id', authorizePermissions('DRUG_CATEGORY_UPDATE
  * /api/pharmacy/categories/{id}:
  *   delete:
  *     summary: Xóa nhóm thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -208,7 +229,10 @@ pharmacyRoutes.delete('/categories/:id', authorizePermissions('DRUG_CATEGORY_DEL
  * /api/pharmacy/drugs/active:
  *   get:
  *     summary: Lấy danh sách thuốc cho Dropdown (Tìm kiếm theo Hoạt chất & Tên hãng)
- *     description: API dùng để tra cứu nhanh khi bác sĩ kê đơn hoặc nhân viên tạo phiếu xuất/nhập kho.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
+ *       API dùng để tra cứu nhanh khi bác sĩ kê đơn hoặc nhân viên tạo phiếu xuất/nhập kho.
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -229,6 +253,9 @@ pharmacyRoutes.get('/drugs/active', authorizePermissions('DRUG_VIEW'), DrugContr
  * /api/pharmacy/drugs/export:
  *   get:
  *     summary: Xuất danh sách thuốc ra file Excel
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, PHARMACIST, STAFF
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -248,7 +275,10 @@ pharmacyRoutes.get('/drugs/export', authorizePermissions('DRUG_EXPORT'), DrugCon
  * /api/pharmacy/drugs/import:
  *   post:
  *     summary: Import danh sách thuốc bằng file Excel
- *     description: Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật thuốc. Bắt buộc có các cột "Mã Thuốc (*)", "Tên Thuốc (*)", "Hoạt Chất (*)", "Mã Nhóm Thuốc (*)" và "Đơn Vị Đóng Gói (*)".
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, PHARMACIST, STAFF
+ *
+ *       Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật thuốc. Bắt buộc có các cột "Mã Thuốc (*)", "Tên Thuốc (*)", "Hoạt Chất (*)", "Mã Nhóm Thuốc (*)" và "Đơn Vị Đóng Gói (*)".
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -275,6 +305,9 @@ pharmacyRoutes.post('/drugs/import', authorizePermissions('DRUG_IMPORT'), upload
  * /api/pharmacy/drugs:
  *   get:
  *     summary: Lấy danh sách Toàn bộ thuốc (Admin)
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -314,6 +347,9 @@ pharmacyRoutes.get('/drugs', authorizePermissions('DRUG_VIEW_ALL'), DrugControll
  * /api/pharmacy/drugs:
  *   post:
  *     summary: Tạo mới thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, PHARMACIST, STAFF
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -368,6 +404,9 @@ pharmacyRoutes.post('/drugs', authorizePermissions('DRUG_CREATE'), DrugControlle
  * /api/pharmacy/drugs/{id}:
  *   get:
  *     summary: Lấy chi tiết thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -388,6 +427,9 @@ pharmacyRoutes.get('/drugs/:id', authorizePermissions('DRUG_VIEW'), DrugControll
  * /api/pharmacy/drugs/{id}:
  *   put:
  *     summary: Cập nhật thông tin thuốc
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, PHARMACIST, STAFF
+ *
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []
@@ -436,7 +478,10 @@ pharmacyRoutes.put('/drugs/:id', authorizePermissions('DRUG_UPDATE'), DrugContro
  * /api/pharmacy/drugs/{id}/status:
  *   patch:
  *     summary: Khóa/Mở Khóa Thuốc (Toggle Active)
- *     description: Set is_active thành true/false thay vì xóa thuốc.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, PHARMACIST, STAFF
+ *
+ *       Set is_active thành true/false thay vì xóa thuốc.
  *     tags: [1.5.3 Quản lý danh mục thuốc]
  *     security:
  *       - bearerAuth: []

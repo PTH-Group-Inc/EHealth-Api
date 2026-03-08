@@ -20,7 +20,10 @@ const userNotificationRoutes = Router();
  * /api/notifications/inbox/admin-broadcast:
  *   post:
  *     summary: Broadcast thông báo thủ công (Nhập tay text)
- *     description: Gửi đến 1 Role nhất định hoặc TẤT CẢ User trong luồng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
+ *       Gửi đến 1 Role nhất định hoặc TẤT CẢ User trong luồng
  *     tags: [1.7.4 Broadcast & Lõi Thông báo (Engine)]
  *     security:
  *       - bearerAuth: []
@@ -72,6 +75,9 @@ inboxRouter.use(verifyAccessToken, checkSessionStatus); // Tất cả User đã 
  * /api/notifications/inbox:
  *   get:
  *     summary: Xem hộp thư của bản thân
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.5 Hộp thư Thông báo cá nhân (User Inbox)]
  *     security:
  *       - bearerAuth: []
@@ -95,6 +101,9 @@ inboxRouter.get('/', UserNotificationController.getMyInbox);
  * /api/notifications/inbox/read-all:
  *   put:
  *     summary: Đánh dấu TẤT CẢ thông báo là đã đọc
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.5 Hộp thư Thông báo cá nhân (User Inbox)]
  *     security:
  *       - bearerAuth: []
@@ -109,6 +118,9 @@ inboxRouter.put('/read-all', UserNotificationController.markAllAsRead);
  * /api/notifications/inbox/{id}/read:
  *   put:
  *     summary: Đánh dấu 1 thông báo là đã đọc
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.5 Hộp thư Thông báo cá nhân (User Inbox)]
  *     security:
  *       - bearerAuth: []

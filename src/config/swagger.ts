@@ -214,6 +214,11 @@ const options = {
       { name: '1.7.3 Cấu hình Thông báo theo Vai trò', description: 'Thiết lập cấu trúc Role nào nhận thông báo qua kênh nào' },
       { name: '1.7.4 Broadcast & Lõi Thông báo (Engine)', description: 'Trigger sự kiện và bắn thông báo thủ công hàng loạt' },
       { name: '1.7.5 Hộp thư Thông báo cá nhân (User Inbox)', description: 'Xem danh sách và đánh dấu đọc In-app Notifications' },
+      { name: '1.8 Quản lý Nhật ký hệ thống (Audit Logs)', description: 'Tracking API Mọi thao tác POST/PUT/DELETE' },
+      { name: '2.1 Quản lý Cơ sở Y tế', description: 'API Tạo và Cập nhật Cơ sở Y tế đa chi nhánh, upload logo' },
+      { name: '2.2 Quản lý Chi nhánh', description: 'API Tạo và cấu hình Chi nhánh trực thuộc, phân tuyến cơ sở' },
+      { name: '2.3 Quản lý Khoa/Phòng ban', description: 'API Quản lý chuyên khoa trực thuộc chi nhánh' },
+      { name: '2.4 Quản lý Không gian/Phòng khám', description: 'API Quản lý không gian chức năng, buồng khám' },
     ]
   },
   apis: [

@@ -35,7 +35,10 @@ systemRoutes.use('/audit-logs', auditLogRoutes);
  * /api/system/config-permissions:
  *   get:
  *     summary: Lấy danh sách phân quyền chỉnh sửa cấu hình
- *     description: Trả về danh sách mapping chi tiết các vai trò (role) nào được quyền chỉnh sửa nhóm cấu hình (module) nào trong hệ thống.
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Trả về danh sách mapping chi tiết các vai trò (role) nào được quyền chỉnh sửa nhóm cấu hình (module) nào trong hệ thống.
  *     tags: [1.4.8 Phân quyền chỉnh sửa cấu hình]
  *     security:
  *       - bearerAuth: []
@@ -81,6 +84,8 @@ systemRoutes.get('/config-permissions', ...requireAdmin, ConfigPermissionsContro
  *   put:
  *     summary: Cập nhật phân quyền chỉnh sửa cấu hình
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Cập nhật lại quyền chỉnh sửa các module cấu hình cho từng vai trò. Dữ liệu gửi lên sẽ ghi đè (replace) cấu hình cũ.
  *       
  *       **Ràng buộc nghiệp vụ (Business Rules):**
@@ -160,7 +165,10 @@ systemRoutes.put('/config-permissions', ...requireAdmin, ConfigPermissionsContro
  * /api/system/settings/modules:
  *   get:
  *     summary: Lấy danh sách module (dropdown filter)
- *     description: Trả về danh sách các module distinct từ bảng system_settings.
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Trả về danh sách các module distinct từ bảng system_settings.
  *     tags: [1.4.7 Quản lý tham số hệ thống]
  *     security:
  *       - bearerAuth: []
@@ -188,6 +196,9 @@ systemRoutes.get('/settings/modules', ...requireAdmin, SystemParamsController.ge
  * /api/system/settings:
  *   get:
  *     summary: Lấy tất cả tham số hệ thống (phân trang)
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.4.7 Quản lý tham số hệ thống]
  *     security:
  *       - bearerAuth: []
@@ -259,6 +270,9 @@ systemRoutes.get('/settings', ...requireAdmin, SystemParamsController.listSettin
  * /api/system/settings:
  *   post:
  *     summary: Tạo tham số hệ thống mới
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.4.7 Quản lý tham số hệ thống]
  *     security:
  *       - bearerAuth: []
@@ -295,6 +309,9 @@ systemRoutes.post('/settings', ...requireAdmin, checkConfigPermission(), SystemP
  * /api/system/settings/{key}:
  *   get:
  *     summary: Lấy 1 tham số theo key
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.4.7 Quản lý tham số hệ thống]
  *     security:
  *       - bearerAuth: []
@@ -318,6 +335,9 @@ systemRoutes.get('/settings/:key', ...requireAdmin, SystemParamsController.getSe
  * /api/system/settings/{key}:
  *   put:
  *     summary: Cập nhật giá trị tham số
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.4.7 Quản lý tham số hệ thống]
  *     security:
  *       - bearerAuth: []
@@ -355,7 +375,10 @@ systemRoutes.put('/settings/:key', ...requireAdmin, checkConfigPermission(), Sys
  * /api/system/settings/{key}:
  *   delete:
  *     summary: Xóa tham số (non-protected)
- *     description: Chỉ xóa được các setting do người dùng tự tạo. Các setting hệ thống sẽ trả về 403.
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Chỉ xóa được các setting do người dùng tự tạo. Các setting hệ thống sẽ trả về 403.
  *     tags: [1.4.7 Quản lý tham số hệ thống]
  *     security:
  *       - bearerAuth: []
@@ -383,7 +406,10 @@ systemRoutes.delete('/settings/:key', ...requireAdmin, checkConfigPermission(), 
  * /api/system/ui-settings:
  *   get:
  *     summary: Lấy cấu hình giao diện hiện tại
- *     description: Trả về toàn bộ các thiết lập hiển thị gồm theme, màu sắc, font, định dạng ngày tháng, múi giờ và format giờ.
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Trả về toàn bộ các thiết lập hiển thị gồm theme, màu sắc, font, định dạng ngày tháng, múi giờ và format giờ.
  *     tags: [1.4.6 Cấu hình giao diện]
  *     security:
  *       - bearerAuth: []
@@ -432,6 +458,8 @@ systemRoutes.get('/ui-settings', ...requireAdmin, UiSettingsController.getUiSett
  *   put:
  *     summary: Cập nhật cấu hình giao diện
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Partial update: chỉ cần gửi các field muốn thay đổi.
  *
  *       **Validation rules:**
@@ -518,7 +546,10 @@ systemRoutes.put('/ui-settings', ...requireAdmin, checkConfigPermission('UI'), U
  * /api/system/i18n/supported:
  *   get:
  *     summary: Lấy danh sách ngôn ngữ có sẵn trong hệ thống
- *     description: Trả về 5 ngôn ngữ được hỏ trợ kèm trạng thái `is_active` (có nằm trong supported_languages không).
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Trả về 5 ngôn ngữ được hỏ trợ kèm trạng thái `is_active` (có nằm trong supported_languages không).
  *     tags: [1.4.5 Cấu hình đa ngôn ngữ]
  *     security:
  *       - bearerAuth: []
@@ -560,7 +591,10 @@ systemRoutes.get('/i18n/supported', ...requireAdmin, I18nSettingsController.getS
  * /api/system/i18n:
  *   get:
  *     summary: Lấy cấu hình ngôn ngữ hiện tại
- *     description: Trả về ngôn ngữ mặc định và danh sách ngôn ngữ đang kích hoạt.
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Trả về ngôn ngữ mặc định và danh sách ngôn ngữ đang kích hoạt.
  *     tags: [1.4.5 Cấu hình đa ngôn ngữ]
  *     security:
  *       - bearerAuth: []
@@ -597,6 +631,8 @@ systemRoutes.get('/i18n', ...requireAdmin, I18nSettingsController.getI18nConfig)
  *   put:
  *     summary: Cập nhật cấu hình ngôn ngữ
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Cập nhật ngôn ngữ mặc định và/hoặc danh sách ngôn ngữ đang bật.
  *
  *       **Validation rules:**
@@ -661,6 +697,8 @@ systemRoutes.put('/i18n', ...requireAdmin, checkConfigPermission('I18N'), I18nSe
  *   get:
  *     summary: Lấy cấu hình bảo mật hiện tại
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Trả về toàn bộ cấu hình bảo mật hệ thống dưới dạng structured object.
  *       Nếu chưa được cấu hình, trả về giá trị mặc định an toàn.
  *     tags: [1.4.4 Cấu hình bảo mật]
@@ -727,6 +765,8 @@ systemRoutes.get('/security-settings', ...requireAdmin, SecuritySettingsControll
  *   put:
  *     summary: Cập nhật cấu hình bảo mật
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Partial update: chỉ cần gửi các field muốn thay đổi.
  *
  *       **Validation rules:**
@@ -826,6 +866,8 @@ systemRoutes.put('/security-settings', ...requireAdmin, checkConfigPermission('S
  *   get:
  *     summary: Lấy tất cả quy định nghiệp vụ
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Trả về danh sách các quy định, nhóm theo module.
  *       Hỗ trợ filter: `?module=APPOINTMENT` hoặc `?module=SECURITY`.
  *     tags: [1.4.3 Cấu hình quy định nghiệp vụ]
@@ -888,6 +930,8 @@ systemRoutes.get('/business-rules', ...requireAdmin, BusinessRulesController.get
  *   put:
  *     summary: Cập nhật nhiều quy định nghiệp vụ cùng lúc
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Cập nhật hàng loạt quy định trong 1 request. Toàn bộ batch được thực hiện trong 1 transaction –
  *       nếu 1 rule sai validation, toàn bộ rollback.
  *
@@ -951,6 +995,9 @@ systemRoutes.put('/business-rules/bulk', ...requireAdmin, checkConfigPermission(
  * /api/system/business-rules/{ruleKey}:
  *   get:
  *     summary: Lấy 1 quy định nghiệp vụ theo key
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.4.3 Cấu hình quy định nghiệp vụ]
  *     security:
  *       - bearerAuth: []
@@ -1008,6 +1055,8 @@ systemRoutes.get('/business-rules/:ruleKey', ...requireAdmin, BusinessRulesContr
  *   put:
  *     summary: Cập nhật 1 quy định nghiệp vụ
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Cập nhật giá trị của 1 quy định nghiệp vụ theo key. Validate type và range tự động.
  *
  *       **Ví dụ:** `PUT /api/system/business-rules/CANCEL_APPOINTMENT_BEFORE_HOURS` với `{"value": 48}`
@@ -1068,6 +1117,8 @@ systemRoutes.put('/business-rules/:ruleKey', ...requireAdmin, checkConfigPermiss
  *   get:
  *     summary: Lấy cấu hình giờ làm việc 7 ngày trong tuần
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Trả về mảng 7 phần tử tương ứng với 7 ngày (Chủ nhật → Thứ 7).
  *       Nếu DB chưa cấu hình, trả về mảng rỗng `[]`.
  *
@@ -1125,6 +1176,8 @@ systemRoutes.get('/working-hours', ...requireAdmin, SystemSettingsController.get
  *   put:
  *     summary: Cập nhật cấu hình giờ làm việc
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Cập nhật khung giờ mặc định theo từng ngày. Chỉ cần gửi những ngày cần thay đổi.
  *
  *       **Validation rules:**
@@ -1206,6 +1259,8 @@ systemRoutes.put('/working-hours', ...requireAdmin, checkConfigPermission('WORKI
  *   get:
  *     summary: Lấy cấu hình slot khám bệnh
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Lấy cấu hình thời lượng mỗi slot và số bệnh nhân tối đa mỗi slot.
  *       Nếu chưa cấu hình, trả về giá trị mặc định: `duration_minutes=15`, `max_patients_per_slot=1`.
  *     tags: [1.4.2 Cấu hình thời gian làm việc]
@@ -1248,6 +1303,8 @@ systemRoutes.get('/working-hours/slot-config', ...requireAdmin, SystemSettingsCo
  *   put:
  *     summary: Cập nhật cấu hình slot khám bệnh
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Cập nhật thời lượng 1 slot và/hoặc số bệnh nhân tối đa mỗi slot. Tất cả các trường đều là tùy chọn.
  *
  *       **Validation rules:**
@@ -1338,7 +1395,10 @@ systemRoutes.put('/working-hours/slot-config', ...requireAdmin, checkConfigPermi
  * /api/system/facility-info:
  *   get:
  *     summary: Lấy thông tin cơ sở y tế
- *     description: Trả về toàn bộ thông tin của cơ sở y tế chính trong hệ thống (tên, logo, địa chỉ, liên hệ, mã số thuế).
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Trả về toàn bộ thông tin của cơ sở y tế chính trong hệ thống (tên, logo, địa chỉ, liên hệ, mã số thuế).
  *     tags: [1.4.1 Cấu hình thông tin cơ sở y tế]
  *     security:
  *       - bearerAuth: []
@@ -1410,7 +1470,10 @@ systemRoutes.get('/facility-info', ...requireAdmin, SystemFacilityController.get
  * /api/system/facility-info:
  *   put:
  *     summary: Cập nhật thông tin cơ sở y tế
- *     description: Cập nhật một hoặc nhiều trường thông tin cơ sở y tế. Chỉ Admin mới có quyền thực hiện. Tất cả các trường đều là tùy chọn (partial update).
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Cập nhật một hoặc nhiều trường thông tin cơ sở y tế. Chỉ Admin mới có quyền thực hiện. Tất cả các trường đều là tùy chọn (partial update).
  *     tags: [1.4.1 Cấu hình thông tin cơ sở y tế]
  *     security:
  *       - bearerAuth: []
@@ -1487,6 +1550,8 @@ systemRoutes.put('/facility-info', ...requireAdmin, SystemFacilityController.upd
  *   post:
  *     summary: Upload logo cơ sở y tế
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Upload ảnh logo lên Cloudinary và cập nhật `logo_url` cho cơ sở y tế.
  *
  *       **Yêu cầu file:**

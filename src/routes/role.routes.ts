@@ -14,7 +14,10 @@ roleRoutes.use(verifyAccessToken);
  * /api/roles:
  *   get:
  *     summary: Lấy danh sách Roles (Vai trò)
- *     description: API trả về danh sách vai trò có phân trang/lọc.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
+ *       API trả về danh sách vai trò có phân trang/lọc.
  *     tags: [1.3.1 Quản lý danh mục vai trò]
  *     security:
  *       - bearerAuth: []
@@ -44,6 +47,9 @@ roleRoutes.get('/', authorizePermissions('ROLE_VIEW'), RoleController.getRoles);
  * /api/roles/{roleId}:
  *   get:
  *     summary: Lấy chi tiết Role theo ID
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.1 Quản lý danh mục vai trò]
  *     security:
  *       - bearerAuth: []
@@ -66,6 +72,9 @@ roleRoutes.get('/:roleId', authorizePermissions('ROLE_VIEW'), RoleController.get
  * /api/roles:
  *   post:
  *     summary: Tạo vai trò mới
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.1 Quản lý danh mục vai trò]
  *     security:
  *       - bearerAuth: []
@@ -99,6 +108,9 @@ roleRoutes.post('/', authorizePermissions('ROLE_CREATE'), RoleController.createR
  * /api/roles/{roleId}:
  *   patch:
  *     summary: Cập nhật vai trò (Tên, Mô tả)
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.1 Quản lý danh mục vai trò]
  *     security:
  *       - bearerAuth: []
@@ -130,6 +142,9 @@ roleRoutes.patch('/:roleId', authorizePermissions('ROLE_UPDATE'), RoleController
  * /api/roles/{roleId}/status:
  *   patch:
  *     summary: Bật/Tắt (Active/Inactive) vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.1 Quản lý danh mục vai trò]
  *     security:
  *       - bearerAuth: []
@@ -164,6 +179,9 @@ roleRoutes.patch('/:roleId/status', authorizePermissions('ROLE_UPDATE'), RoleCon
  * /api/roles/{roleId}:
  *   delete:
  *     summary: Xóa vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.1 Quản lý danh mục vai trò]
  *     security:
  *       - bearerAuth: []
@@ -190,6 +208,9 @@ roleRoutes.delete('/:roleId', authorizePermissions('ROLE_DELETE'), RoleControlle
  * /api/roles/{roleId}/permissions:
  *   get:
  *     summary: Lấy danh sách quyền của Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.3 Gán quyền cho vai trò]
  *     security:
  *       - bearerAuth: []
@@ -210,6 +231,9 @@ roleRoutes.get('/:roleId/permissions', authorizePermissions('ROLE_VIEW'), RoleCo
  * /api/roles/{roleId}/permissions:
  *   put:
  *     summary: Thay thế (Replace) danh sách quyền của Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.3 Gán quyền cho vai trò]
  *     security:
  *       - bearerAuth: []
@@ -243,6 +267,9 @@ roleRoutes.put('/:roleId/permissions', authorizePermissions('ROLE_UPDATE'), Role
  * /api/roles/{roleId}/permissions:
  *   post:
  *     summary: Gán thêm một quyền lẻ cho Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.3 Gán quyền cho vai trò]
  *     security:
  *       - bearerAuth: []
@@ -274,6 +301,9 @@ roleRoutes.post('/:roleId/permissions', authorizePermissions('ROLE_CREATE'), Rol
  * /api/roles/{roleId}/permissions/{permissionId}:
  *   delete:
  *     summary: Xóa một quyền lẻ khỏi Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.3 Gán quyền cho vai trò]
  *     security:
  *       - bearerAuth: []
@@ -304,6 +334,9 @@ roleRoutes.delete('/:roleId/permissions/:permissionId', authorizePermissions('RO
  * /api/roles/{roleId}/menus:
  *   get:
  *     summary: Lấy danh sách Menu của Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -324,6 +357,9 @@ roleRoutes.get('/:roleId/menus', authorizePermissions('ROLE_VIEW'), RoleControll
  * /api/roles/{roleId}/menus:
  *   post:
  *     summary: Gán thêm một Menu cho Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -355,6 +391,9 @@ roleRoutes.post('/:roleId/menus', authorizePermissions('ROLE_CREATE'), RoleContr
  * /api/roles/{roleId}/menus/{menuId}:
  *   delete:
  *     summary: Xóa một Menu khỏi Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -385,6 +424,9 @@ roleRoutes.delete('/:roleId/menus/:menuId', authorizePermissions('ROLE_DELETE'),
  * /api/roles/{roleId}/api-permissions:
  *   get:
  *     summary: Lấy danh sách API được phép truy cập của Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -405,6 +447,9 @@ roleRoutes.get('/:roleId/api-permissions', authorizePermissions('ROLE_VIEW'), Ro
  * /api/roles/{roleId}/api-permissions:
  *   post:
  *     summary: Gán thêm một API cho Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -435,6 +480,9 @@ roleRoutes.post('/:roleId/api-permissions', authorizePermissions('ROLE_CREATE'),
  * /api/roles/{roleId}/api-permissions/{apiId}:
  *   delete:
  *     summary: Xóa một API khỏi ranh giới Vai trò
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []

@@ -4,6 +4,7 @@ dotenv.config();
 import app from './app';
 import { connectDB, closeDB } from './config/postgresdb';
 import { Server } from 'http';
+import { ApiPermissionCacheService } from './services/api-permission-cache.service';
 
 const PORT = process.env.PORT || 3000;
 let server: Server;
@@ -11,6 +12,7 @@ let server: Server;
 // Khởi động ứng dụng
 const startServer = async () => {
     await connectDB();
+    await ApiPermissionCacheService.initCache();
 
     server = app.listen(PORT, () => {
         console.log(`🚀 Server is running on port ${PORT}`);

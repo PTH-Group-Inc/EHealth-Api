@@ -22,7 +22,10 @@ notificationCategoryRoutes.use(verifyAccessToken, checkSessionStatus, authorizeP
  * /api/notifications/categories:
  *   get:
  *     summary: Lấy danh sách loại thông báo
- *     description: Lấy danh sách phân trang (Hỗ trợ tìm kiếm theo name hoặc code)
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Lấy danh sách phân trang (Hỗ trợ tìm kiếm theo name hoặc code)
  *     tags: [1.7.1 Quản lý Loại Thông báo (Notification Categories)]
  *     security:
  *       - bearerAuth: []
@@ -51,6 +54,9 @@ notificationCategoryRoutes.get('/', NotificationCategoryController.getCategories
  * /api/notifications/categories:
  *   post:
  *     summary: Tạo loại thông báo mới
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.1 Quản lý Loại Thông báo (Notification Categories)]
  *     security:
  *       - bearerAuth: []
@@ -84,6 +90,9 @@ notificationCategoryRoutes.post('/', NotificationCategoryController.createCatego
  * /api/notifications/categories/{id}:
  *   put:
  *     summary: Cập nhật loại thông báo
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.1 Quản lý Loại Thông báo (Notification Categories)]
  *     security:
  *       - bearerAuth: []
@@ -119,6 +128,9 @@ notificationCategoryRoutes.put('/:id', NotificationCategoryController.updateCate
  * /api/notifications/categories/{id}:
  *   delete:
  *     summary: Xóa ẩn một loại thông báo
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.1 Quản lý Loại Thông báo (Notification Categories)]
  *     security:
  *       - bearerAuth: []

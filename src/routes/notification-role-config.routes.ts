@@ -21,7 +21,10 @@ notificationRoleConfigRoutes.use(verifyAccessToken, checkSessionStatus, authoriz
  * /api/notifications/role-configs:
  *   get:
  *     summary: Xem khung ma trận Cấu hình
- *     description: Lấy danh sách toàn bộ các Role hiện hành kèm theo danh sách các nhóm thông báo tương ứng. Kết quả được Group by Role.
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Lấy danh sách toàn bộ các Role hiện hành kèm theo danh sách các nhóm thông báo tương ứng. Kết quả được Group by Role.
  *     tags: [1.7.3 Cấu hình Thông báo theo Vai trò]
  *     security:
  *       - bearerAuth: []
@@ -76,6 +79,9 @@ notificationRoleConfigRoutes.get('/', NotificationRoleConfigController.getConfig
  * /api/notifications/role-configs/{roleId}/{categoryId}:
  *   put:
  *     summary: Cầu hình chi tiết nhận gửi 1 category của 1 role
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.3 Cấu hình Thông báo theo Vai trò]
  *     security:
  *       - bearerAuth: []

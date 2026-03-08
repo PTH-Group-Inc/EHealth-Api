@@ -14,6 +14,9 @@ menuRoutes.use(verifyAccessToken);
  * /api/menus:
  *   get:
  *     summary: Lấy danh sách toàn bộ Menu hệ thống
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -28,6 +31,9 @@ menuRoutes.get('/', authorizePermissions('MENU_VIEW'), MenuController.getMenus);
  * /api/menus:
  *   post:
  *     summary: Tạo mới Menu hệ thống
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -68,6 +74,9 @@ menuRoutes.post('/', authorizePermissions('MENU_CREATE'), MenuController.createM
  * /api/menus/{menuId}:
  *   patch:
  *     summary: Cập nhật thông tin Menu
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -118,6 +127,9 @@ menuRoutes.patch('/:menuId', authorizePermissions('MENU_UPDATE'), MenuController
  * /api/menus/{menuId}:
  *   delete:
  *     summary: Xóa một Menu khỏi hệ thống
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.5 Kiểm soát hiển thị menu theo vai trò]
  *     security:
  *       - bearerAuth: []

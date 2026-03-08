@@ -14,7 +14,10 @@ moduleRoutes.use(verifyAccessToken);
  * /api/modules:
  *   get:
  *     summary: Lấy danh sách các Module riêng biệt
- *     description: API trả về mảng danh sách tên các Module có sẵn trong hệ thống phục vụ việc nhóm quyền hạn.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
+ *       API trả về mảng danh sách tên các Module có sẵn trong hệ thống phục vụ việc nhóm quyền hạn.
  *     tags: [1.3.4 Phân quyền theo module]
  *     security:
  *       - bearerAuth: []
@@ -29,6 +32,9 @@ moduleRoutes.get('/', authorizePermissions('MODULE_VIEW'), ModuleController.getM
  * /api/modules/{moduleName}/permissions:
  *   get:
  *     summary: Lấy danh sách Quyền của một Module cụ thể
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.4 Phân quyền theo module]
  *     security:
  *       - bearerAuth: []

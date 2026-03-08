@@ -2,6 +2,7 @@ import { ApiPermissionDetail, CreateApiPermissionInput, UpdateApiPermissionInput
 import { ApiPermissionRepository } from '../repository/api-permission.repository';
 import { AppError } from '../utils/app-error.util';
 import { SecurityUtil } from '../utils/auth-security.util';
+import { ApiPermissionCacheService } from './api-permission-cache.service';
 
 export class ApiPermissionService {
     /**
@@ -29,7 +30,11 @@ export class ApiPermissionService {
         }
 
         const apiId = SecurityUtil.generateApiPermissionId();
-        return await ApiPermissionRepository.createApiPermission(apiId, input, adminId, ipAddress, userAgent);
+        const result = await ApiPermissionRepository.createApiPermission(apiId, input, adminId, ipAddress, userAgent);
+
+        await ApiPermissionCacheService.refreshCache();
+
+        return result;
     }
 
     /**
@@ -60,7 +65,11 @@ export class ApiPermissionService {
         if (input.method) input.method = input.method.trim().toUpperCase();
         if (input.endpoint) input.endpoint = input.endpoint.trim();
 
-        return await ApiPermissionRepository.updateApiPermission(apiId, input, adminId, ipAddress, userAgent);
+        const result = await ApiPermissionRepository.updateApiPermission(apiId, input, adminId, ipAddress, userAgent);
+
+        await ApiPermissionCacheService.refreshCache();
+
+        return result;
     }
 
     /**
@@ -78,5 +87,6 @@ export class ApiPermissionService {
         }
 
         await ApiPermissionRepository.deleteApiPermission(apiId, adminId, ipAddress, userAgent);
+        await ApiPermissionCacheService.refreshCache();
     }
 }

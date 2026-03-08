@@ -43,11 +43,31 @@ export interface FacilityInfo {
     headquarters_address: string | null;
     status: string;
     updated_at: Date;
+    deleted_at?: Date | null;
 }
 
 // Input để Admin cập nhật thông tin
 export interface UpdateFacilityInfoInput {
     name?: string;
+    tax_code?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    headquarters_address?: string;
+}
+
+// Query filter cho danh sách cơ sở
+export interface FacilityQuery {
+    search?: string;
+    status?: string;
+    page: number;
+    limit: number;
+}
+
+// Input tạo mới cơ sở y tế
+export interface CreateFacilityInput {
+    code: string;
+    name: string;
     tax_code?: string;
     email?: string;
     phone?: string;

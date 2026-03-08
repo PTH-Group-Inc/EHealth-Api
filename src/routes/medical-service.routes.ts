@@ -28,6 +28,9 @@ router.use(checkSessionStatus);
  * /api/medical-services/master:
  *   get:
  *     summary: Lấy danh sách dịch vụ chuẩn
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -69,6 +72,9 @@ router.get('/master', authorizePermissions('SERVICE_VIEW'), MasterServiceControl
  * /api/medical-services/master/export:
  *   get:
  *     summary: Xuất danh sách dịch vụ chuẩn ra file Excel
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -88,7 +94,10 @@ router.get('/master/export', authorizePermissions('SERVICE_EXPORT'), MasterServi
  * /api/medical-services/master/import:
  *   post:
  *     summary: Import danh sách dịch vụ chuẩn bằng file Excel
- *     description: Tải lên file Excel (.xlsx). Yêu cầu cột "Mã Dịch Vụ (*)" và "Tên Dịch Vụ (*)".
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tải lên file Excel (.xlsx). Yêu cầu cột "Mã Dịch Vụ (*)" và "Tên Dịch Vụ (*)".
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -115,6 +124,9 @@ router.post('/master/import', authorizePermissions('SERVICE_IMPORT'), uploadExce
  * /api/medical-services/master/{id}:
  *   get:
  *     summary: Lấy chi tiết dịch vụ chuẩn
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -137,6 +149,9 @@ router.get('/master/:id', authorizePermissions('SERVICE_VIEW'), MasterServiceCon
  * /api/medical-services/master:
  *   post:
  *     summary: Tạo dịch vụ chuẩn mới
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -178,6 +193,9 @@ router.post('/master', authorizePermissions('SERVICE_CREATE'), MasterServiceCont
  * /api/medical-services/master/{id}:
  *   put:
  *     summary: Cập nhật dịch vụ chuẩn
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -219,6 +237,9 @@ router.put('/master/:id', authorizePermissions('SERVICE_UPDATE'), MasterServiceC
  * /api/medical-services/master/{id}/status:
  *   patch:
  *     summary: Khóa / Mở khóa dịch vụ chuẩn
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -251,6 +272,9 @@ router.patch('/master/:id/status', authorizePermissions('SERVICE_UPDATE'), Maste
  * /api/medical-services/master/{id}:
  *   delete:
  *     summary: Xóa mềm dịch vụ chuẩn
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
@@ -287,6 +311,9 @@ router.delete('/master/:id', authorizePermissions('SERVICE_DELETE'), MasterServi
  * /api/medical-services/facilities/{facilityId}/services:
  *   get:
  *     summary: Lấy danh sách dịch vụ tại 1 cơ sở
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
@@ -332,6 +359,9 @@ router.get('/facilities/:facilityId/services', authorizePermissions('FACILITY_SE
  * /api/medical-services/facilities/{facilityId}/services/export:
  *   get:
  *     summary: Xuất danh sách dịch vụ cơ sở ra file Excel
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
@@ -357,7 +387,10 @@ router.get('/facilities/:facilityId/services/export', authorizePermissions('FACI
  * /api/medical-services/facilities/{facilityId}/services/import:
  *   post:
  *     summary: Import danh sách dịch vụ cơ sở bằng file Excel
- *     description: Tải lên file Excel (.xlsx). Yêu cầu cột "Mã Dịch Vụ Chuẩn (*)" và "Giá Cơ Bản (VNĐ) (*)". Phải thuộc 1 cơ sở cụ thể.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tải lên file Excel (.xlsx). Yêu cầu cột "Mã Dịch Vụ Chuẩn (*)" và "Giá Cơ Bản (VNĐ) (*)". Phải thuộc 1 cơ sở cụ thể.
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
@@ -390,6 +423,9 @@ router.post('/facilities/:facilityId/services/import', authorizePermissions('FAC
  * /api/medical-services/facilities/{facilityId}/active-services:
  *   get:
  *     summary: API load nhanh dịch vụ đang Hoạt động cho Dropdown Bác sĩ
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
@@ -419,6 +455,9 @@ router.get('/facilities/:facilityId/active-services', authorizePermissions('FACI
  * /api/medical-services/facilities/services/{id}:
  *   get:
  *     summary: Lấy chi tiết cấu hình dịch vụ cơ sở
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
@@ -441,6 +480,9 @@ router.get('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_VI
  * /api/medical-services/facilities/{facilityId}/services:
  *   post:
  *     summary: Thêm dịch vụ vào cơ sở
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
@@ -494,6 +536,9 @@ router.post('/facilities/:facilityId/services', authorizePermissions('FACILITY_S
  * /api/medical-services/facilities/services/{id}:
  *   put:
  *     summary: Sửa cấu hình (Đổi giá, đổi phòng) cho dịch vụ cơ sở
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
@@ -535,6 +580,9 @@ router.put('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_UP
  * /api/medical-services/facilities/services/{id}/status:
  *   patch:
  *     summary: Ngưng/Bật cung cấp dịch vụ tại cơ sở
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []

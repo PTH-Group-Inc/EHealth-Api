@@ -15,6 +15,8 @@ specialtyRouter.use(checkSessionStatus);
  *   get:
  *     summary: Lấy danh sách chuyên khoa
  *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *       Trả về danh sách chuyên khoa với hỗ trợ phân trang và tìm kiếm.
  *       **Yêu cầu:**
  *       - Access Token hợp lệ (Bearer Token)
@@ -111,6 +113,8 @@ specialtyRouter.get('/', authorizePermissions('SPECIALTY_VIEW', 'SPECIALTY_VIEW_
  *   get:
  *     summary: Lấy thông tin chi tiết một chuyên khoa
  *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *       Trả về thông tin chi tiết của chuyên khoa theo ID.
  *       **Yêu cầu:**
  *       - Access Token hợp lệ (Bearer Token)
@@ -173,6 +177,8 @@ specialtyRouter.get('/:id', authorizePermissions('SPECIALTY_VIEW'), SpecialtyCon
  *   post:
  *     summary: Tạo mới chuyên khoa
  *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *       Tạo một chuyên khoa mới.
  *       **Yêu cầu:**
  *       - Access Token hợp lệ (Bearer Token)
@@ -250,6 +256,8 @@ specialtyRouter.post('/', authorizePermissions('SPECIALTY_CREATE'), SpecialtyCon
  *   put:
  *     summary: Cập nhật thông tin chuyên khoa
  *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *       Cập nhật thông tin chuyên khoa.
  *       **Yêu cầu:**
  *       - Access Token hợp lệ (Bearer Token)
@@ -336,6 +344,8 @@ specialtyRouter.put('/:id', authorizePermissions('SPECIALTY_UPDATE'), SpecialtyC
  *   delete:
  *     summary: Xóa chuyên khoa (Xóa mềm)
  *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *       Thực hiện xóa mềm chuyên khoa bằng cách cập nhật cột deleted_at.
  *       **Yêu cầu:**
  *       - Access Token hợp lệ (Bearer Token)
