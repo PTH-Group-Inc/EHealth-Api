@@ -304,3 +304,50 @@ WHERE code LIKE 'DRUG_%' OR code LIKE 'SPECIALTY_%'
 ON CONFLICT DO NOTHING;
 
 
+-- Dọn dẹp dữ liệu rác (nếu cần)
+-- DELETE FROM role_api_permissions;
+-- DELETE FROM api_permissions;
+
+INSERT INTO api_permissions (api_id, method, endpoint, description, module) VALUES
+-- USER MANAGEMENT
+('API_GET_USERS', 'GET', '/api/users', 'Lấy danh sách người dùng', 'USER_MANAGEMENT'),
+('API_GET_USER_ID', 'GET', '/api/users/:userId', 'Chi tiết người dùng', 'USER_MANAGEMENT'),
+('API_GET_PROFILE', 'GET', '/api/profile', 'Xem profile cá nhân', 'USER_MANAGEMENT'),
+
+-- SPECIALTY & PHARMACY &. FACILITY (NHÓM BÁC SĨ, Y TÁ, STAFF THƯỜNG DÙNG)
+('API_GET_SPC', 'GET', '/api/specialties', 'Xem chuyên khoa', 'SPECIALTY_MANAGEMENT'),
+('API_GET_MEDSRV', 'GET', '/api/medical-services', 'Dịch vụ y tế', 'SERVICE_MANAGEMENT'),
+('API_GET_PHARM', 'GET', '/api/pharmacy', 'Quản lý Dược', 'PHARMACY_MANAGEMENT'),
+('API_GET_FAC', 'GET', '/api/facilities', 'Xem cơ sở y tế', 'FACILITY_MANAGEMENT'),
+('API_GET_MASTER', 'GET', '/api/master-data', 'Xem danh mục nền', 'MASTER_DATA'),
+
+-- POST, PUT, DELETE MẪU CHO MODULE
+('API_POST_SPC', 'POST', '/api/specialties', 'Tạo Chuyên khoa', 'SPECIALTY_MANAGEMENT'),
+('API_PUT_SPC', 'PUT', '/api/specialties/:id', 'Sửa Chuyên khoa', 'SPECIALTY_MANAGEMENT'),
+('API_POST_PHARM', 'POST', '/api/pharmacy', 'Tạo Lô thuốc', 'PHARMACY_MANAGEMENT')
+ON CONFLICT (method, endpoint) DO NOTHING;
+
+-- BƯỚC QUAN TRỌNG NHẤT: Bổ sung Role API Permissions (Gán Endpoint cho Role)
+-- 1. ROLE DOCTOR (Được Xem và Khám)
+INSERT INTO role_api_permissions (role_id, api_id)
+SELECT 'ROLE_DOCTOR', api_id FROM api_permissions 
+WHERE module IN ('SPECIALTY_MANAGEMENT', 'FACILITY_MANAGEMENT', 'USER_MANAGEMENT', 'MASTER_DATA');
+
+-- 2. ROLE NURSE 
+INSERT INTO role_api_permissions (role_id, api_id)
+SELECT 'ROLE_NURSE', api_id FROM api_permissions 
+WHERE module IN ('SPECIALTY_MANAGEMENT', 'FACILITY_MANAGEMENT', 'USER_MANAGEMENT', 'MASTER_DATA');
+
+-- 3. ROLE PHARMACIST (Dược sĩ được thêm cả nhóm quản lý kho thuốc)
+INSERT INTO role_api_permissions (role_id, api_id)
+SELECT 'ROLE_PHARMACIST', api_id FROM api_permissions 
+WHERE module IN ('PHARMACY_MANAGEMENT', 'FACILITY_MANAGEMENT', 'MASTER_DATA');
+
+-- 4. ROLE STAFF (Quyền quản trị cấp cơ sở)
+INSERT INTO role_api_permissions (role_id, api_id)
+SELECT 'ROLE_STAFF', api_id FROM api_permissions 
+WHERE module IN ('SERVICE_MANAGEMENT', 'PHARMACY_MANAGEMENT', 'SPECIALTY_MANAGEMENT', 'FACILITY_MANAGEMENT', 'USER_MANAGEMENT', 'MASTER_DATA');
+
+-- 5. ADMIN CHẤP HẾT
+INSERT INTO role_api_permissions (role_id, api_id)
+SELECT 'ROLE_ADMIN', api_id FROM api_permissions ON CONFLICT DO NOTHING;

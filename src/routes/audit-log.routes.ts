@@ -23,6 +23,9 @@ auditLogRoutes.use(authorizePermissions('AUDIT_LOG_VIEW', 'AUDIT_LOG_EXPORT'));
  * /api/system/audit-logs/export-excel:
  *   get:
  *     summary: Xuất file Excel toàn bộ lịch sử thao tác
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.8 Quản lý Nhật ký hệ thống (Audit Logs)]
  *     security:
  *       - bearerAuth: []
@@ -56,6 +59,9 @@ auditLogRoutes.get('/export-excel', AuditLogController.exportExcel);
  * /api/system/audit-logs:
  *   get:
  *     summary: Tra cứu danh sách Audit Logs
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.8 Quản lý Nhật ký hệ thống (Audit Logs)]
  *     security:
  *       - bearerAuth: []
@@ -95,6 +101,9 @@ auditLogRoutes.get('/', AuditLogController.getLogs);
  * /api/system/audit-logs/{id}:
  *   get:
  *     summary: Xem chi tiết 1 dòng Log để Validate Before/After
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.8 Quản lý Nhật ký hệ thống (Audit Logs)]
  *     security:
  *       - bearerAuth: []

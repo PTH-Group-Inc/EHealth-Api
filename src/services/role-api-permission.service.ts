@@ -3,6 +3,7 @@ import { RoleApiPermissionRepository } from '../repository/role-api-permission.r
 import { RoleRepository } from '../repository/role.repository';
 import { ApiPermissionRepository } from '../repository/api-permission.repository';
 import { AppError } from '../utils/app-error.util';
+import { ApiPermissionCacheService } from './api-permission-cache.service';
 
 export class RoleApiPermissionService {
     /**
@@ -37,6 +38,7 @@ export class RoleApiPermissionService {
         }
 
         await RoleApiPermissionRepository.assignApiPermission(roleId, apiId, adminId, ipAddress, userAgent);
+        await ApiPermissionCacheService.refreshCache();
     }
 
     /**
@@ -55,5 +57,6 @@ export class RoleApiPermissionService {
         }
 
         await RoleApiPermissionRepository.removeApiPermission(roleId, apiId, adminId, ipAddress, userAgent);
+        await ApiPermissionCacheService.refreshCache();
     }
 }

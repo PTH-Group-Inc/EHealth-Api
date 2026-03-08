@@ -1,6 +1,7 @@
 import { RoleRepository } from '../repository/role.repository';
 import { CreateRoleInput, UpdateRoleInput, RoleQueryFilter, RoleDetail } from '../models/role.model';
 import { AppError } from '../utils/app-error.util';
+import { ApiPermissionCacheService } from './api-permission-cache.service';
 
 export class RoleService {
     /**

@@ -21,7 +21,10 @@ notificationTemplateRoutes.use(verifyAccessToken, checkSessionStatus, authorizeP
  * /api/notifications/templates:
  *   get:
  *     summary: Lấy danh sách mẫu thông báo
- *     description: Lấy danh sách phân trang mẫu thông báo
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Lấy danh sách phân trang mẫu thông báo
  *     tags: [1.7.2 Quản lý Mẫu Thông báo (Notification Templates)]
  *     security:
  *       - bearerAuth: []
@@ -55,6 +58,9 @@ notificationTemplateRoutes.get('/', NotificationTemplateController.getTemplates)
  * /api/notifications/templates:
  *   post:
  *     summary: Tạo mẫu thông báo mới
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.2 Quản lý Mẫu Thông báo (Notification Templates)]
  *     security:
  *       - bearerAuth: []
@@ -101,6 +107,9 @@ notificationTemplateRoutes.post('/', NotificationTemplateController.createTempla
  * /api/notifications/templates/{id}:
  *   put:
  *     summary: Cập nhật mẫu thông báo
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.2 Quản lý Mẫu Thông báo (Notification Templates)]
  *     security:
  *       - bearerAuth: []
@@ -140,6 +149,9 @@ notificationTemplateRoutes.put('/:id', NotificationTemplateController.updateTemp
  * /api/notifications/templates/{id}:
  *   delete:
  *     summary: Xóa ẩn một mẫu thông báo
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.7.2 Quản lý Mẫu Thông báo (Notification Templates)]
  *     security:
  *       - bearerAuth: []

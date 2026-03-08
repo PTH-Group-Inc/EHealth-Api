@@ -14,6 +14,9 @@ apiPermissionRoutes.use(verifyAccessToken);
  * /api/api-permissions:
  *   get:
  *     summary: Lấy danh sách API Endpoints
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -50,6 +53,9 @@ apiPermissionRoutes.get('/', authorizePermissions('API_PERMISSION_VIEW'), ApiPer
  * /api/api-permissions:
  *   post:
  *     summary: Đăng ký API Endpoint mới
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -84,6 +90,9 @@ apiPermissionRoutes.post('/', authorizePermissions('API_PERMISSION_CREATE'), Api
  * /api/api-permissions/{apiId}:
  *   patch:
  *     summary: Chỉnh sửa thông số API Endpoint
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []
@@ -124,6 +133,9 @@ apiPermissionRoutes.patch('/:apiId', authorizePermissions('API_PERMISSION_UPDATE
  * /api/api-permissions/{apiId}:
  *   delete:
  *     summary: Xóa API Endpoint khỏi cấu hình
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.6 Kiểm soát API theo vai trò]
  *     security:
  *       - bearerAuth: []

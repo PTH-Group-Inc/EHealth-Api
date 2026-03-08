@@ -18,6 +18,8 @@ masterDataRoutes.use(checkSessionStatus);
  *   get:
  *     summary: Lấy danh sách nhóm danh mục
  *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *       Trả về danh sách các nhóm danh mục nền của hệ thống.
  *       Hỗ trợ:
  *       - Tìm kiếm theo `code` hoặc `name`
@@ -114,6 +116,8 @@ masterDataRoutes.get('/categories', authorizePermissions('MASTER_DATA_VIEW'), Ma
  *   post:
  *     summary: Tạo mới nhóm danh mục
  *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *       Tạo một nhóm danh mục mới cho hệ thống.
  *
  *       Quy tắc:
@@ -170,6 +174,9 @@ masterDataRoutes.post('/categories', authorizePermissions('MASTER_DATA_CREATE'),
  * /api/master-data/categories/export:
  *   get:
  *     summary: Xuất danh sách nhóm danh mục ra file Excel
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.2 Quản lý danh mục]
  *     security:
  *       - bearerAuth: []
@@ -189,7 +196,10 @@ masterDataRoutes.get('/categories/export', authorizePermissions('MASTER_DATA_EXP
  * /api/master-data/categories/import:
  *   post:
  *     summary: Import danh sách nhóm danh mục bằng file Excel
- *     description: Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật hàng loạt nhóm danh mục. Yêu cầu có cột "Mã Dữ Liệu (*)" và "Tên Danh Mục (*)".
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật hàng loạt nhóm danh mục. Yêu cầu có cột "Mã Dữ Liệu (*)" và "Tên Danh Mục (*)".
  *     tags: [1.5.2 Quản lý danh mục]
  *     security:
  *       - bearerAuth: []
@@ -217,7 +227,10 @@ masterDataRoutes.post('/categories/import', authorizePermissions('MASTER_DATA_IM
  * /api/master-data/categories/{id}:
  *   get:
  *     summary: Lấy chi tiết nhóm danh mục
- *     description: Lấy thông tin chi tiết của một nhóm danh mục theo ID
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
+ *       Lấy thông tin chi tiết của một nhóm danh mục theo ID
  *
  *     tags: [1.5.2 Quản lý danh mục]
  *
@@ -251,6 +264,8 @@ masterDataRoutes.get('/categories/:id', authorizePermissions('MASTER_DATA_VIEW')
  *   put:
  *     summary: Cập nhật nhóm danh mục
  *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *       Cập nhật thông tin nhóm danh mục.
  *
  *       Lưu ý:
@@ -303,6 +318,8 @@ masterDataRoutes.put('/categories/:id', authorizePermissions('MASTER_DATA_UPDATE
  *   delete:
  *     summary: Xóa nhóm danh mục
  *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *       Thực hiện **Soft Delete** nhóm danh mục.
  *
  *       Hệ thống sẽ chặn xóa nếu:
@@ -366,6 +383,9 @@ masterDataRoutes.delete('/categories/:id', authorizePermissions('MASTER_DATA_DEL
  * /api/master-data/categories/{categoryCode}/items/export:
  *   get:
  *     summary: Xuất danh sách chi tiết danh mục ra file Excel
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.5.2 Quản lý danh mục]
  *     security:
  *       - bearerAuth: []
@@ -391,7 +411,10 @@ masterDataRoutes.get('/categories/:categoryCode/items/export', authorizePermissi
  * /api/master-data/categories/{categoryCode}/items/import:
  *   post:
  *     summary: Import chi tiết danh mục bằng file Excel
- *     description: Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật hàng loạt chi tiết danh mục. Bắt buộc có 2 cột "Mã Giá Trị (*)" và "Giá Trị (*)".
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tải lên file Excel (.xlsx) để thêm mới hoặc cập nhật hàng loạt chi tiết danh mục. Bắt buộc có 2 cột "Mã Giá Trị (*)" và "Giá Trị (*)".
  *     tags: [1.5.2 Quản lý danh mục]
  *     security:
  *       - bearerAuth: []
@@ -425,6 +448,8 @@ masterDataRoutes.post('/categories/:categoryCode/items/import', authorizePermiss
  *   get:
  *     summary: Lấy danh sách items để hiển thị Dropdown
  *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *       Lấy toàn bộ items của 1 category để hiển thị trên giao diện (Dropdown).
  *       Chỉ lấy các items có `is_active = true` và được sắp xếp theo `sort_order` tăng dần.
  *     tags: [1.5.2 Quản lý danh mục]
@@ -485,6 +510,8 @@ masterDataRoutes.get('/categories/:categoryCode/items', verifyAccessToken, check
  *   get:
  *     summary: Lấy danh sách tất cả items (Quản trị)
  *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *       Lấy danh sách chi tiết danh mục dành cho Admin.
  *       Hỗ trợ tìm kiếm theo `code` hoặc `value`, lọc theo `categoryCode`, và phân trang.
  *     tags: [1.5.2 Quản lý danh mục]
@@ -530,7 +557,10 @@ masterDataRoutes.get('/items', authorizePermissions('MASTER_DATA_VIEW'), MasterD
  * /api/master-data/categories/{categoryCode}/items:
  *   post:
  *     summary: Thêm mới 1 item
- *     description: Thêm mới một chi tiết danh mục vào một nhóm danh mục cụ thể.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Thêm mới một chi tiết danh mục vào một nhóm danh mục cụ thể.
  *     tags: [1.5.2 Quản lý danh mục]
  *     security:
  *       - bearerAuth: []
@@ -579,7 +609,10 @@ masterDataRoutes.post('/categories/:categoryCode/items', authorizePermissions('M
  * /api/master-data/items/{id}:
  *   put:
  *     summary: Cập nhật 1 item
- *     description: Cập nhật thông tin của chi tiết danh mục (value, sort_order, is_active). Không hỗ trợ đổi code hoặc category_code.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Cập nhật thông tin của chi tiết danh mục (value, sort_order, is_active). Không hỗ trợ đổi code hoặc category_code.
  *     tags: [1.5.2 Quản lý danh mục]
  *     security:
  *       - bearerAuth: []
@@ -620,7 +653,10 @@ masterDataRoutes.put('/items/:id', authorizePermissions('MASTER_DATA_UPDATE'), M
  * /api/master-data/items/{id}:
  *   delete:
  *     summary: Vô hiệu hóa 1 item
- *     description: Set `is_active = false` cho item thay vì xóa cứng khỏi Database để bảo toàn dữ liệu lịch sử.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Set `is_active = false` cho item thay vì xóa cứng khỏi Database để bảo toàn dữ liệu lịch sử.
  *     tags: [1.5.2 Quản lý danh mục]
  *     security:
  *       - bearerAuth: []

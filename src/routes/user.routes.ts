@@ -19,7 +19,10 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
  * /api/users/import/validate:
  *   post:
  *     summary: Kiểm tra (Validate) dữ liệu file Import
- *     description: Tải file dữ liệu danh sách người dùng lên để hệ thống phân tích và báo lỗi trước khi import thực sự. Hỗ trợ Excel (.xlsx, .xls) và CSV.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tải file dữ liệu danh sách người dùng lên để hệ thống phân tích và báo lỗi trước khi import thực sự. Hỗ trợ Excel (.xlsx, .xls) và CSV.
  *     tags: [1.1.7 Import người dùng hàng loạt]
  *     security:
  *       - bearerAuth: []
@@ -47,7 +50,10 @@ userRoutes.post('/import/validate', authorizePermissions('USER_CREATE'), upload.
  * /api/users/import:
  *   post:
  *     summary: Thực thi Import Người dùng hàng loạt
- *     description: Tải file dữ liệu lên, hệ thống sẽ bỏ qua các dòng lỗi và chỉ import các dòng hợp lệ vào CSDL.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tải file dữ liệu lên, hệ thống sẽ bỏ qua các dòng lỗi và chỉ import các dòng hợp lệ vào CSDL.
  *     tags: [1.1.7 Import người dùng hàng loạt]
  *     security:
  *       - bearerAuth: []
@@ -75,7 +81,10 @@ userRoutes.post('/import', authorizePermissions('USER_CREATE'), upload.single('f
  * /api/users/import/history:
  *   get:
  *     summary: Xem lịch sử Import
- *     description: Truy xuất tất cả các lần Import danh sách nhân sự trước đó.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
+ *       Truy xuất tất cả các lần Import danh sách nhân sự trước đó.
  *     tags: [1.1.7 Import người dùng hàng loạt]
  *     security:
  *       - bearerAuth: []
@@ -90,7 +99,10 @@ userRoutes.get('/import/history', authorizePermissions('USER_VIEW'), UserImportC
  * /api/users/export:
  *   get:
  *     summary: Xuất danh sách người dùng (Excel)
- *     description: Tải xuống file Excel (.xlsx) chứa toàn bộ danh sách người dùng trong hệ thống (có thể lọc thông qua Query Params).
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tải xuống file Excel (.xlsx) chứa toàn bộ danh sách người dùng trong hệ thống (có thể lọc thông qua Query Params).
  *     tags: [1.1.8 Export danh sách người dùng]
  *     security:
  *       - bearerAuth: []
@@ -137,7 +149,10 @@ userRoutes.get('/export', authorizePermissions('USER_EXPORT'), UserExportControl
  * /api/users/export:
  *   post:
  *     summary: Xuất danh sách người dùng theo luồng POST (Nâng cao)
- *     description: Tương tự GET /export nhưng cho phép gửi filter phức tạp thông qua Request Body thay vì Query.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *       Tương tự GET /export nhưng cho phép gửi filter phức tạp thông qua Request Body thay vì Query.
  *     tags: [1.1.8 Export danh sách người dùng]
  *     security:
  *       - bearerAuth: []
@@ -181,7 +196,10 @@ userRoutes.post('/export', authorizePermissions('USER_EXPORT'), UserExportContro
  * /api/users/account-status:
  *   get:
  *     summary: Lấy danh sách Trạng thái hiển thị Dropdown
- *     description: Lấy danh sách map các trạng thái tài khoản cố định của hệ thống.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
+ *       Lấy danh sách map các trạng thái tài khoản cố định của hệ thống.
  *     tags: [1.1.1 Quản lý User]
  *     security:
  *       - bearerAuth: []
@@ -196,6 +214,9 @@ userRoutes.get('/account-status', authorizePermissions('USER_VIEW'), UserControl
  * /api/users:
  *   post:
  *     summary: Tạo người dùng mới
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.1 Quản lý User]
  *     security:
  *       - bearerAuth: []
@@ -255,6 +276,9 @@ userRoutes.post('/', authorizePermissions('USER_CREATE'), UserController.createU
  * /api/users:
  *   get:
  *     summary: Lấy danh sách người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.1.1 Quản lý User]
  *     security:
  *       - bearerAuth: []
@@ -294,6 +318,9 @@ userRoutes.get('/', authorizePermissions('USER_VIEW'), UserController.getUsers);
  * /api/users/search:
  *   get:
  *     summary: Tìm kiếm người dùng nhanh (Alias của Get List)
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.1.1 Quản lý User]
  *     security:
  *       - bearerAuth: []
@@ -328,6 +355,9 @@ userRoutes.get('/search', authorizePermissions('USER_VIEW'), UserController.sear
  * /api/users/{userId}:
  *   get:
  *     summary: Lấy chi tiết người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.1.1 Quản lý User]
  *     security:
  *       - bearerAuth: []
@@ -350,6 +380,9 @@ userRoutes.get('/:userId', authorizePermissions('USER_VIEW'), UserController.get
  * /api/users/{userId}:
  *   put:
  *     summary: Cập nhật thông tin người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.1 Quản lý User]
  *     security:
  *       - bearerAuth: []
@@ -416,6 +449,9 @@ userRoutes.patch('/:userId', authorizePermissions('USER_UPDATE'), UserController
  * /api/users/{userId}:
  *   delete:
  *     summary: Vô hiệu hóa (Soft Delete) người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.1 Quản lý User]
  *     security:
  *       - bearerAuth: []
@@ -438,6 +474,9 @@ userRoutes.delete('/:userId', authorizePermissions('USER_DELETE'), UserControlle
  * /api/users/{userId}/lock:
  *   patch:
  *     summary: Khóa tài khoản
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.2 Khóa / mở khóa tài khoản]
  *     security:
  *       - bearerAuth: []
@@ -462,6 +501,9 @@ userRoutes.patch('/:userId/lock', authorizePermissions('USER_UPDATE'), UserContr
  * /api/users/{userId}/unlock:
  *   patch:
  *     summary: Mở khóa tài khoản
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.2 Khóa / mở khóa tài khoản]
  *     security:
  *       - bearerAuth: []
@@ -485,6 +527,9 @@ userRoutes.patch('/:userId/unlock', authorizePermissions('USER_UPDATE'), UserCon
  * /api/users/{userId}/status:
  *   patch:
  *     summary: Cập nhật trạng thái người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.3 Quản lý trạng thái tài khoản]
  *     security:
  *       - bearerAuth: []
@@ -525,6 +570,9 @@ userRoutes.patch('/:userId/status', authorizePermissions('USER_UPDATE'), UserCon
  * /api/users/{userId}/status-history:
  *   get:
  *     summary: Lấy lịch sử thay đổi trạng thái người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.1.3 Quản lý trạng thái tài khoản]
  *     security:
  *       - bearerAuth: []
@@ -546,6 +594,9 @@ userRoutes.get('/:userId/status-history', authorizePermissions('USER_VIEW'), Use
  * /api/users/{userId}/reset-password:
  *   post:
  *     summary: Admin reset mật khẩu cho User
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.4 Reset mật khẩu người dùng]
  *     security:
  *       - bearerAuth: []
@@ -579,6 +630,9 @@ userRoutes.post('/:userId/reset-password', authorizePermissions('USER_UPDATE'), 
  * /api/users/{userId}/change-password:
  *   post:
  *     summary: User tự đổi mật khẩu cá nhân
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
  *     tags: [1.1.4 Reset mật khẩu người dùng]
  *     security:
  *       - bearerAuth: []
@@ -620,6 +674,9 @@ userRoutes.post('/:userId/change-password', UserController.changePassword);
  * /api/users/{userId}/roles:
  *   get:
  *     summary: Lấy danh sách vai trò của người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.1.5 Gán vai trò cho người dùng]
  *     security:
  *       - bearerAuth: []
@@ -642,6 +699,9 @@ userRoutes.get('/:userId/roles', authorizePermissions('ROLE_VIEW'), UserControll
  * /api/users/{userId}/roles:
  *   post:
  *     summary: Gán vai trò cho người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.1.5 Gán vai trò cho người dùng]
  *     security:
  *       - bearerAuth: []
@@ -679,6 +739,9 @@ userRoutes.post('/:userId/roles', authorizePermissions('ROLE_UPDATE'), UserContr
  * /api/users/{userId}/roles/{roleId}:
  *   delete:
  *     summary: Xoá vai trò của người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.1.5 Gán vai trò cho người dùng]
  *     security:
  *       - bearerAuth: []
@@ -708,6 +771,9 @@ userRoutes.delete('/:userId/roles/:roleId', authorizePermissions('ROLE_UPDATE'),
  * /api/users/{userId}/facilities:
  *   get:
  *     summary: Lấy danh sách Chi nhánh/Phòng ban của người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *
  *     tags: [1.1.6 Gán người dùng vào cơ sở y tế]
  *     security:
  *       - bearerAuth: []
@@ -730,6 +796,9 @@ userRoutes.get('/:userId/facilities', authorizePermissions('FACILITY_VIEW'), Use
  * /api/users/{userId}/facilities:
  *   post:
  *     summary: Gán nhân sự vào Chi nhánh / Phòng ban
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.6 Gán người dùng vào cơ sở y tế]
  *     security:
  *       - bearerAuth: []
@@ -773,6 +842,9 @@ userRoutes.post('/:userId/facilities', authorizePermissions('FACILITY_UPDATE'), 
  * /api/users/{userId}/facilities/{facilityId}:
  *   delete:
  *     summary: Hủy gán nhân sự khỏi Chi nhánh
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.6 Gán người dùng vào cơ sở y tế]
  *     security:
  *       - bearerAuth: []
@@ -816,6 +888,9 @@ userRoutes.delete('/:userId/facilities/:facilityId', authorizePermissions('FACIL
  * /api/users/{userId}/facilities/{facilityId}:
  *   put:
  *     summary: Thuyên chuyển nhân sự sang Chi nhánh / Phòng ban khác
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
  *     tags: [1.1.6 Gán người dùng vào cơ sở y tế]
  *     security:
  *       - bearerAuth: []

@@ -4,6 +4,9 @@ import authRoutes from './auth.routes';
 import userRoutes from './user.routes';
 import roleRoutes from './role.routes';
 import facilityRoutes from './facility.routes';
+import branchRoutes from './branch.routes';
+import departmentRoutes from './department.routes';
+import medicalRoomRoutes from './medical-room.routes';
 import permissionRoutes from './permission.routes';
 import moduleRoutes from './module.routes';
 import menuRoutes from './menu.routes';
@@ -38,6 +41,15 @@ export const initRoutes = (app: Express) => {
 
     //facility dropdown routes
     app.use('/api/facilities', facilityRoutes);
+
+    //branch management routes
+    app.use('/api/branches', branchRoutes);
+
+    //department management routes
+    app.use('/api/departments', departmentRoutes);
+
+    //medical rooms management routes
+    app.use('/api/medical-rooms', medicalRoomRoutes);
 
     //permissions routes
     app.use('/api/permissions', permissionRoutes);

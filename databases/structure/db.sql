@@ -801,7 +801,7 @@ CREATE TABLE health_timeline_events (
 -- Tạo Index để tăng tốc độ truy vấn Timeline theo thời gian
 CREATE INDEX idx_timeline_patient_date ON health_timeline_events(patient_id, event_date DESC);
 
-2. Chỉ số sức khỏe liên tục (Continuous Health Metrics)
+--2. Chỉ số sức khỏe liên tục (Continuous Health Metrics)
 CREATE TABLE patient_health_metrics (
     patient_health_metrics_id VARCHAR(50) PRIMARY KEY,
     patient_id VARCHAR(50) NOT NULL,

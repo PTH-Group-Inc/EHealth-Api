@@ -20,7 +20,10 @@ profileRoutes.use(verifyAccessToken, checkSessionStatus);
  * /api/profile/me:
  *   get:
  *     summary: Xem hồ sơ cá nhân
- *     description: Lấy thông tin tài khoản và cấu hình hồ sơ cá nhân của người dùng hiện tại
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Lấy thông tin tài khoản và cấu hình hồ sơ cá nhân của người dùng hiện tại
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -69,7 +72,10 @@ profileRoutes.get('/me', ProfileController.getMyProfile);
  * /api/profile/me:
  *   put:
  *     summary: Cập nhật thông tin cá nhân (Profile)
- *     description: Cho phép người dùng cập nhật các thông tin cơ bản. (Lưu ý, gender phải khớp với mã trong Master Data)
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Cho phép người dùng cập nhật các thông tin cơ bản. (Lưu ý, gender phải khớp với mã trong Master Data)
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -112,7 +118,10 @@ profileRoutes.put('/me', ProfileController.updateMyProfile);
  * /api/profile/password:
  *   put:
  *     summary: Thay đổi mật khẩu
- *     description: Đổi mật khẩu. Mật khẩu thay đổi thành công sẽ ép đăng xuất tất cả các thiết bị khác.
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Đổi mật khẩu. Mật khẩu thay đổi thành công sẽ ép đăng xuất tất cả các thiết bị khác.
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -145,7 +154,10 @@ profileRoutes.put('/password', ProfileController.changePassword);
  * /api/profile/sessions:
  *   get:
  *     summary: Xem lịch sử / thiết bị đăng nhập
- *     description: Lấy danh sách các thiết bị/trình duyệt đang duy trì phiên đăng nhập của người dùng
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Lấy danh sách các thiết bị/trình duyệt đang duy trì phiên đăng nhập của người dùng
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -185,7 +197,10 @@ profileRoutes.get('/sessions', ProfileController.getMySessions);
  * /api/profile/sessions:
  *   delete:
  *     summary: Đăng xuất tất cả thiết bị khác
- *     description: Thu hồi tất cả các phiên đăng nhập ngoại trừ phiên hiện tại của người dùng
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Thu hồi tất cả các phiên đăng nhập ngoại trừ phiên hiện tại của người dùng
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -200,7 +215,10 @@ profileRoutes.delete('/sessions', ProfileController.revokeAllOtherSessions);
  * /api/profile/sessions/{sessionId}:
  *   delete:
  *     summary: Đăng xuất khỏi thiết bị cụ thể
- *     description: Thu hồi phiên đăng nhập của một thiết bị cụ thể dựa vào sessionId
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Thu hồi phiên đăng nhập của một thiết bị cụ thể dựa vào sessionId
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -227,7 +245,10 @@ profileRoutes.delete('/sessions/:sessionId', ProfileController.revokeSession);
  * /api/profile/settings:
  *   put:
  *     summary: Cài đặt cá nhân
- *     description: Cập nhật các tùy chọn cài đặt cá nhân như ngôn ngữ, theme giao diện
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *       Cập nhật các tùy chọn cài đặt cá nhân như ngôn ngữ, theme giao diện
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []

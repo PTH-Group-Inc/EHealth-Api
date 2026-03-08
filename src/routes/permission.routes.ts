@@ -14,7 +14,10 @@ permissionRoutes.use(verifyAccessToken);
  * /api/permissions:
  *   get:
  *     summary: Lấy danh sách Quyền (Permissions)
- *     description: API trả về danh sách các quyền hạn trong hệ thống để gán cho Role.
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
+ *       API trả về danh sách các quyền hạn trong hệ thống để gán cho Role.
  *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
@@ -40,6 +43,9 @@ permissionRoutes.get('/', authorizePermissions('PERMISSION_VIEW'), PermissionCon
  * /api/permissions/{permissionId}:
  *   get:
  *     summary: Lấy chi tiết Quyền theo ID
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
@@ -62,6 +68,9 @@ permissionRoutes.get('/:permissionId', authorizePermissions('PERMISSION_VIEW'), 
  * /api/permissions:
  *   post:
  *     summary: Tạo quyền hạn mới
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
@@ -95,6 +104,9 @@ permissionRoutes.post('/', authorizePermissions('PERMISSION_CREATE'), Permission
  * /api/permissions/{permissionId}:
  *   patch:
  *     summary: Cập nhật quyền (Module, Mô tả)
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
@@ -126,6 +138,9 @@ permissionRoutes.patch('/:permissionId', authorizePermissions('PERMISSION_UPDATE
  * /api/permissions/{permissionId}:
  *   delete:
  *     summary: Xóa quyền
+ *     description: |
+ *       **Vai trò được phép:** ADMIN
+ *
  *     tags: [1.3.2 Quản lý danh sách quyền]
  *     security:
  *       - bearerAuth: []
