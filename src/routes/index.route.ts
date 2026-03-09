@@ -1,27 +1,28 @@
 import { Express } from 'express'
-import productRouter from './testProduct.route';
-import authRoutes from './auth.routes';
-import userRoutes from './user.routes';
-import roleRoutes from './role.routes';
-import facilityRoutes from './facility.routes';
-import branchRoutes from './branch.routes';
-import departmentRoutes from './department.routes';
-import medicalRoomRoutes from './medical-room.routes';
-import permissionRoutes from './permission.routes';
-import moduleRoutes from './module.routes';
-import menuRoutes from './menu.routes';
-import apiPermissionRoutes from './api-permission.routes';
-import systemRoutes from './system.routes';
-import specialtyRouter from './specialty.route';
-import masterDataRoutes from './master-data.routes';
-import pharmacyRoutes from './pharmacy.routes';
-import medicalServiceRoutes from './medical-service.routes';
-import profileRoutes from './profile.routes';
-import notificationCategoryRoutes from './notification-category.routes';
-import notificationTemplateRoutes from './notification-template.routes';
-import notificationRoleConfigRoutes from './notification-role-config.routes';
-import userNotificationRoutes from './user-notification.routes';
-import staffRoutes from './staff.routes';
+import productRouter from './Core/testProduct.route';
+import authRoutes from './Core/auth.routes';
+import userRoutes from './Core/user.routes';
+import roleRoutes from './Core/role.routes';
+import facilityRoutes from './Facility Management/facility.routes';
+import branchRoutes from './Facility Management/branch.routes';
+import departmentRoutes from './Facility Management/department.routes';
+import medicalRoomRoutes from './Facility Management/medical-room.routes';
+import permissionRoutes from './Core/permission.routes';
+import moduleRoutes from './Core/module.routes';
+import menuRoutes from './Core/menu.routes';
+import apiPermissionRoutes from './Core/api-permission.routes';
+import systemRoutes from './Core/system.routes';
+import specialtyRouter from './Facility Management/specialty.route';
+import masterDataRoutes from './Core/master-data.routes';
+import pharmacyRoutes from './Core/pharmacy.routes';
+import medicalServiceRoutes from './Core/medical-service.routes';
+import profileRoutes from './Core/profile.routes';
+import notificationCategoryRoutes from './Core/notification-category.routes';
+import notificationTemplateRoutes from './Core/notification-template.routes';
+import notificationRoleConfigRoutes from './Core/notification-role-config.routes';
+import userNotificationRoutes from './Core/user-notification.routes';
+import staffRoutes from './Facility Management/staff.routes';
+import shiftRoutes from './Facility Management/shift.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -39,6 +40,9 @@ export const initRoutes = (app: Express) => {
 
     //medical staff management routes
     app.use('/api/staff', staffRoutes);
+
+    //shift management routes
+    app.use('/api/shifts', shiftRoutes);
 
     //role dropdowns routes
     app.use('/api/roles', roleRoutes);

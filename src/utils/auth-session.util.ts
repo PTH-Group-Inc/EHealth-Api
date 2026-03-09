@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import { ClientInfo } from "../models/auth_user-session.model";
-import { UserSessionRepository } from "../repository/auth_user-session.repository";
+import { ClientInfo } from "../models/Core/auth_user-session.model";
+import { UserSessionRepository } from "../repository/Core/auth_user-session.repository";
 import { SecurityUtil } from "./auth-security.util";
 
 export class AuthSessionUtil {

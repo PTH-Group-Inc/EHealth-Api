@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AccountRole } from '../models/auth_account.model';
+import { AccountRole } from '../models/Core/auth_account.model';
 
 export interface AuthenticatedRequest extends Request {
     auth?: {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { UserSessionRepository } from "../repository/auth_user-session.repository";
+import { UserSessionRepository } from "../repository/Core/auth_user-session.repository";
 
 export const checkSessionStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {

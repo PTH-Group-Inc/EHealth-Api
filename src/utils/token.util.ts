@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/auth_account.model';
+import { User } from '../models/Core/auth_account.model';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 
 export class TokenUtil {

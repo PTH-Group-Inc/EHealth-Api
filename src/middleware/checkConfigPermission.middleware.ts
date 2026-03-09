@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from './authorizeRoles.middleware';
-import { ConfigPermissionsRepository } from '../repository/config-permissions.repository';
-import { SystemSettingsRepository } from '../repository/system-settings.repository';
+import { ConfigPermissionsRepository } from '../repository/Core/config-permissions.repository';
+import { SystemSettingsRepository } from '../repository/Core/system-settings.repository';
 import { AppError } from '../utils/app-error.util';
 
 /**

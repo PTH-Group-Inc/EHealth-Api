@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { UserSessionRepository } from "../repository/auth_user-session.repository";
+import { UserSessionRepository } from "../repository/Core/auth_user-session.repository";
 import { AUTH_CONSTANTS } from "../constants/auth.constant";
 
 export class SessionCleanup {
@@ -12,7 +12,7 @@ export class SessionCleanup {
             now.getFullYear(),
             now.getMonth(),
             now.getDate() + 1,
-            0, 0, 0 
+            0, 0, 0
         );
         const msToMidnight = night.getTime() - now.getTime();
 
@@ -35,7 +35,7 @@ export class SessionCleanup {
             if (deletedCount > 0) {
                 console.log(`✅ Cron Job: Đã thu hồi ${deletedCount} session hết hạn.`);
             } else {
-               
+
             }
         } catch (error) {
             console.error("❌ Cron Job Error:", error);
