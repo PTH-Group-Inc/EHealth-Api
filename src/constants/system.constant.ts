@@ -46,6 +46,36 @@ export const LOGO_CONFIG = {
     CLOUDINARY_FOLDER: 'ehealth/logos',
 } as const;
 
+// LICENSE FILE CONFIG
+export const LICENSE_CONFIG = {
+    ALLOWED_MIME_TYPES: ['image/jpeg', 'image/png', 'application/pdf'] as string[],
+    CLOUDINARY_FOLDER: 'ehealth/licenses',
+    MAX_FILE_SIZE: 10 * 1024 * 1024,
+} as const;
+
+export const LICENSE_UPLOAD_ERRORS = {
+    FILE_MISSING: {
+        httpCode: 400, code: 'LIC_FILE_001',
+        message: 'Không tìm thấy file tải lên. Vui lòng chọn file PDF, JPG hoặc PNG.',
+    },
+    INVALID_FORMAT: {
+        httpCode: 400, code: 'LIC_FILE_002',
+        message: 'Định dạng file không hợp lệ. Chỉ chấp nhận PDF, JPG, PNG.',
+    },
+    FILE_TOO_LARGE: {
+        httpCode: 400, code: 'LIC_FILE_003',
+        message: `File vượt quá giới hạn ${10}MB.`,
+    },
+    UPLOAD_FAILED: {
+        httpCode: 500, code: 'LIC_FILE_004',
+        message: 'Không thể tải file lên hệ thống lưu trữ.',
+    },
+    NO_FILE_ATTACHED: {
+        httpCode: 404, code: 'LIC_FILE_005',
+        message: 'Giấy phép này chưa có file đính kèm.',
+    },
+} as const;
+
 // WORKING HOURS & SLOT CONFIG
 
 /** Keys cố định dùng trong bảng system_settings cho slot config */

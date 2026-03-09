@@ -23,6 +23,15 @@ import notificationRoleConfigRoutes from './Core/notification-role-config.routes
 import userNotificationRoutes from './Core/user-notification.routes';
 import staffRoutes from './Facility Management/staff.routes';
 import shiftRoutes from './Facility Management/shift.routes';
+import { slotRoutes } from './Facility Management/appointment-slot.routes';
+import { staffScheduleRoutes } from './Facility Management/staff-schedule.routes';
+import { leaveRoutes } from './Facility Management/leave.routes';
+import { shiftSwapRoutes } from './Facility Management/shift-swap.routes';
+import { licenseRoutes } from './Facility Management/license.routes';
+import { operatingHourRoutes } from './Facility Management/operating-hour.routes';
+import { closedDayRoutes } from './Facility Management/closed-day.routes';
+import { holidayRoutes } from './Facility Management/holiday.routes';
+import { facilityStatusRoutes } from './Facility Management/facility-status.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -43,6 +52,33 @@ export const initRoutes = (app: Express) => {
 
     //shift management routes
     app.use('/api/shifts', shiftRoutes);
+
+    //appointment slot routes
+    app.use('/api/slots', slotRoutes);
+
+    //staff schedule routes
+    app.use('/api/staff-schedules', staffScheduleRoutes);
+
+    //leave management routes
+    app.use('/api/leaves', leaveRoutes);
+
+    //shift swap routes
+    app.use('/api/shift-swaps', shiftSwapRoutes);
+
+    //license management routes
+    app.use('/api/licenses', licenseRoutes);
+
+    //operating hours management routes
+    app.use('/api/operating-hours', operatingHourRoutes);
+
+    //closed days management routes
+    app.use('/api/closed-days', closedDayRoutes);
+
+    //holidays management routes
+    app.use('/api/holidays', holidayRoutes);
+
+    //facility status & calendar routes
+    app.use('/api/facility-status', facilityStatusRoutes);
 
     //role dropdowns routes
     app.use('/api/roles', roleRoutes);
@@ -89,7 +125,7 @@ export const initRoutes = (app: Express) => {
     // profile routes
     app.use('/api/profile', profileRoutes);
 
-    // 1.7 Notification Core Module Routes
+    // Notification Core Module Routes
     app.use('/api/notifications/categories', notificationCategoryRoutes);
     app.use('/api/notifications/templates', notificationTemplateRoutes);
     app.use('/api/notifications/role-configs', notificationRoleConfigRoutes);

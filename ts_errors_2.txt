@@ -1,4 +1,0 @@
-src/routes/Core/system.routes.ts(3,42): error TS2307: Cannot find module '../controllers/Core/system-facility.controller' or its corresponding type declarations.
-src/routes/Core/system.routes.ts(4,42): error TS2307: Cannot find module '../controllers/Core/system-settings.controller' or its corresponding type declarations.
-src/routes/Core/system.routes.ts(8,38): error TS2307: Cannot find module '../controllers/Core/ui-settings.controller' or its corresponding type declarations.
-src/routes/Core/system.routes.ts(9,40): error TS2307: Cannot find module '../controllers/Core/system-params.controller' or its corresponding type declarations.

@@ -221,11 +221,17 @@ const options = {
       { name: '2.4 Quản lý Không gian/Phòng khám', description: 'API Quản lý không gian chức năng, buồng khám' },
       { name: '2.5 Quản lý Nhân sự y tế', description: 'API Quản lý Nhân sự y tế' },
       { name: '2.6.1 Quản lý Lịch làm việc & Ca trực', description: 'API Quản lý Ca làm việc' },
+      { name: '2.6.2 Quản lý Lịch làm việc & Slot Khám', description: 'API Quản lý Slot Khám' },
+      { name: '2.6.3 Quản lý Lịch Nhân viên', description: 'API Phân công xếp lịch khám bệnh' },
+      { name: '2.6.4 Tạm ngưng lịch làm việc', description: 'API Tạm ngưng và mở lại lịch trực' },
+      { name: '2.6.5 Quản lý Nghỉ phép', description: 'API Tạo, duyệt, từ chối đơn nghỉ phép' },
+      { name: '2.6.6 Đổi ca làm việc', description: 'API Tạo yêu cầu đổi ca và duyệt/từ chối' },
+      { name: '2.7 Giấy phép & Chứng chỉ', description: 'API Quản lý giấy phép, chứng chỉ hành nghề nhân viên y tế' },
+      { name: '2.8 Giờ hoạt động cơ sở', description: 'API Quản lý giờ hoạt động cơ sở' },
     ]
   },
   apis: [
-
-    './src/routes/*.ts',
+    './src/routes/**/*.ts',
   ],
 };
 

@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { StaffService } from '../../services/Facility Management/staff.service';
-import { UserLicenseService } from '../../services/Facility Management/user-license.service';
+import { LicenseService } from '../../services/Facility Management/license.service';
 import { DoctorInfoService } from '../../services/Facility Management/doctor-info.service';
 import { UserService } from '../../services/Facility Management/user.service';
 import { UserFacilityService } from '../../services/Facility Management/user-facility.service';
-import { CreateStaffInput, UpdateStaffInput, CreateLicenseInput, UpdateLicenseInput, UpdateDoctorInfoInput } from '../../models/Facility Management/staff.model';
+import { CreateStaffInput, UpdateStaffInput, UpdateDoctorInfoInput } from '../../models/Facility Management/staff.model';
 import { UpdateUserStatusInput, AssignRoleInput } from '../../models/Core/user.model';
 import { AssignUserFacilityInput } from '../../models/Facility Management/facility.model';
 import { AppError } from '../../utils/app-error.util';
@@ -105,73 +105,83 @@ export class StaffController {
 
     // --- BẰNG CẤP CHỨNG CHỈ (LICENSES) ---
 
-    /*
-    / Lấy danh sách bằng cấp / chứng chỉ theo user
-    */
+    /**
+     * Lấy danh sách bằng cấp / chứng chỉ theo nhân viên.
+     */
     static async getLicensesByUserId(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const userId = req.params.staffId as string;
-            const data = await UserLicenseService.getLicensesByUserId(userId);
+            const data = await LicenseService.getLicenses({ user_id: userId });
             res.status(200).json({ status: 'success', data });
         } catch (error) {
             next(error);
         }
     }
 
-
-    /*
-    / Lấy chi tiết chứng chỉ
-    */
+    /**
+     * Lấy chi tiết chứng chỉ theo ID
+     */
     static async getLicenseById(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const licenseId = req.params.licenseId as string;
-            const data = await UserLicenseService.getLicenseById(licenseId);
+            const data = await LicenseService.getLicenseById(licenseId);
             res.status(200).json({ status: 'success', data });
         } catch (error) {
             next(error);
         }
     }
 
-
-    /*
-    / Tạo chứng chỉ
-    */
+    /**
+     * Tạo chứng chỉ cho nhân viên.
+     * Lấy user_id từ URL param để chống payload spoofing.
+     */
     static async createLicense(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const userId = req.params.staffId as string;
-            const input: CreateLicenseInput = req.body;
-            const data = await UserLicenseService.createLicense(userId, input);
+            const { license_type, license_number, issue_date, expiry_date, issued_by, document_url } = req.body;
+
+            if (!license_type || !license_number || !issue_date) {
+                throw new AppError(400, 'MISSING_DATA', 'Thiếu thông tin bắt buộc: license_type, license_number, issue_date.');
+            }
+
+            const data = await LicenseService.createLicense({
+                user_id: userId,
+                license_type,
+                license_number,
+                issue_date,
+                expiry_date: expiry_date || null,
+                issued_by: issued_by || null,
+                document_url: document_url || null,
+            });
             res.status(201).json({ status: 'success', message: 'Thêm chứng chỉ thành công.', data });
         } catch (error) {
             next(error);
         }
     }
 
-
-
-    /*
-    / Cập nhật chứng chỉ
-    */
+    /**
+     * Cập nhật chứng chỉ
+     */
     static async updateLicense(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const licenseId = req.params.licenseId as string;
-            const input: UpdateLicenseInput = req.body;
-            await UserLicenseService.updateLicense(licenseId, input);
-            res.status(200).json({ status: 'success', message: 'Cập nhật chứng chỉ thành công.' });
+            const { license_type, license_number, issue_date, expiry_date, issued_by, document_url } = req.body;
+            const data = await LicenseService.updateLicense(licenseId, {
+                license_type, license_number, issue_date, expiry_date, issued_by, document_url,
+            });
+            res.status(200).json({ status: 'success', message: 'Cập nhật chứng chỉ thành công.', data });
         } catch (error) {
             next(error);
         }
     }
 
-
-
-    /*
-    /   Xóa chứng chỉ
-    */
+    /**
+     * Xóa chứng chỉ (Soft Delete)
+     */
     static async deleteLicense(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const licenseId = req.params.licenseId as string;
-            await UserLicenseService.deleteLicense(licenseId);
+            await LicenseService.deleteLicense(licenseId);
             res.status(200).json({ status: 'success', message: 'Xóa chứng chỉ thành công.' });
         } catch (error) {
             next(error);
@@ -235,7 +245,6 @@ export class StaffController {
     static async removeStaffRole(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const userId = req.params.staffId as string;
-            // roleId parameter có thể là ID vật lý (Ví dụ uuid) hoặc mã role (DOCTOR)
             const roleId = req.params.roleId as string;
             const adminId = (req as any).auth?.user_id || 'SYSTEM';
 
