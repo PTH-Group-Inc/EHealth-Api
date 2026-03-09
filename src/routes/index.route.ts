@@ -21,6 +21,7 @@ import notificationCategoryRoutes from './notification-category.routes';
 import notificationTemplateRoutes from './notification-template.routes';
 import notificationRoleConfigRoutes from './notification-role-config.routes';
 import userNotificationRoutes from './user-notification.routes';
+import staffRoutes from './staff.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -35,6 +36,9 @@ export const initRoutes = (app: Express) => {
 
     //user management routes
     app.use('/api/users', userRoutes);
+
+    //medical staff management routes
+    app.use('/api/staff', staffRoutes);
 
     //role dropdowns routes
     app.use('/api/roles', roleRoutes);

@@ -20,6 +20,24 @@ export const uploadExcel = multer({
     storage,
     fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB
+        fileSize: 5 * 1024 * 1024
     }
 });
+
+const imageFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const isImage = file.mimetype.startsWith('image/');
+    if (isImage) {
+        cb(null, true);
+    } else {
+        cb(new Error('Chỉ chấp nhận file hình ảnh'));
+    }
+};
+
+export const uploadImage = multer({
+    storage,
+    fileFilter: imageFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    }
+});
+
