@@ -1,18 +1,18 @@
 import { randomUUID } from 'crypto';
-import { FacilityServiceRepository } from '../../repository/Core/facility-service.repository';
-import { ServiceRepository } from '../../repository/Core/service.repository';
+import { FacilityServiceRepository } from '../../repository/Facility Management/facility-service.repository';
+import { ServiceRepository } from '../../repository/Facility Management/service.repository';
 import {
     FacilityService,
     CreateFacilityServiceInput,
     UpdateFacilityServiceInput,
     PaginatedFacilityServices
-} from '../../models/Core/facility-service.model';
+} from '../../models/Facility Management/facility-service.model';
 import {
     FACILITY_SERVICE_ERRORS,
     SERVICE_ERRORS,
     SERVICE_CONFIG
 } from '../../constants/medical-service.constant';
-import { pool } from '../../config/postgresdb'; // Dùng tạm pool.query để check facility và department
+
 import { ExcelUtil, ExcelColumn } from '../../utils/excel.util';
 
 export class FacilityServiceLogic {
@@ -64,9 +64,9 @@ export class FacilityServiceLogic {
      * Tạo mới cấu hình dịch vụ cho cơ sở
      */
     static async createFacilityService(input: CreateFacilityServiceInput): Promise<FacilityService> {
-        // Kiểm tra Facility (Tạm thời query trực tiếp)
-        const facCheck = await pool.query('SELECT 1 FROM facilities WHERE facilities_id = $1', [input.facility_id]);
-        if (facCheck.rowCount === 0) {
+        // Kiểm tra Facility
+        const facilityExists = await FacilityServiceRepository.checkFacilityExists(input.facility_id);
+        if (!facilityExists) {
             throw FACILITY_SERVICE_ERRORS.FACILITY_NOT_FOUND;
         }
 
@@ -76,10 +76,10 @@ export class FacilityServiceLogic {
             throw SERVICE_ERRORS.NOT_FOUND;
         }
 
-        // Kiểm tra Department (Nếu có map vào phòng/khoa cụ thể)
+        // Kiểm tra Department
         if (input.department_id) {
-            const depCheck = await pool.query('SELECT 1 FROM departments WHERE departments_id = $1 AND facility_id = $2', [input.department_id, input.facility_id]);
-            if (depCheck.rowCount === 0) {
+            const deptBelongs = await FacilityServiceRepository.checkDepartmentBelongsToFacility(input.department_id, input.facility_id);
+            if (!deptBelongs) {
                 throw FACILITY_SERVICE_ERRORS.DEPARTMENT_NOT_FOUND;
             }
         }
@@ -102,8 +102,8 @@ export class FacilityServiceLogic {
         const fsrv = await this.getFacilityServiceById(id);
 
         if (input.department_id && input.department_id !== fsrv.department_id) {
-            const depCheck = await pool.query('SELECT 1 FROM departments WHERE departments_id = $1 AND facility_id = $2', [input.department_id, fsrv.facility_id]);
-            if (depCheck.rowCount === 0) {
+            const deptBelongs = await FacilityServiceRepository.checkDepartmentBelongsToFacility(input.department_id, fsrv.facility_id);
+            if (!deptBelongs) {
                 throw FACILITY_SERVICE_ERRORS.DEPARTMENT_NOT_FOUND;
             }
         }
@@ -130,6 +130,7 @@ export class FacilityServiceLogic {
             { header: 'Tên Dịch Vụ Chuẩn (*)', key: 'service_name', width: 50 },
             { header: 'Giá Cơ Bản (VNĐ) (*)', key: 'base_price', width: 25 },
             { header: 'Giá BHYT (VNĐ)', key: 'insurance_price', width: 25 },
+            { header: 'Giá VIP (VNĐ)', key: 'vip_price', width: 25 },
             { header: 'Thời Gian Ước Tính (Phút)', key: 'estimated_duration_minutes', width: 30 },
             { header: 'Kích Hoạt (TRUE/FALSE)', key: 'is_active', width: 25 }
         ];
@@ -141,8 +142,8 @@ export class FacilityServiceLogic {
      * Import dữ liệu dịch vụ cơ sở từ file Excel
      */
     static async importFacilityServices(facilityId: string, buffer: Buffer): Promise<any> {
-        const facCheck = await pool.query('SELECT 1 FROM facilities WHERE facilities_id = $1', [facilityId]);
-        if (facCheck.rowCount === 0) {
+        const facilityExists = await FacilityServiceRepository.checkFacilityExists(facilityId);
+        if (!facilityExists) {
             throw FACILITY_SERVICE_ERRORS.FACILITY_NOT_FOUND;
         }
 
@@ -151,6 +152,7 @@ export class FacilityServiceLogic {
             'Tên Dịch Vụ Chuẩn (*)': 'service_name',
             'Giá Cơ Bản (VNĐ) (*)': 'base_price',
             'Giá BHYT (VNĐ)': 'insurance_price',
+            'Giá VIP (VNĐ)': 'vip_price',
             'Thời Gian Ước Tính (Phút)': 'estimated_duration_minutes',
             'Kích Hoạt (TRUE/FALSE)': 'is_active'
         };
@@ -197,6 +199,7 @@ export class FacilityServiceLogic {
                     department_id: undefined,
                     base_price: parseNumber(row.base_price, 0) as number,
                     insurance_price: parseNumber(row.insurance_price, undefined) as number | undefined,
+                    vip_price: parseNumber(row.vip_price, 0) as number | undefined,
                     estimated_duration_minutes: parseNumber(row.estimated_duration_minutes, 15) as number | undefined,
                     is_active: parseBoolean(row.is_active, true)
                 };

@@ -8,6 +8,7 @@ export interface FacilityService {
     department_id: string | null;
     base_price: string;
     insurance_price: string | null;
+    vip_price: string | null;
     estimated_duration_minutes: number;
     is_active: boolean;
     service_code?: string;
@@ -21,6 +22,7 @@ export interface CreateFacilityServiceInput {
     department_id?: string;
     base_price: number;
     insurance_price?: number;
+    vip_price?: number;
     estimated_duration_minutes?: number;
     is_active?: boolean;
 }
@@ -29,6 +31,7 @@ export interface UpdateFacilityServiceInput {
     department_id?: string;
     base_price?: number;
     insurance_price?: number;
+    vip_price?: number;
     estimated_duration_minutes?: number;
     is_active?: boolean;
 }

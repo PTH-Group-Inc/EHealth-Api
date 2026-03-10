@@ -6,6 +6,8 @@ export interface MasterService {
     code: string;
     name: string;
     service_group: string | null;
+    service_type: string | null;
+    insurance_code: string | null;
     description: string | null;
     is_active: boolean;
     created_at?: Date;
@@ -17,6 +19,8 @@ export interface CreateServiceInput {
     code: string;
     name: string;
     service_group?: string;
+    service_type?: string;
+    insurance_code?: string;
     description?: string;
     is_active?: boolean;
 }
@@ -24,6 +28,8 @@ export interface CreateServiceInput {
 export interface UpdateServiceInput {
     name?: string;
     service_group?: string;
+    service_type?: string;
+    insurance_code?: string;
     description?: string;
     is_active?: boolean;
 }

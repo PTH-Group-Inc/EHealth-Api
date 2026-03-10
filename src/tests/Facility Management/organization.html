@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏢 Cơ sở & Tổ chức — Test Hub</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            font-size: 14px
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .header h1 {
+            font-size: 1.1rem
+        }
+
+        .header a {
+            color: #a8d8ea;
+            font-size: .82rem;
+            text-decoration: none
+        }
+
+        .auth-bar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .auth-bar input {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 5px;
+            font-size: .82rem
+        }
+
+        .auth-bar button {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem
+        }
+
+        .btn-login {
+            background: #e94560;
+            color: #fff
+        }
+
+        .btn-logout {
+            background: #533483;
+            color: #fff
+        }
+
+        .user-txt {
+            color: #a8d8ea;
+            font-size: .82rem
+        }
+
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto
+        }
+
+        .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: .83rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: .15s
+        }
+
+        .tab:hover {
+            background: #f8fafc
+        }
+
+        .tab.active {
+            border-bottom-color: #0f3460;
+            color: #0f3460
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 16px auto;
+            padding: 0 14px
+        }
+
+        .panel {
+            display: none
+        }
+
+        .panel.active {
+            display: block
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+            margin-bottom: 14px
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: .95rem;
+            color: #0f3460
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center
+        }
+
+        .toolbar input,
+        .toolbar select {
+            padding: 5px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .82rem
+        }
+
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem;
+            transition: opacity .15s
+        }
+
+        .btn:hover {
+            opacity: .85
+        }
+
+        .btn-primary {
+            background: #0f3460;
+            color: #fff
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: #fff
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: #000
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: .75rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .82rem
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 7px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap
+        }
+
+        td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #f1f5f9
+        }
+
+        tr:hover {
+            background: #f8fafc
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: .72rem;
+            font-weight: 600
+        }
+
+        .b-active {
+            background: #d1fae5;
+            color: #065f46
+        }
+
+        .b-inactive {
+            background: #e2e8f0;
+            color: #475569
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8
+        }
+
+        .form-group {
+            margin-bottom: 8px
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: .82rem;
+            margin-bottom: 2px;
+            color: #475569
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .83rem
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .toast {
+            padding: 9px 14px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: .82rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            animation: slideIn .3s ease;
+            min-width: 220px
+        }
+
+        .toast-success {
+            background: #10b981
+        }
+
+        .toast-error {
+            background: #ef4444
+        }
+
+        .toast-info {
+            background: #3b82f6
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: .82rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <h1>🏢 Cơ sở & Tổ chức</h1><a href="index.html">← Quay về Hub</a>
+        </div>
+        <div>
+            <div class="auth-bar" id="authSection">
+                <input type="text" id="loginEmail" placeholder="Email" value="admin@ehealth.com">
+                <input type="password" id="loginPassword" placeholder="Mật khẩu" value="Admin@123">
+                <button class="btn-login" onclick="handleLogin()">Đăng nhập</button>
+            </div>
+            <div class="auth-bar" id="userSection" style="display:none">
+                <span class="user-txt" id="currentUser"></span>
+                <button class="btn-logout" onclick="handleLogout()">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab(0)">🏢 Cơ sở</div>
+        <div class="tab" onclick="switchTab(1)">🏬 Chi nhánh</div>
+        <div class="tab" onclick="switchTab(2)">🏛 Khoa / Phòng ban</div>
+        <div class="tab" onclick="switchTab(3)">🚪 Phòng khám</div>
+        <div class="tab" onclick="switchTab(4)">🎓 Chuyên khoa</div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="main">
+
+        <!-- ========== FACILITY ========== -->
+        <div class="panel active" id="p0">
+            <div class="card">
+                <h3>🏢 Danh sách Cơ sở Y tế</h3>
+                <div class="toolbar">
+                    <input id="f0Search" placeholder="🔍 Tìm tên, mã..." style="flex:1">
+                    <button class="btn btn-primary" onclick="loadList('facilities','f0')">Tải dữ liệu</button>
+                </div>
+                <div id="f0Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>📋 Dropdown Cơ sở</h3>
+                <button class="btn btn-outline" onclick="loadDropdown('facilities/dropdown','f0dd')">Lấy
+                    Dropdown</button>
+                <div id="f0dd" class="result-box" style="display:none"></div>
+            </div>
+            <div class="card">
+                <h3>🔍 Chi tiết / ➕ Thêm mới</h3>
+                <div class="toolbar">
+                    <input id="f0DetailId" placeholder="facilities_id" style="flex:1">
+                    <button class="btn btn-primary btn-sm"
+                        onclick="loadDetail('facilities','f0DetailId','f0Detail')">Xem chi tiết</button>
+                </div>
+                <div id="f0Detail" class="result-box" style="display:none"></div>
+                <hr style="margin:12px 0;border:none;border-top:1px solid #e2e8f0">
+                <h3 style="margin-bottom:8px">➕ Tạo Cơ sở mới</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Mã (code) *</label><input id="f0cCode" placeholder="FCL-MED"></div>
+                    <div class="form-group"><label>Tên *</label><input id="f0cName"
+                            placeholder="Bệnh viện Đa khoa Medlatec"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Mã số thuế</label><input id="f0cTax" placeholder="0101234567"></div>
+                    <div class="form-group"><label>Email</label><input id="f0cEmail" placeholder="contact@medlatec.vn">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Điện thoại</label><input id="f0cPhone" placeholder="0909123456">
+                    </div>
+                    <div class="form-group"><label>Website</label><input id="f0cWeb" placeholder="https://medlatec.vn">
+                    </div>
+                </div>
+                <div class="form-group"><label>Địa chỉ trụ sở</label><input id="f0cAddr"
+                        placeholder="123 Láng Hạ, Đống Đa, Hà Nội"></div>
+                <button class="btn btn-success" onclick="createFacility()">💾 Tạo</button>
+            </div>
+        </div>
+
+        <!-- ========== BRANCH ========== -->
+        <div class="panel" id="p1">
+            <div class="card">
+                <h3>🏬 Danh sách Chi nhánh</h3>
+                <div class="toolbar">
+                    <input id="f1Search" placeholder="🔍 Tìm tên, mã..." style="flex:1">
+                    <input id="f1FacId" placeholder="facility_id" style="max-width:160px">
+                    <button class="btn btn-primary" onclick="loadBranches()">Tải dữ liệu</button>
+                </div>
+                <div id="f1Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>📋 Dropdown Chi nhánh</h3>
+                <div class="toolbar"><input id="f1ddFacId" placeholder="facility_id" style="max-width:200px">
+                    <button class="btn btn-outline"
+                        onclick="loadDropdown('branches/dropdown?facility_id='+document.getElementById('f1ddFacId').value,'f1dd')">Lấy
+                        Dropdown</button>
+                </div>
+                <div id="f1dd" class="result-box" style="display:none"></div>
+            </div>
+            <div class="card">
+                <h3>🔍 Chi tiết / ➕ Thêm mới</h3>
+                <div class="toolbar">
+                    <input id="f1DetailId" placeholder="branches_id" style="flex:1">
+                    <button class="btn btn-primary btn-sm"
+                        onclick="loadDetail('branches','f1DetailId','f1Detail')">Xem</button>
+                </div>
+                <div id="f1Detail" class="result-box" style="display:none"></div>
+                <hr style="margin:12px 0;border:none;border-top:1px solid #e2e8f0">
+                <h3 style="margin-bottom:8px">➕ Tạo Chi nhánh</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>facility_id *</label><input id="f1cFacId" placeholder="FAC_01"></div>
+                    <div class="form-group"><label>Mã (code) *</label><input id="f1cCode" placeholder="BR-HN-01"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Tên *</label><input id="f1cName" placeholder="Chi nhánh Hoàn Kiếm">
+                    </div>
+                    <div class="form-group"><label>Địa chỉ</label><input id="f1cAddr" placeholder="124 Hoàn Kiếm, HN">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Điện thoại</label><input id="f1cPhone" placeholder="0909123456">
+                    </div>
+                    <div class="form-group"><label>Ngày thành lập</label><input type="date" id="f1cDate"></div>
+                </div>
+                <button class="btn btn-success" onclick="createBranch()">💾 Tạo</button>
+            </div>
+        </div>
+
+        <!-- ========== DEPARTMENT ========== -->
+        <div class="panel" id="p2">
+            <div class="card">
+                <h3>🏛 Danh sách Khoa / Phòng ban</h3>
+                <div class="toolbar">
+                    <input id="f2Search" placeholder="🔍 Tìm..." style="flex:1">
+                    <input id="f2BranchId" placeholder="branch_id" style="max-width:160px">
+                    <button class="btn btn-primary" onclick="loadDepartments()">Tải dữ liệu</button>
+                </div>
+                <div id="f2Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>📋 Dropdown Khoa</h3>
+                <div class="toolbar"><input id="f2ddBranchId" placeholder="branch_id *" style="max-width:200px">
+                    <button class="btn btn-outline"
+                        onclick="loadDropdown('departments/dropdown?branch_id='+document.getElementById('f2ddBranchId').value,'f2dd')">Lấy
+                        Dropdown</button>
+                </div>
+                <div id="f2dd" class="result-box" style="display:none"></div>
+            </div>
+            <div class="card">
+                <h3>➕ Tạo Khoa mới</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>branch_id *</label><input id="f2cBranchId" placeholder="BR_001">
+                    </div>
+                    <div class="form-group"><label>Mã (code) *</label><input id="f2cCode" placeholder="KHOA_NOI"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Tên *</label><input id="f2cName" placeholder="Khoa Nội Tổng Hợp">
+                    </div>
+                    <div class="form-group"><label>Mô tả</label><input id="f2cDesc" placeholder="Mô tả khoa..."></div>
+                </div>
+                <button class="btn btn-success" onclick="createDepartment()">💾 Tạo</button>
+            </div>
+        </div>
+
+        <!-- ========== MEDICAL ROOM ========== -->
+        <div class="panel" id="p3">
+            <div class="card">
+                <h3>🚪 Danh sách Phòng khám</h3>
+                <div class="toolbar">
+                    <input id="f3Search" placeholder="🔍 Tìm..." style="flex:1">
+                    <input id="f3BranchId" placeholder="branch_id" style="max-width:140px">
+                    <select id="f3RType" title="Loại phòng">
+                        <option value="">Tất cả loại</option>
+                        <option value="CONSULTATION">Khám bệnh</option>
+                        <option value="LAB">Xét nghiệm</option>
+                        <option value="IMAGING">CĐHA</option>
+                        <option value="OPERATING">Phẫu thuật</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadRooms()">Tải</button>
+                </div>
+                <div id="f3Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>➕ Tạo Phòng mới</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>branch_id *</label><input id="f3cBranchId" placeholder="BR_001">
+                    </div>
+                    <div class="form-group"><label>department_id</label><input id="f3cDeptId"
+                            placeholder="DEPT_001 (tuỳ chọn)"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Mã phòng (code) *</label><input id="f3cCode" placeholder="P101">
+                    </div>
+                    <div class="form-group"><label>Tên phòng *</label><input id="f3cName"
+                            placeholder="Phòng Khám Nội 1"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Loại phòng</label>
+                        <select id="f3cType">
+                            <option value="CONSULTATION">Khám bệnh</option>
+                            <option value="LAB">Xét nghiệm</option>
+                            <option value="IMAGING">CĐHA</option>
+                            <option value="OPERATING">Phẫu thuật</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Sức chứa</label><input type="number" id="f3cCapacity" value="1">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="createRoom()">💾 Tạo</button>
+            </div>
+        </div>
+
+        <!-- ========== SPECIALTY ========== -->
+        <div class="panel" id="p4">
+            <div class="card">
+                <h3>🎓 Danh sách Chuyên khoa</h3>
+                <div class="toolbar">
+                    <input id="f4Search" placeholder="🔍 Tìm..." style="flex:1">
+                    <button class="btn btn-primary" onclick="loadSpecialties()">Tải dữ liệu</button>
+                </div>
+                <div id="f4Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>➕ Tạo Chuyên khoa</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Mã (code) *</label><input id="f4cCode" placeholder="TIM_MACH"></div>
+                    <div class="form-group"><label>Tên *</label><input id="f4cName" placeholder="Tim Mạch"></div>
+                </div>
+                <div class="form-group"><label>Mô tả</label><input id="f4cDesc"
+                        placeholder="Chuyên khoa Tim mạch can thiệp"></div>
+                <button class="btn btn-success" onclick="createSpecialty()">💾 Tạo</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api', TABS = ['p0', 'p1', 'p2', 'p3', 'p4']; let token = null;
+        function getAuth() { const d = localStorage.getItem('ehealth_auth'); return d ? JSON.parse(d) : null }
+        function headers() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } }
+        function toast(m, t = 'info') { const c = document.getElementById('toastContainer'), e = document.createElement('div'); e.className = `toast toast-${t}`; e.textContent = m; c.appendChild(e); setTimeout(() => e.remove(), 4000) }
+        function switchTab(i) { document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i)); TABS.forEach((id, j) => document.getElementById(id).classList.toggle('active', j === i)) }
+
+        window.onload = () => { const a = getAuth(); if (a?.accessToken) { token = a.accessToken; showLoggedIn(a.user) } }
+        async function handleLogin() { const e = document.getElementById('loginEmail').value, p = document.getElementById('loginPassword').value; try { const r = await (await fetch(`${API}/auth/login/email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: e, password: p, clientInfo: { deviceId: 'HTML_TEST', deviceName: 'Org Test', userAgent: navigator.userAgent } }) })).json(); if (!r.success) throw new Error(r.message); token = r.data.accessToken; localStorage.setItem('ehealth_auth', JSON.stringify({ accessToken: r.data.accessToken, refreshToken: r.data.refreshToken, user: r.data.user })); showLoggedIn(r.data.user); toast('Đăng nhập thành công!', 'success') } catch (e) { toast(e.message, 'error') } }
+        function handleLogout() { token = null; localStorage.removeItem('ehealth_auth'); document.getElementById('authSection').style.display = 'flex'; document.getElementById('userSection').style.display = 'none'; toast('Đã đăng xuất', 'info') }
+        function showLoggedIn(u) { document.getElementById('authSection').style.display = 'none'; document.getElementById('userSection').style.display = 'flex'; document.getElementById('currentUser').textContent = `👤 ${u?.name || 'User'} (${u?.role || ''})` }
+
+        async function apiFetch(url, opts = {}) { if (!token) { toast('Vui lòng đăng nhập', 'error'); throw new Error('No token') } const r = await fetch(url, { ...opts, headers: { ...headers(), ...opts.headers } }); const d = await r.json(); if (!r.ok) throw new Error(d.message || `HTTP ${r.status}`); return d }
+        function showResult(id, data) { const el = document.getElementById(id); el.style.display = 'block'; el.textContent = JSON.stringify(data, null, 2) }
+
+        // Generic loaders
+        async function loadList(endpoint, prefix) {
+            const s = document.getElementById(prefix + 'Search').value;
+            const params = new URLSearchParams({ page: 1, limit: 20 });
+            if (s) params.set('search', s);
+            try { const r = await apiFetch(`${API}/${endpoint}?${params}`); showResult(prefix + 'Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+        async function loadDropdown(endpoint, resultId) { try { const r = await apiFetch(`${API}/${endpoint}`); showResult(resultId, r) } catch (e) { toast(e.message, 'error') } }
+        async function loadDetail(endpoint, inputId, resultId) { const id = document.getElementById(inputId).value; if (!id) { toast('Nhập ID', 'error'); return } try { const r = await apiFetch(`${API}/${endpoint}/${id}`); showResult(resultId, r) } catch (e) { toast(e.message, 'error') } }
+
+        // Facilities
+        async function createFacility() {
+            const body = { code: document.getElementById('f0cCode').value, name: document.getElementById('f0cName').value };
+            const tax = document.getElementById('f0cTax').value; if (tax) body.tax_code = tax;
+            const email = document.getElementById('f0cEmail').value; if (email) body.email = email;
+            const phone = document.getElementById('f0cPhone').value; if (phone) body.phone = phone;
+            const web = document.getElementById('f0cWeb').value; if (web) body.website = web;
+            const addr = document.getElementById('f0cAddr').value; if (addr) body.headquarters_address = addr;
+            try { const r = await apiFetch(`${API}/facilities`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo cơ sở thành công!', 'success'); showResult('f0Detail', r) } catch (e) { toast(e.message, 'error') }
+        }
+
+        // Branches
+        async function loadBranches() {
+            const s = document.getElementById('f1Search').value, f = document.getElementById('f1FacId').value;
+            const p = new URLSearchParams({ page: 1, limit: 20 }); if (s) p.set('search', s); if (f) p.set('facility_id', f);
+            try { const r = await apiFetch(`${API}/branches?${p}`); showResult('f1Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+        async function createBranch() {
+            const body = { facility_id: document.getElementById('f1cFacId').value, code: document.getElementById('f1cCode').value, name: document.getElementById('f1cName').value };
+            const addr = document.getElementById('f1cAddr').value; if (addr) body.address = addr;
+            const phone = document.getElementById('f1cPhone').value; if (phone) body.phone = phone;
+            const date = document.getElementById('f1cDate').value; if (date) body.established_date = date;
+            try { const r = await apiFetch(`${API}/branches`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo chi nhánh thành công!', 'success'); showResult('f1Detail', r) } catch (e) { toast(e.message, 'error') }
+        }
+
+        // Departments
+        async function loadDepartments() {
+            const s = document.getElementById('f2Search').value, b = document.getElementById('f2BranchId').value;
+            const p = new URLSearchParams({ page: 1, limit: 20 }); if (s) p.set('search', s); if (b) p.set('branch_id', b);
+            try { const r = await apiFetch(`${API}/departments?${p}`); showResult('f2Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+        async function createDepartment() {
+            const body = { branch_id: document.getElementById('f2cBranchId').value, code: document.getElementById('f2cCode').value, name: document.getElementById('f2cName').value };
+            const desc = document.getElementById('f2cDesc').value; if (desc) body.description = desc;
+            try { const r = await apiFetch(`${API}/departments`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo khoa thành công!', 'success'); showResult('f2Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+
+        // Rooms
+        async function loadRooms() {
+            const s = document.getElementById('f3Search').value, b = document.getElementById('f3BranchId').value, t = document.getElementById('f3RType').value;
+            const p = new URLSearchParams({ page: 1, limit: 20 }); if (s) p.set('search', s); if (b) p.set('branch_id', b); if (t) p.set('room_type', t);
+            try { const r = await apiFetch(`${API}/medical-rooms?${p}`); showResult('f3Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+        async function createRoom() {
+            const body = { branch_id: document.getElementById('f3cBranchId').value, code: document.getElementById('f3cCode').value, name: document.getElementById('f3cName').value, room_type: document.getElementById('f3cType').value, capacity: parseInt(document.getElementById('f3cCapacity').value) || 1 };
+            const dept = document.getElementById('f3cDeptId').value; if (dept) body.department_id = dept;
+            try { const r = await apiFetch(`${API}/medical-rooms`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo phòng thành công!', 'success'); showResult('f3Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+
+        // Specialties
+        async function loadSpecialties() {
+            const s = document.getElementById('f4Search').value;
+            const p = new URLSearchParams({ page: 1, limit: 20 }); if (s) p.set('search', s);
+            try { const r = await apiFetch(`${API}/specialties?${p}`); showResult('f4Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+        async function createSpecialty() {
+            const body = { code: document.getElementById('f4cCode').value, name: document.getElementById('f4cName').value };
+            const desc = document.getElementById('f4cDesc').value; if (desc) body.description = desc;
+            try { const r = await apiFetch(`${API}/specialties`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo chuyên khoa thành công!', 'success'); showResult('f4Result', r) } catch (e) { toast(e.message, 'error') }
+        }
+    </script>
+</body>
+
+</html>

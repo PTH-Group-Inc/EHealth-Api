@@ -19,7 +19,7 @@ router.use(checkSessionStatus);
 /**
  * @swagger
  * tags:
- *   name: 1.5.4 Quản lý danh mục dịch vụ chuẩn
+ *   name: 2.9.3 Quản lý danh mục dịch vụ chuẩn
  *   description: Quản lý danh mục gốc các dịch vụ y tế (chưa bao gồm giá)
  */
 
@@ -31,7 +31,7 @@ router.use(checkSessionStatus);
  *     description: |
  *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
  *
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -75,7 +75,7 @@ router.get('/master', authorizePermissions('SERVICE_VIEW'), MasterServiceControl
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -98,7 +98,7 @@ router.get('/master/export', authorizePermissions('SERVICE_EXPORT'), MasterServi
  *       **Vai trò được phép:** ADMIN, STAFF
  *
  *       Tải lên file Excel (.xlsx). Yêu cầu cột "Mã Dịch Vụ (*)" và "Tên Dịch Vụ (*)".
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -127,7 +127,7 @@ router.post('/master/import', authorizePermissions('SERVICE_IMPORT'), uploadExce
  *     description: |
  *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
  *
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -152,7 +152,7 @@ router.get('/master/:id', authorizePermissions('SERVICE_VIEW'), MasterServiceCon
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -174,6 +174,14 @@ router.get('/master/:id', authorizePermissions('SERVICE_VIEW'), MasterServiceCon
  *               service_group:
  *                 type: string
  *                 example: "XN"
+ *               service_type:
+ *                 type: string
+ *                 example: "LABORATORY"
+ *                 description: "Phân loại: CLINICAL, LABORATORY, RADIOLOGY, PROCEDURE"
+ *               insurance_code:
+ *                 type: string
+ *                 example: "XN.2001"
+ *                 description: "Mã dịch vụ BHYT quốc gia (nếu có)"
  *               description:
  *                 type: string
  *                 example: "Bao gồm công thức máu, sinh hóa, miễn dịch cơ bản"
@@ -196,7 +204,7 @@ router.post('/master', authorizePermissions('SERVICE_CREATE'), MasterServiceCont
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -218,6 +226,14 @@ router.post('/master', authorizePermissions('SERVICE_CREATE'), MasterServiceCont
  *               service_group:
  *                 type: string
  *                 example: "XN"
+ *               service_type:
+ *                 type: string
+ *                 example: "LABORATORY"
+ *                 description: "Phân loại: CLINICAL, LABORATORY, RADIOLOGY, PROCEDURE"
+ *               insurance_code:
+ *                 type: string
+ *                 example: "XN.2001"
+ *                 description: "Mã dịch vụ BHYT quốc gia (nếu có)"
  *               description:
  *                 type: string
  *                 example: "Đã cập nhật mô tả"
@@ -240,7 +256,7 @@ router.put('/master/:id', authorizePermissions('SERVICE_UPDATE'), MasterServiceC
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -275,7 +291,7 @@ router.patch('/master/:id/status', authorizePermissions('SERVICE_UPDATE'), Maste
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.4 Quản lý danh mục dịch vụ chuẩn]
+ *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -302,7 +318,7 @@ router.delete('/master/:id', authorizePermissions('SERVICE_DELETE'), MasterServi
 /**
  * @swagger
  * tags:
- *   name: 1.5.5 Quản lý dịch vụ cơ sở
+ *   name: 2.9.4 Quản lý dịch vụ cơ sở
  *   description: Cấu hình giá tiền, phòng ban thực hiện tại từng cơ sở
  */
 
@@ -314,7 +330,7 @@ router.delete('/master/:id', authorizePermissions('SERVICE_DELETE'), MasterServi
  *     description: |
  *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
  *
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -362,7 +378,7 @@ router.get('/facilities/:facilityId/services', authorizePermissions('FACILITY_SE
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -391,7 +407,7 @@ router.get('/facilities/:facilityId/services/export', authorizePermissions('FACI
  *       **Vai trò được phép:** ADMIN, STAFF
  *
  *       Tải lên file Excel (.xlsx). Yêu cầu cột "Mã Dịch Vụ Chuẩn (*)" và "Giá Cơ Bản (VNĐ) (*)". Phải thuộc 1 cơ sở cụ thể.
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -426,7 +442,7 @@ router.post('/facilities/:facilityId/services/import', authorizePermissions('FAC
  *     description: |
  *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
  *
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -458,7 +474,7 @@ router.get('/facilities/:facilityId/active-services', authorizePermissions('FACI
  *     description: |
  *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
  *
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -483,7 +499,7 @@ router.get('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_VI
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -523,6 +539,10 @@ router.get('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_VI
  *               is_active:
  *                 type: boolean
  *                 default: true
+ *               vip_price:
+ *                 type: number
+ *                 example: 500000
+ *                 description: "Giá VIP dành cho bệnh nhân ưu tiên (VNĐ)"
  *     responses:
  *       201:
  *         description: Thành công
@@ -539,7 +559,7 @@ router.post('/facilities/:facilityId/services', authorizePermissions('FACILITY_S
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -569,6 +589,10 @@ router.post('/facilities/:facilityId/services', authorizePermissions('FACILITY_S
  *                 example: 30
  *               is_active:
  *                 type: boolean
+ *               vip_price:
+ *                 type: number
+ *                 example: 700000
+ *                 description: "Giá VIP (VNĐ)"
  *     responses:
  *       200:
  *         description: Cập nhật thành công
@@ -583,7 +607,7 @@ router.put('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_UP
  *     description: |
  *       **Vai trò được phép:** ADMIN, STAFF
  *
- *     tags: [1.5.5 Quản lý dịch vụ cơ sở]
+ *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
  *     security:
  *       - bearerAuth: []
  *     parameters:

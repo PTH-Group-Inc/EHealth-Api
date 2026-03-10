@@ -4,7 +4,7 @@ import {
     CreateServiceInput,
     UpdateServiceInput,
     PaginatedServices
-} from '../../models/Core/service.model';
+} from '../../models/Facility Management/service.model';
 
 export class ServiceRepository {
     /**
@@ -107,11 +107,13 @@ export class ServiceRepository {
      */
     static async upsertService(id: string, input: CreateServiceInput): Promise<MasterService> {
         const query = `
-            INSERT INTO services (services_id, code, name, service_group, description, is_active)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO services (services_id, code, name, service_group, service_type, insurance_code, description, is_active)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             ON CONFLICT (code) DO UPDATE 
             SET name = excluded.name, 
                 service_group = excluded.service_group,
+                service_type = excluded.service_type,
+                insurance_code = excluded.insurance_code,
                 description = excluded.description,
                 is_active = excluded.is_active,
                 updated_at = CURRENT_TIMESTAMP,
@@ -123,6 +125,8 @@ export class ServiceRepository {
             input.code,
             input.name,
             input.service_group ?? null,
+            input.service_type ?? null,
+            input.insurance_code ?? null,
             input.description ?? null,
             input.is_active ?? true
         ]);
@@ -134,8 +138,8 @@ export class ServiceRepository {
      */
     static async createService(id: string, input: CreateServiceInput): Promise<MasterService> {
         const query = `
-            INSERT INTO services (services_id, code, name, service_group, description, is_active)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO services (services_id, code, name, service_group, service_type, insurance_code, description, is_active)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
         `;
         const result = await pool.query(query, [
@@ -143,6 +147,8 @@ export class ServiceRepository {
             input.code,
             input.name,
             input.service_group ?? null,
+            input.service_type ?? null,
+            input.insurance_code ?? null,
             input.description ?? null,
             input.is_active ?? true
         ]);
@@ -157,7 +163,7 @@ export class ServiceRepository {
         const params: any[] = [id];
         let paramIdx = 2;
 
-        const updateFields: (keyof UpdateServiceInput)[] = ['name', 'service_group', 'description', 'is_active'];
+        const updateFields: (keyof UpdateServiceInput)[] = ['name', 'service_group', 'service_type', 'insurance_code', 'description', 'is_active'];
 
         updateFields.forEach(field => {
             if (input[field] !== undefined) {

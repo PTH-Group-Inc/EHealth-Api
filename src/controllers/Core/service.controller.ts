@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { MasterServiceLogic } from '../../services/Core/service.service';
-import { CreateServiceInput, UpdateServiceInput } from '../../models/Core/service.model';
+import { MasterServiceLogic } from '../../services/Facility Management/service.service';
+import { CreateServiceInput, UpdateServiceInput } from '../../models/Facility Management/service.model';
 
 export class MasterServiceController {
     /**

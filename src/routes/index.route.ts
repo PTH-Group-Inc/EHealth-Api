@@ -15,7 +15,12 @@ import systemRoutes from './Core/system.routes';
 import specialtyRouter from './Facility Management/specialty.route';
 import masterDataRoutes from './Core/master-data.routes';
 import pharmacyRoutes from './Core/pharmacy.routes';
-import medicalServiceRoutes from './Core/medical-service.routes';
+import medicalServiceRoutes from './Facility Management/medical-service.routes';
+import specialtyServiceRoutes from './Facility Management/specialty-service.routes';
+import doctorServiceRoutes from './Facility Management/doctor-service.routes';
+import medicalEquipmentRoutes from './Facility Management/medical-equipment.routes';
+import { bedRoutes } from './Facility Management/bed.routes';
+import bookingConfigRoutes from './Facility Management/booking-config.routes';
 import profileRoutes from './Core/profile.routes';
 import notificationCategoryRoutes from './Core/notification-category.routes';
 import notificationTemplateRoutes from './Core/notification-template.routes';
@@ -122,6 +127,21 @@ export const initRoutes = (app: Express) => {
     // medical services
     app.use('/api/medical-services', medicalServiceRoutes);
 
+    // specialty-service mapping (2.9.1)
+    app.use('/api/specialty-services', specialtyServiceRoutes);
+
+    // doctor-service mapping (2.9.2)
+    app.use('/api/doctor-services', doctorServiceRoutes);
+
+    // medical equipment management (2.10)
+    app.use('/api/equipments', medicalEquipmentRoutes);
+
+    // bed management (2.11)
+    app.use('/api/beds', bedRoutes);
+
+    // booking configurations (2.12)
+    app.use('/api/booking-configs', bookingConfigRoutes);
+
     // profile routes
     app.use('/api/profile', profileRoutes);
 
@@ -131,3 +151,4 @@ export const initRoutes = (app: Express) => {
     app.use('/api/notifications/role-configs', notificationRoleConfigRoutes);
     app.use('/api/notifications/inbox', userNotificationRoutes);
 }
+

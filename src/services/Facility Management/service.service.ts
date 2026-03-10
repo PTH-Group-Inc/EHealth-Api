@@ -1,11 +1,11 @@
 import { randomUUID } from 'crypto';
-import { ServiceRepository } from '../../repository/Core/service.repository';
+import { ServiceRepository } from '../../repository/Facility Management/service.repository';
 import {
     MasterService,
     CreateServiceInput,
     UpdateServiceInput,
     PaginatedServices
-} from '../../models/Core/service.model';
+} from '../../models/Facility Management/service.model';
 import {
     SERVICE_ERRORS,
     SERVICE_CONFIG
@@ -102,6 +102,8 @@ export class MasterServiceLogic {
             { header: 'Mã Dịch Vụ (*)', key: 'code', width: 20 },
             { header: 'Tên Dịch Vụ (*)', key: 'name', width: 40 },
             { header: 'Nhóm Dịch Vụ', key: 'service_group', width: 25 },
+            { header: 'Loại Dịch Vụ', key: 'service_type', width: 25 },
+            { header: 'Mã BHYT', key: 'insurance_code', width: 25 },
             { header: 'Mô Tả', key: 'description', width: 50 },
             { header: 'Kích Hoạt (TRUE/FALSE)', key: 'is_active', width: 25 }
         ];
@@ -117,6 +119,8 @@ export class MasterServiceLogic {
             'Mã Dịch Vụ (*)': 'code',
             'Tên Dịch Vụ (*)': 'name',
             'Nhóm Dịch Vụ': 'service_group',
+            'Loại Dịch Vụ': 'service_type',
+            'Mã BHYT': 'insurance_code',
             'Mô Tả': 'description',
             'Kích Hoạt (TRUE/FALSE)': 'is_active'
         };
@@ -144,6 +148,8 @@ export class MasterServiceLogic {
                     code: String(row.code),
                     name: String(row.name),
                     service_group: row.service_group ? String(row.service_group) : undefined,
+                    service_type: row.service_type ? String(row.service_type) : undefined,
+                    insurance_code: row.insurance_code ? String(row.insurance_code) : undefined,
                     description: row.description ? String(row.description) : undefined,
                     is_active: parseBoolean(row.is_active, true)
                 };

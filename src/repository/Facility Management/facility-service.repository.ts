@@ -4,7 +4,7 @@ import {
     CreateFacilityServiceInput,
     UpdateFacilityServiceInput,
     PaginatedFacilityServices
-} from '../../models/Core/facility-service.model';
+} from '../../models/Facility Management/facility-service.model';
 
 export class FacilityServiceRepository {
     /**
@@ -62,6 +62,7 @@ export class FacilityServiceRepository {
                 fs.department_id,
                 fs.base_price,
                 fs.insurance_price,
+                fs.vip_price,
                 fs.estimated_duration_minutes,
                 fs.is_active,
                 s.code AS service_code,
@@ -123,6 +124,7 @@ export class FacilityServiceRepository {
                 fs.department_id,
                 fs.base_price,
                 fs.insurance_price,
+                fs.vip_price,
                 fs.estimated_duration_minutes,
                 fs.is_active,
                 s.code AS service_code,
@@ -188,24 +190,26 @@ export class FacilityServiceRepository {
             const updateQuery = `
                 UPDATE facility_services 
                 SET department_id = $2, base_price = $3, insurance_price = $4, 
-                    estimated_duration_minutes = $5, is_active = $6
+                    vip_price = $5, estimated_duration_minutes = $6, is_active = $7
                 WHERE facility_services_id = $1
             `;
             await pool.query(updateQuery, [
                 existingId, input.department_id ?? null, input.base_price,
-                input.insurance_price ?? null, input.estimated_duration_minutes ?? 15, input.is_active ?? true
+                input.insurance_price ?? null, input.vip_price ?? 0,
+                input.estimated_duration_minutes ?? 15, input.is_active ?? true
             ]);
             return (await this.getFacilityServiceById(existingId)) as FacilityService;
         } else {
             const insertQuery = `
                 INSERT INTO facility_services (
                     facility_services_id, facility_id, service_id, department_id, 
-                    base_price, insurance_price, estimated_duration_minutes, is_active
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    base_price, insurance_price, vip_price, estimated_duration_minutes, is_active
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             `;
             await pool.query(insertQuery, [
                 id, input.facility_id, input.service_id, input.department_id ?? null,
-                input.base_price, input.insurance_price ?? null, input.estimated_duration_minutes ?? 15, input.is_active ?? true
+                input.base_price, input.insurance_price ?? null, input.vip_price ?? 0,
+                input.estimated_duration_minutes ?? 15, input.is_active ?? true
             ]);
             return (await this.getFacilityServiceById(id)) as FacilityService;
         }
@@ -236,10 +240,11 @@ export class FacilityServiceRepository {
                 department_id, 
                 base_price, 
                 insurance_price, 
+                vip_price,
                 estimated_duration_minutes, 
                 is_active
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING *
         `;
         const result = await pool.query(query, [
@@ -249,6 +254,7 @@ export class FacilityServiceRepository {
             input.department_id ?? null,
             input.base_price,
             input.insurance_price ?? null,
+            input.vip_price ?? 0,
             input.estimated_duration_minutes ?? 15,
             input.is_active ?? true
         ]);
@@ -268,6 +274,7 @@ export class FacilityServiceRepository {
             'department_id',
             'base_price',
             'insurance_price',
+            'vip_price',
             'estimated_duration_minutes',
             'is_active'
         ];
@@ -309,5 +316,27 @@ export class FacilityServiceRepository {
         `;
         await pool.query(query, [id, is_active]);
         return (await this.getFacilityServiceById(id)) as FacilityService;
+    }
+
+    /**
+     * Kiểm tra cơ sở có tồn tại trong hệ thống hay không
+     */
+    static async checkFacilityExists(facilityId: string): Promise<boolean> {
+        const query = `SELECT 1 FROM facilities WHERE facilities_id = $1`;
+        const result = await pool.query(query, [facilityId]);
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /**
+     * Kiểm tra khoa/phòng có thuộc về cơ sở được chỉ định hay không
+     */
+    static async checkDepartmentBelongsToFacility(departmentId: string, facilityId: string): Promise<boolean> {
+        const query = `
+            SELECT 1 FROM departments d
+            JOIN branches b ON d.branch_id = b.branches_id
+            WHERE d.departments_id = $1 AND b.facility_id = $2
+        `;
+        const result = await pool.query(query, [departmentId, facilityId]);
+        return (result.rowCount ?? 0) > 0;
     }
 }

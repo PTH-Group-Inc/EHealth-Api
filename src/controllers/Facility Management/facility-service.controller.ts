@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { FacilityServiceLogic } from '../../services/Core/facility-service.service';
-import { CreateFacilityServiceInput, UpdateFacilityServiceInput } from '../../models/Core/facility-service.model';
+import { FacilityServiceLogic } from '../../services/Facility Management/facility-service.service';
+import { CreateFacilityServiceInput, UpdateFacilityServiceInput } from '../../models/Facility Management/facility-service.model';
 
 export class FacilityServiceController {
     /**
