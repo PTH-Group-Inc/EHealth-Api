@@ -13,7 +13,7 @@ export class BookingConfigController {
      */
     static async getResolvedConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const branchId = req.params.branchId;
+            const branchId = req.params.branchId as string;
             const config = await BookingConfigService.getResolvedConfig(branchId);
 
             res.status(HTTP_STATUS.OK).json({
@@ -31,7 +31,7 @@ export class BookingConfigController {
      */
     static async getRawConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const branchId = req.params.branchId;
+            const branchId = req.params.branchId as string;
             const config = await BookingConfigService.getRawConfig(branchId);
 
             res.status(HTTP_STATUS.OK).json({
@@ -51,7 +51,7 @@ export class BookingConfigController {
      */
     static async upsertConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const branchId = req.params.branchId;
+            const branchId = req.params.branchId as string;
             const input = req.body;
 
             const config = await BookingConfigService.upsertBranchConfig(branchId, input);

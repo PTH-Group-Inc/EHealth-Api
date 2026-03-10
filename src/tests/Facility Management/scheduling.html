@@ -324,8 +324,9 @@
             <div class="card">
                 <h3>➕ Thiết lập giờ hoạt động</h3>
                 <div class="form-row">
-                    <div class="form-group"><label>facility_id *</label><input id="oh_cFac" placeholder="FAC_01"></div>
-                    <div class="form-group"><label>Thứ trong tuần *</label>
+                    <div class="form-group"><label for="oh_cFac">facility_id *</label><input id="oh_cFac"
+                            placeholder="FAC_01"></div>
+                    <div class="form-group"><label for="oh_cDay">Thứ trong tuần *</label>
                         <select id="oh_cDay">
                             <option value="0">Chủ nhật</option>
                             <option value="1" selected>Thứ 2</option>
@@ -338,12 +339,13 @@
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Giờ mở cửa *</label><input type="time" id="oh_cOpen" value="07:30">
+                    <div class="form-group"><label for="oh_cOpen">Giờ mở cửa *</label><input type="time" id="oh_cOpen"
+                            value="07:30">
                     </div>
-                    <div class="form-group"><label>Giờ đóng cửa *</label><input type="time" id="oh_cClose"
-                            value="17:00"></div>
+                    <div class="form-group"><label for="oh_cClose">Giờ đóng cửa *</label><input type="time"
+                            id="oh_cClose" value="17:00"></div>
                 </div>
-                <div class="form-group"><label>branch_id (tuỳ chọn)</label><input id="oh_cBranch"
+                <div class="form-group"><label for="oh_cBranch">branch_id (tuỳ chọn)</label><input id="oh_cBranch"
                         placeholder="Để trống = áp dụng toàn cơ sở"></div>
                 <button class="btn btn-success" onclick="createOpHour()">💾 Lưu</button>
             </div>
@@ -362,13 +364,15 @@
             <div class="card">
                 <h3>➕ Đăng ký ngày đóng cửa</h3>
                 <div class="form-row">
-                    <div class="form-group"><label>facility_id *</label><input id="cd_cFac" placeholder="FAC_01"></div>
-                    <div class="form-group"><label>Ngày *</label><input type="date" id="cd_cDate"></div>
+                    <div class="form-group"><label for="cd_cFac">facility_id *</label><input id="cd_cFac"
+                            placeholder="FAC_01"></div>
+                    <div class="form-group"><label for="cd_cDate">Ngày *</label><input type="date" id="cd_cDate"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Lý do</label><input id="cd_cReason" placeholder="Bảo trì hệ thống">
+                    <div class="form-group"><label for="cd_cReason">Lý do</label><input id="cd_cReason"
+                            placeholder="Bảo trì hệ thống">
                     </div>
-                    <div class="form-group"><label>Định kỳ?</label>
+                    <div class="form-group"><label for="cd_cRecur">Định kỳ?</label>
                         <select id="cd_cRecur">
                             <option value="false">Không (1 lần)</option>
                             <option value="true">Có (hàng tuần)</option>
@@ -393,15 +397,19 @@
             <div class="card">
                 <h3>➕ Thêm ngày lễ</h3>
                 <div class="form-row">
-                    <div class="form-group"><label>facility_id *</label><input id="hol_cFac" placeholder="FAC_01"></div>
-                    <div class="form-group"><label>Tên ngày lễ *</label><input id="hol_cName"
+                    <div class="form-group"><label for="hol_cFac">facility_id *</label><input id="hol_cFac"
+                            placeholder="FAC_01"></div>
+                    <div class="form-group"><label for="hol_cName">Tên ngày lễ *</label><input id="hol_cName"
                             placeholder="Tết Nguyên Đán"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Từ ngày *</label><input type="date" id="hol_cFrom"></div>
-                    <div class="form-group"><label>Đến ngày *</label><input type="date" id="hol_cTo"></div>
+                    <div class="form-group"><label for="hol_cFrom">Từ ngày *</label><input type="date" id="hol_cFrom">
+                    </div>
+                    <div class="form-group"><label for="hol_cTo">Đến ngày *</label><input type="date" id="hol_cTo">
+                    </div>
                 </div>
-                <div class="form-group"><label>Mô tả</label><input id="hol_cDesc" placeholder="Nghỉ lễ theo quy định">
+                <div class="form-group"><label for="hol_cDesc">Mô tả</label><input id="hol_cDesc"
+                        placeholder="Nghỉ lễ theo quy định">
                 </div>
                 <button class="btn btn-success" onclick="createHoliday()">💾 Tạo</button>
             </div>
@@ -446,22 +454,27 @@
             <div class="card">
                 <h3>➕ Tạo khung giờ khám</h3>
                 <div class="form-row">
-                    <div class="form-group"><label>branch_id *</label><input id="as_cBranch" placeholder="BR_001"></div>
-                    <div class="form-group"><label>doctor_id *</label><input id="as_cDoctor" placeholder="DOC_001">
+                    <div class="form-group"><label for="as_cBranch">branch_id *</label><input id="as_cBranch"
+                            placeholder="BR_001"></div>
+                    <div class="form-group"><label for="as_cDoctor">doctor_id *</label><input id="as_cDoctor"
+                            placeholder="DOC_001">
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>room_id</label><input id="as_cRoom" placeholder="MR_001"></div>
-                    <div class="form-group"><label>Ngày *</label><input type="date" id="as_cDate"></div>
+                    <div class="form-group"><label for="as_cRoom">room_id</label><input id="as_cRoom"
+                            placeholder="MR_001"></div>
+                    <div class="form-group"><label for="as_cDate">Ngày *</label><input type="date" id="as_cDate"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Giờ bắt đầu *</label><input type="time" id="as_cStart" value="08:00">
+                    <div class="form-group"><label for="as_cStart">Giờ bắt đầu *</label><input type="time"
+                            id="as_cStart" value="08:00">
                     </div>
-                    <div class="form-group"><label>Giờ kết thúc *</label><input type="time" id="as_cEnd" value="08:30">
+                    <div class="form-group"><label for="as_cEnd">Giờ kết thúc *</label><input type="time" id="as_cEnd"
+                            value="08:30">
                     </div>
                 </div>
-                <div class="form-group"><label>Số lượng tối đa</label><input type="number" id="as_cMax" value="1"
-                        min="1"></div>
+                <div class="form-group"><label for="as_cMax">Số lượng tối đa</label><input type="number" id="as_cMax"
+                        value="1" min="1"></div>
                 <button class="btn btn-success" onclick="createSlot()">💾 Tạo</button>
             </div>
         </div>
