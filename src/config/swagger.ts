@@ -230,6 +230,11 @@ const options = {
       { name: '2.9.2 Gán dịch vụ - Bác sĩ', description: 'Quản lý liên kết N-N giữa Bác sĩ và Dịch vụ cơ sở' },
       { name: '2.9.3 Quản lý danh mục dịch vụ chuẩn', description: 'Các API liên quan đến quản lý danh mục gốc các dịch vụ y tế' },
       { name: '2.9.4 Quản lý dịch vụ cơ sở', description: 'Cấu hình giá và quy định đối với dịch vụ chuẩn áp dụng riêng tại từng cơ sở' },
+      { name: '2.10 Quản lý Trang thiết bị Y tế', description: 'API Quản lý thiết bị y tế, gán phòng, bảo trì' },
+      { name: '2.11 Quản lý Giường bệnh', description: 'API Quản lý giường bệnh, gán phòng, đổi trạng thái' },
+      { name: '2.12 Cấu hình Quy tắc đặt khám', description: 'API Cấu hình quy tắc đặt lịch khám theo cơ sở/chi nhánh' },
+      { name: '2.1 Quản lý Hồ sơ Bệnh nhân', description: 'API CRUD hồ sơ bệnh nhân, liên kết tài khoản App, đổi trạng thái' },
+      { name: '2.2 Lịch sử Khám & Điều trị', description: 'API Xem danh sách lượt khám, chi tiết, dòng thời gian, tổng hợp (Read-Only)' },
     ]
   },
   apis: [

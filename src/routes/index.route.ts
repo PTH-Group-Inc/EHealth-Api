@@ -37,6 +37,8 @@ import { operatingHourRoutes } from './Facility Management/operating-hour.routes
 import { closedDayRoutes } from './Facility Management/closed-day.routes';
 import { holidayRoutes } from './Facility Management/holiday.routes';
 import { facilityStatusRoutes } from './Facility Management/facility-status.routes';
+import { patientRoutes } from './Patient Management/patient.routes';
+import { medicalHistoryRoutes } from './Patient Management/medical-history.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -150,5 +152,11 @@ export const initRoutes = (app: Express) => {
     app.use('/api/notifications/templates', notificationTemplateRoutes);
     app.use('/api/notifications/role-configs', notificationRoleConfigRoutes);
     app.use('/api/notifications/inbox', userNotificationRoutes);
+
+    // Patient Management (2.1)
+    app.use('/api/patients', patientRoutes);
+
+    // Medical History (2.2 - Read-Only)
+    app.use('/api/medical-history', medicalHistoryRoutes);
 }
 
