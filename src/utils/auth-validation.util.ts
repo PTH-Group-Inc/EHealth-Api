@@ -1,7 +1,7 @@
 import { AUTH_ERRORS } from '../constants/auth-error.constant';
 import { SecurityUtil } from './auth-security.util';
-import { ClientInfo } from '../models/auth_user-session.model';
-import { User } from '../models/auth_account.model';
+import { ClientInfo } from '../models/Core/auth_user-session.model';
+import { User } from '../models/Core/auth_account.model';
 
 export type LoginIdentifierType = 'EMAIL' | 'PHONE';
 

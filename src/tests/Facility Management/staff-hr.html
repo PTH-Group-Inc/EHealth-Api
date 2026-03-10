@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👨‍⚕️ Nhân sự & Ca trực — Test Hub</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            font-size: 14px
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .header h1 {
+            font-size: 1.1rem
+        }
+
+        .header a {
+            color: #a8d8ea;
+            font-size: .82rem;
+            text-decoration: none
+        }
+
+        .auth-bar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .auth-bar input {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 5px;
+            font-size: .82rem
+        }
+
+        .auth-bar button {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem
+        }
+
+        .btn-login {
+            background: #e94560;
+            color: #fff
+        }
+
+        .btn-logout {
+            background: #533483;
+            color: #fff
+        }
+
+        .user-txt {
+            color: #a8d8ea;
+            font-size: .82rem
+        }
+
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto
+        }
+
+        .tab {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: .83rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: .15s
+        }
+
+        .tab:hover {
+            background: #f8fafc
+        }
+
+        .tab.active {
+            border-bottom-color: #0f3460;
+            color: #0f3460
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 16px auto;
+            padding: 0 14px
+        }
+
+        .panel {
+            display: none
+        }
+
+        .panel.active {
+            display: block
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+            margin-bottom: 14px
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: .95rem;
+            color: #0f3460
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center
+        }
+
+        .toolbar input,
+        .toolbar select {
+            padding: 5px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .82rem
+        }
+
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem;
+            transition: opacity .15s
+        }
+
+        .btn:hover {
+            opacity: .85
+        }
+
+        .btn-primary {
+            background: #0f3460;
+            color: #fff
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: #fff
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: #000
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: .75rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .82rem
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 7px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap
+        }
+
+        td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #f1f5f9
+        }
+
+        tr:hover {
+            background: #f8fafc
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8
+        }
+
+        .form-group {
+            margin-bottom: 8px
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: .82rem;
+            margin-bottom: 2px;
+            color: #475569
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .83rem
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .toast {
+            padding: 9px 14px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: .82rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            animation: slideIn .3s ease;
+            min-width: 220px
+        }
+
+        .toast-success {
+            background: #10b981
+        }
+
+        .toast-error {
+            background: #ef4444
+        }
+
+        .toast-info {
+            background: #3b82f6
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: .82rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <h1>👨‍⚕️ Nhân sự & Ca trực</h1><a href="index.html">← Quay về Hub</a>
+        </div>
+        <div>
+            <div class="auth-bar" id="authSection">
+                <input type="text" id="loginEmail" placeholder="Email" value="admin@ehealth.com">
+                <input type="password" id="loginPassword" placeholder="Mật khẩu" value="Admin@123">
+                <button class="btn-login" onclick="handleLogin()">Đăng nhập</button>
+            </div>
+            <div class="auth-bar" id="userSection" style="display:none">
+                <span class="user-txt" id="currentUser"></span>
+                <button class="btn-logout" onclick="handleLogout()">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab(0)">👥 Nhân viên</div>
+        <div class="tab" onclick="switchTab(1)">📅 Ca trực</div>
+        <div class="tab" onclick="switchTab(2)">📊 Lịch làm việc</div>
+        <div class="tab" onclick="switchTab(3)">🔄 Đổi ca</div>
+        <div class="tab" onclick="switchTab(4)">🏖 Nghỉ phép</div>
+        <div class="tab" onclick="switchTab(5)">📜 Chứng chỉ / Giấy phép</div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="main">
+
+        <!-- ========== STAFF ========== -->
+        <div class="panel active" id="p0">
+            <div class="card">
+                <h3>👥 Danh sách Nhân viên Y tế</h3>
+                <div class="toolbar">
+                    <input id="s0Search" placeholder="🔍 Tìm tên, email, SĐT..." style="flex:1">
+                    <select id="s0Role" title="Lọc role">
+                        <option value="">Tất cả</option>
+                        <option value="DOCTOR">Bác sĩ</option>
+                        <option value="NURSE">Y tá</option>
+                        <option value="PHARMACIST">Dược sĩ</option>
+                        <option value="STAFF">Nhân viên</option>
+                    </select>
+                    <select id="s0Status" title="Trạng thái">
+                        <option value="">Tất cả</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadStaffs()">Tải</button>
+                </div>
+                <div id="s0Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>🔍 Chi tiết nhân viên</h3>
+                <div class="toolbar">
+                    <input id="s0DetailId" placeholder="staff_id" style="flex:1">
+                    <button class="btn btn-primary btn-sm" onclick="loadStaffDetail()">Xem</button>
+                </div>
+                <div id="s0Detail" class="result-box" style="display:none"></div>
+            </div>
+            <div class="card">
+                <h3>➕ Tạo hồ sơ nhân sự</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Email *</label><input id="s0cEmail"
+                            placeholder="test.doctor@clinic.com"></div>
+                    <div class="form-group"><label>Họ tên *</label><input id="s0cName" placeholder="Nguyễn Văn Test">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>SĐT</label><input id="s0cPhone" placeholder="0901234567"></div>
+                    <div class="form-group"><label>Roles * (code)</label><input id="s0cRoles" placeholder="DOCTOR">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>branch_id</label><input id="s0cBranch" placeholder="BR_001"></div>
+                    <div class="form-group"><label>department_id</label><input id="s0cDept" placeholder="DEPT_001">
+                    </div>
+                </div>
+                <div class="form-group"><label>Mật khẩu (bỏ trống = tự sinh)</label><input type="password" id="s0cPw"
+                        placeholder="Mật khẩu"></div>
+                <button class="btn btn-success" onclick="createStaff()">💾 Tạo</button>
+            </div>
+        </div>
+
+        <!-- ========== SHIFTS ========== -->
+        <div class="panel" id="p1">
+            <div class="card">
+                <h3>📅 Danh sách Ca trực</h3>
+                <div class="toolbar">
+                    <input id="s1Search" placeholder="🔍 Tìm code, tên..." style="flex:1">
+                    <select id="s1Status" title="Trạng thái">
+                        <option value="">Tất cả</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadShifts()">Tải</button>
+                </div>
+                <div id="s1Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>➕ Tạo Ca trực mới</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Code *</label><input id="s1cCode" placeholder="MORNING_SHIFT"></div>
+                    <div class="form-group"><label>Tên *</label><input id="s1cName" placeholder="Ca Sáng Tiêu Chuẩn">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Giờ bắt đầu *</label><input type="time" id="s1cStart" step="1"
+                            value="08:00:00"></div>
+                    <div class="form-group"><label>Giờ kết thúc *</label><input type="time" id="s1cEnd" step="1"
+                            value="12:00:00"></div>
+                </div>
+                <div class="form-group"><label>Ghi chú</label><input id="s1cDesc" placeholder="Dành cho khối nội khoa">
+                </div>
+                <button class="btn btn-success" onclick="createShift()">💾 Tạo</button>
+            </div>
+        </div>
+
+        <!-- ========== STAFF SCHEDULES ========== -->
+        <div class="panel" id="p2">
+            <div class="card">
+                <h3>📊 Lịch làm việc (Staff Schedules)</h3>
+                <div class="toolbar">
+                    <input id="s2StaffId" placeholder="staff_id" style="max-width:160px">
+                    <input id="s2BranchId" placeholder="branch_id" style="max-width:160px">
+                    <input type="date" id="s2From" title="Từ ngày">
+                    <input type="date" id="s2To" title="Đến ngày">
+                    <button class="btn btn-primary" onclick="loadSchedules()">Tải</button>
+                </div>
+                <div id="s2Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>➕ Tạo lịch làm việc</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>staff_id *</label><input id="s2cStaff" placeholder="STAFF_001"></div>
+                    <div class="form-group"><label>shift_id *</label><input id="s2cShift" placeholder="SHIFT_001"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Ngày bắt đầu *</label><input type="date" id="s2cStart"></div>
+                    <div class="form-group"><label>Ngày kết thúc *</label><input type="date" id="s2cEnd"></div>
+                </div>
+                <div class="form-group"><label>branch_id</label><input id="s2cBranch" placeholder="BR_001"></div>
+                <button class="btn btn-success" onclick="createSchedule()">💾 Tạo</button>
+            </div>
+        </div>
+
+        <!-- ========== SHIFT SWAPS ========== -->
+        <div class="panel" id="p3">
+            <div class="card">
+                <h3>🔄 Yêu cầu Đổi ca</h3>
+                <div class="toolbar">
+                    <input id="s3StaffId" placeholder="staff_id (requester)" style="max-width:200px">
+                    <select id="s3Status" title="Trạng thái">
+                        <option value="">Tất cả</option>
+                        <option value="PENDING">Chờ duyệt</option>
+                        <option value="APPROVED">Đã duyệt</option>
+                        <option value="REJECTED">Từ chối</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadSwaps()">Tải</button>
+                </div>
+                <div id="s3Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>➕ Tạo yêu cầu đổi ca</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>schedule_id gốc *</label><input id="s3cFrom" placeholder="SCH_001">
+                    </div>
+                    <div class="form-group"><label>schedule_id muốn đổi *</label><input id="s3cTo"
+                            placeholder="SCH_002"></div>
+                </div>
+                <div class="form-group"><label>Lý do</label><input id="s3cReason"
+                        placeholder="Bận việc gia đình, xin đổi ca..."></div>
+                <button class="btn btn-success" onclick="createSwap()">📝 Gửi yêu cầu</button>
+            </div>
+        </div>
+
+        <!-- ========== LEAVES ========== -->
+        <div class="panel" id="p4">
+            <div class="card">
+                <h3>🏖 Danh sách Nghỉ phép</h3>
+                <div class="toolbar">
+                    <input id="s4StaffId" placeholder="staff_id" style="max-width:160px">
+                    <select id="s4Status" title="Trạng thái">
+                        <option value="">Tất cả</option>
+                        <option value="PENDING">Chờ duyệt</option>
+                        <option value="APPROVED">Đã duyệt</option>
+                        <option value="REJECTED">Từ chối</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadLeaves()">Tải</button>
+                </div>
+                <div id="s4Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>➕ Xin nghỉ phép</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>staff_id *</label><input id="s4cStaff" placeholder="STAFF_001"></div>
+                    <div class="form-group"><label>Loại nghỉ</label>
+                        <select id="s4cType">
+                            <option value="ANNUAL">Nghỉ phép năm</option>
+                            <option value="SICK">Nghỉ bệnh</option>
+                            <option value="PERSONAL">Việc riêng</option>
+                            <option value="MATERNITY">Thai sản</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Từ ngày *</label><input type="date" id="s4cFrom"></div>
+                    <div class="form-group"><label>Đến ngày *</label><input type="date" id="s4cTo"></div>
+                </div>
+                <div class="form-group"><label>Lý do</label><input id="s4cReason" placeholder="Lý do xin phép..."></div>
+                <button class="btn btn-success" onclick="createLeave()">📝 Gửi đơn</button>
+            </div>
+        </div>
+
+        <!-- ========== LICENSES ========== -->
+        <div class="panel" id="p5">
+            <div class="card">
+                <h3>📜 Chứng chỉ / Giấy phép hành nghề</h3>
+                <div class="toolbar">
+                    <input id="s5StaffId" placeholder="staff_id" style="flex:1">
+                    <button class="btn btn-primary" onclick="loadLicenses()">Tải</button>
+                </div>
+                <div id="s5Result" class="empty">Nhấn "Tải dữ liệu"</div>
+            </div>
+            <div class="card">
+                <h3>➕ Thêm chứng chỉ</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>staff_id *</label><input id="s5cStaff" placeholder="STAFF_001"></div>
+                    <div class="form-group"><label>Loại chứng chỉ *</label>
+                        <select id="s5cType">
+                            <option value="MEDICAL_LICENSE">GPHN Y khoa</option>
+                            <option value="PHARMACY_LICENSE">GPHN Dược</option>
+                            <option value="NURSING_LICENSE">GPHN Điều dưỡng</option>
+                            <option value="SPECIALTY_CERT">Chứng chỉ chuyên khoa</option>
+                            <option value="OTHER">Khác</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Số giấy phép *</label><input id="s5cNumber"
+                            placeholder="GP-2024-00123"></div>
+                    <div class="form-group"><label>Nơi cấp</label><input id="s5cIssuer" placeholder="Bộ Y tế"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Ngày cấp</label><input type="date" id="s5cIssueDate"></div>
+                    <div class="form-group"><label>Ngày hết hạn</label><input type="date" id="s5cExpiry"></div>
+                </div>
+                <button class="btn btn-success" onclick="createLicense()">💾 Tạo</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api', TABS = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5']; let token = null;
+        function getAuth() { const d = localStorage.getItem('ehealth_auth'); return d ? JSON.parse(d) : null }
+        function headers() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } }
+        function toast(m, t = 'info') { const c = document.getElementById('toastContainer'), e = document.createElement('div'); e.className = `toast toast-${t}`; e.textContent = m; c.appendChild(e); setTimeout(() => e.remove(), 4000) }
+        function switchTab(i) { document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i)); TABS.forEach((id, j) => document.getElementById(id).classList.toggle('active', j === i)) }
+        function showResult(id, data) { const el = document.getElementById(id); el.style.display = 'block'; el.textContent = JSON.stringify(data, null, 2) }
+
+        window.onload = () => { const a = getAuth(); if (a?.accessToken) { token = a.accessToken; showLoggedIn(a.user) } }
+        async function handleLogin() { try { const r = await (await fetch(`${API}/auth/login/email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: document.getElementById('loginEmail').value, password: document.getElementById('loginPassword').value, clientInfo: { deviceId: 'HTML_TEST', deviceName: 'Staff Test', userAgent: navigator.userAgent } }) })).json(); if (!r.success) throw new Error(r.message); token = r.data.accessToken; localStorage.setItem('ehealth_auth', JSON.stringify({ accessToken: r.data.accessToken, refreshToken: r.data.refreshToken, user: r.data.user })); showLoggedIn(r.data.user); toast('Đăng nhập thành công!', 'success') } catch (e) { toast(e.message, 'error') } }
+        function handleLogout() { token = null; localStorage.removeItem('ehealth_auth'); document.getElementById('authSection').style.display = 'flex'; document.getElementById('userSection').style.display = 'none'; toast('Đã đăng xuất', 'info') }
+        function showLoggedIn(u) { document.getElementById('authSection').style.display = 'none'; document.getElementById('userSection').style.display = 'flex'; document.getElementById('currentUser').textContent = `👤 ${u?.name || ''} (${u?.role || ''})` }
+        async function apiFetch(url, opts = {}) { if (!token) { toast('Vui lòng đăng nhập', 'error'); throw new Error('No token') } const r = await fetch(url, { ...opts, headers: { ...headers(), ...opts.headers } }); const d = await r.json(); if (!r.ok) throw new Error(d.message || `HTTP ${r.status}`); return d }
+
+        // Staff
+        async function loadStaffs() { const p = new URLSearchParams({ page: 1, limit: 20 }); const s = document.getElementById('s0Search').value; if (s) p.set('search', s); const r = document.getElementById('s0Role').value; if (r) p.set('role', r); const st = document.getElementById('s0Status').value; if (st) p.set('status', st); try { showResult('s0Result', await apiFetch(`${API}/staff?${p}`)) } catch (e) { toast(e.message, 'error') } }
+        async function loadStaffDetail() { const id = document.getElementById('s0DetailId').value; if (!id) { toast('Nhập staff_id', 'error'); return } try { showResult('s0Detail', await apiFetch(`${API}/staff/${id}`)) } catch (e) { toast(e.message, 'error') } }
+        async function createStaff() { const body = { email: document.getElementById('s0cEmail').value, full_name: document.getElementById('s0cName').value, roles: document.getElementById('s0cRoles').value }; const ph = document.getElementById('s0cPhone').value; if (ph) body.phone_number = ph; const pw = document.getElementById('s0cPw').value; if (pw) body.password = pw; const br = document.getElementById('s0cBranch').value; if (br) body.branch_id = br; const dp = document.getElementById('s0cDept').value; if (dp) body.department_id = dp; try { const r = await apiFetch(`${API}/staff`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo nhân sự thành công!', 'success'); showResult('s0Detail', r) } catch (e) { toast(e.message, 'error') } }
+
+        // Shifts
+        async function loadShifts() { const p = new URLSearchParams(); const s = document.getElementById('s1Search').value; if (s) p.set('search', s); const st = document.getElementById('s1Status').value; if (st) p.set('status', st); try { showResult('s1Result', await apiFetch(`${API}/shifts?${p}`)) } catch (e) { toast(e.message, 'error') } }
+        async function createShift() { const body = { code: document.getElementById('s1cCode').value, name: document.getElementById('s1cName').value, start_time: document.getElementById('s1cStart').value + ':00', end_time: document.getElementById('s1cEnd').value + ':00' }; const d = document.getElementById('s1cDesc').value; if (d) body.description = d; try { await apiFetch(`${API}/shifts`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo ca trực thành công!', 'success'); loadShifts() } catch (e) { toast(e.message, 'error') } }
+
+        // Schedules
+        async function loadSchedules() { const p = new URLSearchParams({ page: 1, limit: 20 }); const s = document.getElementById('s2StaffId').value; if (s) p.set('staff_id', s); const b = document.getElementById('s2BranchId').value; if (b) p.set('branch_id', b); const f = document.getElementById('s2From').value; if (f) p.set('from_date', f); const t = document.getElementById('s2To').value; if (t) p.set('to_date', t); try { showResult('s2Result', await apiFetch(`${API}/staff-schedules?${p}`)) } catch (e) { toast(e.message, 'error') } }
+        async function createSchedule() { const body = { staff_id: document.getElementById('s2cStaff').value, shift_id: document.getElementById('s2cShift').value, start_date: document.getElementById('s2cStart').value, end_date: document.getElementById('s2cEnd').value }; const b = document.getElementById('s2cBranch').value; if (b) body.branch_id = b; try { await apiFetch(`${API}/staff-schedules`, { method: 'POST', body: JSON.stringify(body) }); toast('Tạo lịch làm việc thành công!', 'success'); loadSchedules() } catch (e) { toast(e.message, 'error') } }
+
+        // Shift Swaps
+        async function loadSwaps() { const p = new URLSearchParams({ page: 1, limit: 20 }); const s = document.getElementById('s3StaffId').value; if (s) p.set('staff_id', s); const st = document.getElementById('s3Status').value; if (st) p.set('status', st); try { showResult('s3Result', await apiFetch(`${API}/shift-swaps?${p}`)) } catch (e) { toast(e.message, 'error') } }
+        async function createSwap() { const body = { from_schedule_id: document.getElementById('s3cFrom').value, to_schedule_id: document.getElementById('s3cTo').value }; const r = document.getElementById('s3cReason').value; if (r) body.reason = r; try { await apiFetch(`${API}/shift-swaps`, { method: 'POST', body: JSON.stringify(body) }); toast('Gửi yêu cầu đổi ca thành công!', 'success'); loadSwaps() } catch (e) { toast(e.message, 'error') } }
+
+        // Leaves
+        async function loadLeaves() { const p = new URLSearchParams({ page: 1, limit: 20 }); const s = document.getElementById('s4StaffId').value; if (s) p.set('staff_id', s); const st = document.getElementById('s4Status').value; if (st) p.set('status', st); try { showResult('s4Result', await apiFetch(`${API}/leaves?${p}`)) } catch (e) { toast(e.message, 'error') } }
+        async function createLeave() { const body = { staff_id: document.getElementById('s4cStaff').value, leave_type: document.getElementById('s4cType').value, start_date: document.getElementById('s4cFrom').value, end_date: document.getElementById('s4cTo').value }; const r = document.getElementById('s4cReason').value; if (r) body.reason = r; try { await apiFetch(`${API}/leaves`, { method: 'POST', body: JSON.stringify(body) }); toast('Đã gửi đơn xin phép!', 'success'); loadLeaves() } catch (e) { toast(e.message, 'error') } }
+
+        // Licenses
+        async function loadLicenses() { const s = document.getElementById('s5StaffId').value; if (!s) { toast('Nhập staff_id', 'error'); return } try { showResult('s5Result', await apiFetch(`${API}/staff/${s}/licenses`)) } catch (e) { toast(e.message, 'error') } }
+        async function createLicense() { const staffId = document.getElementById('s5cStaff').value; const body = { license_type: document.getElementById('s5cType').value, license_number: document.getElementById('s5cNumber').value }; const is = document.getElementById('s5cIssuer').value; if (is) body.issuing_authority = is; const id = document.getElementById('s5cIssueDate').value; if (id) body.issue_date = id; const ex = document.getElementById('s5cExpiry').value; if (ex) body.expiry_date = ex; try { await apiFetch(`${API}/staff/${staffId}/licenses`, { method: 'POST', body: JSON.stringify(body) }); toast('Thêm chứng chỉ thành công!', 'success'); loadLicenses() } catch (e) { toast(e.message, 'error') } }
+    </script>
+</body>
+
+</html>

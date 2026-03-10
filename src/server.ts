@@ -4,7 +4,7 @@ dotenv.config();
 import app from './app';
 import { connectDB, closeDB } from './config/postgresdb';
 import { Server } from 'http';
-import { ApiPermissionCacheService } from './services/api-permission-cache.service';
+import { ApiPermissionCacheService } from './services/Core/api-permission-cache.service';
 
 const PORT = process.env.PORT || 3000;
 let server: Server;

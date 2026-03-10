@@ -1,26 +1,42 @@
 import { Express } from 'express'
-import productRouter from './testProduct.route';
-import authRoutes from './auth.routes';
-import userRoutes from './user.routes';
-import roleRoutes from './role.routes';
-import facilityRoutes from './facility.routes';
-import branchRoutes from './branch.routes';
-import departmentRoutes from './department.routes';
-import medicalRoomRoutes from './medical-room.routes';
-import permissionRoutes from './permission.routes';
-import moduleRoutes from './module.routes';
-import menuRoutes from './menu.routes';
-import apiPermissionRoutes from './api-permission.routes';
-import systemRoutes from './system.routes';
-import specialtyRouter from './specialty.route';
-import masterDataRoutes from './master-data.routes';
-import pharmacyRoutes from './pharmacy.routes';
-import medicalServiceRoutes from './medical-service.routes';
-import profileRoutes from './profile.routes';
-import notificationCategoryRoutes from './notification-category.routes';
-import notificationTemplateRoutes from './notification-template.routes';
-import notificationRoleConfigRoutes from './notification-role-config.routes';
-import userNotificationRoutes from './user-notification.routes';
+import productRouter from './Core/testProduct.route';
+import authRoutes from './Core/auth.routes';
+import userRoutes from './Core/user.routes';
+import roleRoutes from './Core/role.routes';
+import facilityRoutes from './Facility Management/facility.routes';
+import branchRoutes from './Facility Management/branch.routes';
+import departmentRoutes from './Facility Management/department.routes';
+import medicalRoomRoutes from './Facility Management/medical-room.routes';
+import permissionRoutes from './Core/permission.routes';
+import moduleRoutes from './Core/module.routes';
+import menuRoutes from './Core/menu.routes';
+import apiPermissionRoutes from './Core/api-permission.routes';
+import systemRoutes from './Core/system.routes';
+import specialtyRouter from './Facility Management/specialty.route';
+import masterDataRoutes from './Core/master-data.routes';
+import pharmacyRoutes from './Core/pharmacy.routes';
+import medicalServiceRoutes from './Facility Management/medical-service.routes';
+import specialtyServiceRoutes from './Facility Management/specialty-service.routes';
+import doctorServiceRoutes from './Facility Management/doctor-service.routes';
+import medicalEquipmentRoutes from './Facility Management/medical-equipment.routes';
+import { bedRoutes } from './Facility Management/bed.routes';
+import bookingConfigRoutes from './Facility Management/booking-config.routes';
+import profileRoutes from './Core/profile.routes';
+import notificationCategoryRoutes from './Core/notification-category.routes';
+import notificationTemplateRoutes from './Core/notification-template.routes';
+import notificationRoleConfigRoutes from './Core/notification-role-config.routes';
+import userNotificationRoutes from './Core/user-notification.routes';
+import staffRoutes from './Facility Management/staff.routes';
+import shiftRoutes from './Facility Management/shift.routes';
+import { slotRoutes } from './Facility Management/appointment-slot.routes';
+import { staffScheduleRoutes } from './Facility Management/staff-schedule.routes';
+import { leaveRoutes } from './Facility Management/leave.routes';
+import { shiftSwapRoutes } from './Facility Management/shift-swap.routes';
+import { licenseRoutes } from './Facility Management/license.routes';
+import { operatingHourRoutes } from './Facility Management/operating-hour.routes';
+import { closedDayRoutes } from './Facility Management/closed-day.routes';
+import { holidayRoutes } from './Facility Management/holiday.routes';
+import { facilityStatusRoutes } from './Facility Management/facility-status.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -35,6 +51,39 @@ export const initRoutes = (app: Express) => {
 
     //user management routes
     app.use('/api/users', userRoutes);
+
+    //medical staff management routes
+    app.use('/api/staff', staffRoutes);
+
+    //shift management routes
+    app.use('/api/shifts', shiftRoutes);
+
+    //appointment slot routes
+    app.use('/api/slots', slotRoutes);
+
+    //staff schedule routes
+    app.use('/api/staff-schedules', staffScheduleRoutes);
+
+    //leave management routes
+    app.use('/api/leaves', leaveRoutes);
+
+    //shift swap routes
+    app.use('/api/shift-swaps', shiftSwapRoutes);
+
+    //license management routes
+    app.use('/api/licenses', licenseRoutes);
+
+    //operating hours management routes
+    app.use('/api/operating-hours', operatingHourRoutes);
+
+    //closed days management routes
+    app.use('/api/closed-days', closedDayRoutes);
+
+    //holidays management routes
+    app.use('/api/holidays', holidayRoutes);
+
+    //facility status & calendar routes
+    app.use('/api/facility-status', facilityStatusRoutes);
 
     //role dropdowns routes
     app.use('/api/roles', roleRoutes);
@@ -78,12 +127,28 @@ export const initRoutes = (app: Express) => {
     // medical services
     app.use('/api/medical-services', medicalServiceRoutes);
 
+    // specialty-service mapping (2.9.1)
+    app.use('/api/specialty-services', specialtyServiceRoutes);
+
+    // doctor-service mapping (2.9.2)
+    app.use('/api/doctor-services', doctorServiceRoutes);
+
+    // medical equipment management (2.10)
+    app.use('/api/equipments', medicalEquipmentRoutes);
+
+    // bed management (2.11)
+    app.use('/api/beds', bedRoutes);
+
+    // booking configurations (2.12)
+    app.use('/api/booking-configs', bookingConfigRoutes);
+
     // profile routes
     app.use('/api/profile', profileRoutes);
 
-    // 1.7 Notification Core Module Routes
+    // Notification Core Module Routes
     app.use('/api/notifications/categories', notificationCategoryRoutes);
     app.use('/api/notifications/templates', notificationTemplateRoutes);
     app.use('/api/notifications/role-configs', notificationRoleConfigRoutes);
     app.use('/api/notifications/inbox', userNotificationRoutes);
 }
+

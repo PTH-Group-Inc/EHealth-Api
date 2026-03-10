@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from './authorizeRoles.middleware';
-import { ApiPermissionCacheService } from '../services/api-permission-cache.service';
+import { ApiPermissionCacheService } from '../services/Core/api-permission-cache.service';
 
 /**
  * Middleware đóng chốt chặn phân quyền Dynamic API

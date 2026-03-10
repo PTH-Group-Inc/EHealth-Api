@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { createHash, randomBytes, randomInt, randomUUID } from 'crypto';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 import { TokenUtil } from './token.util';
-import { User, AccountRole } from '../models/auth_account.model';
+import { User, AccountRole } from '../models/Core/auth_account.model';
 
 export class SecurityUtil {
     /*

@@ -206,8 +206,6 @@ const options = {
       { name: '1.5.1 Quản lý danh mục chuyên khoa', description: 'CRUD chuyên khoa, hỗ trợ phân trang và tìm kiếm' },
       { name: '1.5.2 Quản lý danh mục', description: 'CRUD bệnh viện, hỗ trợ phân trang và tìm kiếm' },
       { name: '1.5.3 Quản lý danh mục thuốc', description: 'Quản lý Nhóm thuốc (Drug Categories) và Từ điển thuốc (Drugs)' },
-      { name: '1.5.4 Quản lý danh mục dịch vụ chuẩn', description: 'Các API liên quan đến quản lý danh mục gốc các dịch vụ y tế' },
-      { name: '1.5.5 Quản lý dịch vụ cơ sở', description: 'Cấu hình giá và quy định đối với dịch vụ chuẩn áp dụng riêng tại từng cơ sở' },
       { name: '1.6 Quản lý hồ sơ người dùng (User Profile)', description: 'Xem và cập nhật thông tin cá nhân của người dùng đang đăng nhập' },
       { name: '1.7.1 Quản lý Loại Thông báo (Notification Categories)', description: 'Thiết lập các cấu hình nhóm thông báo cốt lõi của hệ thống' },
       { name: '1.7.2 Quản lý Mẫu Thông báo (Notification Templates)', description: 'Thiết lập và tùy chỉnh các mẫu thông báo đa kênh' },
@@ -219,11 +217,23 @@ const options = {
       { name: '2.2 Quản lý Chi nhánh', description: 'API Tạo và cấu hình Chi nhánh trực thuộc, phân tuyến cơ sở' },
       { name: '2.3 Quản lý Khoa/Phòng ban', description: 'API Quản lý chuyên khoa trực thuộc chi nhánh' },
       { name: '2.4 Quản lý Không gian/Phòng khám', description: 'API Quản lý không gian chức năng, buồng khám' },
+      { name: '2.5 Quản lý Nhân sự y tế', description: 'API Quản lý Nhân sự y tế' },
+      { name: '2.6.1 Quản lý Lịch làm việc & Ca trực', description: 'API Quản lý Ca làm việc' },
+      { name: '2.6.2 Quản lý Lịch làm việc & Slot Khám', description: 'API Quản lý Slot Khám' },
+      { name: '2.6.3 Quản lý Lịch Nhân viên', description: 'API Phân công xếp lịch khám bệnh' },
+      { name: '2.6.4 Tạm ngưng lịch làm việc', description: 'API Tạm ngưng và mở lại lịch trực' },
+      { name: '2.6.5 Quản lý Nghỉ phép', description: 'API Tạo, duyệt, từ chối đơn nghỉ phép' },
+      { name: '2.6.6 Đổi ca làm việc', description: 'API Tạo yêu cầu đổi ca và duyệt/từ chối' },
+      { name: '2.7 Giấy phép & Chứng chỉ', description: 'API Quản lý giấy phép, chứng chỉ hành nghề nhân viên y tế' },
+      { name: '2.8 Giờ hoạt động cơ sở', description: 'API Quản lý giờ hoạt động cơ sở' },
+      { name: '2.9.1 Gán dịch vụ - Chuyên khoa', description: 'Quản lý liên kết N-N giữa Dịch vụ y tế chuẩn và Chuyên khoa' },
+      { name: '2.9.2 Gán dịch vụ - Bác sĩ', description: 'Quản lý liên kết N-N giữa Bác sĩ và Dịch vụ cơ sở' },
+      { name: '2.9.3 Quản lý danh mục dịch vụ chuẩn', description: 'Các API liên quan đến quản lý danh mục gốc các dịch vụ y tế' },
+      { name: '2.9.4 Quản lý dịch vụ cơ sở', description: 'Cấu hình giá và quy định đối với dịch vụ chuẩn áp dụng riêng tại từng cơ sở' },
     ]
   },
   apis: [
-
-    './src/routes/*.ts',
+    './src/routes/**/*.ts',
   ],
 };
 

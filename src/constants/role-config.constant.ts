@@ -1,4 +1,4 @@
-import { AccountRole } from '../models/auth_account.model';
+import { AccountRole } from '../models/Core/auth_account.model';
 
 export const ROLE_CONFIG: Record<AccountRole, { prefix: string; sequence: string }> = {
     CUSTOMER: { prefix: 'CUS', sequence: 'seq_account_customer' },
