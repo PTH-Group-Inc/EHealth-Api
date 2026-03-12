@@ -24,6 +24,7 @@ export interface AuditLogQueryFilters {
     user_id?: string;
     module_name?: string;
     action_type?: string;
+    target_id?: string;
     start_date?: string;
     end_date?: string;
     page: number;

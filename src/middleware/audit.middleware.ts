@@ -34,11 +34,17 @@ export const auditMiddleware = (req: Request, res: Response, next: NextFunction)
             if (safeBody.password) safeBody.password = '***';
             if (safeBody.refreshToken) safeBody.refreshToken = '***';
 
+            /**
+             * Lấy old_value từ Controller nếu có gắn trước đó.
+             */
+            const oldValue = (req as any).auditOldValue || null;
+
             AuditLogRepository.createLog({
                 user_id: userId,
                 action_type: actionType,
                 module_name: moduleName,
                 target_id: entityId !== moduleName ? entityId : undefined,
+                old_value: oldValue,
                 new_value: safeBody,
                 ip_address: req.ip,
                 user_agent: req.headers['user-agent']

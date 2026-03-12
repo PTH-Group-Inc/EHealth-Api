@@ -177,6 +177,7 @@ const options = {
       },
     ],
     tags: [
+      // ===== MODULE 1: HỆ THỐNG LÕI =====
       { name: '1.1.1 Quản lý User', description: 'Các chức năng CRUD cơ bản' },
       { name: '1.1.2 Khóa / mở khóa tài khoản', description: 'Action locking' },
       { name: '1.1.3 Quản lý trạng thái tài khoản', description: 'Vòng đời tài khoản' },
@@ -213,6 +214,8 @@ const options = {
       { name: '1.7.4 Broadcast & Lõi Thông báo (Engine)', description: 'Trigger sự kiện và bắn thông báo thủ công hàng loạt' },
       { name: '1.7.5 Hộp thư Thông báo cá nhân (User Inbox)', description: 'Xem danh sách và đánh dấu đọc In-app Notifications' },
       { name: '1.8 Quản lý Nhật ký hệ thống (Audit Logs)', description: 'Tracking API Mọi thao tác POST/PUT/DELETE' },
+
+      // ===== MODULE 2: QUẢN LÝ CƠ SỞ Y TẾ =====
       { name: '2.1 Quản lý Cơ sở Y tế', description: 'API Tạo và Cập nhật Cơ sở Y tế đa chi nhánh, upload logo' },
       { name: '2.2 Quản lý Chi nhánh', description: 'API Tạo và cấu hình Chi nhánh trực thuộc, phân tuyến cơ sở' },
       { name: '2.3 Quản lý Khoa/Phòng ban', description: 'API Quản lý chuyên khoa trực thuộc chi nhánh' },
@@ -230,6 +233,37 @@ const options = {
       { name: '2.9.2 Gán dịch vụ - Bác sĩ', description: 'Quản lý liên kết N-N giữa Bác sĩ và Dịch vụ cơ sở' },
       { name: '2.9.3 Quản lý danh mục dịch vụ chuẩn', description: 'Các API liên quan đến quản lý danh mục gốc các dịch vụ y tế' },
       { name: '2.9.4 Quản lý dịch vụ cơ sở', description: 'Cấu hình giá và quy định đối với dịch vụ chuẩn áp dụng riêng tại từng cơ sở' },
+      { name: '2.10 Quản lý Trang thiết bị Y tế', description: 'API Quản lý thiết bị y tế, gán phòng, bảo trì' },
+      { name: '2.11 Quản lý Giường bệnh', description: 'API Quản lý giường bệnh, gán phòng, đổi trạng thái' },
+      { name: '2.12 Cấu hình Quy tắc đặt khám', description: 'API Cấu hình quy tắc đặt lịch khám theo cơ sở/chi nhánh' },
+
+      // ===== MODULE 3: QUẢN LÝ BỆNH NHÂN =====
+      { name: '2.1 Quản lý Hồ sơ Bệnh nhân', description: 'API CRUD hồ sơ bệnh nhân, liên kết tài khoản App, đổi trạng thái' },
+      { name: '2.2 Lịch sử Khám & Điều trị', description: 'API Xem danh sách lượt khám, chi tiết, dòng thời gian, tổng hợp (Read-Only)' },
+      { name: '2.3.1 Quản lý Đơn vị Bảo hiểm', description: 'API CRUD đơn vị bảo hiểm (insurance_providers)' },
+      { name: '2.3.2 Quản lý Thẻ Bảo hiểm Bệnh nhân', description: 'API CRUD thẻ bảo hiểm bệnh nhân (patient_insurances)' },
+      { name: '2.3.3 Hiệu lực Bảo hiểm', description: 'API Kiểm tra thẻ BH còn hiệu lực / đã hết hạn' },
+      { name: '2.3.4 Tỷ lệ Chi trả Bảo hiểm', description: 'API CRUD cấu hình tỷ lệ chi trả bảo hiểm (insurance_coverages)' },
+      { name: '2.3.5 Liên kết Bảo hiểm - Bệnh nhân', description: 'API Nested routes: xem & thêm thẻ BH cho bệnh nhân cụ thể' },
+      { name: '2.3.6 Lịch sử thay đổi Bảo hiểm', description: 'API Tra cứu audit_logs thay đổi thẻ bảo hiểm' },
+      { name: '2.3.7 Trạng thái Bảo hiểm Bệnh nhân', description: 'API Cập nhật cờ has_insurance, lọc BN có/không BH cho Billing' },
+      { name: '2.4.1 Quản lý Người thân Bệnh nhân', description: 'API CRUD người thân/người giám hộ của bệnh nhân (patient_contacts)' },
+      { name: '2.4.2 Quản lý Loại quan hệ', description: 'API CRUD danh mục loại quan hệ (relation_types): Cha, Mẹ, Vợ/Chồng, Con...' },
+      { name: '2.4.3 Quản lý liên hệ khẩn cấp', description: 'API Đặt/hủy liên hệ khẩn cấp, danh sách liên hệ khẩn cấp của bệnh nhân' },
+      { name: '2.4.4 Chỉ định người đại diện pháp lý', description: 'API Chỉ định/hủy người đại diện pháp lý (duy nhất), xem đại diện hiện tại' },
+      { name: '2.4.5 Ghi chú quyền quyết định y tế', description: 'API Cập nhật và xem ghi chú quyền quyết định y tế của người thân' },
+      { name: '2.4.6 Phân biệt người thân - liên hệ khẩn cấp', description: 'API Filter: tất cả liên hệ, người thân thông thường, người giám hộ' },
+      { name: '2.5.1 Upload tài liệu bệnh nhân', description: 'API Upload, danh sách, chi tiết, cập nhật metadata và xóa tài liệu bệnh nhân (Cloudinary)' },
+      { name: '2.5.2 Phân loại tài liệu', description: 'API CRUD danh mục loại tài liệu (document_types): CMND, BHYT, X-Quang...' },
+      { name: '2.5.3 Gắn tài liệu vào hồ sơ bệnh nhân', description: 'API tường minh lồng trong /api/patients/:patientId/documents' },
+      { name: '2.5.4 Phiên bản tài liệu', description: 'API quản lý lịch sử phiên bản file tài liệu y tế' },
+      { name: '2.5.5 Xem & Tải tài liệu', description: 'API Proxy bảo mật để xem inline và ép tải file từ Cloudinary' },
+      { name: '2.6.1 Danh mục thẻ bệnh nhân', description: 'API CRUD danh mục thẻ phân loại bệnh nhân (Tags): VIP, Mãn tính, Nguy cơ cao...' },
+      { name: '2.6.2 Gắn thẻ bệnh nhân', description: 'API Gắn/Gỡ thẻ trên hồ sơ bệnh nhân (n-n mapping)' },
+      { name: '2.6.4 Lọc bệnh nhân theo thẻ', description: 'API lọc danh sách bệnh nhân theo tag (AND/OR logic)' },
+      { name: '2.6.5 Luật phân loại tự động', description: 'API CRUD cấu hình Rule gắn thẻ tự động (VD: khám > 10 lần → VIP)' },
+      { name: '2.7 Tìm kiếm & Tra cứu', description: 'API Tìm kiếm nâng cao, autocomplete nhanh, tra cứu tóm tắt hồ sơ bệnh nhân' },
+      { name: '2.9 Theo dõi & Audit Hồ sơ Bệnh nhân', description: 'API Tra cứu lịch sử thay đổi hồ sơ bệnh nhân (audit trail)' },
     ]
   },
   apis: [

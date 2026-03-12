@@ -47,7 +47,9 @@ export class UserSessionRepository {
     );
   }
 
-  // Tìm user session theo userId và deviceId
+  /**
+   * Tìm session theo userId và deviceId, bất kể trạng thái revoked/expired.
+   */
   static async findByAccountAndDevice(userId: string, deviceId: string | null): Promise<UserSession | null> {
     const result = await pool.query(
       `
@@ -66,8 +68,9 @@ export class UserSessionRepository {
       FROM user_sessions
       WHERE user_id = $1
         AND (device_id = $2 OR (device_id IS NULL AND $2 IS NULL))
-        AND revoked_at IS NULL
-        AND expired_at > NOW()
+      ORDER BY
+        CASE WHEN revoked_at IS NULL AND expired_at > NOW() THEN 0 ELSE 1 END,
+        last_used_at DESC
       LIMIT 1
       `,
       [userId, deviceId]
@@ -77,8 +80,10 @@ export class UserSessionRepository {
     return result.rows[0] as UserSession;
   }
 
-  // Cập nhật user session theo ID
-  static async updateSessionBySessionId(sessionId: string, input: { refreshTokenHash: string; ipAddress?: string; userAgent?: string; expiredAt: Date; }): Promise<void> {
+  /**
+   * Cập nhật (hoặc re-activate) session theo ID.
+   */
+  static async updateSessionBySessionId(sessionId: string, input: { refreshTokenHash: string; ipAddress?: string; userAgent?: string; deviceName?: string; deviceId?: string; expiredAt: Date; }): Promise<void> {
     await pool.query(
       `
       UPDATE user_sessions
@@ -86,15 +91,19 @@ export class UserSessionRepository {
         refresh_token_hash = $1,
         ip_address = $2,
         user_agent = $3,
-        expired_at = $4,
+        device_name = COALESCE($4, device_name),
+        device_id = COALESCE($5, device_id),
+        expired_at = $6,
         last_used_at = NOW(),
         revoked_at = NULL
-      WHERE user_sessions_id = $5
+      WHERE user_sessions_id = $7
       `,
       [
         input.refreshTokenHash,
         input.ipAddress ?? null,
         input.userAgent ?? null,
+        input.deviceName ?? null,
+        input.deviceId ?? null,
         input.expiredAt,
         sessionId,
       ]
