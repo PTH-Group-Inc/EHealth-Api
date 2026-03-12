@@ -35,6 +35,14 @@ WHERE r.code IN ('DOCTOR', 'NURSE')
   AND a.api_id IN ('API_MH_LIST', 'API_MH_DETAIL', 'API_MH_LATEST', 'API_MH_TIMELINE', 'API_MH_SUMMARY')
 ON CONFLICT DO NOTHING;
 
+-- CUSTOMER & PATIENT: xem lịch sử khám của chính mình
+INSERT INTO role_api_permissions (role_id, api_id)
+SELECT r.roles_id, a.api_id
+FROM roles r, api_permissions a
+WHERE r.code IN ('CUSTOMER', 'PATIENT')
+  AND a.api_id IN ('API_MH_LIST', 'API_MH_DETAIL', 'API_MH_LATEST', 'API_MH_TIMELINE', 'API_MH_SUMMARY')
+ON CONFLICT DO NOTHING;
+
 -- ==============================================================================
 -- 3. JWT PERMISSIONS
 -- ==============================================================================
@@ -77,5 +85,13 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.roles_id, p.permissions_id
 FROM roles r, permissions p
 WHERE r.code = 'NURSE'
+  AND p.code IN ('ENCOUNTER_VIEW')
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- CUSTOMER & PATIENT: xem lịch sử khám của chính mình
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.roles_id, p.permissions_id
+FROM roles r, permissions p
+WHERE r.code IN ('CUSTOMER', 'PATIENT')
   AND p.code IN ('ENCOUNTER_VIEW')
 ON CONFLICT (role_id, permission_id) DO NOTHING;

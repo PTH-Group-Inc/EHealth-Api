@@ -3,7 +3,9 @@ import {
     Patient,
     CreatePatientInput,
     UpdatePatientInput,
-    PaginatedPatients
+    PaginatedPatients,
+    PatientQuickResult,
+    PatientSummary
 } from '../../models/Patient Management/patient.model';
 
 export class PatientRepository {
@@ -219,4 +221,243 @@ export class PatientRepository {
             [id]
         );
     }
+
+    /**
+     * Cập nhật cờ has_insurance cho bệnh nhân (phục vụ billing nhanh)
+     */
+    static async updateInsuranceStatus(patientId: string, hasInsurance: boolean): Promise<void> {
+        await pool.query(
+            `UPDATE patients SET has_insurance = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND deleted_at IS NULL`,
+            [hasInsurance, patientId]
+        );
+    }
+
+    /**
+     * Danh sách bệnh nhân CÓ bảo hiểm (has_insurance = TRUE)
+     */
+    static async getPatientsWithInsurance(
+        page: number = 1,
+        limit: number = 20
+    ): Promise<PaginatedPatients> {
+        const offset = (page - 1) * limit;
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*) FROM patients WHERE has_insurance = TRUE AND deleted_at IS NULL`
+        );
+        const total = parseInt(countResult.rows[0].count, 10);
+
+        const dataResult = await pool.query(
+            `SELECT p.*, a.email AS account_email, a.phone_number AS account_phone
+             FROM patients p
+             LEFT JOIN users a ON a.users_id = p.account_id
+             WHERE p.has_insurance = TRUE AND p.deleted_at IS NULL
+             ORDER BY p.created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset]
+        );
+
+        return {
+            data: dataResult.rows as Patient[],
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+
+    /**
+     * Danh sách bệnh nhân KHÔNG CÓ bảo hiểm (has_insurance = FALSE)
+     */
+    static async getPatientsWithoutInsurance(
+        page: number = 1,
+        limit: number = 20
+    ): Promise<PaginatedPatients> {
+        const offset = (page - 1) * limit;
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*) FROM patients WHERE (has_insurance = FALSE OR has_insurance IS NULL) AND status = 'ACTIVE' AND deleted_at IS NULL`
+        );
+        const total = parseInt(countResult.rows[0].count, 10);
+
+        const dataResult = await pool.query(
+            `SELECT p.*, a.email AS account_email, a.phone_number AS account_phone
+             FROM patients p
+             LEFT JOIN users a ON a.users_id = p.account_id
+             WHERE (p.has_insurance = FALSE OR p.has_insurance IS NULL) AND p.status = 'ACTIVE' AND p.deleted_at IS NULL
+             ORDER BY p.created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset]
+        );
+
+        return {
+            data: dataResult.rows as Patient[],
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+
+    /**
+     * Lọc danh sách bệnh nhân theo tag(s).
+     */
+    static async filterByTags(
+        tagIds: string[],
+        matchAll: boolean,
+        page: number = 1,
+        limit: number = 20
+    ): Promise<PaginatedPatients> {
+        const placeholders = tagIds.map((_, i) => `$${i + 1}`).join(', ');
+        const paramIndex = tagIds.length + 1;
+
+        /* Subquery tìm patient_id thỏa mãn điều kiện tag */
+        let subquery: string;
+        if (matchAll) {
+            // AND: patient phải có đủ TẤT CẢ tags trong danh sách
+            subquery = `
+                SELECT pt.patient_id FROM patient_tags pt
+                WHERE pt.tag_id IN (${placeholders})
+                GROUP BY pt.patient_id
+                HAVING COUNT(DISTINCT pt.tag_id) = ${tagIds.length}
+            `;
+        } else {
+            // OR: patient có ÍT NHẤT 1 tag trong danh sách
+            subquery = `
+                SELECT DISTINCT pt.patient_id FROM patient_tags pt
+                WHERE pt.tag_id IN (${placeholders})
+            `;
+        }
+
+        // Count
+        const countQuery = `
+            SELECT COUNT(*) FROM patients p
+            WHERE p.id IN (${subquery}) AND p.deleted_at IS NULL
+        `;
+        const countResult = await pool.query(countQuery, tagIds);
+        const total = parseInt(countResult.rows[0].count, 10);
+
+        // Data
+        const offset = (page - 1) * limit;
+        const dataQuery = `
+            SELECT p.*, a.email AS account_email, a.phone_number AS account_phone
+            FROM patients p
+            LEFT JOIN users a ON a.users_id = p.account_id
+            WHERE p.id IN (${subquery}) AND p.deleted_at IS NULL
+            ORDER BY p.created_at DESC
+            LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        `;
+        const dataResult = await pool.query(dataQuery, [...tagIds, limit, offset]);
+
+        return {
+            data: dataResult.rows as Patient[],
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+
+
+    /**
+     * Tìm kiếm nâng cao: keyword + gender + status + ageMin/ageMax (phân trang)
+     */
+    static async advancedSearch(
+        keyword?: string,
+        status?: string,
+        gender?: string,
+        ageMin?: number,
+        ageMax?: number,
+        page: number = 1,
+        limit: number = 20
+    ): Promise<PaginatedPatients> {
+        const conditions: string[] = ['p.deleted_at IS NULL'];
+        const params: any[] = [];
+        let paramIndex = 1;
+
+        if (keyword) {
+            conditions.push(`(p.full_name ILIKE $${paramIndex} OR p.patient_code ILIKE $${paramIndex} OR p.phone_number ILIKE $${paramIndex} OR p.id_card_number ILIKE $${paramIndex})`);
+            params.push(`%${keyword}%`);
+            paramIndex++;
+        }
+        if (status) {
+            conditions.push(`p.status = $${paramIndex++}`);
+            params.push(status);
+        }
+        if (gender) {
+            conditions.push(`p.gender = $${paramIndex++}`);
+            params.push(gender);
+        }
+        if (ageMin !== undefined) {
+            conditions.push(`EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth)) >= $${paramIndex++}`);
+            params.push(ageMin);
+        }
+        if (ageMax !== undefined) {
+            conditions.push(`EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth)) <= $${paramIndex++}`);
+            params.push(ageMax);
+        }
+
+        const whereClause = 'WHERE ' + conditions.join(' AND ');
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*) FROM patients p ${whereClause}`, params
+        );
+        const total = parseInt(countResult.rows[0].count, 10);
+
+        const offset = (page - 1) * limit;
+        const dataResult = await pool.query(
+            `SELECT p.*, a.email AS account_email, a.phone_number AS account_phone
+             FROM patients p
+             LEFT JOIN users a ON a.users_id = p.account_id
+             ${whereClause}
+             ORDER BY p.full_name ASC
+             LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+            [...params, limit, offset]
+        );
+
+        return {
+            data: dataResult.rows as Patient[],
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+
+    /**
+     * Tìm kiếm nhanh (Autocomplete) — tối thiểu dữ liệu, tối đa tốc độ.
+     */
+    static async quickSearch(keyword: string): Promise<PatientQuickResult[]> {
+        const query = `
+            SELECT id, patient_code, full_name, phone_number, date_of_birth, gender
+            FROM patients
+            WHERE deleted_at IS NULL
+              AND (full_name ILIKE $1 OR patient_code ILIKE $1 OR phone_number ILIKE $1 OR id_card_number ILIKE $1)
+            ORDER BY full_name ASC
+            LIMIT 10
+        `;
+        const result = await pool.query(query, [`%${keyword}%`]);
+        return result.rows;
+    }
+
+    /**
+     * Tra cứu tóm tắt hồ sơ — gộp subquery đếm tag, bảo hiểm, tiền sử, dị ứng.
+     */
+    static async getPatientSummary(id: string): Promise<PatientSummary | null> {
+        const query = `
+            SELECT
+                p.id, p.patient_code, p.full_name, p.date_of_birth, p.gender,
+                p.phone_number, p.email, p.id_card_number, p.address, p.status,
+                COALESCE(p.has_insurance, false) AS has_insurance,
+                EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth))::int AS age,
+                (SELECT COUNT(*) FROM patient_tags pt WHERE pt.patient_id = p.id)::int AS tag_count,
+                (SELECT COUNT(*) FROM patient_insurances pi2 WHERE pi2.patient_id = p.id::varchar)::int AS insurance_count,
+                (SELECT COUNT(*) FROM patient_medical_histories pmh WHERE pmh.patient_id = p.id::varchar)::int AS medical_history_count,
+                (SELECT COUNT(*) FROM patient_allergies pa WHERE pa.patient_id = p.id::varchar)::int AS allergy_count
+            FROM patients p
+            WHERE p.id = $1 AND p.deleted_at IS NULL
+        `;
+        const result = await pool.query(query, [id]);
+        return result.rows[0] || null;
+    }
 }
+

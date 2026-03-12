@@ -56,6 +56,11 @@ export class AuditLogRepository {
             whereClauses.push(`a.action_type = $${params.length}`);
         }
 
+        if (filters.target_id) {
+            params.push(filters.target_id);
+            whereClauses.push(`a.target_id = $${params.length}`);
+        }
+
         if (filters.start_date) {
             params.push(filters.start_date);
             whereClauses.push(`a.created_at >= $${params.length}`);

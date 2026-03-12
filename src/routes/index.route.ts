@@ -39,6 +39,15 @@ import { holidayRoutes } from './Facility Management/holiday.routes';
 import { facilityStatusRoutes } from './Facility Management/facility-status.routes';
 import { patientRoutes } from './Patient Management/patient.routes';
 import { medicalHistoryRoutes } from './Patient Management/medical-history.routes';
+import insuranceProviderRoutes from './Patient Management/insurance-provider.routes';
+import patientInsuranceRoutes from './Patient Management/patient-insurance.routes';
+import insuranceCoverageRoutes from './Patient Management/insurance-coverage.routes';
+import { relationTypeRoutes } from './Patient Management/relation-type.routes';
+import { patientContactRoutes } from './Patient Management/patient-contact.routes';
+import { documentTypeRoutes } from './Patient Management/document-type.routes';
+import { patientDocumentRoutes } from './Patient Management/patient-document.routes';
+import { patientTagRoutes } from './Patient Management/patient-tag.routes';
+import { classificationRuleRoutes } from './Patient Management/classification-rule.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -158,5 +167,24 @@ export const initRoutes = (app: Express) => {
 
     // Medical History (2.2 - Read-Only)
     app.use('/api/medical-history', medicalHistoryRoutes);
+
+    // Insurance Providers & Patient Insurances (2.3)
+    app.use('/api/insurance-providers', insuranceProviderRoutes);
+    app.use('/api/patient-insurances', patientInsuranceRoutes);
+    app.use('/api/insurance-coverage', insuranceCoverageRoutes);
+
+    // Patient Relations & Relation Types (2.4)
+    app.use('/api/relation-types', relationTypeRoutes);
+    app.use('/api/patient-relations', patientContactRoutes);
+
+    // Document Types & Patient Documents (2.5)
+    app.use('/api/document-types', documentTypeRoutes);
+    app.use('/api/patient-documents', patientDocumentRoutes);
+
+    // Patient Tags (2.6)
+    app.use('/api/patient-tags', patientTagRoutes);
+
+    // Classification Rules (2.6.5)
+    app.use('/api/patient-classification-rules', classificationRuleRoutes);
 }
 

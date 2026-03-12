@@ -4,7 +4,9 @@ import {
     Patient,
     CreatePatientInput,
     UpdatePatientInput,
-    PaginatedPatients
+    PaginatedPatients,
+    PatientQuickResult,
+    PatientSummary
 } from '../../models/Patient Management/patient.model';
 import {
     PATIENT_ERRORS,
@@ -218,5 +220,90 @@ export class PatientService {
     static async deletePatient(id: string): Promise<void> {
         await this.getPatientById(id);
         await PatientRepository.softDeletePatient(id);
+    }
+
+    /**
+     * Cập nhật cờ has_insurance cho bệnh nhân (tính toán lại từ DB)
+     */
+    static async updateInsuranceStatus(id: string, hasInsurance: boolean): Promise<void> {
+        await this.getPatientById(id);
+        await PatientRepository.updateInsuranceStatus(id, hasInsurance);
+    }
+
+    /**
+     * Danh sách bệnh nhân CÓ bảo hiểm
+     */
+    static async getPatientsWithInsurance(
+        page: number = PATIENT_CONFIG.DEFAULT_PAGE,
+        limit: number = PATIENT_CONFIG.DEFAULT_LIMIT
+    ): Promise<PaginatedPatients> {
+        const safeLimit = Math.min(limit, PATIENT_CONFIG.MAX_LIMIT);
+        return await PatientRepository.getPatientsWithInsurance(page, safeLimit);
+    }
+
+    /**
+     * Danh sách bệnh nhân KHÔNG CÓ bảo hiểm
+     */
+    static async getPatientsWithoutInsurance(
+        page: number = PATIENT_CONFIG.DEFAULT_PAGE,
+        limit: number = PATIENT_CONFIG.DEFAULT_LIMIT
+    ): Promise<PaginatedPatients> {
+        const safeLimit = Math.min(limit, PATIENT_CONFIG.MAX_LIMIT);
+        return await PatientRepository.getPatientsWithoutInsurance(page, safeLimit);
+    }
+
+    /**
+     * Lọc bệnh nhân theo danh sách tag (AND/OR logic)
+     */
+    static async filterByTags(
+        tagIds: string[],
+        matchAll: boolean,
+        page: number = PATIENT_CONFIG.DEFAULT_PAGE,
+        limit: number = PATIENT_CONFIG.DEFAULT_LIMIT
+    ): Promise<PaginatedPatients> {
+        if (!tagIds || tagIds.length === 0) {
+            throw { success: false, code: 'FILTER_001', message: 'Phải cung cấp ít nhất 1 tagId để lọc.' };
+        }
+        const safeLimit = Math.min(limit, PATIENT_CONFIG.MAX_LIMIT);
+        return await PatientRepository.filterByTags(tagIds, matchAll, page, safeLimit);
+    }
+
+    // MODULE 2.7: TÌM KIẾM & TRA CỨU
+
+    /**
+     * Tìm kiếm nâng cao bệnh nhân (keyword + gender + status + khoảng tuổi)
+     */
+    static async advancedSearch(
+        keyword?: string,
+        status?: string,
+        gender?: string,
+        ageMin?: number,
+        ageMax?: number,
+        page: number = PATIENT_CONFIG.DEFAULT_PAGE,
+        limit: number = PATIENT_CONFIG.DEFAULT_LIMIT
+    ): Promise<PaginatedPatients> {
+        const safeLimit = Math.min(limit, PATIENT_CONFIG.MAX_LIMIT);
+        return await PatientRepository.advancedSearch(keyword, status, gender, ageMin, ageMax, page, safeLimit);
+    }
+
+    /**
+     * Tìm kiếm nhanh (autocomplete) — trả về tối đa 10 kết quả
+     */
+    static async quickSearch(keyword: string): Promise<PatientQuickResult[]> {
+        if (!keyword || keyword.trim().length === 0) {
+            return [];
+        }
+        return await PatientRepository.quickSearch(keyword.trim());
+    }
+
+    /**
+     * Tra cứu tóm tắt hồ sơ bệnh nhân (aggregate tags, insurance, history, allergy)
+     */
+    static async getPatientSummary(id: string): Promise<PatientSummary> {
+        const summary = await PatientRepository.getPatientSummary(id);
+        if (!summary) {
+            throw PATIENT_ERRORS.NOT_FOUND;
+        }
+        return summary;
     }
 }

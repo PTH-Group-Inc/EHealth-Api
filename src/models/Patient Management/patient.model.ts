@@ -68,3 +68,33 @@ export interface PaginatedPatients {
     limit: number;
     totalPages: number;
 }
+
+/** Kết quả tìm kiếm nhanh (autocomplete) – chỉ gồm thông tin tối thiểu */
+export interface PatientQuickResult {
+    id: string;
+    patient_code: string;
+    full_name: string;
+    phone_number: string | null;
+    date_of_birth: string;
+    gender: string;
+}
+
+/** Tóm tắt hồ sơ bệnh nhân (aggregate) */
+export interface PatientSummary {
+    id: string;
+    patient_code: string;
+    full_name: string;
+    date_of_birth: string;
+    gender: string;
+    phone_number: string | null;
+    email: string | null;
+    id_card_number: string | null;
+    address: string | null;
+    status: string;
+    has_insurance: boolean;
+    age: number;
+    tag_count: number;
+    insurance_count: number;
+    medical_history_count: number;
+    allergy_count: number;
+}

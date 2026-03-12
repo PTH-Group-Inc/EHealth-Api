@@ -29,6 +29,8 @@ export class AuthSessionUtil {
                         refreshTokenHash,
                         ipAddress: clientInfo.ip,
                         userAgent: clientInfo.userAgent,
+                        deviceName: clientInfo.deviceName,
+                        deviceId: clientInfo.deviceId,
                         expiredAt,
                     },
                 );
