@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗓️ E-Health — Test Quản Lý Lịch Khám</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a2e;font-size:14px}
+        .header{background:linear-gradient(135deg,#0f3460,#16213e);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+        .header h1{font-size:1.15rem}
+        .auth-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+        .auth-bar input{padding:5px 8px;border:none;border-radius:5px;font-size:.82rem}
+        .auth-bar button{padding:5px 12px;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:.8rem}
+        .btn-login{background:#e94560;color:#fff}
+        .btn-logout{background:#533483;color:#fff}
+        .user-txt{color:#a8d8ea;font-size:.82rem}
+
+        .container{max-width:1400px;margin:0 auto;padding:16px 20px}
+        .tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;border-bottom:2px solid #e2e8f0;padding-bottom:4px}
+        .tab{padding:8px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-weight:600;font-size:.85rem;background:#fff;border:1px solid #e2e8f0;border-bottom:none;transition:all .15s}
+        .tab:hover{background:#eff6ff}
+        .tab.active{background:#0f3460;color:#fff;border-color:#0f3460}
+        .panel{display:none;background:#fff;border-radius:0 8px 8px 8px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+        .panel.active{display:block}
+
+        .form-group{margin-bottom:12px}
+        .form-group label{display:block;font-weight:600;font-size:.82rem;margin-bottom:4px;color:#475569}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:.85rem}
+        .form-group textarea{resize:vertical;min-height:60px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+        .btn{padding:8px 18px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:.85rem;transition:opacity .15s}
+        .btn:hover{opacity:.85}
+        .btn-primary{background:#0f3460;color:#fff}
+        .btn-success{background:#10b981;color:#fff}
+        .btn-warning{background:#f59e0b;color:#fff}
+        .btn-danger{background:#ef4444;color:#fff}
+        .btn-outline{background:transparent;border:1px solid #d1d5db;color:#475569}
+        .btn-sm{padding:4px 10px;font-size:.78rem}
+        .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+        .result-box{margin-top:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;max-height:500px;overflow-y:auto}
+        .result-box pre{white-space:pre-wrap;word-break:break-word;font-size:.8rem;font-family:'Cascadia Code','Fira Code',monospace}
+
+        table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+        table th{background:#f1f5f9;padding:8px 10px;text-align:left;font-weight:700;border-bottom:2px solid #e2e8f0;position:sticky;top:0}
+        table td{padding:7px 10px;border-bottom:1px solid #f1f5f9}
+        table tr:hover{background:#f8fafc}
+
+        .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600}
+        .badge-pending{background:#fef3c7;color:#92400e}
+        .badge-confirmed{background:#d1fae5;color:#065f46}
+        .badge-cancelled{background:#fee2e2;color:#991b1b}
+        .badge-completed{background:#dbeafe;color:#1e40af}
+        .badge-checked_in{background:#e0e7ff;color:#3730a3}
+        .badge-no_show{background:#f3e8ff;color:#6b21a8}
+
+        .toast-container{position:fixed;top:60px;right:16px;z-index:300;display:flex;flex-direction:column;gap:6px}
+        .toast{padding:9px 14px;border-radius:8px;color:#fff;font-size:.82rem;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:slideIn .3s ease;min-width:220px}
+        .toast-success{background:#10b981}
+        .toast-error{background:#ef4444}
+        .toast-info{background:#3b82f6}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+        .section-title{font-size:1rem;font-weight:700;color:#0f3460;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+        .divider{height:1px;background:#e2e8f0;margin:16px 0}
+        .hint{font-size:.75rem;color:#94a3b8;margin-top:2px}
+
+        .slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px}
+        .slot-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;cursor:pointer;transition:all .15s}
+        .slot-card:hover{border-color:#3b82f6;box-shadow:0 2px 8px rgba(59,130,246,.1)}
+        .slot-card.selected{border-color:#0f3460;background:#eff6ff}
+        .slot-card.full{opacity:.5;cursor:not-allowed}
+        .slot-time{font-weight:700;font-size:.9rem}
+        .slot-info{font-size:.75rem;color:#64748b;margin-top:2px}
+
+        .conflict-item{padding:8px 12px;border-radius:6px;margin-bottom:6px;font-size:.82rem}
+        .conflict-doctor{background:#fef3c7;border-left:3px solid #f59e0b}
+        .conflict-patient{background:#fee2e2;border-left:3px solid #ef4444}
+        .conflict-room{background:#dbeafe;border-left:3px solid #3b82f6}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div><h1>🗓️ E-Health — Test Quản Lý Lịch Khám</h1></div>
+    <div>
+        <div class="auth-bar" id="authSection">
+            <input type="text" id="loginEmail" placeholder="Email" value="admin@ehealth.com">
+            <input type="password" id="loginPassword" placeholder="Mật khẩu" value="Admin@123">
+            <button class="btn-login" onclick="handleLogin()">Đăng nhập</button>
+        </div>
+        <div class="auth-bar" id="userSection" style="display:none">
+            <span class="user-txt" id="currentUser"></span>
+            <button class="btn-logout" onclick="handleLogout()">Đăng xuất</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('tabList')">📋 Danh sách</div>
+        <div class="tab" onclick="switchTab('tabCreate')">➕ Tạo lịch</div>
+        <div class="tab" onclick="switchTab('tabSlots')">🕐 Slot trống</div>
+        <div class="tab" onclick="switchTab('tabConflict')">⚠️ Kiểm tra trùng</div>
+        <div class="tab" onclick="switchTab('tabReschedule')">🔄 Đổi lịch</div>
+        <div class="tab" onclick="switchTab('tabVisit')">📝 Mục đích khám</div>
+        <div class="tab" onclick="switchTab('tabBookStaff')">👩‍💼 Đặt hộ</div>
+        <div class="tab" onclick="switchTab('tabPatient')">👤 Lịch BN</div>
+    </div>
+
+    <!-- =============== TAB 1: DANH SÁCH LỊCH KHÁM =============== -->
+    <div class="panel active" id="tabList">
+        <div class="section-title">📋 Danh sách lịch khám (GET /api/appointments)</div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Trạng thái</label>
+                <select id="fStatus"><option value="">-- Tất cả --</option><option>PENDING</option><option>CONFIRMED</option><option>CHECKED_IN</option><option>CANCELLED</option><option>NO_SHOW</option><option>COMPLETED</option></select></div>
+            <div class="form-group"><label>Doctor ID</label><input id="fDoctorId" placeholder="DOC_..."></div>
+            <div class="form-group"><label>Patient ID</label><input id="fPatientId" placeholder="UUID..."></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Từ ngày</label><input type="date" id="fFromDate"></div>
+            <div class="form-group"><label>Đến ngày</label><input type="date" id="fToDate"></div>
+            <div class="form-group"><label>Ngày chính xác</label><input type="date" id="fDate"></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Kênh đặt lịch</label>
+                <select id="fChannel"><option value="">-- Tất cả --</option><option>WEB</option><option>APP</option><option>HOTLINE</option><option>DIRECT_CLINIC</option><option>REFERRAL</option></select></div>
+            <div class="form-group"><label>Từ khóa (mã/tên BN)</label><input id="fKeyword" placeholder="APP-2603 hoặc Nguyễn..."></div>
+            <div class="form-group"><label>Dịch vụ (facility_service_id)</label><input id="fServiceId" placeholder="FSRV_..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Trang</label><input type="number" id="fPage" value="1" min="1"></div>
+            <div class="form-group"><label>Số bản ghi</label><input type="number" id="fLimit" value="20" min="1" max="100"></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="loadAppointments()">🔍 Tìm kiếm</button>
+            <button class="btn btn-outline" onclick="clearFilters()">🗑️ Xóa bộ lọc</button>
+        </div>
+        <div id="listResult" class="result-box" style="display:none"></div>
+    </div>
+
+    <!-- =============== TAB 2: TẠO LỊCH KHÁM =============== -->
+    <div class="panel" id="tabCreate">
+        <div class="section-title">➕ Tạo lịch khám mới (POST /api/appointments)</div>
+        <div class="form-row">
+            <div class="form-group"><label>Patient ID *</label><input id="cPatientId" placeholder="cf5abd71-..."></div>
+            <div class="form-group"><label>Ngày khám *</label><input type="date" id="cDate"></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Kênh đặt *</label>
+                <select id="cChannel"><option>WEB</option><option>APP</option><option>HOTLINE</option><option>DIRECT_CLINIC</option><option>REFERRAL</option></select></div>
+            <div class="form-group"><label>Doctor ID</label><input id="cDoctorId" placeholder="DOC_..."></div>
+            <div class="form-group"><label>Slot ID</label><input id="cSlotId" placeholder="SLT_..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Room ID</label><input id="cRoomId" placeholder="RM_..."></div>
+            <div class="form-group"><label>Facility Service ID</label><input id="cServiceId" placeholder="FSRV_..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Lý do khám</label><textarea id="cReason" placeholder="Đau đầu kéo dài 3 ngày..."></textarea></div>
+            <div class="form-group"><label>Triệu chứng</label><textarea id="cSymptoms" placeholder="Kèm theo chóng mặt..."></textarea></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-success" onclick="createAppointment()">✅ Đặt lịch</button>
+        </div>
+        <div id="createResult" class="result-box" style="display:none"></div>
+    </div>
+
+    <!-- =============== TAB 3: SLOT TRỐNG =============== -->
+    <div class="panel" id="tabSlots">
+        <div class="section-title">🕐 Lấy slot trống (GET /api/appointments/available-slots)</div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Ngày *</label><input type="date" id="sDate"></div>
+            <div class="form-group"><label>Doctor ID</label><input id="sDoctorId" placeholder="DOC_... (tuỳ chọn)"></div>
+            <div class="form-group"><label>Facility ID</label><input id="sFacilityId" placeholder="FAC_... (tuỳ chọn)"></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="loadSlots()">🔍 Tìm slot</button>
+        </div>
+        <div id="slotsGrid" class="slot-grid"></div>
+        <div id="slotsResult" class="result-box" style="display:none"></div>
+    </div>
+
+    <!-- =============== TAB 4: KIỂM TRA TRÙNG LỊCH =============== -->
+    <div class="panel" id="tabConflict">
+        <div class="section-title">⚠️ Kiểm tra trùng lịch (POST /api/appointments/check-conflict)</div>
+        <div class="form-row">
+            <div class="form-group"><label>Ngày *</label><input type="date" id="cfDate"></div>
+            <div class="form-group"><label>Slot ID *</label><input id="cfSlotId" placeholder="SLT_..."></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Doctor ID</label><input id="cfDoctorId" placeholder="DOC_..."></div>
+            <div class="form-group"><label>Patient ID</label><input id="cfPatientId" placeholder="UUID..."></div>
+            <div class="form-group"><label>Room ID</label><input id="cfRoomId" placeholder="RM_..."></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-warning" onclick="checkConflict()">⚡ Kiểm tra</button>
+        </div>
+        <div id="conflictVisual" style="margin-top:12px"></div>
+        <div id="conflictResult" class="result-box" style="display:none"></div>
+    </div>
+
+    <!-- =============== TAB 5: ĐỔI LỊCH =============== -->
+    <div class="panel" id="tabReschedule">
+        <div class="section-title">🔄 Đổi lịch khám (PATCH /api/appointments/{id}/reschedule)</div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Appointment ID *</label><input id="rsId" placeholder="APT_..."></div>
+            <div class="form-group"><label>Ngày mới *</label><input type="date" id="rsDate"></div>
+            <div class="form-group"><label>Slot mới *</label><input id="rsSlotId" placeholder="SLT_..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Room mới</label><input id="rsRoomId" placeholder="RM_... (tuỳ chọn)"></div>
+            <div class="form-group"><label>Lý do đổi</label><input id="rsReason" placeholder="BN bận công tác..."></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-warning" onclick="reschedule()">🔄 Đổi lịch</button>
+        </div>
+        <div id="rescheduleResult" class="result-box" style="display:none"></div>
+    </div>
+
+    <!-- =============== TAB 6: MỤC ĐÍCH KHÁM =============== -->
+    <div class="panel" id="tabVisit">
+        <div class="section-title">📝 Mục đích khám (visit-reason)</div>
+        <div class="form-row">
+            <div class="form-group"><label>Appointment ID *</label><input id="vrId" placeholder="APT_..."></div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary btn-sm" onclick="getVisitReason()" style="margin-top:2px">📖 Xem</button>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div class="form-row">
+            <div class="form-group"><label>Lý do khám</label><textarea id="vrReason" placeholder="Đau đầu..."></textarea></div>
+            <div class="form-group"><label>Triệu chứng</label><textarea id="vrSymptoms" placeholder="Chóng mặt..."></textarea></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-success" onclick="updateVisitReason()">💾 Cập nhật</button>
+        </div>
+        <div id="visitResult" class="result-box" style="display:none"></div>
+    </div>
+
+    <!-- =============== TAB 7: ĐẶT HỘ =============== -->
+    <div class="panel" id="tabBookStaff">
+        <div class="section-title">👩‍💼 Lễ tân đặt lịch hộ (POST /api/appointments/book-by-staff)</div>
+        <div class="form-row">
+            <div class="form-group"><label>Patient ID *</label><input id="bsPatientId" placeholder="cf5abd71-..."></div>
+            <div class="form-group"><label>Ngày khám *</label><input type="date" id="bsDate"></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Kênh đặt</label>
+                <select id="bsChannel"><option>DIRECT_CLINIC</option><option>HOTLINE</option></select></div>
+            <div class="form-group"><label>Doctor ID</label><input id="bsDoctorId" placeholder="DOC_..."></div>
+            <div class="form-group"><label>Slot ID</label><input id="bsSlotId" placeholder="SLT_..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Room ID</label><input id="bsRoomId" placeholder="RM_..."></div>
+            <div class="form-group"><label>Facility Service ID</label><input id="bsServiceId" placeholder="FSRV_..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Lý do khám</label><textarea id="bsReason" placeholder="BN gọi điện yêu cầu tái khám"></textarea></div>
+            <div class="form-group"><label>Ghi chú nhân viên</label><textarea id="bsStaffNotes" placeholder="BN là VIP, ưu tiên phòng riêng"></textarea></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-success" onclick="bookByStaff()">👩‍💼 Đặt lịch hộ</button>
+        </div>
+        <div id="bookStaffResult" class="result-box" style="display:none"></div>
+    </div>
+
+    <!-- =============== TAB 8: LỊCH BỆNH NHÂN =============== -->
+    <div class="panel" id="tabPatient">
+        <div class="section-title">👤 Lịch khám theo bệnh nhân</div>
+
+        <div class="form-row-3">
+            <div class="form-group"><label>Patient ID *</label><input id="ptId" placeholder="cf5abd71-..."></div>
+            <div class="form-group"><label>Trạng thái</label>
+                <select id="ptStatus"><option value="">-- Tất cả --</option><option>PENDING</option><option>CONFIRMED</option><option>CHECKED_IN</option><option>CANCELLED</option><option>NO_SHOW</option><option>COMPLETED</option></select></div>
+            <div class="form-group"><label>&nbsp;</label>
+                <button class="btn btn-primary" onclick="loadPatientAppts()" style="margin-top:2px">🔍 Xem lịch BN</button></div>
+        </div>
+        <div id="patientListResult" class="result-box" style="display:none"></div>
+
+        <div class="divider"></div>
+        <div class="section-title" style="margin-top:8px">➕ Tạo lịch từ hồ sơ BN (POST /api/patients/{id}/appointments)</div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Patient ID *</label><input id="ptCreateId" placeholder="cf5abd71-..."></div>
+            <div class="form-group"><label>Ngày khám *</label><input type="date" id="ptCreateDate"></div>
+            <div class="form-group"><label>Kênh đặt</label>
+                <select id="ptCreateChannel"><option>DIRECT_CLINIC</option><option>WEB</option><option>APP</option><option>HOTLINE</option></select></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Doctor ID</label><input id="ptCreateDoctor" placeholder="DOC_..."></div>
+            <div class="form-group"><label>Slot ID</label><input id="ptCreateSlot" placeholder="SLT_..."></div>
+            <div class="form-group"><label>Room ID</label><input id="ptCreateRoom" placeholder="RM_..."></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Dịch vụ</label><input id="ptCreateService" placeholder="FSRV_..."></div>
+            <div class="form-group"><label>Lý do khám</label><input id="ptCreateReason" placeholder="Tái khám..."></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-success" onclick="createByPatient()">✅ Tạo lịch</button>
+        </div>
+        <div id="patientCreateResult" class="result-box" style="display:none"></div>
+    </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let token = null;
+
+// ---- Utilities ----
+function getAuth() { const d = localStorage.getItem('ehealth_auth'); return d ? JSON.parse(d) : null }
+function headers() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } }
+function toast(m, t = 'info') { const c = document.getElementById('toastContainer'), e = document.createElement('div'); e.className = `toast toast-${t}`; e.textContent = m; c.appendChild(e); setTimeout(() => e.remove(), 4000) }
+function showResult(id, data) { const el = document.getElementById(id); el.style.display = 'block'; el.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>' }
+function statusBadge(s) { return `<span class="badge badge-${(s||'').toLowerCase()}">${s}</span>` }
+function val(id) { return document.getElementById(id).value.trim() }
+
+// ---- Auth ----
+window.onload = () => { const a = getAuth(); if (a?.accessToken) { token = a.accessToken; showLoggedIn(a.user) } }
+async function handleLogin() {
+    try {
+        const r = await (await fetch(`${API}/auth/login/email`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: val('loginEmail'), password: val('loginPassword'),
+                clientInfo: { deviceId: 'HTML_TEST', deviceName: 'AppointmentTest', userAgent: navigator.userAgent } }) })).json();
+        if (!r.success) throw new Error(r.message);
+        token = r.data.accessToken;
+        localStorage.setItem('ehealth_auth', JSON.stringify({ accessToken: r.data.accessToken, refreshToken: r.data.refreshToken, user: r.data.user }));
+        showLoggedIn(r.data.user); toast('Đăng nhập thành công!', 'success');
+    } catch (e) { toast(e.message, 'error') }
+}
+function handleLogout() { token = null; localStorage.removeItem('ehealth_auth'); document.getElementById('authSection').style.display = 'flex'; document.getElementById('userSection').style.display = 'none'; toast('Đã đăng xuất', 'info') }
+function showLoggedIn(u) { document.getElementById('authSection').style.display = 'none'; document.getElementById('userSection').style.display = 'flex'; document.getElementById('currentUser').textContent = `👤 ${u?.name || ''} (${u?.role || ''})` }
+
+// ---- Tab Switching ----
+function switchTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// ---- API Helper ----
+async function apiFetch(url, opts = {}) {
+    if (!token) { toast('Vui lòng đăng nhập', 'error'); throw new Error('No token') }
+    const r = await fetch(url, { headers: headers(), ...opts });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || `HTTP ${r.status}`);
+    return d;
+}
+
+// ===== TAB 1: DANH SÁCH =====
+async function loadAppointments() {
+    try {
+        const p = new URLSearchParams();
+        if (val('fStatus')) p.set('status', val('fStatus'));
+        if (val('fDoctorId')) p.set('doctor_id', val('fDoctorId'));
+        if (val('fPatientId')) p.set('patient_id', val('fPatientId'));
+        if (val('fFromDate')) p.set('fromDate', val('fFromDate'));
+        if (val('fToDate')) p.set('toDate', val('fToDate'));
+        if (val('fDate')) p.set('date', val('fDate'));
+        if (val('fChannel')) p.set('booking_channel', val('fChannel'));
+        if (val('fKeyword')) p.set('keyword', val('fKeyword'));
+        if (val('fServiceId')) p.set('facility_service_id', val('fServiceId'));
+        p.set('page', val('fPage') || '1');
+        p.set('limit', val('fLimit') || '20');
+
+        const r = await apiFetch(`${API}/appointments?${p}`);
+        let html = `<div style="margin-bottom:8px;font-weight:600">📊 Tổng: ${r.pagination?.total || 0} | Trang ${r.pagination?.page}/${r.pagination?.totalPages}</div>`;
+        if (r.data?.length) {
+            html += `<table><thead><tr><th>Mã</th><th>Bệnh nhân</th><th>Ngày</th><th>Slot</th><th>Bác sĩ</th><th>Phòng</th><th>Dịch vụ</th><th>Kênh</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>`;
+            r.data.forEach(a => {
+                const slot = a.slot_start_time ? `${a.slot_start_time?.substring(0,5)}-${a.slot_end_time?.substring(0,5)}` : '—';
+                html += `<tr>
+                    <td style="font-weight:600;font-size:.78rem">${a.appointment_code || a.appointment_id?.substring(0,15)}</td>
+                    <td>${a.patient_name || '—'}</td>
+                    <td>${a.appointment_date || '—'}</td>
+                    <td>${slot}</td>
+                    <td>${a.doctor_name || '—'}</td>
+                    <td>${a.room_name || '—'}</td>
+                    <td>${a.service_name || '—'}</td>
+                    <td>${a.booking_channel || '—'}</td>
+                    <td>${statusBadge(a.status)}</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="viewDetail('${a.appointment_id}')">👁 Chi tiết</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+        } else { html += '<div style="color:#94a3b8;padding:20px;text-align:center">Không có dữ liệu</div>' }
+        document.getElementById('listResult').style.display = 'block';
+        document.getElementById('listResult').innerHTML = html;
+        toast(`Tìm thấy ${r.pagination?.total || 0} lịch khám`, 'success');
+    } catch (e) { toast(e.message, 'error') }
+}
+
+async function viewDetail(id) {
+    try {
+        const r = await apiFetch(`${API}/appointments/${id}`);
+        showResult('listResult', r.data);
+    } catch (e) { toast(e.message, 'error') }
+}
+
+function clearFilters() {
+    ['fStatus','fDoctorId','fPatientId','fFromDate','fToDate','fDate','fKeyword','fServiceId'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('fChannel').value = '';
+    document.getElementById('fPage').value = '1';
+    toast('Đã xóa bộ lọc', 'info');
+}
+
+// ===== TAB 2: TẠO LỊCH =====
+async function createAppointment() {
+    try {
+        const body = { patient_id: val('cPatientId'), appointment_date: val('cDate'), booking_channel: val('cChannel') };
+        if (val('cDoctorId')) body.doctor_id = val('cDoctorId');
+        if (val('cSlotId')) body.slot_id = val('cSlotId');
+        if (val('cRoomId')) body.room_id = val('cRoomId');
+        if (val('cServiceId')) body.facility_service_id = val('cServiceId');
+        if (val('cReason')) body.reason_for_visit = val('cReason');
+        if (val('cSymptoms')) body.symptoms_notes = val('cSymptoms');
+
+        const r = await apiFetch(`${API}/appointments`, { method: 'POST', body: JSON.stringify(body) });
+        showResult('createResult', r);
+        toast('Đặt lịch thành công!', 'success');
+    } catch (e) { toast(e.message, 'error'); showResult('createResult', { error: e.message }) }
+}
+
+// ===== TAB 3: SLOT TRỐNG =====
+async function loadSlots() {
+    try {
+        const p = new URLSearchParams();
+        if (val('sDate')) p.set('date', val('sDate'));
+        if (val('sDoctorId')) p.set('doctor_id', val('sDoctorId'));
+        if (val('sFacilityId')) p.set('facility_id', val('sFacilityId'));
+
+        const r = await apiFetch(`${API}/appointments/available-slots?${p}`);
+        const grid = document.getElementById('slotsGrid');
+        if (r.data?.length) {
+            grid.innerHTML = r.data.map(s => `
+                <div class="slot-card ${s.is_available ? '' : 'full'}" onclick="${s.is_available ? `selectSlot('${s.slot_id}')` : ''}">
+                    <div class="slot-time">${s.start_time?.substring(0,5)} – ${s.end_time?.substring(0,5)}</div>
+                    <div class="slot-info">${s.shift_name || ''}</div>
+                    <div class="slot-info">📊 ${s.booked_count}/${s.max_capacity} đã đặt</div>
+                    <div class="slot-info">${s.is_available ? '✅ Còn chỗ' : '❌ Hết chỗ'}</div>
+                    <div class="slot-info" style="font-size:.7rem;color:#94a3b8">${s.slot_id}</div>
+                </div>
+            `).join('');
+        } else { grid.innerHTML = '<div style="color:#94a3b8;padding:20px">Không tìm thấy slot trống</div>' }
+        showResult('slotsResult', r);
+        toast(`Tìm thấy ${r.data?.length || 0} slot`, 'success');
+    } catch (e) { toast(e.message, 'error'); showResult('slotsResult', { error: e.message }) }
+}
+
+function selectSlot(slotId) {
+    document.getElementById('cSlotId').value = slotId;
+    document.getElementById('cfSlotId').value = slotId;
+    document.getElementById('rsSlotId').value = slotId;
+    document.getElementById('bsSlotId').value = slotId;
+    document.getElementById('ptCreateSlot').value = slotId;
+    toast(`Đã chọn slot: ${slotId}`, 'info');
+}
+
+// ===== TAB 4: KIỂM TRA TRÙNG LỊCH =====
+async function checkConflict() {
+    try {
+        const body = { date: val('cfDate'), slot_id: val('cfSlotId') };
+        if (val('cfDoctorId')) body.doctor_id = val('cfDoctorId');
+        if (val('cfPatientId')) body.patient_id = val('cfPatientId');
+        if (val('cfRoomId')) body.room_id = val('cfRoomId');
+
+        const r = await apiFetch(`${API}/appointments/check-conflict`, { method: 'POST', body: JSON.stringify(body) });
+
+        const vis = document.getElementById('conflictVisual');
+        if (r.data?.has_conflict) {
+            let html = '<div style="font-weight:700;color:#ef4444;margin-bottom:8px">⚠️ Phát hiện xung đột!</div>';
+            (r.data.conflicts || []).forEach(c => {
+                const cls = c.type === 'DOCTOR' ? 'conflict-doctor' : c.type === 'PATIENT' ? 'conflict-patient' : 'conflict-room';
+                html += `<div class="conflict-item ${cls}"><strong>${c.type}</strong>: ${c.message}</div>`;
+            });
+            vis.innerHTML = html;
+            toast('Phát hiện xung đột!', 'error');
+        } else {
+            vis.innerHTML = '<div style="color:#10b981;font-weight:700;padding:12px">✅ Không có xung đột — an toàn để đặt lịch!</div>';
+            toast('Không có xung đột', 'success');
+        }
+        showResult('conflictResult', r);
+    } catch (e) { toast(e.message, 'error'); showResult('conflictResult', { error: e.message }) }
+}
+
+// ===== TAB 5: ĐỔI LỊCH =====
+async function reschedule() {
+    try {
+        const id = val('rsId');
+        const body = { new_date: val('rsDate'), new_slot_id: val('rsSlotId') };
+        if (val('rsRoomId')) body.new_room_id = val('rsRoomId');
+        if (val('rsReason')) body.reason = val('rsReason');
+
+        const r = await apiFetch(`${API}/appointments/${id}/reschedule`, { method: 'PATCH', body: JSON.stringify(body) });
+        showResult('rescheduleResult', r);
+        toast('Đổi lịch thành công!', 'success');
+    } catch (e) { toast(e.message, 'error'); showResult('rescheduleResult', { error: e.message }) }
+}
+
+// ===== TAB 6: MỤC ĐÍCH KHÁM =====
+async function getVisitReason() {
+    try {
+        const id = val('vrId');
+        const r = await apiFetch(`${API}/appointments/${id}/visit-reason`);
+        if (r.data) {
+            document.getElementById('vrReason').value = r.data.reason_for_visit || '';
+            document.getElementById('vrSymptoms').value = r.data.symptoms_notes || '';
+        }
+        showResult('visitResult', r);
+        toast('Đã tải mục đích khám', 'success');
+    } catch (e) { toast(e.message, 'error') }
+}
+
+async function updateVisitReason() {
+    try {
+        const id = val('vrId');
+        const body = {};
+        if (val('vrReason')) body.reason_for_visit = val('vrReason');
+        if (val('vrSymptoms')) body.symptoms_notes = val('vrSymptoms');
+
+        const r = await apiFetch(`${API}/appointments/${id}/visit-reason`, { method: 'PATCH', body: JSON.stringify(body) });
+        showResult('visitResult', r);
+        toast('Cập nhật thành công!', 'success');
+    } catch (e) { toast(e.message, 'error'); showResult('visitResult', { error: e.message }) }
+}
+
+// ===== TAB 7: ĐẶT HỘ =====
+async function bookByStaff() {
+    try {
+        const body = { patient_id: val('bsPatientId'), appointment_date: val('bsDate'), booking_channel: val('bsChannel') };
+        if (val('bsDoctorId')) body.doctor_id = val('bsDoctorId');
+        if (val('bsSlotId')) body.slot_id = val('bsSlotId');
+        if (val('bsRoomId')) body.room_id = val('bsRoomId');
+        if (val('bsServiceId')) body.facility_service_id = val('bsServiceId');
+        if (val('bsReason')) body.reason_for_visit = val('bsReason');
+        if (val('bsStaffNotes')) body.staff_notes = val('bsStaffNotes');
+
+        const r = await apiFetch(`${API}/appointments/book-by-staff`, { method: 'POST', body: JSON.stringify(body) });
+        showResult('bookStaffResult', r);
+        toast('Đặt lịch hộ thành công!', 'success');
+    } catch (e) { toast(e.message, 'error'); showResult('bookStaffResult', { error: e.message }) }
+}
+
+// ===== TAB 8: LỊCH BỆNH NHÂN =====
+async function loadPatientAppts() {
+    try {
+        const pid = val('ptId');
+        const p = new URLSearchParams();
+        if (val('ptStatus')) p.set('status', val('ptStatus'));
+
+        const r = await apiFetch(`${API}/patients/${pid}/appointments?${p}`);
+        let html = `<div style="margin-bottom:8px;font-weight:600">📊 Tổng: ${r.pagination?.total || r.data?.length || 0}</div>`;
+        if (r.data?.length) {
+            html += '<table><thead><tr><th>Mã</th><th>Ngày</th><th>Slot</th><th>Bác sĩ</th><th>Phòng</th><th>Dịch vụ</th><th>Trạng thái</th></tr></thead><tbody>';
+            r.data.forEach(a => {
+                const slot = a.slot_start_time ? `${a.slot_start_time?.substring(0,5)}-${a.slot_end_time?.substring(0,5)}` : '—';
+                html += `<tr><td>${a.appointment_code||a.appointment_id?.substring(0,15)}</td><td>${a.appointment_date}</td><td>${slot}</td><td>${a.doctor_name||'—'}</td><td>${a.room_name||'—'}</td><td>${a.service_name||'—'}</td><td>${statusBadge(a.status)}</td></tr>`;
+            });
+            html += '</tbody></table>';
+        } else { html += '<div style="color:#94a3b8;padding:20px;text-align:center">Không có lịch khám</div>' }
+        document.getElementById('patientListResult').style.display = 'block';
+        document.getElementById('patientListResult').innerHTML = html;
+        toast(`Tìm thấy ${r.data?.length || 0} lịch khám`, 'success');
+    } catch (e) { toast(e.message, 'error') }
+}
+
+async function createByPatient() {
+    try {
+        const pid = val('ptCreateId');
+        const body = { appointment_date: val('ptCreateDate'), booking_channel: val('ptCreateChannel') };
+        if (val('ptCreateDoctor')) body.doctor_id = val('ptCreateDoctor');
+        if (val('ptCreateSlot')) body.slot_id = val('ptCreateSlot');
+        if (val('ptCreateRoom')) body.room_id = val('ptCreateRoom');
+        if (val('ptCreateService')) body.facility_service_id = val('ptCreateService');
+        if (val('ptCreateReason')) body.reason_for_visit = val('ptCreateReason');
+
+        const r = await apiFetch(`${API}/patients/${pid}/appointments`, { method: 'POST', body: JSON.stringify(body) });
+        showResult('patientCreateResult', r);
+        toast('Tạo lịch từ hồ sơ BN thành công!', 'success');
+    } catch (e) { toast(e.message, 'error'); showResult('patientCreateResult', { error: e.message }) }
+}
+</script>
+</body>
+</html>

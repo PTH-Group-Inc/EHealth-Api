@@ -1,0 +1,526 @@
+// src/services/Appointment Management/appointment.service.ts
+import { AppointmentRepository } from '../../repository/Appointment Management/appointment.repository';
+import { AppointmentAuditLogRepository } from '../../repository/Appointment Management/appointment-audit-log.repository';
+import { FacilityStatusService } from '../Facility Management/facility-status.service';
+import { CreateAppointmentInput, UpdateAppointmentInput, Appointment } from '../../models/Appointment Management/appointment.model';
+import { AppError } from '../../utils/app-error.util';
+import { HTTP_STATUS } from '../../constants/httpStatus.constant';
+import {
+    APPOINTMENT_STATUS, APPOINTMENT_ERRORS, DEFAULT_MAX_PATIENTS_PER_SLOT,
+    RESCHEDULABLE_STATUSES, CONFLICT_TYPE, APPOINTMENT_SUCCESS, BOOKING_CHANNEL
+} from '../../constants/appointment.constant';
+
+export class AppointmentService {
+
+    /**
+     * Đặt lịch khám mới
+     */
+    static async createAppointment(data: CreateAppointmentInput, userId?: string): Promise<Appointment> {
+        // Validate các trường bắt buộc
+        if (!data.patient_id || !data.appointment_date || !data.booking_channel) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
+                APPOINTMENT_ERRORS.MISSING_REQUIRED_FIELDS);
+        }
+
+        // Validate ngày khám >= hôm nay (không cho đặt ngày quá khứ)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetDate = new Date(data.appointment_date);
+        if (targetDate < today) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
+        }
+
+        // Validate booking_channel hợp lệ
+        const validChannels = Object.values(BOOKING_CHANNEL);
+        if (!validChannels.includes(data.booking_channel as any)) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_BOOKING_CHANNEL',
+                `Kênh đặt lịch không hợp lệ. Các giá trị cho phép: ${validChannels.join(', ')}`);
+        }
+
+        // Kiểm tra bệnh nhân tồn tại
+        const patientOk = await AppointmentRepository.patientExists(data.patient_id);
+        if (!patientOk) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', APPOINTMENT_ERRORS.PATIENT_NOT_FOUND);
+        }
+
+        // Kiểm tra bác sĩ (nếu có)
+        if (data.doctor_id) {
+            const doctorOk = await AppointmentRepository.doctorExists(data.doctor_id);
+            if (!doctorOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'DOCTOR_NOT_FOUND', APPOINTMENT_ERRORS.DOCTOR_NOT_FOUND);
+            }
+        }
+
+        // Kiểm tra slot + sức chứa (nếu có)
+        if (data.slot_id) {
+            const slotOk = await AppointmentRepository.slotExists(data.slot_id);
+            if (!slotOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+            }
+
+            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(data.slot_id, data.appointment_date);
+            const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+            const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+
+            if (currentCount >= maxPatients) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+            }
+
+            // Kiểm tra trùng lịch bệnh nhân cùng slot + ngày
+            const patientConflict = await AppointmentRepository.findPatientConflict(data.patient_id, data.appointment_date, data.slot_id);
+            if (patientConflict) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PATIENT_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_PATIENT);
+            }
+
+            // Kiểm tra trùng lịch bác sĩ cùng slot + ngày
+            if (data.doctor_id) {
+                const doctorConflict = await AppointmentRepository.findDoctorConflict(data.doctor_id, data.appointment_date, data.slot_id);
+                if (doctorConflict) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_DOCTOR);
+                }
+            }
+
+            // Kiểm tra trùng phòng cùng slot + ngày
+            if (data.room_id) {
+                const roomBookings = await AppointmentRepository.countRoomBookings(data.room_id, data.appointment_date, data.slot_id);
+                const roomCapacity = await AppointmentRepository.getRoomCapacity(data.room_id);
+                if (roomBookings >= roomCapacity) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'ROOM_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_ROOM);
+                }
+            }
+        }
+
+        // Kiểm tra phòng khám (nếu có)
+        if (data.room_id) {
+            const roomOk = await AppointmentRepository.roomIsActive(data.room_id);
+            if (!roomOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'ROOM_NOT_FOUND', APPOINTMENT_ERRORS.ROOM_NOT_FOUND);
+            }
+        }
+
+        // Kiểm tra dịch vụ (nếu có)
+        if (data.facility_service_id) {
+            const svcOk = await AppointmentRepository.facilityServiceIsActive(data.facility_service_id);
+            if (!svcOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
+            }
+        }
+
+        return await AppointmentRepository.create(data, {
+            appointment_id: '',
+            changed_by: userId,
+            old_status: null,
+            new_status: APPOINTMENT_STATUS.PENDING,
+            action_note: `Tạo lịch khám mới qua kênh ${data.booking_channel}`
+        });
+    }
+
+    /**
+     * Lấy danh sách lịch khám (có phân trang, filter)
+     */
+    static async getAppointments(filters: {
+        status?: string; patient_id?: string; doctor_id?: string;
+        room_id?: string; fromDate?: string; toDate?: string;
+        booking_channel?: string; date?: string; keyword?: string;
+        facility_service_id?: string;
+        page?: number; limit?: number;
+    }): Promise<{ data: Appointment[]; total: number }> {
+        return await AppointmentRepository.findAll(filters);
+    }
+
+    /**
+     * Lấy chi tiết 1 lịch khám (kèm audit logs)
+     */
+    static async getAppointmentById(id: string): Promise<{ appointment: Appointment; auditLogs: any[] }> {
+        const appointment = await AppointmentRepository.findById(id);
+        if (!appointment) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        const auditLogs = await AppointmentAuditLogRepository.findByAppointmentId(id);
+        return { appointment, auditLogs };
+    }
+
+    /**
+     * Cập nhật lịch khám
+     */
+    static async updateAppointment(id: string, data: UpdateAppointmentInput, userId?: string): Promise<Appointment> {
+        const existing = await AppointmentRepository.findById(id);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+
+        // Nếu đổi slot, validate lại sức chứa
+        if (data.slot_id && data.slot_id !== existing.slot_id) {
+            const slotOk = await AppointmentRepository.slotExists(data.slot_id);
+            if (!slotOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+            }
+            const targetDate = data.appointment_date || existing.appointment_date;
+            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(data.slot_id, targetDate);
+            const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+            const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+            if (currentCount >= maxPatients) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+            }
+        }
+
+        // Nếu đổi bác sĩ, validate
+        if (data.doctor_id && data.doctor_id !== existing.doctor_id) {
+            const doctorOk = await AppointmentRepository.doctorExists(data.doctor_id);
+            if (!doctorOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'DOCTOR_NOT_FOUND', APPOINTMENT_ERRORS.DOCTOR_NOT_FOUND);
+            }
+        }
+
+        // Mô tả thay đổi cho audit
+        const changes: string[] = [];
+        if (data.appointment_date && data.appointment_date !== existing.appointment_date) changes.push(`Đổi ngày khám: ${existing.appointment_date} → ${data.appointment_date}`);
+        if (data.doctor_id && data.doctor_id !== existing.doctor_id) changes.push(`Đổi bác sĩ`);
+        if (data.slot_id && data.slot_id !== existing.slot_id) changes.push(`Đổi khung giờ`);
+        if (data.reason_for_visit !== undefined) changes.push(`Cập nhật lý do khám`);
+
+        const updated = await AppointmentRepository.update(id, data, {
+            appointment_id: id,
+            changed_by: userId,
+            old_status: existing.status,
+            new_status: existing.status,
+            action_note: changes.length > 0 ? changes.join('; ') : 'Cập nhật thông tin lịch khám'
+        });
+
+        if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi cập nhật CSDL');
+        return updated;
+    }
+
+    /**
+     * Huỷ lịch khám
+     */
+    static async cancelAppointment(id: string, cancellationReason: string, userId?: string): Promise<Appointment> {
+        const existing = await AppointmentRepository.findById(id);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        if (existing.status === APPOINTMENT_STATUS.CANCELLED) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'ALREADY_CANCELLED', APPOINTMENT_ERRORS.ALREADY_CANCELLED);
+        }
+        if (existing.status === APPOINTMENT_STATUS.COMPLETED) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_CANCEL_COMPLETED', APPOINTMENT_ERRORS.CANNOT_CANCEL_COMPLETED);
+        }
+
+        const cancelled = await AppointmentRepository.cancel(id, cancellationReason, {
+            appointment_id: id,
+            changed_by: userId,
+            old_status: existing.status,
+            new_status: APPOINTMENT_STATUS.CANCELLED,
+            action_note: `Huỷ lịch: ${cancellationReason}`
+        });
+
+        if (!cancelled) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'CANCEL_FAILED', 'Lỗi hệ thống khi huỷ lịch');
+        return cancelled;
+    }
+
+    /**
+     * Gán bác sĩ cho lịch khám
+     */
+    static async assignDoctor(id: string, doctorId: string, userId?: string): Promise<Appointment> {
+        const existing = await AppointmentRepository.findById(id);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+
+        const doctorOk = await AppointmentRepository.doctorExists(doctorId);
+        if (!doctorOk) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'DOCTOR_NOT_FOUND', APPOINTMENT_ERRORS.DOCTOR_NOT_FOUND);
+        }
+
+        const updated = await AppointmentRepository.assignDoctor(id, doctorId, {
+            appointment_id: id,
+            changed_by: userId,
+            old_status: existing.status,
+            new_status: existing.status,
+            action_note: `Chỉ định bác sĩ: ${doctorId}`
+        });
+
+        if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống');
+        return updated;
+    }
+
+    /**
+     * Gán phòng khám
+     */
+    static async assignRoom(id: string, roomId: string, userId?: string): Promise<Appointment> {
+        const existing = await AppointmentRepository.findById(id);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+
+        const roomOk = await AppointmentRepository.roomIsActive(roomId);
+        if (!roomOk) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'ROOM_NOT_FOUND', APPOINTMENT_ERRORS.ROOM_NOT_FOUND);
+        }
+
+        const updated = await AppointmentRepository.assignRoom(id, roomId, {
+            appointment_id: id,
+            changed_by: userId,
+            old_status: existing.status,
+            new_status: existing.status,
+            action_note: `Gán phòng khám: ${roomId}`
+        });
+
+        if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống');
+        return updated;
+    }
+
+    /**
+     * Gán dịch vụ
+     */
+    static async assignService(id: string, facilityServiceId: string, userId?: string): Promise<Appointment> {
+        const existing = await AppointmentRepository.findById(id);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+
+        const svcOk = await AppointmentRepository.facilityServiceIsActive(facilityServiceId);
+        if (!svcOk) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
+        }
+
+        const updated = await AppointmentRepository.assignService(id, facilityServiceId, {
+            appointment_id: id,
+            changed_by: userId,
+            old_status: existing.status,
+            new_status: existing.status,
+            action_note: `Gán dịch vụ: ${facilityServiceId}`
+        });
+
+        if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống');
+        return updated;
+    }
+
+    /**
+     * Lấy lịch khám theo bác sĩ
+     */
+    static async getAppointmentsByDoctor(doctorId: string, filters?: { fromDate?: string; toDate?: string }): Promise<Appointment[]> {
+        return await AppointmentRepository.findByDoctorId(doctorId, filters);
+    }
+
+    /**
+     * Lễ tân đặt lịch hộ cho bệnh nhân (thêm metadata người đặt)
+     */
+    static async bookByStaff(data: CreateAppointmentInput, staffUserId: string, staffNotes?: string): Promise<Appointment> {
+        // Mặc định kênh đặt nếu không truyền
+        if (!data.booking_channel) {
+            data.booking_channel = 'DIRECT_CLINIC';
+        }
+
+        // Tạo lịch bình thường (tái sử dụng toàn bộ validation + conflict check)
+        const appointment = await this.createAppointment(data, staffUserId);
+
+        return appointment;
+    }
+
+    /**
+     * Lấy danh sách slot trống theo ngày — bắt buộc truyền facility_id để lọc theo giờ hoạt động
+     */
+    static async getAvailableSlots(date: string, doctorId?: string, facilityId?: string): Promise<any[]> {
+
+        if (!facilityId) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
+                'Vui lòng truyền facility_id để xác định giờ hoạt động cơ sở');
+        }
+
+        // Validate ngày >= hôm nay
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetDate = new Date(date);
+        if (targetDate < today) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
+        }
+
+        // Kiểm tra cơ sở đóng cửa bằng FacilityStatusService
+        let openTime: string | null = null;
+        let closeTime: string | null = null;
+        if (facilityId) {
+            const facilityStatus = await FacilityStatusService.determineFacilityStatus(facilityId, date);
+            if (!facilityStatus.is_open) {
+                const reason = facilityStatus.note || facilityStatus.reason;
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'FACILITY_CLOSED',
+                    `${APPOINTMENT_ERRORS.FACILITY_CLOSED}. Lý do: ${reason}`);
+            }
+            openTime = facilityStatus.open_time || null;
+            closeTime = facilityStatus.close_time || null;
+        }
+
+        // Lấy slot + thông tin capacity
+        let slots = await AppointmentRepository.findAvailableSlots(date, doctorId, facilityId);
+        const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+        const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+
+        // Lọc slot theo giờ hoạt động cơ sở (chỉ trả slot nằm trong open_time–close_time)
+        if (openTime && closeTime) {
+            slots = slots.filter(slot => {
+                const slotStart = slot.start_time?.substring(0, 5);
+                let slotEnd = slot.end_time?.substring(0, 5);
+
+                if (slotEnd <= slotStart) slotEnd = '24:00';
+                const facilityOpen = openTime!.substring(0, 5);
+                const facilityClose = closeTime!.substring(0, 5);
+                return slotStart >= facilityOpen && slotEnd <= facilityClose;
+            });
+        }
+
+        return slots.map(slot => ({
+            ...slot,
+            max_capacity: maxPatients,
+            is_available: slot.booked_count < maxPatients
+        }));
+    }
+
+    /**
+     * Đổi lịch khám (ngày + slot)
+     */
+    static async rescheduleAppointment(id: string, newDate: string, newSlotId: string, userId?: string): Promise<Appointment> {
+        const existing = await AppointmentRepository.findById(id);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+
+        // Chỉ PENDING/CONFIRMED mới được đổi
+        if (!(RESCHEDULABLE_STATUSES as readonly string[]).includes(existing.status)) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_NOT_ALLOWED', APPOINTMENT_ERRORS.RESCHEDULE_NOT_ALLOWED);
+        }
+
+        // Validate slot mới
+        const slotOk = await AppointmentRepository.slotExists(newSlotId);
+        if (!slotOk) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+        }
+
+        // Kiểm tra sức chứa slot mới
+        const currentCount = await AppointmentRepository.countActiveBySlotAndDate(newSlotId, newDate);
+        const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+        const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+        if (currentCount >= maxPatients) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+        }
+
+        // Kiểm tra trùng bệnh nhân ở slot mới (loại trừ appointment hiện tại)
+        const patientConflict = await AppointmentRepository.findPatientConflict(existing.patient_id, newDate, newSlotId, id);
+        if (patientConflict) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PATIENT_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_PATIENT);
+        }
+
+        // Kiểm tra bác sĩ có lịch làm việc ở ngày/ca mới (nếu đã gán BS)
+        if (existing.doctor_id) {
+            const shiftId = await AppointmentRepository.getShiftIdBySlot(newSlotId);
+            if (shiftId) {
+                const doctorAvailable = await AppointmentRepository.isDoctorAvailableOnDate(existing.doctor_id, newDate, shiftId);
+                if (!doctorAvailable) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_NOT_AVAILABLE', APPOINTMENT_ERRORS.DOCTOR_NOT_AVAILABLE);
+                }
+            }
+
+            // Kiểm tra trùng bác sĩ ở slot mới
+            const doctorConflict = await AppointmentRepository.findDoctorConflict(existing.doctor_id, newDate, newSlotId, id);
+            if (doctorConflict) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_DOCTOR);
+            }
+        }
+
+        const oldSlotInfo = existing.slot_id || 'chưa chọn';
+        const updated = await AppointmentRepository.reschedule(id, newDate, newSlotId, {
+            appointment_id: id,
+            changed_by: userId,
+            old_status: existing.status,
+            new_status: existing.status,
+            action_note: `Đổi lịch: ${existing.appointment_date} (slot ${oldSlotInfo}) → ${newDate} (slot ${newSlotId})`
+        });
+
+        if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống khi đổi lịch');
+        return updated;
+    }
+
+    /**
+     * Kiểm tra trùng lịch (bác sĩ, phòng, bệnh nhân)
+     */
+    static async checkConflict(data: {
+        date: string; slot_id: string;
+        doctor_id?: string; patient_id?: string; room_id?: string;
+        exclude_appointment_id?: string;
+    }): Promise<{ has_conflict: boolean; conflicts: any[] }> {
+        const conflicts: any[] = [];
+
+        // Kiểm tra bác sĩ trùng
+        if (data.doctor_id) {
+            const doctorConflict = await AppointmentRepository.findDoctorConflict(data.doctor_id, data.date, data.slot_id, data.exclude_appointment_id);
+            if (doctorConflict) {
+                conflicts.push({
+                    type: CONFLICT_TYPE.DOCTOR,
+                    message: `Bác sĩ đã có lịch khám lúc ${doctorConflict.start_time}-${doctorConflict.end_time} ngày ${data.date}`,
+                    existing_appointment_id: doctorConflict.appointments_id,
+                    existing_appointment_code: doctorConflict.appointment_code
+                });
+            }
+        }
+
+        // Kiểm tra bệnh nhân trùng
+        if (data.patient_id) {
+            const patientConflict = await AppointmentRepository.findPatientConflict(data.patient_id, data.date, data.slot_id, data.exclude_appointment_id);
+            if (patientConflict) {
+                conflicts.push({
+                    type: CONFLICT_TYPE.PATIENT,
+                    message: `Bệnh nhân đã có lịch khám cùng khung giờ ${patientConflict.start_time}-${patientConflict.end_time}`,
+                    existing_appointment_id: patientConflict.appointments_id,
+                    existing_appointment_code: patientConflict.appointment_code
+                });
+            }
+        }
+
+        // Kiểm tra phòng trùng (so với capacity)
+        if (data.room_id) {
+            const roomBookings = await AppointmentRepository.countRoomBookings(data.room_id, data.date, data.slot_id, data.exclude_appointment_id);
+            const roomCapacity = await AppointmentRepository.getRoomCapacity(data.room_id);
+            if (roomBookings >= roomCapacity) {
+                conflicts.push({
+                    type: CONFLICT_TYPE.ROOM,
+                    message: `Phòng khám đã đầy (${roomBookings}/${roomCapacity}) trong khung giờ này`,
+                    booked_count: roomBookings,
+                    max_capacity: roomCapacity
+                });
+            }
+        }
+
+        return { has_conflict: conflicts.length > 0, conflicts };
+    }
+
+    /**
+     * Cập nhật mục đích khám
+     */
+    static async updateVisitReason(id: string, reasonForVisit?: string, symptomsNotes?: string, userId?: string): Promise<Appointment> {
+        const existing = await AppointmentRepository.findById(id);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+
+        const updated = await AppointmentRepository.updateVisitReason(id, reasonForVisit, symptomsNotes, {
+            appointment_id: id,
+            changed_by: userId,
+            old_status: existing.status,
+            new_status: existing.status,
+            action_note: 'Cập nhật mục đích khám / triệu chứng'
+        });
+
+        if (!updated) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_VISIT_REASON', APPOINTMENT_ERRORS.MISSING_VISIT_REASON);
+        return updated;
+    }
+
+    /**
+     * Lấy thông tin mục đích khám
+     */
+    static async getVisitReason(id: string): Promise<{ reason_for_visit: string | null; symptoms_notes: string | null }> {
+        const result = await AppointmentRepository.findVisitReason(id);
+        if (!result) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        return result;
+    }
+}

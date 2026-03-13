@@ -110,6 +110,22 @@ export class StaffScheduleRepository {
     }
 
     /**
+     * Lấy toàn bộ lịch của 1 phòng trong ngày (±1 ngày) để kiểm tra trùng phòng
+     */
+    static async findSchedulesByRoomAndDate(roomId: string, date: string): Promise<StaffSchedule[]> {
+        const query = `
+            SELECT s.*, TO_CHAR(s.working_date, 'YYYY-MM-DD') AS working_date
+            FROM staff_schedules s
+            WHERE s.medical_room_id = $1
+              AND s.working_date >= $2::date - interval '1 day'
+              AND s.working_date <= $2::date + interval '1 day'
+              AND s.status = 'ACTIVE'
+        `;
+        const result = await pool.query(query, [roomId, date]);
+        return result.rows;
+    }
+
+    /**
      * Cập nhật thông tin lịch
      */
     static async update(id: string, data: UpdateStaffScheduleInput): Promise<StaffSchedule | null> {

@@ -71,6 +71,41 @@ export class StaffScheduleService {
             }
         }
 
+        // Kiểm tra trùng phòng: 2 nhân viên khác nhau cùng phòng cùng giờ
+        const roomSchedules = await StaffScheduleRepository.findSchedulesByRoomAndDate(data.medical_room_id, data.working_date);
+        for (const roomSch of roomSchedules) {
+            // Bỏ qua chính nhân viên đang xét (đã check ở trên)
+            if (roomSch.user_id === data.user_id) continue;
+
+            if (this.isTimeOverlapping(data.working_date, newStartTime, newEndTime, roomSch.working_date, roomSch.start_time, roomSch.end_time)) {
+                throw new AppError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'ROOM_CONFLICT',
+                    `Phòng này đã có nhân viên khác (${roomSch.user_id}) được xếp lịch từ ${roomSch.start_time} đến ${roomSch.end_time}. Vui lòng chọn phòng hoặc ca khác.`
+                );
+            }
+        }
+
+        // Kiểm tra phòng đang trong lịch bảo trì
+        try {
+            const { pool: dbPool } = await import('../../config/postgresdb');
+            const maintenanceCheck = await dbPool.query(
+                `SELECT 1 FROM room_maintenance_schedules
+                 WHERE room_id = $1 AND $2::date BETWEEN start_date AND end_date AND deleted_at IS NULL LIMIT 1`,
+                [data.medical_room_id, data.working_date]
+            );
+            if ((maintenanceCheck.rowCount ?? 0) > 0) {
+                throw new AppError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'ROOM_MAINTENANCE',
+                    'Phòng này đang trong thời gian bảo trì. Vui lòng chọn phòng khác.'
+                );
+            }
+        } catch (e: any) {
+            // Bỏ qua nếu bảng chưa tồn tại (chưa chạy migration)
+            if (e instanceof AppError) throw e;
+        }
+
         return await StaffScheduleRepository.create(data);
     }
 
