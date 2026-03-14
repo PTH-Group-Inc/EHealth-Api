@@ -45,13 +45,14 @@ export class StaffScheduleController {
      */
     static async getSchedules(req: Request, res: Response) {
         try {
-            const { user_id, shift_id, working_date, medical_room_id } = req.query;
+            const { user_id, shift_id, working_date, medical_room_id, branch_id } = req.query;
             const filters = {
                 staff_schedules_id: req.query.staff_schedules_id?.toString(),
                 user_id: user_id?.toString(),
                 shift_id: shift_id?.toString(),
                 working_date: working_date?.toString(),
-                medical_room_id: medical_room_id?.toString()
+                medical_room_id: medical_room_id?.toString(),
+                branch_id: branch_id?.toString()
             };
 
             const schedules = await StaffScheduleService.getSchedules(filters);

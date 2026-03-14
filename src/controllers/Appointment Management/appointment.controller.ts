@@ -127,7 +127,8 @@ export class AppointmentController {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_CANCELLATION_REASON', APPOINTMENT_ERRORS.MISSING_CANCELLATION_REASON);
             }
             const userId = (req as any).auth?.user_id;
-            const cancelled = await AppointmentService.cancelAppointment(req.params.id as string, cancellation_reason, userId);
+            const userRoles = (req as any).auth?.roles || [];
+            const cancelled = await AppointmentService.cancelAppointment(req.params.id as string, cancellation_reason, userId, userRoles);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: APPOINTMENT_SUCCESS.CANCELLED,
@@ -268,12 +269,12 @@ export class AppointmentController {
      */
     static async reschedule(req: Request, res: Response) {
         try {
-            const { new_date, new_slot_id } = req.body;
+            const { new_date, new_slot_id, reschedule_reason } = req.body;
             if (!new_date || !new_slot_id) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_RESCHEDULE_DATA', APPOINTMENT_ERRORS.MISSING_RESCHEDULE_DATA);
             }
             const userId = (req as any).auth?.user_id;
-            const updated = await AppointmentService.rescheduleAppointment(req.params.id as string, new_date, new_slot_id, userId);
+            const updated = await AppointmentService.rescheduleAppointment(req.params.id as string, new_date, new_slot_id, userId, reschedule_reason);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: APPOINTMENT_SUCCESS.RESCHEDULED,

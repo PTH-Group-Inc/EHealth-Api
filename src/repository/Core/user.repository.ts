@@ -606,12 +606,12 @@ export class UserRepository {
     static async getStatusHistory(userId: string): Promise<AccountStatusHistory[]> {
         const query = `
             SELECT 
-                a.audit_logs_id, a.user_id, a.action, a.old_values, a.new_values, 
+                a.log_id, a.user_id, a.action_type, a.old_value, a.new_value, 
                 a.ip_address, a.user_agent, a.created_at,
                 up.full_name as changed_by_name
             FROM audit_logs a
             LEFT JOIN user_profiles up ON a.user_id = up.user_id
-            WHERE a.table_name = 'users' AND a.action = 'UPDATE' AND a.record_id = $1
+            WHERE a.module_name = 'users' AND a.action_type = 'UPDATE' AND a.target_id = $1
             ORDER BY a.created_at DESC
         `;
         const result = await pool.query(query, [userId]);
@@ -785,12 +785,12 @@ export class UserRepository {
     static async getImportHistory(): Promise<any[]> {
         const query = `
             SELECT 
-                a.audit_logs_id, a.user_id, a.action, a.new_values, 
+                a.log_id, a.user_id, a.action_type, a.new_value, 
                 a.ip_address, a.created_at,
                 up.full_name as import_by_name
             FROM audit_logs a
             LEFT JOIN user_profiles up ON a.user_id = up.user_id
-            WHERE a.table_name = 'users' AND a.action = 'CREATE' AND a.record_id = 'BULK'
+            WHERE a.module_name = 'users' AND a.action_type = 'CREATE' AND a.target_id = 'BULK'
             ORDER BY a.created_at DESC
         `;
         const result = await pool.query(query);

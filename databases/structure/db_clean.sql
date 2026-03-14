@@ -767,6 +767,24 @@ CREATE TABLE appointments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS queue_number INT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS check_in_method VARCHAR(20);
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS qr_token VARCHAR(100) UNIQUE;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS qr_token_expires_at TIMESTAMPTZ;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS is_late BOOLEAN DEFAULT FALSE;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS late_minutes INT DEFAULT 0;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
+
+-- 2. ALTER bảng medical_rooms — thêm tracking phòng khám
+ALTER TABLE medical_rooms ADD COLUMN IF NOT EXISTS current_appointment_id VARCHAR(50);
+ALTER TABLE medical_rooms ADD COLUMN IF NOT EXISTS current_patient_id VARCHAR(50);
+ALTER TABLE medical_rooms ADD COLUMN IF NOT EXISTS room_status VARCHAR(30) DEFAULT 'AVAILABLE';
+
+
+
+
 -- Nhat ky thay doi lich kham (Appointment Audit Trail)
 CREATE TABLE appointment_audit_logs (
     appointment_audit_logs_id VARCHAR(50) PRIMARY KEY,
@@ -1440,6 +1458,69 @@ CREATE TABLE room_maintenance_schedules (
     FOREIGN KEY (created_by) REFERENCES users(users_id) ON DELETE SET NULL,
     CHECK (end_date >= start_date)
 );
+
+
+-- 1. Thêm cột xác nhận vào bảng appointments
+ALTER TABLE appointments
+  ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMP NULL,
+  ADD COLUMN IF NOT EXISTS confirmed_by VARCHAR(50) NULL;
+
+-- 2. Bảng tracking nhắc lịch
+CREATE TABLE IF NOT EXISTS appointment_reminders (
+    reminder_id VARCHAR(50) PRIMARY KEY,
+    appointment_id VARCHAR(50) NOT NULL,
+    reminder_type VARCHAR(20) NOT NULL,     -- AUTO | MANUAL
+    channel VARCHAR(20) NOT NULL,           -- INAPP | EMAIL | PUSH
+    sent_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    sent_by VARCHAR(50) NULL,               -- NULL nếu AUTO (cron job)
+    trigger_source VARCHAR(50) NOT NULL,    -- CRON_JOB | STAFF_MANUAL
+    FOREIGN KEY (appointment_id) REFERENCES appointments(appointments_id) ON DELETE CASCADE,
+    FOREIGN KEY (sent_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+
+
+-- 1. Bảng mới: appointment_change_logs — lưu lịch sử dời/hủy
+CREATE TABLE IF NOT EXISTS appointment_change_logs (
+    id VARCHAR(50) PRIMARY KEY,
+    appointment_id VARCHAR(50) NOT NULL REFERENCES appointments(appointments_id) ON DELETE CASCADE,
+    change_type VARCHAR(20) NOT NULL, -- RESCHEDULE / CANCEL
+    old_date DATE,
+    old_slot_id VARCHAR(50),
+    new_date DATE,
+    new_slot_id VARCHAR(50),
+    reason TEXT,
+    changed_by VARCHAR(50),
+    policy_checked BOOLEAN DEFAULT FALSE,
+    policy_result VARCHAR(30), -- ALLOWED / LATE_CANCEL / BLOCKED
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_change_logs_appointment ON appointment_change_logs(appointment_id);
+CREATE INDEX IF NOT EXISTS idx_change_logs_type ON appointment_change_logs(change_type);
+CREATE INDEX IF NOT EXISTS idx_change_logs_created ON appointment_change_logs(created_at DESC);
+
+-- 2. ALTER bảng appointments — thêm cột tracking dời/hủy
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reschedule_count INT DEFAULT 0;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS last_rescheduled_at TIMESTAMPTZ;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS cancelled_by VARCHAR(50);
+
+
+-- 1. ALTER bảng appointments — thêm cột priority
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'NORMAL';
+
+-- 2. Bảng mới: appointment_coordination_logs
+CREATE TABLE IF NOT EXISTS appointment_coordination_logs (
+    id VARCHAR(50) PRIMARY KEY,
+    appointment_id VARCHAR(50) NOT NULL REFERENCES appointments(appointments_id) ON DELETE CASCADE,
+    action_type VARCHAR(30) NOT NULL, -- REASSIGN_DOCTOR / SET_PRIORITY / AUTO_ASSIGN
+    old_value TEXT,
+    new_value TEXT,
+    reason TEXT,
+    performed_by VARCHAR(50),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 
 -- =====================================================================
 -- TOM TAT CAC BANG BI CHONG CHEO (OVERLAP SUMMARY)

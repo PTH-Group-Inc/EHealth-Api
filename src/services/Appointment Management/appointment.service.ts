@@ -1,7 +1,10 @@
 // src/services/Appointment Management/appointment.service.ts
 import { AppointmentRepository } from '../../repository/Appointment Management/appointment.repository';
 import { AppointmentAuditLogRepository } from '../../repository/Appointment Management/appointment-audit-log.repository';
+import { AppointmentChangeRepository } from '../../repository/Appointment Management/appointment-change.repository';
 import { FacilityStatusService } from '../Facility Management/facility-status.service';
+import { BookingConfigService } from '../Facility Management/booking-config.service';
+import { NotificationEngineService } from '../Core/notification-engine.service';
 import { CreateAppointmentInput, UpdateAppointmentInput, Appointment } from '../../models/Appointment Management/appointment.model';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -9,6 +12,9 @@ import {
     APPOINTMENT_STATUS, APPOINTMENT_ERRORS, DEFAULT_MAX_PATIENTS_PER_SLOT,
     RESCHEDULABLE_STATUSES, CONFLICT_TYPE, APPOINTMENT_SUCCESS, BOOKING_CHANNEL
 } from '../../constants/appointment.constant';
+import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
+import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS } from '../../constants/appointment-change.constant';
+import { v4 as uuidv4 } from 'uuid';
 
 export class AppointmentService {
 
@@ -106,13 +112,22 @@ export class AppointmentService {
             }
         }
 
-        return await AppointmentRepository.create(data, {
+        const appointment = await AppointmentRepository.create(data, {
             appointment_id: '',
             changed_by: userId,
             old_status: null,
             new_status: APPOINTMENT_STATUS.PENDING,
             action_note: `Tạo lịch khám mới qua kênh ${data.booking_channel}`
         });
+
+        // Gửi thông báo đặt lịch thành công tới bệnh nhân (fire-and-forget)
+        this.sendAppointmentNotification(
+            appointment.appointments_id,
+            APPOINTMENT_TEMPLATE_CODES.CREATED,
+            {}
+        );
+
+        return appointment;
     }
 
     /**
@@ -192,9 +207,9 @@ export class AppointmentService {
     }
 
     /**
-     * Huỷ lịch khám
+     * Huỷ lịch khám (nâng cấp: enforce policy + change log)
      */
-    static async cancelAppointment(id: string, cancellationReason: string, userId?: string): Promise<Appointment> {
+    static async cancelAppointment(id: string, cancellationReason: string, userId?: string, userRoles?: string[]): Promise<Appointment> {
         const existing = await AppointmentRepository.findById(id);
         if (!existing) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
@@ -205,6 +220,27 @@ export class AppointmentService {
         if (existing.status === APPOINTMENT_STATUS.COMPLETED) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_CANCEL_COMPLETED', APPOINTMENT_ERRORS.CANNOT_CANCEL_COMPLETED);
         }
+        if (existing.status === APPOINTMENT_STATUS.NO_SHOW) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_CANCEL_NO_SHOW', CHANGE_ERRORS.CANNOT_CANCEL_NO_SHOW);
+        }
+        if (existing.status === APPOINTMENT_STATUS.IN_PROGRESS) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_CANCEL_IN_PROGRESS', CHANGE_ERRORS.CANNOT_CANCEL_IN_PROGRESS);
+        }
+
+        // Kiểm tra chính sách hủy lịch
+        const isAdmin = userRoles?.includes('ADMIN') || false;
+        let policyResult: string = POLICY_RESULT.ALLOWED;
+        let policyChecked = false;
+
+        if (existing.slot_id) {
+            policyChecked = true;
+            const policyCheck = await this.checkCancelPolicyInternal(existing);
+            if (!policyCheck.allowed && !isAdmin) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANCEL_POLICY_BLOCKED', 
+                    `${CHANGE_ERRORS.CANCEL_POLICY_BLOCKED}. Yêu cầu hủy tối thiểu ${policyCheck.policy_hours} giờ trước giờ khám`);
+            }
+            policyResult = policyCheck.allowed ? POLICY_RESULT.ALLOWED : POLICY_RESULT.LATE_CANCEL;
+        }
 
         const cancelled = await AppointmentRepository.cancel(id, cancellationReason, {
             appointment_id: id,
@@ -212,10 +248,62 @@ export class AppointmentService {
             old_status: existing.status,
             new_status: APPOINTMENT_STATUS.CANCELLED,
             action_note: `Huỷ lịch: ${cancellationReason}`
-        });
+        }, userId);
 
         if (!cancelled) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'CANCEL_FAILED', 'Lỗi hệ thống khi huỷ lịch');
+
+        // Ghi change log
+        await AppointmentChangeRepository.createChangeLog({
+            id: `ACHG_${uuidv4().substring(0, 12)}`,
+            appointment_id: id,
+            change_type: CHANGE_TYPE.CANCEL,
+            old_date: existing.appointment_date,
+            old_slot_id: existing.slot_id,
+            reason: cancellationReason,
+            changed_by: userId,
+            policy_checked: policyChecked,
+            policy_result: policyResult as string,
+        });
+
+        // Gửi thông báo huỷ lịch tới bệnh nhân (fire-and-forget)
+        this.sendAppointmentNotification(
+            id,
+            APPOINTMENT_TEMPLATE_CODES.CANCELLED,
+            { cancellation_reason: cancellationReason }
+        );
+
         return cancelled;
+    }
+
+    /**
+     * Kiểm tra chính sách hủy lịch (internal helper)
+     */
+    private static async checkCancelPolicyInternal(appointment: Appointment): Promise<{
+        allowed: boolean;
+        policy_hours: number;
+        hours_remaining: number;
+    }> {
+        // Lấy cấu hình cancellation_allowed_hours
+        let policyHours = 12; // default
+        try {
+            const config = await BookingConfigService.getResolvedConfig('default');
+            policyHours = config.cancellation_allowed_hours ?? 12;
+        } catch {
+            // Fallback to default
+        }
+
+        // Tính thời điểm giới hạn
+        const slotStartTime = appointment.slot_start_time || '00:00:00';
+        const appointmentDateTime = new Date(`${appointment.appointment_date}T${slotStartTime}`);
+        const deadlineMs = appointmentDateTime.getTime() - (policyHours * 60 * 60 * 1000);
+        const nowMs = Date.now();
+        const hoursRemaining = Math.max(0, (appointmentDateTime.getTime() - nowMs) / (60 * 60 * 1000));
+
+        return {
+            allowed: nowMs <= deadlineMs,
+            policy_hours: policyHours,
+            hours_remaining: Math.round(hoursRemaining * 10) / 10,
+        };
     }
 
     /**
@@ -376,9 +464,9 @@ export class AppointmentService {
     }
 
     /**
-     * Đổi lịch khám (ngày + slot)
+     * Đổi lịch khám (nâng cấp: yêu cầu reason + change log)
      */
-    static async rescheduleAppointment(id: string, newDate: string, newSlotId: string, userId?: string): Promise<Appointment> {
+    static async rescheduleAppointment(id: string, newDate: string, newSlotId: string, userId?: string, rescheduleReason?: string): Promise<Appointment> {
         const existing = await AppointmentRepository.findById(id);
         if (!existing) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
@@ -426,16 +514,43 @@ export class AppointmentService {
             }
         }
 
+        // Lưu thông tin cũ trước khi update
+        const oldDate = existing.appointment_date;
+        const oldSlotId = existing.slot_id;
         const oldSlotInfo = existing.slot_id || 'chưa chọn';
+
         const updated = await AppointmentRepository.reschedule(id, newDate, newSlotId, {
             appointment_id: id,
             changed_by: userId,
             old_status: existing.status,
             new_status: existing.status,
-            action_note: `Đổi lịch: ${existing.appointment_date} (slot ${oldSlotInfo}) → ${newDate} (slot ${newSlotId})`
+            action_note: `Đổi lịch: ${existing.appointment_date} (slot ${oldSlotInfo}) → ${newDate} (slot ${newSlotId})${rescheduleReason ? `. Lý do: ${rescheduleReason}` : ''}`
         });
 
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống khi đổi lịch');
+
+        // Ghi change log
+        await AppointmentChangeRepository.createChangeLog({
+            id: `ACHG_${uuidv4().substring(0, 12)}`,
+            appointment_id: id,
+            change_type: CHANGE_TYPE.RESCHEDULE,
+            old_date: oldDate,
+            old_slot_id: oldSlotId,
+            new_date: newDate,
+            new_slot_id: newSlotId,
+            reason: rescheduleReason,
+            changed_by: userId,
+            policy_checked: false,
+            policy_result: POLICY_RESULT.ALLOWED,
+        });
+
+        // Gửi thông báo đổi lịch tới bệnh nhân (fire-and-forget)
+        this.sendAppointmentNotification(
+            id,
+            APPOINTMENT_TEMPLATE_CODES.RESCHEDULED,
+            { new_date: newDate, new_slot_id: newSlotId }
+        );
+
         return updated;
     }
 
@@ -522,5 +637,37 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
         return result;
+    }
+
+    /**
+     * Gửi thông báo appointment (fire-and-forget)
+     * Không throw lỗi — chỉ log warning nếu thất bại
+     */
+    private static async sendAppointmentNotification(
+        appointmentId: string,
+        templateCode: string,
+        extraVariables: Record<string, any> = {}
+    ): Promise<void> {
+        try {
+            const apt = await AppointmentRepository.findWithPatientAccount(appointmentId);
+            if (!apt || !apt.account_id) {
+                return; // Bệnh nhân chưa có tài khoản → bỏ qua
+            }
+
+            await NotificationEngineService.triggerEvent({
+                template_code: templateCode,
+                target_user_id: apt.account_id,
+                variables: {
+                    patient_name: apt.patient_name || 'Bệnh nhân',
+                    appointment_code: apt.appointment_code,
+                    appointment_date: apt.appointment_date,
+                    slot_time: (apt as any).slot_time || '',
+                    doctor_name: apt.doctor_name || 'Chưa chỉ định',
+                    ...extraVariables,
+                },
+            });
+        } catch (error: any) {
+            console.error(`[NOTIFICATION] Lỗi gửi ${templateCode} cho appointment ${appointmentId}:`, error.message);
+        }
     }
 }

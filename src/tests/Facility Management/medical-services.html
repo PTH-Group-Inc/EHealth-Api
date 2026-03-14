@@ -505,7 +505,7 @@
 
     <!-- AUTH BAR -->
     <div class="auth-bar">
-        <div class="logo">🏥 Module 2.9 - Quản lý Dịch vụ Y tế</div>
+        <div class="logo"><a href="index.html" style="color:white;text-decoration:none">← Quay về Hub</a> &nbsp;|&nbsp; 🏥 Quản lý Dịch vụ Y tế</div>
         <div class="user-info" id="authSection">
             <input type="text" id="loginEmail" placeholder="Email" value="admin@ehealth.com">
             <input type="password" id="loginPassword" placeholder="Mật khẩu" value="Admin@123">
@@ -584,8 +584,9 @@
             <div class="card">
                 <h3>🏢 Dịch vụ tại Cơ sở</h3>
                 <div class="toolbar">
-                    <input type="text" id="facFacilityId" placeholder="ID Cơ sở (VD: FAC_01)" value="FAC_01"
-                        style="max-width:200px">
+                    <select id="facFacilityId" class="fac-select" onchange="loadFsrvDropdown()">
+                        <option value="">-- Chọn cơ sở --</option>
+                    </select>
                     <button class="btn btn-outline" onclick="loadFacilityServices()">Tải dữ liệu</button>
                     <input type="text" id="facSearch" placeholder="🔍 Tìm kiếm..."
                         onkeyup="debounce(loadFacilityServices, 400)()">
@@ -625,14 +626,16 @@
             <div class="card">
                 <h3>🔗 Gán Dịch vụ - Chuyên khoa</h3>
                 <div class="toolbar">
-                    <input type="text" id="specSpecialtyId" placeholder="specialties_id (query từ bảng specialties)"
-                        style="min-width:280px">
+                    <select id="specSpecialtyId" class="spec-select">
+                        <option value="">-- Chọn chuyên khoa --</option>
+                    </select>
                     <button class="btn btn-primary" onclick="loadSpecialtyServices()">Xem dịch vụ</button>
                     <button class="btn btn-success" onclick="openSpecialtyAssignModal()">✏️ Gán dịch vụ</button>
                 </div>
                 <div class="toolbar" style="margin-top: 8px;">
-                    <input type="text" id="specServiceId" placeholder="services_id (tra cứu ngược → chuyên khoa nào?)"
-                        style="min-width:280px">
+                    <select id="specServiceId" class="master-srv-select" style="min-width:280px">
+                        <option value="">-- Chọn dịch vụ (tra cứu ngược → chuyên khoa nào?) --</option>
+                    </select>
                     <button class="btn btn-outline" onclick="loadSpecialtiesByService()">Tra cứu</button>
                 </div>
                 <div class="tbl-wrap">
@@ -661,14 +664,16 @@
             <div class="card">
                 <h3>👨‍⚕️ Gán Dịch vụ - Bác sĩ</h3>
                 <div class="toolbar">
-                    <input type="text" id="docDoctorId"
-                        placeholder="doctors_id (query từ bảng doctors, KHÔNG phải users_id)" style="min-width:250px">
+                    <select id="docDoctorId" class="doc-select">
+                        <option value="">-- Chọn bác sĩ --</option>
+                    </select>
                     <button class="btn btn-primary" onclick="loadDoctorServices()">Xem dịch vụ</button>
                     <button class="btn btn-success" onclick="openDoctorAssignModal()">✏️ Gán dịch vụ</button>
                 </div>
                 <div class="toolbar" style="margin-top: 8px;">
-                    <input type="text" id="docFsrvId" placeholder="facility_services_id (tra cứu ngược → bác sĩ nào?)"
-                        style="min-width:280px">
+                    <select id="docFsrvId" class="fsrv-select" style="min-width:280px">
+                        <option value="">-- Chọn dịch vụ cơ sở (tra cứu ngược → bác sĩ nào?) --</option>
+                    </select>
                     <button class="btn btn-outline" onclick="loadDoctorsByFacilityService()">Tra cứu</button>
                 </div>
                 <div class="tbl-wrap">
@@ -750,10 +755,12 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="facEditId">
-                <div class="form-group"><label>ID Dịch vụ chuẩn *</label><input id="fServiceId" placeholder="SRV_...">
+                <div class="form-group"><label>Dịch vụ chuẩn *</label>
+                    <select id="fServiceId" class="master-srv-select"><option value="">-- Chọn dịch vụ --</option></select>
                 </div>
-                <div class="form-group"><label>ID Khoa/Phòng</label><input id="fDeptId"
-                        placeholder="DEPT_... (tuỳ chọn)"></div>
+                <div class="form-group"><label>Khoa/Phòng</label>
+                    <select id="fDeptId" class="dept-select"><option value="">-- Tất cả (tuỳ chọn) --</option></select>
+                </div>
                 <div class="form-row">
                     <div class="form-group"><label>Giá cơ bản (VNĐ) *</label><input type="number" id="fBasePrice"
                             placeholder="300000"></div>
@@ -806,8 +813,9 @@
                     onclick="closeModal('docAssignModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group"><label>ID Cơ sở</label><input id="docAssignFacId" placeholder="FAC_01"
-                        value="FAC_01"></div>
+                <div class="form-group"><label>Cơ sở</label>
+                    <select id="docAssignFacId" class="fac-select"><option value="">-- Chọn cơ sở --</option></select>
+                </div>
                 <button class="btn btn-outline btn-sm" onclick="loadFacServicesForDocAssign()"
                     style="margin-bottom:12px">Tải danh sách dịch vụ cơ sở</button>
                 <div class="checkbox-list" id="docAssignList">
@@ -833,7 +841,7 @@
 
         window.onload = () => {
             const auth = getAuth();
-            if (auth?.accessToken) { token = auth.accessToken; showLoggedIn(auth.user); loadMasterServices(); }
+            if (auth?.accessToken) { token = auth.accessToken; showLoggedIn(auth.user); loadDropdowns().then(() => loadMasterServices()); }
         };
 
         async function handleLogin() {
@@ -850,7 +858,7 @@
                 localStorage.setItem('ehealth_auth', JSON.stringify({ accessToken: r.data.accessToken, refreshToken: r.data.refreshToken, user: r.data.user }));
                 showLoggedIn(r.data.user);
                 toast('Đăng nhập thành công!', 'success');
-                loadMasterServices();
+                loadDropdowns().then(() => loadMasterServices());
             } catch (e) { toast(e.message, 'error'); }
         }
 
@@ -892,6 +900,85 @@
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
             return data;
+        }
+
+        // ==================== DROPDOWNS ====================
+        async function loadDropdowns() {
+            try {
+                const [facRes, specRes, docRes, masterRes, deptRes] = await Promise.allSettled([
+                    apiFetch(`${API}/facilities/dropdown`),
+                    apiFetch(`${API}/specialties?limit=100`),
+                    apiFetch(`${API}/staff?position=DOCTOR&limit=100`),
+                    apiFetch(`${API}/medical-services/master?limit=200`),
+                    apiFetch(`${API}/departments?limit=200`)
+                ]);
+                // Cơ sở
+                if (facRes.status === 'fulfilled') {
+                    const facs = facRes.value.data || [];
+                    document.querySelectorAll('.fac-select').forEach(sel => {
+                        const val = sel.value;
+                        sel.innerHTML = '<option value="">-- Chọn cơ sở --</option>' + facs.map(f => `<option value="${f.facilities_id}">${f.name}</option>`).join('');
+                        if (val) sel.value = val;
+                    });
+                }
+                // Chuyên khoa
+                if (specRes.status === 'fulfilled') {
+                    const specs = specRes.value.data?.items || specRes.value.data || [];
+                    document.querySelectorAll('.spec-select').forEach(sel => {
+                        const val = sel.value;
+                        sel.innerHTML = '<option value="">-- Chọn chuyên khoa --</option>' + specs.map(s => `<option value="${s.specialties_id}">${s.name} (${s.code || ''})</option>`).join('');
+                        if (val) sel.value = val;
+                    });
+                }
+                // Bác sĩ
+                if (docRes.status === 'fulfilled') {
+                    const docs = docRes.value.data?.items || docRes.value.data || [];
+                    document.querySelectorAll('.doc-select').forEach(sel => {
+                        const val = sel.value;
+                        sel.innerHTML = '<option value="">-- Chọn bác sĩ --</option>' + docs.map(d => `<option value="${d.doctors_id || d.staff_id}">${d.full_name || d.user_name || d.staff_id} ${d.specialty_name ? '('+d.specialty_name+')' : ''}</option>`).join('');
+                        if (val) sel.value = val;
+                    });
+                }
+                // Dịch vụ chuẩn (master services)
+                if (masterRes.status === 'fulfilled') {
+                    const masters = masterRes.value.data?.data || masterRes.value.data || [];
+                    allMasterServicesCache = masters;
+                    document.querySelectorAll('.master-srv-select').forEach(sel => {
+                        const val = sel.value;
+                        const defaultLabel = sel.dataset.placeholder || '-- Chọn dịch vụ --';
+                        sel.innerHTML = `<option value="">${defaultLabel}</option>` + masters.map(s => `<option value="${s.services_id}">${s.code} - ${s.name}</option>`).join('');
+                        if (val) sel.value = val;
+                    });
+                }
+                // Khoa / Phòng
+                if (deptRes.status === 'fulfilled') {
+                    const depts = deptRes.value.data?.items || deptRes.value.data || [];
+                    document.querySelectorAll('.dept-select').forEach(sel => {
+                        const val = sel.value;
+                        sel.innerHTML = '<option value="">-- Tất cả (tuỳ chọn) --</option>' + depts.map(d => `<option value="${d.departments_id}">${d.name} (${d.code || ''})</option>`).join('');
+                        if (val) sel.value = val;
+                    });
+                }
+                // Load facility services cho dropdown tra cứu ngược
+                await loadFsrvDropdown();
+            } catch(e) { console.error('loadDropdowns error:', e); }
+        }
+
+        /** Load danh sách dịch vụ cơ sở cho combo tra cứu ngược */
+        async function loadFsrvDropdown() {
+            try {
+                // Lấy từ cơ sở đầu tiên trong danh sách (hoặc tất cả)
+                const facSel = document.getElementById('facFacilityId');
+                const facId = facSel?.value;
+                if (!facId) return;
+                const r = await apiFetch(`${API}/medical-services/facilities/${facId}/services?limit=200`);
+                const items = r.data?.data || r.data || [];
+                document.querySelectorAll('.fsrv-select').forEach(sel => {
+                    const val = sel.value;
+                    sel.innerHTML = '<option value="">-- Chọn dịch vụ cơ sở --</option>' + items.map(s => `<option value="${s.facility_services_id}">${s.service_code || ''} - ${s.service_name || s.name || ''} (${money(s.base_price)})</option>`).join('');
+                    if (val) sel.value = val;
+                });
+            } catch(e) { /* silent - chưa chọn cơ sở */ }
         }
 
         // ==================== 1. MASTER SERVICES ====================

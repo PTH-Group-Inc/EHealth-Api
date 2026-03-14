@@ -339,7 +339,7 @@ export class AppointmentRepository {
     /**
      * Huỷ lịch khám kèm ghi audit log — chạy trong Transaction
      */
-    static async cancel(id: string, cancellationReason: string, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
+    static async cancel(id: string, cancellationReason: string, auditLog: CreateAuditLogInput, cancelledBy?: string): Promise<Appointment | null> {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -347,11 +347,11 @@ export class AppointmentRepository {
             const query = `
                 UPDATE appointments
                 SET status = 'CANCELLED', cancelled_at = CURRENT_TIMESTAMP,
-                    cancellation_reason = $1, updated_at = CURRENT_TIMESTAMP
+                    cancellation_reason = $1, cancelled_by = $3, updated_at = CURRENT_TIMESTAMP
                 WHERE appointments_id = $2
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
-            const result = await client.query(query, [cancellationReason, id]);
+            const result = await client.query(query, [cancellationReason, id, cancelledBy || null]);
             const cancelled = result.rows[0] || null;
 
             await AppointmentAuditLogRepository.create(auditLog, client);
@@ -659,7 +659,10 @@ export class AppointmentRepository {
 
             const query = `
                 UPDATE appointments
-                SET appointment_date = $1, slot_id = $2, updated_at = CURRENT_TIMESTAMP
+                SET appointment_date = $1, slot_id = $2,
+                    reschedule_count = COALESCE(reschedule_count, 0) + 1,
+                    last_rescheduled_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
                 WHERE appointments_id = $3
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
@@ -726,4 +729,183 @@ export class AppointmentRepository {
         );
         return result.rows[0] || null;
     }
+
+    /**
+     * Xác nhận lịch khám (PENDING → CONFIRMED) kèm ghi audit log — Transaction
+     * Ghi nhận thời điểm xác nhận và người xác nhận
+     */
+    static async confirmAppointment(id: string, confirmedBy: string, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const query = `
+                UPDATE appointments
+                SET status = 'CONFIRMED',
+                    confirmed_at = CURRENT_TIMESTAMP,
+                    confirmed_by = $1,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE appointments_id = $2 AND status = 'PENDING'
+                RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
+            `;
+            const result = await client.query(query, [confirmedBy, id]);
+            const confirmed = result.rows[0] || null;
+
+            if (confirmed) {
+                await AppointmentAuditLogRepository.create(auditLog, client);
+            }
+
+            await client.query('COMMIT');
+            return confirmed;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Check-in lịch khám (CONFIRMED → CHECKED_IN) kèm ghi audit log 
+     */
+    static async checkIn(id: string, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const query = `
+                UPDATE appointments
+                SET status = 'CHECKED_IN',
+                    checked_in_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE appointments_id = $1 AND status = 'CONFIRMED'
+                RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
+            `;
+            const result = await client.query(query, [id]);
+            const checkedIn = result.rows[0] || null;
+
+            if (checkedIn) {
+                await AppointmentAuditLogRepository.create(auditLog, client);
+            }
+
+            await client.query('COMMIT');
+            return checkedIn;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Hoàn tất lịch khám (CHECKED_IN → COMPLETED) kèm ghi audit log — Transaction
+     */
+    static async completeAppointment(id: string, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const query = `
+                UPDATE appointments
+                SET status = 'COMPLETED',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE appointments_id = $1 AND status = 'CHECKED_IN'
+                RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
+            `;
+            const result = await client.query(query, [id]);
+            const completed = result.rows[0] || null;
+
+            if (completed) {
+                await AppointmentAuditLogRepository.create(auditLog, client);
+            }
+
+            await client.query('COMMIT');
+            return completed;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Tìm các lịch khám sắp tới cần nhắc lịch.
+     */
+    static async findUpcomingForReminder(
+        reminderHours: number,
+        windowMinutes: number = 15
+    ): Promise<Array<{
+        appointments_id: string;
+        appointment_code: string;
+        patient_id: string;
+        patient_name: string;
+        account_id: string | null;
+        doctor_name: string | null;
+        appointment_date: string;
+        slot_start_time: string;
+        slot_end_time: string;
+        slot_time: string;
+        appointment_datetime: string;
+    }>> {
+        const query = `
+            SELECT
+                a.appointments_id,
+                a.appointment_code,
+                a.patient_id,
+                p.full_name AS patient_name,
+                p.account_id,
+                up.full_name AS doctor_name,
+                TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
+                sl.start_time AS slot_start_time,
+                sl.end_time AS slot_end_time,
+                CONCAT(sl.start_time, ' - ', sl.end_time) AS slot_time,
+                (a.appointment_date + sl.start_time::time)::timestamp AS appointment_datetime
+            FROM appointments a
+            JOIN patients p ON a.patient_id = p.id::varchar
+            LEFT JOIN doctors d ON a.doctor_id = d.doctors_id
+            LEFT JOIN user_profiles up ON d.user_id = up.user_id
+            LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
+            WHERE a.status IN ('PENDING', 'CONFIRMED')
+              AND sl.start_time IS NOT NULL
+              AND (a.appointment_date + sl.start_time::time)::timestamp
+                  BETWEEN (CURRENT_TIMESTAMP + INTERVAL '1 hour' * $1 - INTERVAL '1 minute' * $2)
+                  AND     (CURRENT_TIMESTAMP + INTERVAL '1 hour' * $1 + INTERVAL '1 minute' * $2)
+            ORDER BY a.appointment_date ASC, sl.start_time ASC;
+        `;
+        const result = await pool.query(query, [reminderHours, windowMinutes]);
+        return result.rows;
+    }
+
+    /**
+     * Lấy thông tin appointment kèm account_id bệnh nhân (dùng cho notification)
+     */
+    static async findWithPatientAccount(id: string): Promise<(Appointment & { account_id: string | null; patient_email: string | null }) | null> {
+        const query = `
+            SELECT a.*,
+                   TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
+                   p.full_name AS patient_name,
+                   p.account_id,
+                   p.email AS patient_email,
+                   up.full_name AS doctor_name,
+                   mr.name AS room_name,
+                   fs_svc.name AS service_name,
+                   sl.start_time AS slot_start_time,
+                   sl.end_time AS slot_end_time,
+                   CONCAT(sl.start_time, ' - ', sl.end_time) AS slot_time
+            FROM appointments a
+            LEFT JOIN patients p ON a.patient_id = p.id::varchar
+            LEFT JOIN doctors d ON a.doctor_id = d.doctors_id
+            LEFT JOIN user_profiles up ON d.user_id = up.user_id
+            LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
+            LEFT JOIN facility_services fs ON a.facility_service_id = fs.facility_services_id
+            LEFT JOIN services fs_svc ON fs.service_id = fs_svc.services_id
+            LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
+            WHERE a.appointments_id = $1;
+        `;
+        const result = await pool.query(query, [id]);
+        return result.rows[0] || null;
+    }
 }
+

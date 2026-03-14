@@ -112,7 +112,7 @@ export class StaffScheduleService {
     /**
      * Lấy danh sách lịch phân công có filter
      */
-    static async getSchedules(filters: { staff_schedules_id?: string; user_id?: string; shift_id?: string; working_date?: string; medical_room_id?: string }): Promise<StaffSchedule[]> {
+    static async getSchedules(filters: { staff_schedules_id?: string; user_id?: string; shift_id?: string; working_date?: string; medical_room_id?: string; branch_id?: string }): Promise<StaffSchedule[]> {
 
         if (filters.working_date) {
             const isDate = /^\d{4}-\d{2}-\d{2}$/.test(filters.working_date) || /^\d{4}-\d{2}-\d{2}T/.test(filters.working_date);

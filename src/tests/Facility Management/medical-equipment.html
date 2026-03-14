@@ -6,353 +6,270 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔧 Module 2.10 - Quản lý Trang thiết bị Y tế</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --primary-bg: #eef2ff;
+            --success: #10b981;
+            --success-bg: #d1fae5;
+            --danger: #ef4444;
+            --danger-bg: #fee2e2;
+            --warning: #f59e0b;
+            --warning-bg: #fef3c7;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.06);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,.1);
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             font-size: 14px;
+            line-height: 1.5;
         }
 
+        /* ── HEADER ─────────────────────────────────── */
         .header {
-            background: linear-gradient(135deg, #0f3460, #16213e);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
             color: #fff;
-            padding: 16px 24px;
+            padding: 14px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(79,70,229,.3);
         }
 
-        .header h1 {
-            font-size: 1.1rem;
-        }
+        .header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -.3px; }
+        .header a { color: rgba(255,255,255,.75); font-size: .82rem; text-decoration: none; transition: color .2s; }
+        .header a:hover { color: #fff; }
 
-        .header a {
-            color: #a8d8ea;
-            font-size: .82rem;
-            text-decoration: none;
-        }
-
-        .header a:hover {
-            text-decoration: underline;
-        }
-
-        .auth-bar {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
+        .auth-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .auth-bar input {
-            padding: 5px 8px;
-            border: none;
-            border-radius: 5px;
-            font-size: .82rem;
+            padding: 6px 10px; border: none; border-radius: 6px; font-size: .83rem;
+            background: rgba(255,255,255,.9); outline: none;
         }
+        .auth-bar input:focus { background: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.4); }
+        .auth-bar button { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: .82rem; transition: transform .15s, opacity .15s; }
+        .auth-bar button:active { transform: scale(.96); }
+        .btn-login { background: #f97316; color: #fff; }
+        .btn-logout { background: rgba(255,255,255,.15); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+        .btn-logout:hover { background: rgba(255,255,255,.25); }
+        .user-txt { color: rgba(255,255,255,.85); font-size: .82rem; }
 
-        .auth-bar button {
-            padding: 5px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: .8rem;
-        }
-
-        .btn-login {
-            background: #e94560;
-            color: #fff;
-        }
-
-        .btn-logout {
-            background: #533483;
-            color: #fff;
-        }
-
-        .user-txt {
-            color: #a8d8ea;
-            font-size: .82rem;
-        }
-
+        /* ── TABS ───────────────────────────────────── */
         .tabs {
             display: flex;
-            background: #fff;
-            border-bottom: 2px solid #e2e8f0;
+            background: var(--card);
+            border-bottom: 2px solid var(--border);
+            padding: 0 24px;
             overflow-x: auto;
+            gap: 2px;
         }
 
         .tab {
-            padding: 10px 18px;
+            padding: 13px 20px;
             cursor: pointer;
-            font-size: .85rem;
+            font-size: .88rem;
             font-weight: 600;
             white-space: nowrap;
+            color: var(--muted);
             border-bottom: 3px solid transparent;
-            transition: all .15s;
+            transition: all .2s;
+            position: relative;
         }
 
-        .tab:hover {
-            background: #f8fafc;
-        }
+        .tab:hover { color: var(--primary); background: var(--primary-bg); border-radius: 8px 8px 0 0; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-        .tab.active {
-            border-bottom-color: #0f3460;
-            color: #0f3460;
-        }
+        /* ── MAIN ───────────────────────────────────── */
+        .main { max-width: 1300px; margin: 24px auto; padding: 0 20px; }
+        .panel { display: none; animation: fadeIn .3s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        .main {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 16px;
-        }
-
-        .panel {
-            display: none;
-        }
-
-        .panel.active {
-            display: block;
-        }
-
+        /* ── CARDS ──────────────────────────────────── */
         .card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 18px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
-            margin-bottom: 16px;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,.04);
         }
 
         .card h3 {
-            margin-bottom: 12px;
-            font-size: 1rem;
-            color: #0f3460;
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-            align-items: center;
-        }
+        /* ── TOOLBAR ────────────────────────────────── */
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
 
         .toolbar input,
         .toolbar select {
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: .82rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: .84rem;
+            background: var(--card);
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
         }
 
-        .toolbar input {
-            min-width: 140px;
+        .toolbar input:focus,
+        .toolbar select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.1);
         }
 
+        .toolbar input { flex: 1; min-width: 160px; }
+
+        /* ── BUTTONS ────────────────────────────────── */
         .btn {
-            padding: 6px 14px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            font-size: .8rem;
-            transition: opacity .15s;
-        }
-
-        .btn:hover {
-            opacity: .85;
-        }
-
-        .btn-primary {
-            background: #0f3460;
-            color: #fff;
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: #fff;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: #fff;
-        }
-
-        .btn-warning {
-            background: #f59e0b;
-            color: #000;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #d1d5db;
-        }
-
-        .btn-sm {
-            padding: 4px 8px;
-            font-size: .75rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
             font-size: .82rem;
+            transition: all .15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
+
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--bg); }
+        .btn-sm { padding: 5px 10px; font-size: .78rem; border-radius: 6px; }
+
+        /* ── TABLE ──────────────────────────────────── */
+        .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+
+        table { width: 100%; border-collapse: collapse; font-size: .84rem; }
 
         th {
-            background: #f8fafc;
-            padding: 8px 10px;
+            background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+            padding: 10px 14px;
             text-align: left;
             font-weight: 600;
-            color: #64748b;
-            border-bottom: 2px solid #e2e8f0;
+            color: var(--muted);
+            border-bottom: 2px solid var(--border);
             white-space: nowrap;
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .3px;
         }
 
-        td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #f1f5f9;
-        }
+        td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tbody tr { transition: background .15s; }
+        tbody tr:hover { background: var(--primary-bg); }
+        tbody tr:last-child td { border-bottom: none; }
 
-        tr:hover {
-            background: #f8fafc;
-        }
-
+        /* ── BADGES ─────────────────────────────────── */
         .badge {
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: .72rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .73rem;
             font-weight: 600;
-        }
-
-        .b-active {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .b-maintenance {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .b-broken {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .b-inactive {
-            background: #e2e8f0;
-            color: #475569;
-        }
-
-        .empty {
-            text-align: center;
-            padding: 30px;
-            color: #94a3b8;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #94a3b8;
-        }
-
-        .pagination {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
-            justify-content: center;
-            margin-top: 12px;
+            gap: 4px;
         }
 
-        .pagination button {
-            min-width: 30px;
-            height: 30px;
-        }
+        .b-active { background: var(--success-bg); color: #065f46; }
+        .b-maintenance { background: var(--warning-bg); color: #92400e; }
+        .b-broken { background: var(--danger-bg); color: #991b1b; }
+        .b-inactive { background: #e2e8f0; color: #475569; }
 
-        .page-info {
-            font-size: .8rem;
-            color: #64748b;
-        }
+        /* ── EMPTY / LOADING ────────────────────────── */
+        .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+        .empty .icon { font-size: 2.5rem; margin-bottom: 8px; }
+        .loading { text-align: center; padding: 30px; color: var(--muted); }
 
-        /* Modal */
+        /* ── PAGINATION ─────────────────────────────── */
+        .pagination { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 16px; }
+        .pagination button { min-width: 34px; height: 34px; border-radius: 8px; }
+        .page-info { font-size: .82rem; color: var(--muted); }
+
+        /* ── MODAL ──────────────────────────────────── */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, .4);
-            z-index: 200;
-            display: none;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 50px 16px;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15,23,42,.45);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+            z-index: 200; display: none;
+            justify-content: center; align-items: flex-start;
+            padding: 60px 20px;
         }
-
-        .modal-overlay.show {
-            display: flex;
-        }
+        .modal-overlay.show { display: flex; }
 
         .modal {
-            background: #fff;
-            border-radius: 10px;
+            background: var(--card);
+            border-radius: var(--radius);
             width: 100%;
-            max-width: 520px;
-            box-shadow: 0 16px 50px rgba(0, 0, 0, .2);
+            max-width: 550px;
+            box-shadow: var(--shadow-lg);
             max-height: 80vh;
             overflow-y: auto;
+            animation: modalIn .25s ease;
         }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(-16px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
         .modal-header {
-            padding: 14px 20px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .modal-header h3 {
-            font-size: .95rem;
-            margin: 0;
-        }
+        .modal-header h3 { font-size: 1rem; margin: 0; color: var(--primary-dark); }
 
         .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: #94a3b8;
+            background: none; border: none; font-size: 1.3rem;
+            cursor: pointer; color: var(--muted);
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s;
         }
+        .modal-close:hover { background: var(--bg); }
 
-        .modal-body {
-            padding: 20px;
-        }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
 
-        .modal-footer {
-            padding: 12px 20px;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        .form-group {
-            margin-bottom: 10px;
-        }
+        /* ── FORM ───────────────────────────────────── */
+        .form-group { margin-bottom: 14px; }
 
         .form-group label {
             display: block;
             font-weight: 600;
-            font-size: .82rem;
-            margin-bottom: 3px;
+            font-size: .83rem;
+            margin-bottom: 5px;
             color: #475569;
         }
 
@@ -360,82 +277,107 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 7px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: .85rem;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: .88rem;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+            background: var(--card);
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 50px;
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.1);
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
+        /* ── TOAST ──────────────────────────────────── */
         .toast-container {
-            position: fixed;
-            top: 60px;
-            right: 16px;
-            z-index: 300;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            position: fixed; top: 70px; right: 20px; z-index: 300;
+            display: flex; flex-direction: column; gap: 8px;
         }
 
         .toast {
-            padding: 10px 16px;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border-radius: 10px;
             color: #fff;
-            font-size: .82rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            font-size: .85rem;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0,0,0,.15);
             animation: slideIn .3s ease;
-            min-width: 250px;
+            min-width: 280px;
         }
 
-        .toast-success {
-            background: #10b981;
-        }
-
-        .toast-error {
-            background: #ef4444;
-        }
-
-        .toast-info {
-            background: #3b82f6;
-        }
+        .toast-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast-info { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
+        /* ── DETAIL GRID ────────────────────────────── */
         .detail-grid {
             display: grid;
-            grid-template-columns: 140px 1fr;
-            gap: 4px 12px;
-            font-size: .85rem;
+            grid-template-columns: 150px 1fr;
+            gap: 8px 16px;
+            font-size: .88rem;
+            padding: 8px 0;
         }
 
         .detail-grid dt {
             font-weight: 600;
-            color: #64748b;
+            color: var(--muted);
+            padding: 6px 0;
+            border-bottom: 1px solid transparent;
         }
 
         .detail-grid dd {
-            color: #1a1a2e;
+            color: var(--text);
+            padding: 6px 0;
+            border-bottom: 1px dashed #f1f5f9;
         }
+
+        /* ── ACTION BAR ─────────────────────────────── */
+        .action-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .action-separator { color: var(--border); font-size: 1.2rem; }
+
+        .action-bar select {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: .84rem;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .action-bar select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+        }
+
+        /* ── DETAILS TOGGLE ─────────────────────────── */
+        details summary {
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .88rem;
+            color: var(--primary);
+            padding: 8px 0;
+            transition: color .2s;
+        }
+        details summary:hover { color: var(--primary-dark); }
+        details[open] summary { margin-bottom: 12px; }
     </style>
 </head>
 
@@ -485,11 +427,15 @@
                         <option value="BROKEN">🔴 Hỏng</option>
                         <option value="INACTIVE">⚫ Ngừng sử dụng</option>
                     </select>
-                    <input type="text" id="fFacilityId" placeholder="facility_id" style="max-width:130px" value="">
-                    <input type="text" id="fBranchId" placeholder="branch_id" style="max-width:130px" value="">
+                    <select id="fFacilityId" class="fac-select" onchange="onFacChange()" style="max-width:200px" title="Lọc theo cơ sở">
+                        <option value="">Tất cả cơ sở</option>
+                    </select>
+                    <select id="fBranchId" class="branch-select" onchange="loadEquipments()" style="max-width:200px" title="Lọc theo chi nhánh">
+                        <option value="">Tất cả chi nhánh</option>
+                    </select>
                     <button class="btn btn-outline" onclick="loadEquipments()">Tải dữ liệu</button>
                 </div>
-                <div style="overflow-x:auto">
+                <div class="tbl-wrap">
                     <table>
                         <thead>
                             <tr>
@@ -518,10 +464,16 @@
             <div class="card">
                 <h3>➕ Thêm mới Thiết bị Y tế</h3>
                 <div class="form-row">
-                    <div class="form-group"><label>Cơ sở (facility_id) *</label><input id="cFacilityId"
-                            placeholder="FAC_01"></div>
-                    <div class="form-group"><label>Chi nhánh (branch_id) *</label><input id="cBranchId"
-                            placeholder="BR_001"></div>
+                    <div class="form-group"><label>Cơ sở *</label>
+                        <select id="cFacilityId" class="fac-select" onchange="onCreateFacChange()">
+                            <option value="">-- Chọn cơ sở --</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Chi nhánh *</label>
+                        <select id="cBranchId" class="c-branch-select" onchange="populateCreateRoomSelect()">
+                            <option value="">-- Chọn chi nhánh --</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Mã tài sản (code) *</label><input id="cCode" placeholder="SA-4D-01">
@@ -541,8 +493,11 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Hạn bảo hành</label><input type="date" id="cWarranty"></div>
-                    <div class="form-group"><label>Gán phòng (room_id)</label><input id="cRoomId"
-                            placeholder="MR_001 (tuỳ chọn)"></div>
+                    <div class="form-group"><label>Gán phòng</label>
+                        <select id="cRoomId" class="c-room-select">
+                            <option value="">-- Không gán (để kho) --</option>
+                        </select>
+                    </div>
                 </div>
                 <div style="margin-top:12px">
                     <button class="btn btn-primary" onclick="createEquipment()">💾 Tạo thiết bị</button>
@@ -555,17 +510,18 @@
             <div class="card">
                 <h3>🔍 Tra cứu Chi tiết Thiết bị</h3>
                 <div class="toolbar">
-                    <input type="text" id="dEquipId" placeholder="equipment_id (VD: EQ_abc123...)"
-                        style="flex:1; min-width: 250px;">
+                    <select id="dEquipId" class="eq-select" style="flex:1; min-width: 250px;">
+                        <option value="">-- Chọn thiết bị --</option>
+                    </select>
                     <button class="btn btn-primary" onclick="loadDetail()">Xem chi tiết</button>
                 </div>
-                <div id="detailContent" class="empty">Nhập equipment_id và nhấn "Xem chi tiết"</div>
+                <div id="detailContent" class="empty">Chọn thiết bị và nhấn "Xem chi tiết"</div>
             </div>
 
             <!-- Actions -->
             <div class="card" id="actionsCard" style="display:none">
                 <h3>⚙️ Thao tác nhanh</h3>
-                <div class="toolbar" style="flex-wrap:wrap">
+                <div class="action-bar">
                     <select id="aStatus" title="Chọn trạng thái mới">
                         <option value="ACTIVE">🟢 ACTIVE</option>
                         <option value="MAINTENANCE">🟡 MAINTENANCE</option>
@@ -573,17 +529,18 @@
                         <option value="INACTIVE">⚫ INACTIVE</option>
                     </select>
                     <button class="btn btn-warning btn-sm" onclick="updateStatus()">Đổi trạng thái</button>
-                    <span style="color:#94a3b8">|</span>
-                    <input type="text" id="aRoomId" placeholder="room_id (null = thu hồi)" style="max-width:180px">
+                    <span class="action-separator">|</span>
+                    <select id="aRoomId" class="a-room-select" style="max-width:200px">
+                        <option value="">📦 Thu hồi về kho</option>
+                    </select>
                     <button class="btn btn-success btn-sm" onclick="assignRoom()">Gán phòng</button>
-                    <span style="color:#94a3b8">|</span>
+                    <span class="action-separator">|</span>
                     <button class="btn btn-danger btn-sm" onclick="deleteEquipment()">🗑 Xóa thiết bị</button>
                 </div>
 
                 <!-- Update Info -->
-                <details style="margin-top:12px">
-                    <summary style="cursor:pointer; font-weight:600; font-size:.85rem; color:#0f3460;">✏️ Cập nhật thông
-                        tin cơ bản</summary>
+                <details style="margin-top:16px">
+                    <summary>✏️ Cập nhật thông tin cơ bản</summary>
                     <div style="margin-top:10px">
                         <div class="form-row">
                             <div class="form-group"><label>Tên</label><input id="uName" placeholder="Tên mới"></div>
@@ -602,7 +559,7 @@
             <!-- Maintenance Logs -->
             <div class="card" id="maintCard" style="display:none">
                 <h3>🛠 Lịch sử Bảo trì / Kiểm định</h3>
-                <div style="overflow-x:auto">
+                <div class="tbl-wrap">
                     <table>
                         <thead>
                             <tr>
@@ -623,7 +580,7 @@
                     </table>
                 </div>
                 <div class="pagination" id="maintPagination"></div>
-                <hr style="margin:16px 0; border:none; border-top:1px solid #e2e8f0;">
+                <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);">
                 <h3 style="margin-bottom:10px">➕ Thêm bản ghi bảo trì</h3>
                 <div class="form-row">
                     <div class="form-group"><label>Ngày thực hiện *</label><input type="date" id="mDate"></div>
@@ -696,7 +653,7 @@
 
         window.onload = () => {
             const auth = getAuth();
-            if (auth?.accessToken) { token = auth.accessToken; showLoggedIn(auth.user); }
+            if (auth?.accessToken) { token = auth.accessToken; showLoggedIn(auth.user); loadDropdowns(); }
         };
 
         async function handleLogin() {
@@ -713,6 +670,7 @@
                 localStorage.setItem('ehealth_auth', JSON.stringify({ accessToken: r.data.accessToken, refreshToken: r.data.refreshToken, user: r.data.user }));
                 showLoggedIn(r.data.user);
                 toast('Đăng nhập thành công!', 'success');
+                loadDropdowns();
             } catch (e) { toast(e.message, 'error'); }
         }
 
@@ -762,6 +720,89 @@
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
             return data;
+        }
+
+        // ==================== DROPDOWNS ====================
+        let allFacilities = [], allBranches = [], allRooms = [], allEquipments = [];
+
+        async function loadDropdowns() {
+            try {
+                const [facRes, branchRes, roomRes, eqRes] = await Promise.allSettled([
+                    apiFetch(`${API}/facilities/dropdown`),
+                    apiFetch(`${API}/branches?limit=200`),
+                    apiFetch(`${API}/medical-rooms/dropdown`),
+                    apiFetch(`${API}/equipments?limit=200`)
+                ]);
+                if (facRes.status === 'fulfilled') {
+                    allFacilities = facRes.value.data || [];
+                    document.querySelectorAll('.fac-select').forEach(sel => {
+                        const val = sel.value;
+                        const defaultLabel = sel.id === 'fFacilityId' ? 'Tất cả cơ sở' : '-- Chọn cơ sở --';
+                        sel.innerHTML = `<option value="">${defaultLabel}</option>` + allFacilities.map(f => `<option value="${f.facilities_id}">${f.name}</option>`).join('');
+                        if (val) sel.value = val;
+                    });
+                }
+                if (branchRes.status === 'fulfilled') {
+                    allBranches = branchRes.value.data?.data || branchRes.value.data?.items || branchRes.value.data || [];
+                    populateBranchSelects();
+                }
+                if (roomRes.status === 'fulfilled') {
+                    allRooms = roomRes.value.data || [];
+                    populateRoomSelects();
+                }
+                if (eqRes.status === 'fulfilled') {
+                    allEquipments = eqRes.value.data?.data || eqRes.value.data || [];
+                    const eqSel = document.getElementById('dEquipId');
+                    eqSel.innerHTML = '<option value="">-- Chọn thiết bị --</option>' + allEquipments.map(e => `<option value="${e.equipment_id}">${e.code} - ${e.name} (${e.status})</option>`).join('');
+                }
+            } catch(e) { console.error('loadDropdowns error:', e); }
+        }
+
+        function populateBranchSelects() {
+            // Filter branch_select by fFacilityId
+            const facId = document.getElementById('fFacilityId').value;
+            const filtered = facId ? allBranches.filter(b => b.facility_id === facId) : allBranches;
+            const sel = document.getElementById('fBranchId');
+            const val = sel.value;
+            sel.innerHTML = '<option value="">Tất cả chi nhánh</option>' + filtered.map(b => `<option value="${b.branches_id}">${b.name}</option>`).join('');
+            if (val) sel.value = val;
+        }
+
+        function populateCreateBranchSelect() {
+            const facId = document.getElementById('cFacilityId').value;
+            const filtered = facId ? allBranches.filter(b => b.facility_id === facId) : allBranches;
+            const sel = document.querySelector('.c-branch-select');
+            sel.innerHTML = '<option value="">-- Chọn chi nhánh --</option>' + filtered.map(b => `<option value="${b.branches_id}">${b.name}</option>`).join('');
+            populateCreateRoomSelect();
+        }
+
+        function populateCreateRoomSelect() {
+            const branchId = document.querySelector('.c-branch-select')?.value;
+            const filtered = branchId ? allRooms.filter(r => r.branch_id === branchId) : allRooms;
+            const sel = document.querySelector('.c-room-select');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- Không gán (để kho) --</option>' + filtered.map(r => `<option value="${r.medical_rooms_id || r.room_id}">${r.room_number || r.code || ''} - ${r.name || ''}</option>`).join('');
+            }
+        }
+
+        function populateRoomSelects() {
+            populateCreateRoomSelect();
+            // For actions card room select
+            const aSel = document.querySelector('.a-room-select');
+            if (aSel) {
+                const val = aSel.value;
+                aSel.innerHTML = '<option value="">📦 Thu hồi về kho</option>' + allRooms.map(r => `<option value="${r.medical_rooms_id || r.room_id}">${r.room_number || r.code || ''} - ${r.name || ''}</option>`).join('');
+                if (val) aSel.value = val;
+            }
+        }
+
+        function onFacChange() {
+            populateBranchSelects();
+            loadEquipments();
+        }
+
+        function onCreateFacChange() {
+            populateCreateBranchSelect();
         }
 
         function renderPagination(containerId, currentPage, totalPages, onPageChange) {

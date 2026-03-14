@@ -54,6 +54,10 @@ import { lockedSlotRoutes } from './Appointment Management/locked-slot.routes';
 import { shiftServiceRoutes } from './Appointment Management/shift-service.routes';
 import { doctorAvailabilityRoutes } from './Appointment Management/doctor-availability.routes';
 import { doctorAbsenceRoutes } from './Appointment Management/doctor-absence.routes';
+import { appointmentConfirmationRoutes } from './Appointment Management/appointment-confirmation.routes';
+import { appointmentStatusRoutes } from './Appointment Management/appointment-status.routes';
+import appointmentChangeRoutes from './Appointment Management/appointment-change.routes';
+import appointmentCoordinationRoutes from './Appointment Management/appointment-coordination.routes';
 import { roomMaintenanceRoutes } from './Facility Management/room-maintenance.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
@@ -208,5 +212,17 @@ export const initRoutes = (app: Express) => {
 
     // Module 3.4 – Quản lý phòng khám & tài nguyên
     app.use('/api/room-maintenance', roomMaintenanceRoutes);
+
+    // Module 3.6 – Xác nhận & Nhắc lịch khám
+    app.use('/api/appointment-confirmations', appointmentConfirmationRoutes);
+
+    // Module 3.7 – Check-in & Trạng thái lịch khám
+    app.use('/api/appointment-status', appointmentStatusRoutes);
+
+    // Module 3.8 – Quản lý thay đổi & dời lịch
+    app.use('/api/appointment-changes', appointmentChangeRoutes);
+
+    // Module 3.9 – Điều phối & tối ưu lịch khám
+    app.use('/api/appointment-coordination', appointmentCoordinationRoutes);
 }
 

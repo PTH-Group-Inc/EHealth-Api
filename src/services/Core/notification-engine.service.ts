@@ -101,7 +101,7 @@ export class NotificationEngineService {
             params.push(input.role_id);
         }
 
-        const { pool } = require('../config/postgresdb');
+        const { pool } = require('../../config/postgresdb');
         const targetUsers = await pool.query(q, params);
 
         if (targetUsers.rowCount === 0) return 0;
@@ -153,7 +153,7 @@ export class NotificationEngineService {
         const roleCode = user.roles && user.roles.length > 0 ? user.roles[0] : null;
 
         // Lấy role_id từ database bằng roleCode
-        const { pool } = require('../config/postgresdb');
+        const { pool } = require('../../config/postgresdb');
         let roleId = null;
         if (roleCode) {
             const roleRes = await pool.query('SELECT roles_id FROM roles WHERE code = $1', [roleCode]);

@@ -28,7 +28,7 @@ export class StaffScheduleRepository {
     /**
      * Lấy danh sách lịch phân công (Có filter)
      */
-    static async findAll(filters: { staff_schedules_id?: string; user_id?: string; shift_id?: string; working_date?: string; medical_room_id?: string }): Promise<StaffSchedule[]> {
+    static async findAll(filters: { staff_schedules_id?: string; user_id?: string; shift_id?: string; working_date?: string; medical_room_id?: string; branch_id?: string }): Promise<StaffSchedule[]> {
         let query = `
             SELECT s.staff_schedules_id, s.user_id, s.medical_room_id, s.shift_id,
                    TO_CHAR(s.working_date, 'YYYY-MM-DD') AS working_date,
@@ -65,6 +65,10 @@ export class StaffScheduleRepository {
         if (filters.medical_room_id) {
             query += ` AND s.medical_room_id = $${index++}`;
             values.push(filters.medical_room_id);
+        }
+        if (filters.branch_id) {
+            query += ` AND r.branch_id = $${index++}`;
+            values.push(filters.branch_id);
         }
 
         query += ` ORDER BY s.working_date DESC, s.start_time ASC`;

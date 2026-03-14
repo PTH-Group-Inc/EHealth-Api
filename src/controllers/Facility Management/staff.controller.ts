@@ -19,6 +19,7 @@ export class StaffController {
                 search: req.query.search as string,
                 status: req.query.status as string,
                 role: req.query.role as string,
+                branch_id: req.query.branch_id as string,
             };
 
             const data = await StaffService.getStaffs(filter);
