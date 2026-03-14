@@ -264,6 +264,16 @@ const options = {
       { name: '2.6.5 Luật phân loại tự động', description: 'API CRUD cấu hình Rule gắn thẻ tự động (VD: khám > 10 lần → VIP)' },
       { name: '2.7 Tìm kiếm & Tra cứu', description: 'API Tìm kiếm nâng cao, autocomplete nhanh, tra cứu tóm tắt hồ sơ bệnh nhân' },
       { name: '2.9 Theo dõi & Audit Hồ sơ Bệnh nhân', description: 'API Tra cứu lịch sử thay đổi hồ sơ bệnh nhân (audit trail)' },
+
+      // ===== MODULE 3: LỊCH KHÁM =====
+      { name: '3.1 Quản lý Lịch khám', description: 'API Quản lý Lịch khám' },
+      { name: '3.2 Quản lý khung giờ & ca khám', description: 'API Quản lý khung giờ & ca khám' },
+      { name: '3.3 Quản lý lịch bác sĩ', description: 'API Quản lý Lịch bác sĩ' },
+      { name: '3.4 Quản lý phòng khám & tài nguyên', description: 'API Quản lý Lịch khám' },
+      { name: '3.6 Xác nhận & Nhắc lịch', description: 'API Xác nhận, nhắc lịch, check-in, hoàn tất lịch khám' },
+      { name: '3.7 Check-in & Trạng thái', description: 'API Check-in, hoàn tất, hủy, đánh dấu no-show lịch khám' },
+      { name: '3.8 Quản lý thay đổi & dời lịch', description: 'API Dời lịch, hủy lịch, lịch sử thay đổi, chính sách hủy' },
+      { name: '3.9 Điều phối & tối ưu lịch khám', description: 'API Phân bổ tải, gợi ý slot, cân bằng, ưu tiên, reassign, auto-assign, AI dataset' },
     ]
   },
   apis: [

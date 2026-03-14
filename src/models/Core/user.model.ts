@@ -70,11 +70,11 @@ export interface UpdateUserStatusInput {
 }
 
 export interface AccountStatusHistory {
-    audit_logs_id: string;
+    log_id: string;
     user_id: string;
-    action: string;
-    old_values: any;
-    new_values: any;
+    action_type: string;
+    old_value: any;
+    new_value: any;
     ip_address: string | null;
     user_agent: string | null;
     created_at: Date;

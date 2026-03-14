@@ -4,6 +4,7 @@ import swaggerUi from 'swagger-ui-express'
 import { swaggerSpec } from './config/swagger'
 import { initRoutes } from './routes/index.route'
 import { SessionCleanup } from './jobs/SessionCleanup.jobs'
+import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs'
 
 const app = express()
 
@@ -19,6 +20,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 initRoutes(app);
 
 SessionCleanup.startSessionCleanupJob();
+AppointmentReminderJob.startReminderJob();
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({

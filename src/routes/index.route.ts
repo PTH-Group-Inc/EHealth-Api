@@ -48,6 +48,17 @@ import { documentTypeRoutes } from './Patient Management/document-type.routes';
 import { patientDocumentRoutes } from './Patient Management/patient-document.routes';
 import { patientTagRoutes } from './Patient Management/patient-tag.routes';
 import { classificationRuleRoutes } from './Patient Management/classification-rule.routes';
+import { appointmentRoutes } from './Appointment Management/appointment.routes';
+import { consultationDurationRoutes } from './Appointment Management/consultation-duration.routes';
+import { lockedSlotRoutes } from './Appointment Management/locked-slot.routes';
+import { shiftServiceRoutes } from './Appointment Management/shift-service.routes';
+import { doctorAvailabilityRoutes } from './Appointment Management/doctor-availability.routes';
+import { doctorAbsenceRoutes } from './Appointment Management/doctor-absence.routes';
+import { appointmentConfirmationRoutes } from './Appointment Management/appointment-confirmation.routes';
+import { appointmentStatusRoutes } from './Appointment Management/appointment-status.routes';
+import appointmentChangeRoutes from './Appointment Management/appointment-change.routes';
+import appointmentCoordinationRoutes from './Appointment Management/appointment-coordination.routes';
+import { roomMaintenanceRoutes } from './Facility Management/room-maintenance.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -165,7 +176,7 @@ export const initRoutes = (app: Express) => {
     // Patient Management (2.1)
     app.use('/api/patients', patientRoutes);
 
-    // Medical History (2.2 - Read-Only)
+    // Medical History (2.2 )
     app.use('/api/medical-history', medicalHistoryRoutes);
 
     // Insurance Providers & Patient Insurances (2.3)
@@ -186,5 +197,32 @@ export const initRoutes = (app: Express) => {
 
     // Classification Rules (2.6.5)
     app.use('/api/patient-classification-rules', classificationRuleRoutes);
+
+    // Appointment Management (3.1)
+    app.use('/api/appointments', appointmentRoutes);
+
+    // Module 3.2 – Quản lý khung giờ & ca khám
+    app.use('/api/facilities', consultationDurationRoutes);
+    app.use('/api/locked-slots', lockedSlotRoutes);
+    app.use('/api/shift-services', shiftServiceRoutes);
+
+    // Module 3.3 – Quản lý lịch bác sĩ
+    app.use('/api/doctor-availability', doctorAvailabilityRoutes);
+    app.use('/api/doctor-absences', doctorAbsenceRoutes);
+
+    // Module 3.4 – Quản lý phòng khám & tài nguyên
+    app.use('/api/room-maintenance', roomMaintenanceRoutes);
+
+    // Module 3.6 – Xác nhận & Nhắc lịch khám
+    app.use('/api/appointment-confirmations', appointmentConfirmationRoutes);
+
+    // Module 3.7 – Check-in & Trạng thái lịch khám
+    app.use('/api/appointment-status', appointmentStatusRoutes);
+
+    // Module 3.8 – Quản lý thay đổi & dời lịch
+    app.use('/api/appointment-changes', appointmentChangeRoutes);
+
+    // Module 3.9 – Điều phối & tối ưu lịch khám
+    app.use('/api/appointment-coordination', appointmentCoordinationRoutes);
 }
 

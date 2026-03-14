@@ -5,6 +5,8 @@ import app from './app';
 import { connectDB, closeDB } from './config/postgresdb';
 import { Server } from 'http';
 import { ApiPermissionCacheService } from './services/Core/api-permission-cache.service';
+import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs';
+import { NoShowDetectionJob } from './jobs/NoShowDetection.jobs';
 
 const PORT = process.env.PORT || 3000;
 let server: Server;
@@ -16,6 +18,10 @@ const startServer = async () => {
 
     server = app.listen(PORT, () => {
         console.log(`🚀 Server is running on port ${PORT}`);
+
+        // Khởi động Cron Jobs
+        AppointmentReminderJob.startReminderJob();
+        NoShowDetectionJob.startJob();
     });
 };
 

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { MedicalRoomController } from '../../controllers/Facility Management/medical-room.controller';
+import { RoomServiceController } from '../../controllers/Facility Management/room-service.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { authorizeApi } from '../../middleware/authorizeApi.middleware';
 import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
@@ -134,6 +135,131 @@ medicalRoomRoutes.get('/',
     authorizeApi,
     authorizePermissions('ROOM_VIEW'),
     MedicalRoomController.getMedicalRooms
+);
+
+// ===== ROOM-SERVICE MAPPING (Module 3.4) =====
+
+/**
+ * @swagger
+ * /api/medical-rooms/{roomId}/services:
+ *   post:
+ *     summary: Gán dịch vụ cho phòng
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền ROOM_UPDATE.
+ *       **Vai trò được phép:** ADMIN, STAFF.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Gán 1 hoặc nhiều facility_service cho phòng.
+ *       - Dùng ON CONFLICT DO NOTHING → gán trùng sẽ bỏ qua.
+ *     tags: [3.4 Quản lý phòng khám & tài nguyên]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "ROOM_abc"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - facility_service_ids
+ *             properties:
+ *               facility_service_ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["FS_abc123", "FS_def456"]
+ *     responses:
+ *       200:
+ *         description: Gán dịch vụ cho phòng thành công
+ *       404:
+ *         description: Phòng hoặc dịch vụ không tồn tại
+ */
+medicalRoomRoutes.post('/:roomId/services',
+    verifyAccessToken,
+    authorizeApi,
+    authorizePermissions('ROOM_UPDATE'),
+    RoomServiceController.assignServices
+);
+
+/**
+ * @swagger
+ * /api/medical-rooms/{roomId}/services:
+ *   get:
+ *     summary: Xem dịch vụ đã gán cho phòng
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền ROOM_VIEW.
+ *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Trả về danh sách dịch vụ đã gán cho phòng, JOIN thông tin service_name, price.
+ *     tags: [3.4 Quản lý phòng khám & tài nguyên]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "ROOM_abc"
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách dịch vụ thành công
+ *       404:
+ *         description: Phòng không tồn tại
+ */
+medicalRoomRoutes.get('/:roomId/services',
+    verifyAccessToken,
+    authorizeApi,
+    authorizePermissions('ROOM_VIEW'),
+    RoomServiceController.getServicesByRoom
+);
+
+/**
+ * @swagger
+ * /api/medical-rooms/{roomId}/services/{facilityServiceId}:
+ *   delete:
+ *     summary: Gỡ 1 dịch vụ khỏi phòng
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền ROOM_UPDATE.
+ *       **Vai trò được phép:** ADMIN, STAFF.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Xoá mapping giữa phòng và 1 dịch vụ cụ thể.
+ *     tags: [3.4 Quản lý phòng khám & tài nguyên]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "ROOM_abc"
+ *       - in: path
+ *         name: facilityServiceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "FS_abc123"
+ *     responses:
+ *       200:
+ *         description: Gỡ dịch vụ thành công
+ *       404:
+ *         description: Dịch vụ chưa được gán cho phòng
+ */
+medicalRoomRoutes.delete('/:roomId/services/:facilityServiceId',
+    verifyAccessToken,
+    authorizeApi,
+    authorizePermissions('ROOM_UPDATE'),
+    RoomServiceController.removeService
 );
 
 /**

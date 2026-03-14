@@ -46,13 +46,19 @@ export class StaffRepository {
             whereClauses.push(`u.status = $${queryParams.length}`);
         }
 
+        if (filter.branch_id) {
+            queryParams.push(filter.branch_id);
+            whereClauses.push(`ubd.branch_id = $${queryParams.length}`);
+        }
+
         const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
         // Đếm tổng số lượng
         const countQuery = `
-            SELECT COUNT(u.users_id) as total
+            SELECT COUNT(DISTINCT u.users_id) as total
             FROM users u
             LEFT JOIN user_profiles up ON u.users_id = up.user_id
+            LEFT JOIN user_branch_dept ubd ON u.users_id = ubd.user_id
             ${whereString}
         `;
         const countResult = await pool.query(countQuery, queryParams);

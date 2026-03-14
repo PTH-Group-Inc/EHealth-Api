@@ -28,7 +28,7 @@ export class StaffScheduleRepository {
     /**
      * Lấy danh sách lịch phân công (Có filter)
      */
-    static async findAll(filters: { staff_schedules_id?: string; user_id?: string; shift_id?: string; working_date?: string; medical_room_id?: string }): Promise<StaffSchedule[]> {
+    static async findAll(filters: { staff_schedules_id?: string; user_id?: string; shift_id?: string; working_date?: string; medical_room_id?: string; branch_id?: string }): Promise<StaffSchedule[]> {
         let query = `
             SELECT s.staff_schedules_id, s.user_id, s.medical_room_id, s.shift_id,
                    TO_CHAR(s.working_date, 'YYYY-MM-DD') AS working_date,
@@ -65,6 +65,10 @@ export class StaffScheduleRepository {
         if (filters.medical_room_id) {
             query += ` AND s.medical_room_id = $${index++}`;
             values.push(filters.medical_room_id);
+        }
+        if (filters.branch_id) {
+            query += ` AND r.branch_id = $${index++}`;
+            values.push(filters.branch_id);
         }
 
         query += ` ORDER BY s.working_date DESC, s.start_time ASC`;
@@ -106,6 +110,22 @@ export class StaffScheduleRepository {
               AND s.working_date <= $2::date + interval '1 day'
         `;
         const result = await pool.query(query, [userId, date]);
+        return result.rows;
+    }
+
+    /**
+     * Lấy toàn bộ lịch của 1 phòng trong ngày (±1 ngày) để kiểm tra trùng phòng
+     */
+    static async findSchedulesByRoomAndDate(roomId: string, date: string): Promise<StaffSchedule[]> {
+        const query = `
+            SELECT s.*, TO_CHAR(s.working_date, 'YYYY-MM-DD') AS working_date
+            FROM staff_schedules s
+            WHERE s.medical_room_id = $1
+              AND s.working_date >= $2::date - interval '1 day'
+              AND s.working_date <= $2::date + interval '1 day'
+              AND s.status = 'ACTIVE'
+        `;
+        const result = await pool.query(query, [roomId, date]);
         return result.rows;
     }
 

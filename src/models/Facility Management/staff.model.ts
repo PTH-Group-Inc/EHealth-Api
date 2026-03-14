@@ -25,6 +25,11 @@ export interface UpdateStaffInput {
     gender?: 'MALE' | 'FEMALE' | 'OTHER';
     identity_card_number?: string;
     address?: string;
+
+    /** Phân bổ cơ sở */
+    branch_id?: string;
+    department_id?: string;
+    role_title?: string;
 }
 
 export interface UpdateDoctorInfoInput {

@@ -70,11 +70,26 @@ export class StaffService {
         // Kiểm tra tồn tại
         await this.getStaffById(userId);
 
-        const updateData: any = {
-            ...data
-        };
+        // Tách thông tin phân bổ cơ sở ra khỏi dữ liệu cập nhật user
+        const { branch_id, department_id, role_title, ...userData } = data;
 
-        await UserService.updateUser(userId, updateData, adminId, ipAddress, userAgent);
+        // Cập nhật thông tin cơ bản (email, phone, profile...)
+        if (Object.keys(userData).length > 0) {
+            await UserService.updateUser(userId, { ...userData } as any, adminId, ipAddress, userAgent);
+        }
+
+        // Nếu có truyền branch_id, cập nhật phân bổ cơ sở
+        if (branch_id) {
+            await UserFacilityService.assignUserToFacility(
+                userId,
+                {
+                    branchId: branch_id,
+                    departmentId: department_id,
+                    roleTitle: role_title || 'Nhân viên'
+                },
+                adminId, ipAddress, userAgent
+            );
+        }
     }
 
     /**

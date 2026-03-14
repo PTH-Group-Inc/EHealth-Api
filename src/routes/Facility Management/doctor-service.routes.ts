@@ -21,6 +21,60 @@ router.use(checkSessionStatus);
 
 /**
  * @swagger
+ * /api/doctor-services/active-doctors:
+ *   get:
+ *     summary: Lấy danh sách bác sĩ đang hoạt động (dropdown đặt lịch)
+ *     description: |
+ *       Truy vấn trực tiếp bảng `doctors` với `is_active = true`.
+ *       Trả về `doctors_id`, `full_name`, `specialty_name`, `title`, `consultation_fee`.
+ *       **Dùng cho dropdown đặt lịch khám** — giá trị value là `doctors_id`.
+ *
+ *       **Phân quyền:** Yêu cầu quyền `DOCTOR_SERVICE_VIEW`
+ *
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, STAFF
+ *     tags: [2.9.2 Gán dịch vụ - Bác sĩ]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Danh sách bác sĩ hoạt động
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       doctors_id:
+ *                         type: string
+ *                         example: "DOC_99f009e8-db9f-4298-81b0-1ae000e48664"
+ *                       full_name:
+ *                         type: string
+ *                         example: "BS. Nguyễn Văn A"
+ *                       specialty_name:
+ *                         type: string
+ *                         example: "Nội tổng quát"
+ *                       title:
+ *                         type: string
+ *                         example: "ThS.BS"
+ *                       consultation_fee:
+ *                         type: number
+ *                         example: 200000
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền truy cập
+ */
+router.get('/active-doctors', authorizePermissions('DOCTOR_SERVICE_VIEW'), DoctorServiceController.getActiveDoctors);
+
+/**
+ * @swagger
  * /api/doctor-services/{doctorId}/services:
  *   get:
  *     summary: Lấy danh sách dịch vụ được gán cho bác sĩ

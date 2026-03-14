@@ -1434,4 +1434,141 @@ router.get('/:patientId/tags', verifyAccessToken, checkSessionStatus, authorizeP
  */
 router.delete('/:patientId/tags/:tagId', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_TAG_MANAGE'), PatientTagController.removeTag);
 
+// =====================================================================
+// 3.1.7. GẮN LỊCH KHÁM VỚI HỒ SƠ BỆNH NHÂN
+// =====================================================================
+
+import { AppointmentController } from '../../controllers/Appointment Management/appointment.controller';
+
+/**
+ * @swagger
+ * /api/patients/{patientId}/appointments:
+ *   get:
+ *     summary: Lấy danh sách lịch khám của bệnh nhân
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_VIEW.
+ *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Trả về tất cả lịch khám của bệnh nhân `patientId` (phân trang).
+ *       - Hỗ trợ filter: `status`, `fromDate`, `toDate`.
+ *       - JOIN: tên bác sĩ, phòng, slot, dịch vụ.
+ *       - Dùng cho màn hình hồ sơ bệnh nhân.
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: patientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID bệnh nhân
+ *         example: "cf5abd71-7d05-44df-9a50-903e93a9a20b"
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, CONFIRMED, CHECKED_IN, CANCELLED, NO_SHOW, COMPLETED]
+ *         description: Lọc theo trạng thái
+ *       - in: query
+ *         name: fromDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Từ ngày
+ *         example: "2026-01-01"
+ *       - in: query
+ *         name: toDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Đến ngày
+ *         example: "2026-12-31"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách lịch khám của bệnh nhân thành công
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền
+ */
+router.get('/:patientId/appointments', verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW'), AppointmentController.getByPatient);
+
+/**
+ * @swagger
+ * /api/patients/{patientId}/appointments:
+ *   post:
+ *     summary: Tạo lịch khám trực tiếp từ hồ sơ bệnh nhân
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_CREATE.
+ *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR.
+ *
+ *       **Mô tả chi tiết:**
+ *       - `patient_id` tự động lấy từ URL, không cần gửi trong body.
+ *       - `booking_channel` mặc định = `DIRECT_CLINIC` nếu không truyền.
+ *       - Tái sử dụng toàn bộ validation + conflict check của `POST /api/appointments`.
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: patientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID bệnh nhân
+ *         example: "cf5abd71-7d05-44df-9a50-903e93a9a20b"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - appointment_date
+ *             properties:
+ *               appointment_date:
+ *                 type: string
+ *                 format: date
+ *                 example: "2026-03-20"
+ *               booking_channel:
+ *                 type: string
+ *                 enum: [DIRECT_CLINIC, WEB, APP, HOTLINE]
+ *                 example: "DIRECT_CLINIC"
+ *               reason_for_visit:
+ *                 type: string
+ *                 example: "Tái khám huyết áp"
+ *               doctor_id:
+ *                 type: string
+ *                 example: "DOC_2603_abc12345"
+ *               slot_id:
+ *                 type: string
+ *                 example: "SLT_2603_abc12345"
+ *               room_id:
+ *                 type: string
+ *                 example: "RM_HCM_N101"
+ *               facility_service_id:
+ *                 type: string
+ *                 example: "FSRV_KHAMNOI"
+ *     responses:
+ *       201:
+ *         description: Tạo lịch khám thành công
+ *       400:
+ *         description: Thiếu dữ liệu / Slot đầy / Trùng lịch
+ *       404:
+ *         description: Bệnh nhân / Bác sĩ / Slot không tồn tại
+ */
+router.post('/:patientId/appointments', verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CREATE'), AppointmentController.createByPatient);
+
 export const patientRoutes = router;
