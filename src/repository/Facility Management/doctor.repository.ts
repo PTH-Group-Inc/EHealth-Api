@@ -42,4 +42,26 @@ export class DoctorRepository {
         const result = await pool.query(query, [userId]);
         return result.rows[0] || null;
     }
+
+    /**
+     * Lấy danh sách bác sĩ đang hoạt động (dùng cho dropdown đặt lịch khám).
+     */
+    static async getActiveDoctors(): Promise<any[]> {
+        const query = `
+            SELECT 
+                d.doctors_id,
+                d.user_id,
+                d.title,
+                d.consultation_fee,
+                up.full_name,
+                sp.name AS specialty_name
+            FROM doctors d
+            LEFT JOIN user_profiles up ON d.user_id = up.user_id
+            LEFT JOIN specialties sp ON d.specialty_id = sp.specialties_id
+            WHERE d.is_active = true
+            ORDER BY up.full_name ASC
+        `;
+        const result = await pool.query(query);
+        return result.rows;
+    }
 }

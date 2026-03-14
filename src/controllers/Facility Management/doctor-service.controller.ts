@@ -1,8 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import { DoctorServiceLogic } from '../../services/Facility Management/doctor-service.service';
+import { DoctorRepository } from '../../repository/Facility Management/doctor.repository';
 import { AssignDoctorServicesInput } from '../../models/Facility Management/doctor-service.model';
 
 export class DoctorServiceController {
+    /**
+     * Lấy danh sách bác sĩ đang hoạt động (is_active = true) từ bảng doctors.
+     */
+    static async getActiveDoctors(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const data = await DoctorRepository.getActiveDoctors();
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     /**
      * Lấy danh sách dịch vụ được gán cho bác sĩ
      */
