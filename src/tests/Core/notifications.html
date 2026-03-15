@@ -1,38 +1,446 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔔 Thông báo — Core Test</title>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;font-size:14px}
-        .header{background:linear-gradient(135deg,#0f3460,#16213e);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}.header h1{font-size:1.1rem}.header a{color:#a8d8ea;font-size:.82rem;text-decoration:none}
-        .auth-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.auth-bar input{padding:5px 8px;border:none;border-radius:5px;font-size:.82rem}.auth-bar button{padding:5px 12px;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:.8rem}.btn-login{background:#e94560;color:#fff}.btn-logout{background:#533483;color:#fff}.user-txt{color:#a8d8ea;font-size:.82rem}
-        .tabs{display:flex;background:#fff;border-bottom:2px solid #e2e8f0;overflow-x:auto}.tab{padding:10px 16px;cursor:pointer;font-size:.83rem;font-weight:600;white-space:nowrap;border-bottom:3px solid transparent;transition:.15s}.tab:hover{background:#f8fafc}.tab.active{border-bottom-color:#0f3460;color:#0f3460}
-        .main{max-width:1200px;margin:16px auto;padding:0 14px}.panel{display:none}.panel.active{display:block}
-        .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:14px}.card h3{margin-bottom:10px;font-size:.95rem;color:#0f3460}
-        .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}.toolbar input,.toolbar select{padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.82rem}
-        .btn{padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:.8rem;transition:opacity .15s}.btn:hover{opacity:.85}
-        .btn-primary{background:#0f3460;color:#fff}.btn-success{background:#10b981;color:#fff}.btn-danger{background:#ef4444;color:#fff}.btn-warning{background:#f59e0b;color:#000}.btn-outline{background:transparent;border:1px solid #d1d5db}.btn-info{background:#3b82f6;color:#fff}.btn-sm{padding:4px 8px;font-size:.75rem}
-        table{width:100%;border-collapse:collapse;font-size:.82rem}th{background:#f8fafc;padding:7px 8px;text-align:left;font-weight:600;color:#64748b;border-bottom:2px solid #e2e8f0;white-space:nowrap}td{padding:7px 8px;border-bottom:1px solid #f1f5f9}tr:hover{background:#f8fafc}
-        .badge{padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600}.b-active{background:#d1fae5;color:#065f46}.b-inactive{background:#e2e8f0;color:#475569}.b-sys{background:#dbeafe;color:#1e40af}.b-warn{background:#fef3c7;color:#92400e}
-        .empty{text-align:center;padding:20px;color:#94a3b8}
-        .form-group{margin-bottom:8px}.form-group label{display:block;font-weight:600;font-size:.82rem;margin-bottom:2px;color:#475569}.form-group input,.form-group select,.form-group textarea{width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.83rem}
-        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .toast-container{position:fixed;top:60px;right:16px;z-index:300;display:flex;flex-direction:column;gap:6px}.toast{padding:9px 14px;border-radius:8px;color:#fff;font-size:.82rem;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:slideIn .3s ease;min-width:220px}.toast-success{background:#10b981}.toast-error{background:#ef4444}.toast-info{background:#3b82f6}
-        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .pagination{display:flex;gap:6px;align-items:center;margin-top:10px;font-size:.82rem}.pagination button{padding:4px 10px;border:1px solid #d1d5db;border-radius:5px;background:#fff;cursor:pointer;font-size:.8rem}.pagination button.active{background:#0f3460;color:#fff;border-color:#0f3460}.pagination button:disabled{opacity:.4;cursor:default}.pagination span{color:#64748b}
-        .action-group{display:flex;gap:4px}
-        .detail-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-top:10px}
-        .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.dg-item{padding:6px 0}.dg-label{font-size:.75rem;color:#64748b;margin-bottom:2px}.dg-value{font-weight:600;font-size:.85rem;color:#1e293b}
-        .success-card{padding:12px;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;margin-top:10px}.success-card .title{font-weight:700;color:#065f46;margin-bottom:6px}
-        .notif-card{background:#f8fafc;border-left:4px solid #3b82f6;border-radius:0 8px 8px 0;padding:12px;margin-bottom:8px}
-        .notif-card.unread{background:#eff6ff;border-left-color:#f59e0b}
-        .matrix-cell{text-align:center;cursor:pointer;font-size:1rem}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            font-size: 14px
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .header h1 {
+            font-size: 1.1rem
+        }
+
+        .header a {
+            color: #a8d8ea;
+            font-size: .82rem;
+            text-decoration: none
+        }
+
+        .auth-bar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .auth-bar input {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 5px;
+            font-size: .82rem
+        }
+
+        .auth-bar button {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem
+        }
+
+        .btn-login {
+            background: #e94560;
+            color: #fff
+        }
+
+        .btn-logout {
+            background: #533483;
+            color: #fff
+        }
+
+        .user-txt {
+            color: #a8d8ea;
+            font-size: .82rem
+        }
+
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto
+        }
+
+        .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: .83rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: .15s
+        }
+
+        .tab:hover {
+            background: #f8fafc
+        }
+
+        .tab.active {
+            border-bottom-color: #0f3460;
+            color: #0f3460
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 16px auto;
+            padding: 0 14px
+        }
+
+        .panel {
+            display: none
+        }
+
+        .panel.active {
+            display: block
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+            margin-bottom: 14px
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: .95rem;
+            color: #0f3460
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center
+        }
+
+        .toolbar input,
+        .toolbar select {
+            padding: 5px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .82rem
+        }
+
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem;
+            transition: opacity .15s
+        }
+
+        .btn:hover {
+            opacity: .85
+        }
+
+        .btn-primary {
+            background: #0f3460;
+            color: #fff
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: #fff
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: #000
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: #fff
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: .75rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .82rem
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 7px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap
+        }
+
+        td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #f1f5f9
+        }
+
+        tr:hover {
+            background: #f8fafc
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: .72rem;
+            font-weight: 600
+        }
+
+        .b-active {
+            background: #d1fae5;
+            color: #065f46
+        }
+
+        .b-inactive {
+            background: #e2e8f0;
+            color: #475569
+        }
+
+        .b-sys {
+            background: #dbeafe;
+            color: #1e40af
+        }
+
+        .b-warn {
+            background: #fef3c7;
+            color: #92400e
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8
+        }
+
+        .form-group {
+            margin-bottom: 8px
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: .82rem;
+            margin-bottom: 2px;
+            color: #475569
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .83rem
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .toast {
+            padding: 9px 14px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: .82rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            animation: slideIn .3s ease;
+            min-width: 220px
+        }
+
+        .toast-success {
+            background: #10b981
+        }
+
+        .toast-error {
+            background: #ef4444
+        }
+
+        .toast-info {
+            background: #3b82f6
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .pagination {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 10px;
+            font-size: .82rem
+        }
+
+        .pagination button {
+            padding: 4px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            background: #fff;
+            cursor: pointer;
+            font-size: .8rem
+        }
+
+        .pagination button.active {
+            background: #0f3460;
+            color: #fff;
+            border-color: #0f3460
+        }
+
+        .pagination button:disabled {
+            opacity: .4;
+            cursor: default
+        }
+
+        .pagination span {
+            color: #64748b
+        }
+
+        .action-group {
+            display: flex;
+            gap: 4px
+        }
+
+        .detail-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 10px
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .dg-item {
+            padding: 6px 0
+        }
+
+        .dg-label {
+            font-size: .75rem;
+            color: #64748b;
+            margin-bottom: 2px
+        }
+
+        .dg-value {
+            font-weight: 600;
+            font-size: .85rem;
+            color: #1e293b
+        }
+
+        .success-card {
+            padding: 12px;
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            margin-top: 10px
+        }
+
+        .success-card .title {
+            font-weight: 700;
+            color: #065f46;
+            margin-bottom: 6px
+        }
+
+        .notif-card {
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
+            padding: 12px;
+            margin-bottom: 8px
+        }
+
+        .notif-card.unread {
+            background: #eff6ff;
+            border-left-color: #f59e0b
+        }
+
+        .matrix-cell {
+            text-align: center;
+            cursor: pointer;
+            font-size: 1rem
+        }
     </style>
 </head>
+
 <body>
-    <div class="header"><div><h1>🔔 Thông báo</h1><a href="index.html">← Quay về Hub</a></div>
-        <div><div class="auth-bar" id="authSection"><input type="text" id="loginEmail" placeholder="Email" value="admin@ehealth.com"><input type="password" id="loginPassword" placeholder="Mật khẩu" value="Admin@123"><button class="btn-login" onclick="handleLogin()">Đăng nhập</button></div><div class="auth-bar" id="userSection" style="display:none"><span class="user-txt" id="currentUser"></span><button class="btn-logout" onclick="handleLogout()">Đăng xuất</button></div></div>
+    <div class="header">
+        <div>
+            <h1>🔔 Thông báo</h1><a href="index.html">← Quay về Hub</a>
+        </div>
+        <div>
+            <div class="auth-bar" id="authSection"><input type="text" id="loginEmail" placeholder="Email"
+                    value="admin@ehealth.com"><input type="password" id="loginPassword" placeholder="Mật khẩu"
+                    value="Admin@123"><button class="btn-login" onclick="handleLogin()">Đăng nhập</button></div>
+            <div class="auth-bar" id="userSection" style="display:none"><span class="user-txt"
+                    id="currentUser"></span><button class="btn-logout" onclick="handleLogout()">Đăng xuất</button></div>
+        </div>
     </div>
     <div class="tabs">
         <div class="tab active" onclick="switchTab(0)">📁 Loại TBáo</div>
@@ -53,7 +461,16 @@
                     <button class="btn btn-primary" onclick="loadNC(1)">Tải</button>
                 </div>
                 <table>
-                    <thead><tr><th>#</th><th>Code</th><th>Tên</th><th>Mô tả</th><th>Active</th><th>Actions</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Code</th>
+                            <th>Tên</th>
+                            <th>Mô tả</th>
+                            <th>Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="ncTable"></tbody>
                 </table>
                 <div class="pagination" id="ncPag"></div>
@@ -61,16 +478,20 @@
             <div class="card">
                 <h3>➕ Tạo / ✏️ Sửa Loại Thông báo</h3>
                 <div class="toolbar">
-                    <select id="ncIdSelect" style="flex:1" title="Chọn loại thông báo"><option value="">-- Chọn loại --</option></select>
+                    <select id="ncIdSelect" style="flex:1" title="Chọn loại thông báo">
+                        <option value="">-- Chọn loại --</option>
+                    </select>
                     <button class="btn btn-info" onclick="getNC()">🔍 Xem</button>
                     <button class="btn btn-danger" onclick="deleteNC()">🗑️ Xóa</button>
                 </div>
                 <div id="ncDetailDisplay" style="display:none"></div>
                 <div class="form-row" style="margin-top:10px">
                     <div class="form-group"><label>Code *</label><input id="ncCode" placeholder="APPOINTMENT"></div>
-                    <div class="form-group"><label>Tên *</label><input id="ncName" placeholder="Thông báo lịch hẹn"></div>
+                    <div class="form-group"><label>Tên *</label><input id="ncName" placeholder="Thông báo lịch hẹn">
+                    </div>
                 </div>
-                <div class="form-group"><label>Mô tả</label><input id="ncDesc" placeholder="Dùng cho toàn bộ kịch bản..."></div>
+                <div class="form-group"><label>Mô tả</label><input id="ncDesc"
+                        placeholder="Dùng cho toàn bộ kịch bản..."></div>
                 <div class="toolbar">
                     <button class="btn btn-success" onclick="createNC()">💾 Tạo mới</button>
                     <button class="btn btn-warning" onclick="updateNC()">💾 Cập nhật</button>
@@ -85,12 +506,24 @@
                 <h3>📝 Danh sách Mẫu Thông báo</h3>
                 <div class="toolbar">
                     <input id="tplSearch" placeholder="🔍 Tìm tên/code..." style="flex:1">
-                    <select id="tplCatFilter" title="Lọc theo loại"><option value="">Tất cả loại</option></select>
+                    <select id="tplCatFilter" title="Lọc theo loại">
+                        <option value="">Tất cả loại</option>
+                    </select>
                     <input id="tplLimit" type="number" value="10" min="1" max="50" style="width:60px">
                     <button class="btn btn-primary" onclick="loadTPL(1)">Tải</button>
                 </div>
                 <table>
-                    <thead><tr><th>#</th><th>Code</th><th>Tên</th><th>Title Template</th><th>System</th><th>Active</th><th>Actions</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Code</th>
+                            <th>Tên</th>
+                            <th>Title Template</th>
+                            <th>System</th>
+                            <th>Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="tplTable"></tbody>
                 </table>
                 <div class="pagination" id="tplPag"></div>
@@ -104,18 +537,25 @@
                 </div>
                 <div id="tplDetailDisplay" style="display:none"></div>
                 <div class="form-row" style="margin-top:10px">
-                    <div class="form-group"><label>Code *</label><input id="tCode" placeholder="APPOINTMENT_REMINDER"></div>
+                    <div class="form-group"><label>Code *</label><input id="tCode" placeholder="APPOINTMENT_REMINDER">
+                    </div>
                     <div class="form-group"><label>Tên *</label><input id="tName" placeholder="Nhắc lịch hẹn"></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Loại thông báo</label>
-                        <select id="tCatId" title="Chọn loại"><option value="">-- Chọn loại --</option></select>
+                        <select id="tCatId" title="Chọn loại">
+                            <option value="">-- Chọn loại --</option>
+                        </select>
                     </div>
-                    <div class="form-group"><label>Title Template *</label><input id="tTitle" placeholder="Nhắc lịch hẹn {{appointment_date}}"></div>
+                    <div class="form-group"><label>Title Template *</label><input id="tTitle"
+                            placeholder="Nhắc lịch hẹn {{appointment_date}}"></div>
                 </div>
-                <div class="form-group"><label>Body InApp *</label><textarea id="tBodyInapp" rows="2" placeholder="Xin chào {{patient_name}}..."></textarea></div>
-                <div class="form-group"><label>Body Email</label><textarea id="tBodyEmail" rows="2" placeholder="<h1>Hello {{patient_name}}</h1>..."></textarea></div>
-                <div class="form-group"><label>Body Push</label><input id="tBodyPush" placeholder="Short push text..."></div>
+                <div class="form-group"><label>Body InApp *</label><textarea id="tBodyInapp" rows="2"
+                        placeholder="Xin chào {{patient_name}}..."></textarea></div>
+                <div class="form-group"><label>Body Email</label><textarea id="tBodyEmail" rows="2"
+                        placeholder="<h1>Hello {{patient_name}}</h1>..."></textarea></div>
+                <div class="form-group"><label>Body Push</label><input id="tBodyPush" placeholder="Short push text...">
+                </div>
                 <div class="toolbar">
                     <button class="btn btn-success" onclick="createTPL()">💾 Tạo mới</button>
                     <button class="btn btn-warning" onclick="updateTPL()">💾 Cập nhật</button>
@@ -139,14 +579,23 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Allow InApp</label>
-                        <select id="rcInapp" title="InApp"><option value="true">✅ Có</option><option value="false">❌ Không</option></select>
+                        <select id="rcInapp" title="InApp">
+                            <option value="true">✅ Có</option>
+                            <option value="false">❌ Không</option>
+                        </select>
                     </div>
                     <div class="form-group"><label>Allow Email</label>
-                        <select id="rcEmail" title="Email"><option value="true">✅ Có</option><option value="false">❌ Không</option></select>
+                        <select id="rcEmail" title="Email">
+                            <option value="true">✅ Có</option>
+                            <option value="false">❌ Không</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group" style="max-width:50%"><label>Allow Push</label>
-                    <select id="rcPush" title="Push"><option value="true">✅ Có</option><option value="false">❌ Không</option></select>
+                    <select id="rcPush" title="Push">
+                        <option value="true">✅ Có</option>
+                        <option value="false">❌ Không</option>
+                    </select>
                 </div>
                 <button class="btn btn-success" onclick="updateRC()">💾 Lưu</button>
                 <div id="rcResultDisplay" style="display:none;margin-top:10px"></div>
@@ -158,12 +607,17 @@
             <div class="card">
                 <h3>📢 Broadcast Thông báo</h3>
                 <div class="form-row">
-                    <div class="form-group"><label>Tiêu đề *</label><input id="bTitle" placeholder="Thông báo nghỉ lễ 30/4"></div>
-                    <div class="form-group"><label>Role ID (trống = tất cả)</label><input id="bRoleId" placeholder="ROL_xxx hoặc để trống"></div>
+                    <div class="form-group"><label>Tiêu đề *</label><input id="bTitle"
+                            placeholder="Thông báo nghỉ lễ 30/4"></div>
+                    <div class="form-group"><label>Role ID (trống = tất cả)</label><input id="bRoleId"
+                            placeholder="ROL_xxx hoặc để trống"></div>
                 </div>
-                <div class="form-group"><label>Nội dung InApp *</label><textarea id="bContent" rows="3" placeholder="Hệ thống phòng khám sẽ nghỉ lễ từ ngày..."></textarea></div>
-                <div class="form-group"><label>Body Email</label><textarea id="bEmail" rows="2" placeholder="<h1>Thông báo</h1>..."></textarea></div>
-                <div class="form-group"><label>Body Push</label><input id="bPush" placeholder="Short push notification text"></div>
+                <div class="form-group"><label>Nội dung InApp *</label><textarea id="bContent" rows="3"
+                        placeholder="Hệ thống phòng khám sẽ nghỉ lễ từ ngày..."></textarea></div>
+                <div class="form-group"><label>Body Email</label><textarea id="bEmail" rows="2"
+                        placeholder="<h1>Thông báo</h1>..."></textarea></div>
+                <div class="form-group"><label>Body Push</label><input id="bPush"
+                        placeholder="Short push notification text"></div>
                 <button class="btn btn-warning" onclick="sendBroadcast()">📢 Gửi Broadcast</button>
                 <div id="bResultDisplay" style="display:none;margin-top:10px"></div>
             </div>
@@ -191,8 +645,8 @@
     </div>
 
     <script>
-        const API = 'http://localhost:3000/api';
-        const TABS = ['p0','p1','p2','p3','p4'];
+        const API = 'http://160.250.186.97:3000/api';
+        const TABS = ['p0', 'p1', 'p2', 'p3', 'p4'];
         let token = null;
 
         function getAuth() { const d = localStorage.getItem('ehealth_auth'); return d ? JSON.parse(d) : null; }
@@ -559,4 +1013,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -202,7 +202,7 @@
 </div>
 
 <script>
-const API='http://localhost:3000/api';let token=null;
+const API='http://160.250.186.97:3000/api';let token=null;
 function getAuth(){const d=localStorage.getItem('ehealth_auth');return d?JSON.parse(d):null}
 function headers(){return{'Content-Type':'application/json','Authorization':`Bearer ${token}`}}
 function toast(m,t='info'){const c=document.getElementById('toastC'),e=document.createElement('div');e.className=`toast toast-${t}`;e.textContent=m;c.appendChild(e);setTimeout(()=>e.remove(),4000)}

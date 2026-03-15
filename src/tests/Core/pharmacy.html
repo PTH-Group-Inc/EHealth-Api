@@ -1,35 +1,416 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💊 Danh mục Thuốc — Core Test</title>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;font-size:14px}
-        .header{background:linear-gradient(135deg,#0f3460,#16213e);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}.header h1{font-size:1.1rem}.header a{color:#a8d8ea;font-size:.82rem;text-decoration:none}
-        .auth-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.auth-bar input{padding:5px 8px;border:none;border-radius:5px;font-size:.82rem}.auth-bar button{padding:5px 12px;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:.8rem}.btn-login{background:#e94560;color:#fff}.btn-logout{background:#533483;color:#fff}.user-txt{color:#a8d8ea;font-size:.82rem}
-        .tabs{display:flex;background:#fff;border-bottom:2px solid #e2e8f0;overflow-x:auto}.tab{padding:10px 16px;cursor:pointer;font-size:.83rem;font-weight:600;white-space:nowrap;border-bottom:3px solid transparent;transition:.15s}.tab:hover{background:#f8fafc}.tab.active{border-bottom-color:#0f3460;color:#0f3460}
-        .main{max-width:1200px;margin:16px auto;padding:0 14px}.panel{display:none}.panel.active{display:block}
-        .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:14px}.card h3{margin-bottom:10px;font-size:.95rem;color:#0f3460}
-        .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}.toolbar input,.toolbar select{padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.82rem}
-        .btn{padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:.8rem;transition:opacity .15s}.btn:hover{opacity:.85}
-        .btn-primary{background:#0f3460;color:#fff}.btn-success{background:#10b981;color:#fff}.btn-danger{background:#ef4444;color:#fff}.btn-warning{background:#f59e0b;color:#000}.btn-outline{background:transparent;border:1px solid #d1d5db}.btn-info{background:#3b82f6;color:#fff}.btn-sm{padding:4px 8px;font-size:.75rem}
-        table{width:100%;border-collapse:collapse;font-size:.82rem}th{background:#f8fafc;padding:7px 8px;text-align:left;font-weight:600;color:#64748b;border-bottom:2px solid #e2e8f0;white-space:nowrap}td{padding:7px 8px;border-bottom:1px solid #f1f5f9}tr:hover{background:#f8fafc}
-        .badge{padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600}.b-active{background:#d1fae5;color:#065f46}.b-inactive{background:#e2e8f0;color:#475569}
-        .empty{text-align:center;padding:20px;color:#94a3b8}
-        .form-group{margin-bottom:8px}.form-group label{display:block;font-weight:600;font-size:.82rem;margin-bottom:2px;color:#475569}.form-group input,.form-group select{width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.83rem}
-        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .toast-container{position:fixed;top:60px;right:16px;z-index:300;display:flex;flex-direction:column;gap:6px}.toast{padding:9px 14px;border-radius:8px;color:#fff;font-size:.82rem;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:slideIn .3s ease;min-width:220px}.toast-success{background:#10b981}.toast-error{background:#ef4444}.toast-info{background:#3b82f6}
-        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .pagination{display:flex;gap:6px;align-items:center;margin-top:10px;font-size:.82rem}.pagination button{padding:4px 10px;border:1px solid #d1d5db;border-radius:5px;background:#fff;cursor:pointer;font-size:.8rem}.pagination button.active{background:#0f3460;color:#fff;border-color:#0f3460}.pagination button:disabled{opacity:.4;cursor:default}.pagination span{color:#64748b}
-        .action-group{display:flex;gap:4px}
-        .detail-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-top:10px}
-        .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.dg-item{padding:6px 0}.dg-label{font-size:.75rem;color:#64748b;margin-bottom:2px}.dg-value{font-weight:600;font-size:.85rem;color:#1e293b}
-        .success-card{padding:12px;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;margin-top:10px}.success-card .title{font-weight:700;color:#065f46;margin-bottom:6px}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            font-size: 14px
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .header h1 {
+            font-size: 1.1rem
+        }
+
+        .header a {
+            color: #a8d8ea;
+            font-size: .82rem;
+            text-decoration: none
+        }
+
+        .auth-bar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .auth-bar input {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 5px;
+            font-size: .82rem
+        }
+
+        .auth-bar button {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem
+        }
+
+        .btn-login {
+            background: #e94560;
+            color: #fff
+        }
+
+        .btn-logout {
+            background: #533483;
+            color: #fff
+        }
+
+        .user-txt {
+            color: #a8d8ea;
+            font-size: .82rem
+        }
+
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto
+        }
+
+        .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: .83rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: .15s
+        }
+
+        .tab:hover {
+            background: #f8fafc
+        }
+
+        .tab.active {
+            border-bottom-color: #0f3460;
+            color: #0f3460
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 16px auto;
+            padding: 0 14px
+        }
+
+        .panel {
+            display: none
+        }
+
+        .panel.active {
+            display: block
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+            margin-bottom: 14px
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: .95rem;
+            color: #0f3460
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center
+        }
+
+        .toolbar input,
+        .toolbar select {
+            padding: 5px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .82rem
+        }
+
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .8rem;
+            transition: opacity .15s
+        }
+
+        .btn:hover {
+            opacity: .85
+        }
+
+        .btn-primary {
+            background: #0f3460;
+            color: #fff
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: #fff
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: #000
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: #fff
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: .75rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .82rem
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 7px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap
+        }
+
+        td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #f1f5f9
+        }
+
+        tr:hover {
+            background: #f8fafc
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: .72rem;
+            font-weight: 600
+        }
+
+        .b-active {
+            background: #d1fae5;
+            color: #065f46
+        }
+
+        .b-inactive {
+            background: #e2e8f0;
+            color: #475569
+        }
+
+        .empty {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8
+        }
+
+        .form-group {
+            margin-bottom: 8px
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: .82rem;
+            margin-bottom: 2px;
+            color: #475569
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: .83rem
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .toast {
+            padding: 9px 14px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: .82rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            animation: slideIn .3s ease;
+            min-width: 220px
+        }
+
+        .toast-success {
+            background: #10b981
+        }
+
+        .toast-error {
+            background: #ef4444
+        }
+
+        .toast-info {
+            background: #3b82f6
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .pagination {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 10px;
+            font-size: .82rem
+        }
+
+        .pagination button {
+            padding: 4px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            background: #fff;
+            cursor: pointer;
+            font-size: .8rem
+        }
+
+        .pagination button.active {
+            background: #0f3460;
+            color: #fff;
+            border-color: #0f3460
+        }
+
+        .pagination button:disabled {
+            opacity: .4;
+            cursor: default
+        }
+
+        .pagination span {
+            color: #64748b
+        }
+
+        .action-group {
+            display: flex;
+            gap: 4px
+        }
+
+        .detail-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 10px
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .dg-item {
+            padding: 6px 0
+        }
+
+        .dg-label {
+            font-size: .75rem;
+            color: #64748b;
+            margin-bottom: 2px
+        }
+
+        .dg-value {
+            font-weight: 600;
+            font-size: .85rem;
+            color: #1e293b
+        }
+
+        .success-card {
+            padding: 12px;
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            margin-top: 10px
+        }
+
+        .success-card .title {
+            font-weight: 700;
+            color: #065f46;
+            margin-bottom: 6px
+        }
     </style>
 </head>
+
 <body>
-    <div class="header"><div><h1>💊 Danh mục Thuốc</h1><a href="index.html">← Quay về Hub</a></div>
-        <div><div class="auth-bar" id="authSection"><input type="text" id="loginEmail" placeholder="Email" value="admin@ehealth.com"><input type="password" id="loginPassword" placeholder="Mật khẩu" value="Admin@123"><button class="btn-login" onclick="handleLogin()">Đăng nhập</button></div><div class="auth-bar" id="userSection" style="display:none"><span class="user-txt" id="currentUser"></span><button class="btn-logout" onclick="handleLogout()">Đăng xuất</button></div></div>
+    <div class="header">
+        <div>
+            <h1>💊 Danh mục Thuốc</h1><a href="index.html">← Quay về Hub</a>
+        </div>
+        <div>
+            <div class="auth-bar" id="authSection"><input type="text" id="loginEmail" placeholder="Email"
+                    value="admin@ehealth.com"><input type="password" id="loginPassword" placeholder="Mật khẩu"
+                    value="Admin@123"><button class="btn-login" onclick="handleLogin()">Đăng nhập</button></div>
+            <div class="auth-bar" id="userSection" style="display:none"><span class="user-txt"
+                    id="currentUser"></span><button class="btn-logout" onclick="handleLogout()">Đăng xuất</button></div>
+        </div>
     </div>
     <div class="tabs">
         <div class="tab active" onclick="switchTab(0)">📁 Nhóm thuốc</div>
@@ -50,7 +431,15 @@
                     <button class="btn btn-primary" onclick="loadDC(1)">Tải</button>
                 </div>
                 <table>
-                    <thead><tr><th>#</th><th>Code</th><th>Tên</th><th>Mô tả</th><th>Actions</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Code</th>
+                            <th>Tên</th>
+                            <th>Mô tả</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="dcTable"></tbody>
                 </table>
                 <div class="pagination" id="dcPag"></div>
@@ -102,7 +491,20 @@
                     <button class="btn btn-outline" onclick="loadActive()">💚 Chỉ Active</button>
                 </div>
                 <table>
-                    <thead><tr><th>#</th><th>Mã thuốc</th><th>Tên thương mại</th><th>Hoạt chất</th><th>ĐVT</th><th>Đường dùng</th><th>Nhóm</th><th>Kê đơn</th><th>Active</th><th>Actions</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Mã thuốc</th>
+                            <th>Tên thương mại</th>
+                            <th>Hoạt chất</th>
+                            <th>ĐVT</th>
+                            <th>Đường dùng</th>
+                            <th>Nhóm</th>
+                            <th>Kê đơn</th>
+                            <th>Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody id="drugTable"></tbody>
                 </table>
                 <div class="pagination" id="drugPag"></div>
@@ -114,12 +516,16 @@
             <div class="card">
                 <h3>➕ Tạo thuốc mới</h3>
                 <div class="form-row">
-                    <div class="form-group"><label>Mã thuốc (drug_code) *</label><input id="drCode" placeholder="AMO500"></div>
-                    <div class="form-group"><label>Tên thương mại (brand_name) *</label><input id="drName" placeholder="Amoxicillin 500mg"></div>
+                    <div class="form-group"><label>Mã thuốc (drug_code) *</label><input id="drCode"
+                            placeholder="AMO500"></div>
+                    <div class="form-group"><label>Tên thương mại (brand_name) *</label><input id="drName"
+                            placeholder="Amoxicillin 500mg"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Hoạt chất (active_ingredients) *</label><input id="drIngredient" placeholder="Amoxicillin"></div>
-                    <div class="form-group"><label>Đơn vị cấp phát (dispensing_unit) *</label><input id="drUnit" placeholder="Viên"></div>
+                    <div class="form-group"><label>Hoạt chất (active_ingredients) *</label><input id="drIngredient"
+                            placeholder="Amoxicillin"></div>
+                    <div class="form-group"><label>Đơn vị cấp phát (dispensing_unit) *</label><input id="drUnit"
+                            placeholder="Viên"></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Đường dùng</label><input id="drRoute" placeholder="Uống"></div>
@@ -186,7 +592,8 @@
             </div>
             <div class="card">
                 <h3>📥 Import Nhóm thuốc</h3>
-                <div class="toolbar"><input id="dcImport" type="file" accept=".xlsx,.xls"><button class="btn btn-success" onclick="importDC()">📥 Import</button></div>
+                <div class="toolbar"><input id="dcImport" type="file" accept=".xlsx,.xls"><button
+                        class="btn btn-success" onclick="importDC()">📥 Import</button></div>
                 <div id="dcImportDisplay" style="display:none;margin-top:10px"></div>
             </div>
             <div class="card">
@@ -196,15 +603,16 @@
             </div>
             <div class="card">
                 <h3>📥 Import Thuốc</h3>
-                <div class="toolbar"><input id="drugImport" type="file" accept=".xlsx,.xls"><button class="btn btn-success" onclick="importDrugs()">📥 Import</button></div>
+                <div class="toolbar"><input id="drugImport" type="file" accept=".xlsx,.xls"><button
+                        class="btn btn-success" onclick="importDrugs()">📥 Import</button></div>
                 <div id="drugImportDisplay" style="display:none;margin-top:10px"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const API = 'http://localhost:3000/api';
-        const TABS = ['p0','p1','p2','p3','p4'];
+        const API = 'http://160.250.186.97:3000/api';
+        const TABS = ['p0', 'p1', 'p2', 'p3', 'p4'];
         let token = null, dcPage = 1, drugPage = 1;
 
         function getAuth() { const d = localStorage.getItem('ehealth_auth'); return d ? JSON.parse(d) : null; }
@@ -534,4 +942,5 @@
         }
     </script>
 </body>
+
 </html>
