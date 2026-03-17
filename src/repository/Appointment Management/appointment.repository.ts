@@ -65,6 +65,113 @@ export class AppointmentRepository {
         return (result.rowCount ?? 0) > 0;
     }
 
+    /** Kiểm tra chi nhánh có tồn tại và đang hoạt động không */
+    static async branchExists(branchId: string): Promise<boolean> {
+        const result = await pool.query(
+            `SELECT branches_id FROM branches WHERE branches_id = $1 AND status = 'ACTIVE'`, [branchId]
+        );
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /** Lấy branch_id của 1 phòng khám (kiểm tra cross-branch) */
+    static async getRoomBranchId(roomId: string): Promise<string | null> {
+        const result = await pool.query(
+            `SELECT branch_id FROM medical_rooms WHERE medical_rooms_id = $1`, [roomId]
+        );
+        return result.rows[0]?.branch_id || null;
+    }
+
+    /** Kiểm tra ca khám có tồn tại và đang hoạt động không */
+    static async shiftExists(shiftId: string): Promise<boolean> {
+        const result = await pool.query(
+            `SELECT shifts_id FROM shifts WHERE shifts_id = $1 AND status = 'ACTIVE' AND deleted_at IS NULL`, [shiftId]
+        );
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /**
+     * Tìm slot đầu tiên còn chỗ trong 1 ca, xếp theo thời gian (FIFO queue).
+     */
+    static async findNextAvailableSlot(
+        shiftId: string, date: string, maxPerSlot: number, client?: import('pg').PoolClient
+    ): Promise<{ slot_id: string; start_time: string; end_time: string } | null> {
+        const statusPlaceholders = ACTIVE_APPOINTMENT_STATUSES.map((_, i) => `$${i + 4}`).join(', ');
+        const query = `
+            SELECT sl.slot_id, sl.start_time::text, sl.end_time::text
+            FROM appointment_slots sl
+            LEFT JOIN locked_slots ls
+                ON ls.slot_id = sl.slot_id AND ls.locked_date = $2::date AND ls.deleted_at IS NULL
+            WHERE sl.shift_id = $1
+              AND sl.is_active = true
+              AND ls.locked_slot_id IS NULL
+              AND (
+                  SELECT COUNT(*)::int FROM appointments apt
+                  WHERE apt.slot_id = sl.slot_id
+                    AND apt.appointment_date = $2::date
+                    AND apt.status IN (${statusPlaceholders})
+              ) < $3
+            ORDER BY sl.start_time ASC
+            LIMIT 1;
+        `;
+        const values = [shiftId, date, maxPerSlot, ...ACTIVE_APPOINTMENT_STATUSES];
+        const executor = client || pool;
+        const result = await executor.query(query, values);
+        return result.rows[0] || null;
+    }
+
+    /**
+     * Tìm phòng khám CONSULTATION trống tại branch.
+     * Nếu có specialtyId → ưu tiên phòng thuộc khoa đúng chuyên khoa (qua department_specialties).
+     * Fallback: nếu không có phòng đúng khoa → lấy phòng bất kỳ còn trống.
+     */
+    static async findAvailableRoom(
+        branchId: string, specialtyId?: string
+    ): Promise<{ medical_rooms_id: string; name: string } | null> {
+        // Nếu có specialtyId → ưu tiên tìm phòng thuộc khoa đúng chuyên khoa
+        if (specialtyId) {
+            const specificResult = await pool.query(`
+                SELECT mr.medical_rooms_id, mr.name
+                FROM medical_rooms mr
+                JOIN department_specialties ds ON mr.department_id = ds.department_id
+                WHERE mr.branch_id = $1
+                  AND ds.specialty_id = $2
+                  AND mr.status = 'ACTIVE'
+                  AND mr.room_type = 'CONSULTATION'
+                  AND (mr.room_status IS NULL OR mr.room_status = 'AVAILABLE')
+                ORDER BY mr.name ASC
+                LIMIT 1;
+            `, [branchId, specialtyId]);
+
+            if (specificResult.rows[0]) {
+                return specificResult.rows[0];
+            }
+            // Fallback: không có phòng đúng khoa → lấy phòng bất kỳ
+        }
+
+        const result = await pool.query(`
+            SELECT medical_rooms_id, name FROM medical_rooms
+            WHERE branch_id = $1 AND status = 'ACTIVE' AND room_type = 'CONSULTATION'
+              AND (room_status IS NULL OR room_status = 'AVAILABLE')
+            ORDER BY name ASC
+            LIMIT 1;
+        `, [branchId]);
+        return result.rows[0] || null;
+    }
+
+    /**
+     * Tìm chuyên khoa từ facility_service_id 
+     */
+    static async getSpecialtyByFacilityService(facilityServiceId: string): Promise<string | null> {
+        const result = await pool.query(`
+            SELECT ss.specialty_id
+            FROM facility_services fs
+            JOIN specialty_services ss ON fs.service_id = ss.service_id
+            WHERE fs.facility_services_id = $1
+            LIMIT 1;
+        `, [facilityServiceId]);
+        return result.rows[0]?.specialty_id || null;
+    }
+
     /**
      * Đếm số lịch khám đang hoạt động trên 1 slot trong 1 ngày cụ thể
      */
@@ -163,6 +270,7 @@ export class AppointmentRepository {
                    p.full_name AS patient_name,
                    up.full_name AS doctor_name,
                    mr.name AS room_name,
+                   br.name AS branch_name,
                    fs_svc.name AS service_name,
                    sl.start_time AS slot_start_time,
                    sl.end_time AS slot_end_time
@@ -171,6 +279,7 @@ export class AppointmentRepository {
             LEFT JOIN doctors d ON a.doctor_id = d.doctors_id
             LEFT JOIN user_profiles up ON d.user_id = up.user_id
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
+            LEFT JOIN branches br ON a.branch_id = br.branches_id
             LEFT JOIN facility_services fs ON a.facility_service_id = fs.facility_services_id
             LEFT JOIN services fs_svc ON fs.service_id = fs_svc.services_id
             LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
@@ -194,6 +303,7 @@ export class AppointmentRepository {
                    p.full_name AS patient_name,
                    up.full_name AS doctor_name,
                    mr.name AS room_name,
+                   br.name AS branch_name,
                    fs_svc.name AS service_name,
                    sl.start_time AS slot_start_time,
                    sl.end_time AS slot_end_time
@@ -202,6 +312,7 @@ export class AppointmentRepository {
             LEFT JOIN doctors d ON a.doctor_id = d.doctors_id
             LEFT JOIN user_profiles up ON d.user_id = up.user_id
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
+            LEFT JOIN branches br ON a.branch_id = br.branches_id
             LEFT JOIN facility_services fs ON a.facility_service_id = fs.facility_services_id
             LEFT JOIN services fs_svc ON fs.service_id = fs_svc.services_id
             LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
@@ -249,8 +360,9 @@ export class AppointmentRepository {
 
     /**
      * Tạo lịch khám mới kèm ghi audit log — chạy trong Transaction
+     * @param initialStatus Trạng thái khởi tạo (PENDING hoặc CONFIRMED cho auto-confirm channels)
      */
-    static async create(data: CreateAppointmentInput, auditLog: CreateAuditLogInput): Promise<Appointment> {
+    static async create(data: CreateAppointmentInput, auditLog: CreateAuditLogInput, initialStatus: string = 'PENDING'): Promise<Appointment> {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -259,17 +371,18 @@ export class AppointmentRepository {
             const code = this.generateAppointmentCode();
             const insertQuery = `
                 INSERT INTO appointments (
-                    appointments_id, appointment_code, patient_id, doctor_id, slot_id,
+                    appointments_id, appointment_code, patient_id, branch_id, doctor_id, slot_id,
                     room_id, facility_service_id, appointment_date, booking_channel,
-                    reason_for_visit, symptoms_notes
+                    reason_for_visit, symptoms_notes, status
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const values = [
-                id, code, data.patient_id, data.doctor_id || null, data.slot_id || null,
+                id, code, data.patient_id, data.branch_id, data.doctor_id || null, data.slot_id || null,
                 data.room_id || null, data.facility_service_id || null, data.appointment_date,
-                data.booking_channel, data.reason_for_visit || null, data.symptoms_notes || null
+                data.booking_channel, data.reason_for_visit || null, data.symptoms_notes || null,
+                initialStatus
             ];
             const result = await client.query(insertQuery, values);
             const appointment = result.rows[0];
@@ -906,6 +1019,39 @@ export class AppointmentRepository {
         `;
         const result = await pool.query(query, [id]);
         return result.rows[0] || null;
+    }
+
+    /**
+     * Kiểm tra bác sĩ có đăng ký vắng đột xuất vào ngày/ca cụ thể không
+     */
+    static async isDoctorAbsentOnDate(doctorId: string, date: string, shiftId?: string): Promise<boolean> {
+        let query = `
+            SELECT absence_id FROM doctor_absences
+            WHERE doctor_id = $1
+              AND absence_date = $2::date
+              AND deleted_at IS NULL
+        `;
+        const values: any[] = [doctorId, date];
+
+        if (shiftId) {
+            query += ` AND (shift_id = $3 OR shift_id IS NULL)`;
+            values.push(shiftId);
+        }
+
+        const result = await pool.query(query, values);
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /**
+     * Kiểm tra slot có bị khoá vào ngày cụ thể không
+     */
+    static async isSlotLocked(slotId: string, date: string): Promise<boolean> {
+        const result = await pool.query(
+            `SELECT locked_slot_id FROM locked_slots
+             WHERE slot_id = $1 AND locked_date = $2::date AND deleted_at IS NULL`,
+            [slotId, date]
+        );
+        return (result.rowCount ?? 0) > 0;
     }
 }
 

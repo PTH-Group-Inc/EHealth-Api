@@ -1,7 +1,7 @@
 // src/models/Appointment Management/appointment.model.ts
 
 /** Trạng thái lịch khám (State Machine) */
-export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'IN_PROGRESS' | 'CANCELLED' | 'NO_SHOW' | 'COMPLETED';
+export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'IN_PROGRESS' | 'CANCELLED' | 'NO_SHOW' | 'COMPLETED' | 'SKIPPED';
 
 /** Kênh đặt lịch */
 export type BookingChannel = 'APP' | 'WEB' | 'HOTLINE' | 'DIRECT_CLINIC' | 'ZALO';
@@ -10,6 +10,7 @@ export interface Appointment {
     appointments_id: string;
     appointment_code: string;
     patient_id: string;
+    branch_id: string;
     doctor_id?: string | null;
     slot_id?: string | null;
     room_id?: string | null;
@@ -28,6 +29,7 @@ export interface Appointment {
     updated_at: string;
 
 
+    branch_name?: string;
     patient_name?: string;
     doctor_name?: string;
     room_name?: string;
@@ -54,14 +56,17 @@ export interface Appointment {
 
 export interface CreateAppointmentInput {
     patient_id: string;
+    branch_id: string;
+    shift_id: string;
     appointment_date: string;
     booking_channel: BookingChannel;
     reason_for_visit?: string;
     symptoms_notes?: string;
-    doctor_id?: string;
-    slot_id?: string;
-    room_id?: string;
     facility_service_id?: string;
+
+    slot_id?: string;
+    doctor_id?: string;
+    room_id?: string;
 }
 
 export interface UpdateAppointmentInput {

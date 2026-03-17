@@ -59,6 +59,14 @@ import { appointmentStatusRoutes } from './Appointment Management/appointment-st
 import appointmentChangeRoutes from './Appointment Management/appointment-change.routes';
 import appointmentCoordinationRoutes from './Appointment Management/appointment-coordination.routes';
 import { roomMaintenanceRoutes } from './Facility Management/room-maintenance.routes';
+import { encounterRoutes } from './EMR/encounter.routes';
+import { clinicalExamRoutes } from './EMR/clinical-exam.routes';
+import { diagnosisRoutes } from './EMR/diagnosis.routes';
+import medicalOrderRoutes from './EMR/medical-order.routes';
+import { prescriptionRoutes } from './EMR/prescription.routes';
+import { medicalRecordRoutes } from './EMR/medical-record.routes';
+import { treatmentProgressRoutes } from './EMR/treatment-progress.routes';
+import { signOffRoutes } from './EMR/medical-signoff.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -224,5 +232,30 @@ export const initRoutes = (app: Express) => {
 
     // Module 3.9 – Điều phối & tối ưu lịch khám
     app.use('/api/appointment-coordination', appointmentCoordinationRoutes);
+
+    // MODULE 4: KHÁM BỆNH & HỒ SƠ BỆNH ÁN (EMR)
+    // Module 4.1 – Encounter Management
+    app.use('/api/encounters', encounterRoutes);
+
+    // Module 4.2 – Clinical Examination
+    app.use('/api/clinical-examinations', clinicalExamRoutes);
+
+    // Module 4.3 – Diagnosis Management
+    app.use('/api/diagnoses', diagnosisRoutes);
+
+    // Module 4.4 – Medical Orders (Chỉ định dịch vụ y tế)
+    app.use('/api/medical-orders', medicalOrderRoutes);
+
+    // Module 4.5 – Prescription Management (Kê đơn thuốc)
+    app.use('/api/prescriptions', prescriptionRoutes);
+
+    // Module 4.6 – Medical Records (Hồ sơ Bệnh án Điện tử)
+    app.use('/api/medical-records', medicalRecordRoutes);
+
+    // Module 4.7 – Treatment Progress (Theo dõi Tiến trình Điều trị)
+    app.use('/api/treatment-plans', treatmentProgressRoutes);
+
+    // Module 4.8 – Medical Sign-off (Ký số & Xác nhận Hồ sơ Y khoa)
+    app.use('/api/sign-off', signOffRoutes);
 }
 

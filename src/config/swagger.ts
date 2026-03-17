@@ -274,6 +274,23 @@ const options = {
       { name: '3.7 Check-in & Trạng thái', description: 'API Check-in, hoàn tất, hủy, đánh dấu no-show lịch khám' },
       { name: '3.8 Quản lý thay đổi & dời lịch', description: 'API Dời lịch, hủy lịch, lịch sử thay đổi, chính sách hủy' },
       { name: '3.9 Điều phối & tối ưu lịch khám', description: 'API Phân bổ tải, gợi ý slot, cân bằng, ưu tiên, reassign, auto-assign, AI dataset' },
+
+      // ===== MODULE 4: KHÁM BỆNH & HỒ SƠ BỆNH ÁN (EMR) =====
+      { name: '4.1 Encounter Management', description: 'API Tiếp nhận & Mở hồ sơ khám bệnh (Encounter), gán BS/phòng, chuyển trạng thái, walk-in/cấp cứu' },
+      { name: '4.2 Clinical Examination', description: 'API Ghi nhận khám lâm sàng, sinh hiệu, tiền sử, chẩn đoán, kế hoạch điều trị' },
+      { name: '4.3 Diagnosis Management', description: 'API Quản lý chẩn đoán, tìm kiếm mã ICD-10, lịch sử chẩn đoán theo bệnh nhân' },
+      { name: '4.4 Medical Orders', description: 'API Quản lý chỉ định, tìm kiếm dịch vụ CLS, lịch sử chỉ định theo bệnh nhân, dashboard chỉ định chờ thực hiện, tóm tắt chỉ định + kết quả' },
+      { name: '4.5 Prescription Management', description: 'API Kê đơn thuốc, quản lý dòng thuốc chi tiết, liên kết chẩn đoán, trạng thái đơn (DRAFT → PRESCRIBED), tìm kiếm thuốc, lịch sử đơn theo bệnh nhân' },
+      { name: '4.6 Medical Records', description: 'API Hồ sơ bệnh án điện tử: tổng hợp encounter, completeness, finalize & khóa, ký số, snapshot, timeline, thống kê, xuất/in, tìm kiếm nâng cao' },
+      { name: '4.7 Treatment Progress', description: 'API Quản lý tiến trình điều trị' },
+      { name: '4.8 Medical Sign-off', description: 'API Ký số & xác nhận hồ sơ y khoa: xác nhận hoàn tất khám, ký nháp/chính thức, thu hồi, xác minh toàn vẹn, khóa chỉnh sửa, audit log' },
+
+
+
+
+
+
+
     ]
   },
   apis: [

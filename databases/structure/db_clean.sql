@@ -327,7 +327,7 @@ CREATE TABLE audit_logs (
 -- Luu y: Trong db hien tai, patients dung UUID cho id va co the KHONG lien ket voi users
 -- (account_id la VARCHAR(255) nullable). Day la thiet ke cho benh nhan vang lai/chua co tai khoan.
 CREATE TABLE patients (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id VARCHAR(50) PRIMARY KEY,
     patient_code VARCHAR(30) UNIQUE NOT NULL, -- Ma so benh nhan (MRN)
     account_id VARCHAR(255), -- Lien ket voi users (nullable: benh nhan vang lai)
     full_name VARCHAR(100) NOT NULL,
@@ -364,7 +364,7 @@ CREATE TABLE relation_types (
 -- Bang Nguoi than & Lien he khan cap (Patient Contacts/Relations)
 CREATE TABLE patient_contacts (
     patient_contacts_id VARCHAR(50) PRIMARY KEY,
-    patient_id UUID NOT NULL,
+    patient_id VARCHAR(50) NOT NULL,
     relation_type_id VARCHAR(50) NOT NULL, -- Lien ket voi bang relation_types
     contact_name VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
@@ -379,6 +379,34 @@ CREATE TABLE patient_contacts (
     FOREIGN KEY (relation_type_id) REFERENCES relation_types(relation_types_id)
 );
 
+-- Nha cung cap Bao hiem (moved here to resolve FK dependency)
+CREATE TABLE insurance_providers (
+    insurance_providers_id VARCHAR(50) PRIMARY KEY,
+    provider_code VARCHAR(50) UNIQUE NOT NULL,
+    provider_name VARCHAR(255) NOT NULL,
+    insurance_type VARCHAR(50) NOT NULL, -- STATE, PRIVATE
+    contact_phone VARCHAR(50),
+    contact_email VARCHAR(100),
+    address TEXT,
+    support_notes TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Pham vi bao hiem (Insurance Coverages)
+CREATE TABLE insurance_coverages (
+    insurance_coverages_id VARCHAR(50) PRIMARY KEY,
+    coverage_name VARCHAR(255) NOT NULL,
+    provider_id VARCHAR(50) NOT NULL,
+    coverage_percent DECIMAL(5,2) NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (provider_id) REFERENCES insurance_providers(insurance_providers_id) ON DELETE CASCADE
+);
+
 -- Bang Bao hiem benh nhan
 CREATE TABLE patient_insurances (
     patient_insurances_id VARCHAR(50) PRIMARY KEY,
@@ -390,8 +418,9 @@ CREATE TABLE patient_insurances (
     coverage_percent INT,
     is_primary BOOLEAN DEFAULT TRUE,
     document_url TEXT,
-    provider_id VARCHAR(50), -- Lien ket toi insurance_providers
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    provider_id VARCHAR(50),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (provider_id) REFERENCES insurance_providers(insurance_providers_id)
 );
 
@@ -406,7 +435,8 @@ CREATE TABLE patient_medical_histories (
     status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, RESOLVED
     notes TEXT,
     reported_by VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (reported_by) REFERENCES users(users_id) ON DELETE SET NULL
 );
 
@@ -419,7 +449,8 @@ CREATE TABLE patient_allergies (
     reaction TEXT,
     severity VARCHAR(50), -- MILD, MODERATE, SEVERE
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
 );
 
 -- Bang danh sach cac The (Tags)
@@ -438,7 +469,7 @@ CREATE TABLE tags (
 -- Bang lien ket Benh nhan - The
 CREATE TABLE patient_tags (
     patient_tags_id VARCHAR(50) PRIMARY KEY,
-    patient_id UUID NOT NULL,
+    patient_id VARCHAR(50) NOT NULL,
     tag_id VARCHAR(50) NOT NULL,
     assigned_by VARCHAR(50),
     assigned_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -479,7 +510,7 @@ CREATE TABLE document_types (
 CREATE TABLE patient_documents (
     patient_documents_id VARCHAR(50) PRIMARY KEY,
     patient_id VARCHAR(50) NOT NULL,
-    document_type_id VARCHAR(50), -- Lien ket voi document_types
+    document_type_id VARCHAR(50),
     document_type VARCHAR(50), -- LAB_RESULT, EXTERNAL_EMR, CONSENT_FORM (legacy)
     title VARCHAR(255) NOT NULL,
     file_url TEXT NOT NULL,
@@ -488,9 +519,10 @@ CREATE TABLE patient_documents (
     notes TEXT,
     version_number INT DEFAULT 1,
     uploaded_by VARCHAR(50),
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (document_type_id) REFERENCES document_types(document_type_id),
     FOREIGN KEY (uploaded_by) REFERENCES users(users_id) ON DELETE SET NULL
 );
@@ -597,6 +629,7 @@ CREATE TABLE departments (
     code VARCHAR(50) NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
+    group_type VARCHAR(20) DEFAULT 'CLINICAL', -- CLINICAL (Lam sang) | PARACLINICAL (Can lam sang)
     status VARCHAR(50) DEFAULT 'ACTIVE',
     deleted_at TIMESTAMP,
     FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
@@ -604,10 +637,6 @@ CREATE TABLE departments (
 );
 
 -- Phong kham / Phong chuc nang (Medical Rooms) thuoc Phong ban
--- [!!!  OVERLAP]: Bang nay CHONG CHEO voi bang "clinic_rooms" ben duoi.
--- "medical_rooms" la phien ban day du hon (co branch_id, department_id, deleted_at).
--- "clinic_rooms" la phien ban cu/don gian hon (khong co branch, department).
--- => NEN SU DUNG: medical_rooms (loai bo clinic_rooms).
 CREATE TABLE medical_rooms (
     medical_rooms_id VARCHAR(50) PRIMARY KEY,
     department_id VARCHAR(50),
@@ -617,7 +646,10 @@ CREATE TABLE medical_rooms (
     room_type VARCHAR(50), -- CONSULTATION, LAB, IMAGING, OPERATING
     capacity INT DEFAULT 1,
     status VARCHAR(50) DEFAULT 'ACTIVE',
-    deleted_at TIMESTAMP,
+    current_appointment_id VARCHAR(50),
+    current_patient_id VARCHAR(50),
+    room_status VARCHAR(30) DEFAULT 'AVAILABLE', -- AVAILABLE, IN_USE, MAINTENANCE
+    deleted_at TIMESTAMPTZ,
     FOREIGN KEY (department_id) REFERENCES departments(departments_id) ON DELETE SET NULL,
     FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
     UNIQUE(department_id, code)
@@ -700,7 +732,8 @@ CREATE TABLE doctors (
 -- Ca lam viec (Shifts) - Danh muc ca kham chuan
 CREATE TABLE shifts (
     shifts_id VARCHAR(50) PRIMARY KEY,
-    code VARCHAR(50) UNIQUE NOT NULL, -- MORNING, AFTERNOON, NIGHT
+    facility_id VARCHAR(50) NOT NULL, -- Co so y te so huu ca lam viec
+    code VARCHAR(50) NOT NULL, -- MORNING, AFTERNOON, NIGHT
     name VARCHAR(100) NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
@@ -708,7 +741,9 @@ CREATE TABLE shifts (
     status VARCHAR(50) DEFAULT 'ACTIVE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE,
+    UNIQUE (facility_id, code) -- Moi co so chi co 1 ca voi cung code
 );
 
 -- Lich lam viec cua NHAN VIEN (Staff Schedules) - Tong quat cho moi loai nhan su
@@ -760,27 +795,31 @@ CREATE TABLE appointments (
     symptoms_notes TEXT,
     status VARCHAR(50) DEFAULT 'PENDING',
     -- PENDING, CONFIRMED, CHECKED_IN, CANCELLED, NO_SHOW, COMPLETED
-    checked_in_at TIMESTAMP,
-    cancelled_at TIMESTAMP,
+    priority VARCHAR(20) DEFAULT 'NORMAL', -- NORMAL, URGENT, VIP
+    queue_number INT,
+    check_in_method VARCHAR(20), -- QR, MANUAL, KIOSK
+    qr_token VARCHAR(100) UNIQUE,
+    qr_token_expires_at TIMESTAMPTZ,
+    is_late BOOLEAN DEFAULT FALSE,
+    late_minutes INT DEFAULT 0,
+    checked_in_at TIMESTAMPTZ,
+    confirmed_at TIMESTAMPTZ,
+    confirmed_by VARCHAR(50),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    cancelled_at TIMESTAMPTZ,
     cancellation_reason TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    cancelled_by VARCHAR(50),
+    reschedule_count INT DEFAULT 0,
+    last_rescheduled_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(doctors_id) ON DELETE SET NULL,
+    FOREIGN KEY (slot_id) REFERENCES appointment_slots(slot_id) ON DELETE SET NULL,
+    FOREIGN KEY (room_id) REFERENCES medical_rooms(medical_rooms_id) ON DELETE SET NULL
+    -- FK facility_service_id -> facility_services: deferred (bang tao o Module 7)
 );
-
-
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS queue_number INT;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS check_in_method VARCHAR(20);
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS qr_token VARCHAR(100) UNIQUE;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS qr_token_expires_at TIMESTAMPTZ;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS is_late BOOLEAN DEFAULT FALSE;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS late_minutes INT DEFAULT 0;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
-
--- 2. ALTER bảng medical_rooms — thêm tracking phòng khám
-ALTER TABLE medical_rooms ADD COLUMN IF NOT EXISTS current_appointment_id VARCHAR(50);
-ALTER TABLE medical_rooms ADD COLUMN IF NOT EXISTS current_patient_id VARCHAR(50);
-ALTER TABLE medical_rooms ADD COLUMN IF NOT EXISTS room_status VARCHAR(30) DEFAULT 'AVAILABLE';
 
 
 
@@ -839,20 +878,38 @@ CREATE TABLE leave_requests (
 -- Luot kham / Benh an (Encounters)
 CREATE TABLE encounters (
     encounters_id VARCHAR(50) PRIMARY KEY,
-    appointment_id VARCHAR(50), -- Nullable: benh nhan cap cuu/vang lai
+    appointment_id VARCHAR(50),
     patient_id VARCHAR(50) NOT NULL,
     doctor_id VARCHAR(50) NOT NULL,
     room_id VARCHAR(50) NOT NULL,
     encounter_type VARCHAR(50) DEFAULT 'OUTPATIENT', -- OUTPATIENT, INPATIENT, EMERGENCY, TELEMED
-    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    end_time TIMESTAMP,
+    visit_number INT DEFAULT 1,
+    start_time TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMPTZ,
     status VARCHAR(50) DEFAULT 'IN_PROGRESS',
     -- IN_PROGRESS, WAITING_FOR_RESULTS, COMPLETED, CLOSED
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (appointment_id) REFERENCES appointments(appointments_id),
-    FOREIGN KEY (doctor_id) REFERENCES doctors(doctors_id)
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(doctors_id),
+    FOREIGN KEY (room_id) REFERENCES medical_rooms(medical_rooms_id)
 );
+
+
+-- Migration: Tạo bảng liên kết Khoa ↔ Chuyên khoa
+-- Mục đích: Phân phòng đúng khoa khi đặt lịch (VD: BN Nhi → Phòng Nhi)
+CREATE TABLE IF NOT EXISTS department_specialties (
+    department_specialty_id VARCHAR(50) PRIMARY KEY,
+    department_id VARCHAR(50) NOT NULL,
+    specialty_id VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (department_id) REFERENCES departments(departments_id) ON DELETE CASCADE,
+    FOREIGN KEY (specialty_id) REFERENCES specialties(specialties_id) ON DELETE CASCADE,
+    UNIQUE(department_id, specialty_id)
+);
+
 
 -- Kham Lam sang & Sinh hieu (Clinical Examination & Vital Signs)
 CREATE TABLE clinical_examinations (
@@ -1073,6 +1130,11 @@ CREATE TABLE facility_services (
     UNIQUE (facility_id, service_id)
 );
 
+-- Deferred FK: appointments.facility_service_id (bang appointments tao truoc o Module 4)
+ALTER TABLE appointments
+    ADD CONSTRAINT fk_appointments_facility_service
+    FOREIGN KEY (facility_service_id) REFERENCES facility_services(facility_services_id) ON DELETE SET NULL;
+
 -- Lien ket Chuyen khoa - Dich vu
 CREATE TABLE specialty_services (
     specialty_id VARCHAR(50) NOT NULL,
@@ -1096,33 +1158,7 @@ CREATE TABLE doctor_services (
     FOREIGN KEY (assigned_by) REFERENCES users(users_id) ON DELETE SET NULL
 );
 
--- Nha cung cap Bao hiem
-CREATE TABLE insurance_providers (
-    insurance_providers_id VARCHAR(50) PRIMARY KEY,
-    provider_code VARCHAR(50) UNIQUE NOT NULL,
-    provider_name VARCHAR(255) NOT NULL,
-    insurance_type VARCHAR(50) NOT NULL, -- STATE, PRIVATE
-    contact_phone VARCHAR(50),
-    contact_email VARCHAR(100),
-    address TEXT,
-    support_notes TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Pham vi bao hiem (Insurance Coverages)
-CREATE TABLE insurance_coverages (
-    insurance_coverages_id VARCHAR(50) PRIMARY KEY,
-    coverage_name VARCHAR(255) NOT NULL,
-    provider_id VARCHAR(50) NOT NULL,
-    coverage_percent DECIMAL(5,2) NOT NULL,
-    description TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (provider_id) REFERENCES insurance_providers(insurance_providers_id) ON DELETE CASCADE
-);
+-- (insurance_providers va insurance_coverages da duoc di chuyen len Module 2)
 
 -- Khuyen mai (Promotions)
 CREATE TABLE promotions (
@@ -1153,7 +1189,8 @@ CREATE TABLE invoices (
     paid_amount DECIMAL(12,2) DEFAULT 0,
     status VARCHAR(50) DEFAULT 'UNPAID', -- UNPAID, PARTIAL, PAID, CANCELLED
     created_by VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (encounter_id) REFERENCES encounters(encounters_id) ON DELETE SET NULL
 );
 
@@ -1460,11 +1497,6 @@ CREATE TABLE room_maintenance_schedules (
 );
 
 
--- 1. Thêm cột xác nhận vào bảng appointments
-ALTER TABLE appointments
-  ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMP NULL,
-  ADD COLUMN IF NOT EXISTS confirmed_by VARCHAR(50) NULL;
-
 -- 2. Bảng tracking nhắc lịch
 CREATE TABLE IF NOT EXISTS appointment_reminders (
     reminder_id VARCHAR(50) PRIMARY KEY,
@@ -1500,15 +1532,6 @@ CREATE INDEX IF NOT EXISTS idx_change_logs_appointment ON appointment_change_log
 CREATE INDEX IF NOT EXISTS idx_change_logs_type ON appointment_change_logs(change_type);
 CREATE INDEX IF NOT EXISTS idx_change_logs_created ON appointment_change_logs(created_at DESC);
 
--- 2. ALTER bảng appointments — thêm cột tracking dời/hủy
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reschedule_count INT DEFAULT 0;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS last_rescheduled_at TIMESTAMPTZ;
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS cancelled_by VARCHAR(50);
-
-
--- 1. ALTER bảng appointments — thêm cột priority
-ALTER TABLE appointments ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'NORMAL';
-
 -- 2. Bảng mới: appointment_coordination_logs
 CREATE TABLE IF NOT EXISTS appointment_coordination_logs (
     id VARCHAR(50) PRIMARY KEY,
@@ -1522,23 +1545,61 @@ CREATE TABLE IF NOT EXISTS appointment_coordination_logs (
 );
 
 
--- =====================================================================
--- TOM TAT CAC BANG BI CHONG CHEO (OVERLAP SUMMARY)
--- =====================================================================
--- 
--- 1. clinic_rooms vs medical_rooms
---    - clinic_rooms: Don gian, khong co branch/department. Dang duoc encounters, doctor_schedules tham chieu.
---    - medical_rooms: Day du hon, co branch_id, department_id, deleted_at.
---    => KHUYEN NGHI: Migrate FK sang medical_rooms, loai bo clinic_rooms.
---
--- 2. doctor_schedules vs staff_schedules
---    - doctor_schedules: Chi cho bac si, dung clinic_rooms, shift_type la TEXT (khong FK).
---    - staff_schedules: Tong quat, dung medical_rooms, co shift_id FK den shifts.
---    => KHUYEN NGHI: Dung staff_schedules cho tat ca. Loc bac si qua role/join doctors.
---
--- 3. schedule_slots vs appointment_slots
---    - schedule_slots: Gan voi doctor_schedules (cu), co max_patients/booked_patients.
---    - appointment_slots: Gan voi shifts (moi), don gian hon.
---    => KHUYEN NGHI: Dung appointment_slots. Logic max/booked nen xu ly o tang Service.
---
--- =====================================================================
+-- *********************************************************************
+-- PERFORMANCE INDEXES
+-- *********************************************************************
+
+-- Patient Module
+CREATE INDEX idx_patients_code ON patients(patient_code);
+CREATE INDEX idx_patients_phone ON patients(phone_number) WHERE phone_number IS NOT NULL;
+CREATE INDEX idx_patients_status ON patients(status) WHERE deleted_at IS NULL;
+CREATE INDEX idx_patient_contacts_patient ON patient_contacts(patient_id);
+CREATE INDEX idx_patient_insurances_patient ON patient_insurances(patient_id);
+CREATE INDEX idx_patient_tags_patient ON patient_tags(patient_id);
+CREATE INDEX idx_patient_tags_tag ON patient_tags(tag_id);
+CREATE INDEX idx_patient_documents_patient ON patient_documents(patient_id);
+
+-- Facility Module
+CREATE INDEX idx_departments_branch ON departments(branch_id);
+CREATE INDEX idx_departments_group ON departments(group_type);
+CREATE INDEX idx_medical_rooms_branch ON medical_rooms(branch_id);
+CREATE INDEX idx_medical_rooms_dept ON medical_rooms(department_id);
+CREATE INDEX idx_medical_rooms_status ON medical_rooms(status) WHERE deleted_at IS NULL;
+
+-- Scheduling & Appointments
+CREATE INDEX idx_staff_schedules_user_date ON staff_schedules(user_id, working_date);
+CREATE INDEX idx_staff_schedules_room ON staff_schedules(medical_room_id);
+CREATE INDEX idx_appointments_patient ON appointments(patient_id);
+CREATE INDEX idx_appointments_doctor ON appointments(doctor_id);
+CREATE INDEX idx_appointments_date ON appointments(appointment_date);
+CREATE INDEX idx_appointments_status ON appointments(status);
+CREATE INDEX idx_appointment_slots_shift ON appointment_slots(shift_id);
+CREATE INDEX idx_doctor_absences_doctor_date ON doctor_absences(doctor_id, absence_date);
+CREATE INDEX idx_locked_slots_date ON locked_slots(slot_id, locked_date);
+
+-- EMR Module
+CREATE INDEX idx_encounters_patient ON encounters(patient_id);
+CREATE INDEX idx_encounters_doctor ON encounters(doctor_id);
+CREATE INDEX idx_encounters_status ON encounters(status);
+CREATE INDEX idx_encounter_diagnoses_encounter ON encounter_diagnoses(encounter_id);
+CREATE INDEX idx_encounter_diagnoses_icd ON encounter_diagnoses(icd10_code);
+CREATE INDEX idx_medical_orders_encounter ON medical_orders(encounter_id);
+
+-- Pharmacy Module
+CREATE INDEX idx_drugs_category ON drugs(category_id);
+CREATE INDEX idx_prescriptions_encounter ON prescriptions(encounter_id);
+CREATE INDEX idx_prescriptions_patient ON prescriptions(patient_id);
+CREATE INDEX idx_pharmacy_inventory_drug ON pharmacy_inventory(drug_id);
+CREATE INDEX idx_pharmacy_inventory_expiry ON pharmacy_inventory(expiry_date);
+
+-- Billing Module
+CREATE INDEX idx_invoices_patient ON invoices(patient_id);
+CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_payment_transactions_invoice ON payment_transactions(invoice_id);
+
+-- Audit & Notifications
+CREATE INDEX idx_audit_logs_user ON audit_logs(user_id);
+CREATE INDEX idx_audit_logs_module ON audit_logs(module_name);
+CREATE INDEX idx_audit_logs_created ON audit_logs(created_at DESC);
+CREATE INDEX idx_user_notifications_user ON user_notifications(user_id);
+CREATE INDEX idx_user_notifications_read ON user_notifications(is_read) WHERE is_read = FALSE;

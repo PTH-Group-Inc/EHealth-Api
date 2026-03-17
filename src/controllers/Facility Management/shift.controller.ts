@@ -8,10 +8,11 @@ export class ShiftController {
     // Lấy Danh sách ca làm việc
     static async getShifts(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
+            const facilityId = req.query.facility_id as string;
             const status = req.query.status as string;
             const search = req.query.search as string;
 
-            const shifts = await ShiftService.getShifts(status, search);
+            const shifts = await ShiftService.getShifts(facilityId, status, search);
 
             res.status(HTTP_STATUS.OK).json({
                 success: true,

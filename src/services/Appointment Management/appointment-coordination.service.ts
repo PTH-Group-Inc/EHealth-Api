@@ -1,6 +1,7 @@
 // src/services/Appointment Management/appointment-coordination.service.ts
 import { AppointmentRepository } from '../../repository/Appointment Management/appointment.repository';
 import { AppointmentCoordinationRepository } from '../../repository/Appointment Management/appointment-coordination.repository';
+import { EncounterRepository } from '../../repository/EMR/encounter.repository';
 import { NotificationEngineService } from '../../services/Core/notification-engine.service';
 import { DoctorLoadInfo, SlotSuggestion, BalanceOverview } from '../../models/Appointment Management/appointment-coordination.model';
 import { AppError } from '../../utils/app-error.util';
@@ -55,13 +56,13 @@ export class AppointmentCoordinationService {
     /**
      * Gợi ý khung giờ tối ưu cho bệnh nhân
      */
-    static async suggestSlots(date: string, doctorId?: string, specialtyId?: string, priority?: string): Promise<SlotSuggestion[]> {
+    static async suggestSlots(date: string, doctorId?: string, specialtyId?: string, priority?: string, branchId?: string): Promise<SlotSuggestion[]> {
         if (!date) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DATE', COORDINATION_ERRORS.MISSING_DATE);
 
         const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
         const maxPerSlot = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
 
-        const slots = await AppointmentCoordinationRepository.getSlotsWithLoadInfo(date, doctorId, specialtyId);
+        const slots = await AppointmentCoordinationRepository.getSlotsWithLoadInfo(date, doctorId, specialtyId, branchId);
 
         // Chấm điểm từng slot
         const scored: SlotSuggestion[] = [];
@@ -279,6 +280,18 @@ export class AppointmentCoordinationService {
             reason,
             performed_by: userId,
         });
+
+        /** Fix #6: Sync BS sang encounter nếu appointment đang IN_PROGRESS */
+        if (existing.status === 'IN_PROGRESS') {
+            try {
+                const encounter = await EncounterRepository.findActiveByAppointmentId(appointmentId);
+                if (encounter) {
+                    await EncounterRepository.updateDoctor(encounter.encounters_id, newDoctorId);
+                }
+            } catch (err: any) {
+                console.error('[REASSIGN_DOCTOR] Lỗi sync encounter:', err.message);
+            }
+        }
 
         // Gửi notification (fire-and-forget, gọi repository lấy accountId)
         this.sendNotificationSafe(existing);

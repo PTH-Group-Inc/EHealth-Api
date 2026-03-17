@@ -11,6 +11,7 @@ export const APPOINTMENT_STATUS = {
     CANCELLED: 'CANCELLED',
     NO_SHOW: 'NO_SHOW',
     COMPLETED: 'COMPLETED',
+    SKIPPED: 'SKIPPED',
 } as const;
 
 /** Các trạng thái coi là "đang hoạt động" (chưa bị huỷ/hoàn tất) */
@@ -42,6 +43,18 @@ export const RESCHEDULABLE_STATUSES = [
     APPOINTMENT_STATUS.CONFIRMED,
 ];
 
+/** Trạng thái cho phép cập nhật thông tin lịch khám (ngày, BS, slot, phòng) */
+export const UPDATABLE_STATUSES = [
+    APPOINTMENT_STATUS.PENDING,
+    APPOINTMENT_STATUS.CONFIRMED,
+];
+
+/** Kênh đặt lịch được tự động xác nhận (lễ tân đặt trực tiếp → skip PENDING) */
+export const AUTO_CONFIRM_CHANNELS = [
+    BOOKING_CHANNEL.DIRECT_CLINIC,
+    BOOKING_CHANNEL.HOTLINE,
+] as string[];
+
 /** Loại xung đột lịch khám */
 export const CONFLICT_TYPE = {
     DOCTOR: 'DOCTOR_CONFLICT',
@@ -69,6 +82,9 @@ export const APPOINTMENT_ERRORS = {
     INVALID_DATE: 'Ngày khám không hợp lệ (phải >= ngày hiện tại)',
     FACILITY_CLOSED: 'Cơ sở không hoạt động vào ngày này (ngày lễ hoặc ngày đóng cửa)',
     DOCTOR_NOT_AVAILABLE: 'Bác sĩ không có lịch làm việc vào ngày/ca này',
+    DOCTOR_ABSENT: 'Bác sĩ đã đăng ký vắng mặt vào ngày/ca này',
+    SLOT_LOCKED: 'Khung giờ này đã bị khóa, không thể đặt lịch',
+    CANNOT_UPDATE_STATUS: 'Chỉ lịch khám ở trạng thái PENDING hoặc CONFIRMED mới được cập nhật thông tin',
     RESCHEDULE_NOT_ALLOWED: 'Chỉ lịch khám ở trạng thái PENDING hoặc CONFIRMED mới được đổi lịch',
     MISSING_RESCHEDULE_DATA: 'Thiếu thông tin đổi lịch: new_date và new_slot_id',
     MISSING_CONFLICT_DATA: 'Thiếu thông tin kiểm tra: date và slot_id là bắt buộc',
@@ -76,6 +92,18 @@ export const APPOINTMENT_ERRORS = {
     CONFLICT_DOCTOR: 'Bác sĩ đã có lịch khám khác trong cùng khung giờ',
     CONFLICT_PATIENT: 'Bệnh nhân đã có lịch khám khác trong cùng khung giờ',
     CONFLICT_ROOM: 'Phòng khám đã đầy trong khung giờ này',
+    BRANCH_REQUIRED: 'Vui lòng chọn cơ sở/chi nhánh khám (branch_id)',
+    BRANCH_NOT_FOUND: 'Chi nhánh không tồn tại hoặc không hoạt động',
+    ROOM_BRANCH_MISMATCH: 'Phòng khám không thuộc chi nhánh đã chọn',
+    SHIFT_REQUIRED: 'Vui lòng chọn ca khám (shift_id)',
+    SHIFT_NOT_FOUND: 'Ca khám không tồn tại hoặc không hoạt động',
+    SHIFT_FULL: 'Tất cả khung giờ trong ca này đã đầy, vui lòng chọn ca khác',
+    NO_DOCTOR_AVAILABLE: 'Không có bác sĩ nào trực ca này tại chi nhánh đã chọn',
+} as const;
+
+/** Cảnh báo (warning) — lịch vẫn tạo được nhưng cần staff xử lý */
+export const APPOINTMENT_WARNINGS = {
+    NO_SPECIALTY_DOCTOR: 'Hiện chưa có bác sĩ đúng chuyên khoa trực ca này. Nhân viên sẽ liên hệ sắp xếp.',
 } as const;
 
 /** Thông báo thành công */

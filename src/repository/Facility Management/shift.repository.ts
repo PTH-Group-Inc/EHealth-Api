@@ -23,11 +23,11 @@ export class ShiftRepository {
     static async createShift(input: CreateShiftInput): Promise<Shift> {
         const id = this.generateShiftId();
         const query = `
-            INSERT INTO shifts (shifts_id, code, name, start_time, end_time, description)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO shifts (shifts_id, facility_id, code, name, start_time, end_time, description)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
         `;
-        const values = [id, input.code, input.name, input.start_time, input.end_time, input.description || null];
+        const values = [id, input.facility_id, input.code, input.name, input.start_time, input.end_time, input.description || null];
         const result = await pool.query(query, values);
         return result.rows[0];
     }
@@ -35,12 +35,17 @@ export class ShiftRepository {
     /**
      * Lấy danh sách toàn bộ Ca làm việc (cho phép filter theo Trạng thái Status, hoặc search NAME)
      */
-    static async getShifts(status?: string, keyword?: string): Promise<Shift[]> {
+    static async getShifts(facilityId?: string, status?: string, keyword?: string): Promise<Shift[]> {
         let query = `
             SELECT * FROM shifts 
             WHERE deleted_at IS NULL
         `;
         const values: any[] = [];
+
+        if (facilityId) {
+            query += ` AND facility_id = $${values.length + 1}`;
+            values.push(facilityId);
+        }
 
         if (status) {
             query += ` AND status = $${values.length + 1}`;

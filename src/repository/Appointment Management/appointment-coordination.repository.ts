@@ -77,7 +77,7 @@ export class AppointmentCoordinationRepository {
     /**
      * Lấy slot trống cho gợi ý, CHỈ những slot thuộc ca có BS thực sự đang làm việc ngày đó (subquery staff_schedules).
      */
-    static async getSlotsWithLoadInfo(date: string, doctorId?: string, specialtyId?: string): Promise<any[]> {
+    static async getSlotsWithLoadInfo(date: string, doctorId?: string, specialtyId?: string, branchId?: string): Promise<any[]> {
         const { placeholders: statusPH, values: statusVals } = this.buildStatusPlaceholders(2);
         const params: any[] = [date, ...statusVals];
         let paramIdx = params.length + 1;
@@ -145,8 +145,17 @@ export class AppointmentCoordinationRepository {
               )
               ${doctorFilter}
               ${specialtyFilter}
+              ${branchId ? `AND sh.shifts_id IN (
+                  SELECT ss_br.shift_id FROM staff_schedules ss_br
+                  WHERE ss_br.working_date = $1::date
+                    AND ss_br.is_leave = false AND ss_br.status = 'ACTIVE'
+                    AND ss_br.medical_room_id IN (
+                        SELECT medical_rooms_id FROM medical_rooms WHERE branch_id = $${paramIdx++}
+                    )
+              )` : ''}
             ORDER BY sl.start_time ASC;
         `;
+        if (branchId) params.push(branchId);
         const result = await pool.query(query, params);
         return result.rows;
     }
@@ -192,6 +201,50 @@ export class AppointmentCoordinationRepository {
         return result.rows[0] || null;
     }
 
+    /**
+     * Tìm BS ít tải nhất đang trực ca + chi nhánh cụ thể (queue-based booking)
+     */
+    static async getLeastLoadedDoctorForShiftAtBranch(
+        date: string, shiftId: string, branchId: string, specialtyId?: string
+    ): Promise<{ doctor_id: string; doctor_name: string; specialty_name: string; current_load: number } | null> {
+        const { placeholders: statusPH, values: statusVals } = this.buildStatusPlaceholders(4);
+        const params: any[] = [date, shiftId, branchId, ...statusVals];
+
+        let specialtyFilter = '';
+        if (specialtyId) {
+            params.push(specialtyId);
+            specialtyFilter = `AND d.specialty_id = $${params.length}`;
+        }
+
+        const query = `
+            SELECT
+                d.doctors_id AS doctor_id,
+                up.full_name AS doctor_name,
+                sp.name AS specialty_name,
+                COALESCE((
+                    SELECT COUNT(*)::int FROM appointments apt
+                    WHERE apt.doctor_id = d.doctors_id
+                      AND apt.appointment_date = $1::date
+                      AND apt.status IN (${statusPH})
+                ), 0) AS current_load
+            FROM staff_schedules ss
+            JOIN doctors d ON ss.user_id = d.user_id AND d.is_active = true
+            JOIN user_profiles up ON d.user_id = up.user_id
+            JOIN specialties sp ON d.specialty_id = sp.specialties_id
+            WHERE ss.working_date = $1::date
+              AND ss.shift_id = $2
+              AND ss.is_leave = false
+              AND ss.status = 'ACTIVE'
+              AND ss.medical_room_id IN (
+                  SELECT medical_rooms_id FROM medical_rooms WHERE branch_id = $3
+              )
+              ${specialtyFilter}
+            ORDER BY current_load ASC
+            LIMIT 1;
+        `;
+        const result = await pool.query(query, params);
+        return result.rows[0] || null;
+    }
     /**
      * Lấy tất cả BS khả dụng cho 1 ca trong ngày (dùng cho auto-assign)
      */
@@ -251,11 +304,7 @@ export class AppointmentCoordinationRepository {
             params.push(specialtyId);
         }
         if (branchId) {
-            conditions.push(`a.room_id IN (
-                SELECT mr2.medical_rooms_id FROM medical_rooms mr2
-                JOIN departments dept2 ON mr2.department_id = dept2.departments_id
-                WHERE dept2.branch_id = $${paramIdx++}
-            )`);
+            conditions.push(`a.branch_id = $${paramIdx++}`);
             params.push(branchId);
         }
         const extraWhere = conditions.length > 0 ? `AND ${conditions.join(' AND ')}` : '';

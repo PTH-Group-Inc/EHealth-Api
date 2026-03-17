@@ -1,6 +1,7 @@
 // src/models/shift.model.ts
 export interface Shift {
     shifts_id: string;
+    facility_id: string;
     code: string;
     name: string;
     start_time: string;
@@ -13,6 +14,7 @@ export interface Shift {
 }
 
 export interface CreateShiftInput {
+    facility_id: string;
     code: string;
     name: string;
     start_time: string;
