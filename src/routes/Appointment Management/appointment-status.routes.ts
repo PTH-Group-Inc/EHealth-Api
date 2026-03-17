@@ -569,6 +569,65 @@ appointmentStatusRoutes.post(
 
 /**
  * @swagger
+ * /api/appointment-status/{id}/check-in-test:
+ *   post:
+ *     summary: "[DEV] Check-in TEST — bỏ qua kiểm tra ngày"
+ *     description: |
+ *       **⚠️ CHỈ DÙNG ĐỂ TEST** — KHÔNG dùng trong production.
+ *
+ *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_CHECKIN.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Giống API check-in thật nhưng BỎ QUA kiểm tra appointment_date = TODAY.
+ *       - Cho phép check-in lịch khám ở ngày bất kỳ (quá khứ hoặc tương lai).
+ *       - Trạng thái phải là CONFIRMED.
+ *       - Vẫn gán queue_number, ghi audit log.
+ *     tags: [3.7 Check-in & Trạng thái]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID lịch khám
+ *         example: APT_fd5ed9f9-9d2
+ *     responses:
+ *       200:
+ *         description: Check-in test thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "[TEST] Check-in thành công"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     queue_number:
+ *                       type: number
+ *                       example: 5
+ *       400:
+ *         description: Lịch khám không ở trạng thái CONFIRMED
+ *       404:
+ *         description: Lịch khám không tồn tại
+ */
+appointmentStatusRoutes.post(
+    '/:id/check-in-test',
+    verifyAccessToken,
+    checkSessionStatus,
+    authorizePermissions('APPOINTMENT_CHECKIN'),
+    AppointmentStatusController.checkInTest
+);
+
+/**
+ * @swagger
  * /api/appointment-status/{id}/start-exam:
  *   patch:
  *     summary: Bắt đầu khám bệnh (CHECKED_IN → IN_PROGRESS)
@@ -702,4 +761,119 @@ appointmentStatusRoutes.patch(
     checkSessionStatus,
     authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
     AppointmentStatusController.markNoShow
+);
+
+// ─── SKIP & RECALL ───
+
+/**
+ * @swagger
+ * /api/appointment-status/{id}/skip:
+ *   patch:
+ *     summary: Bỏ qua BN trong hàng đợi (CHECKED_IN → SKIPPED)
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_STATUS_MANAGE.
+ *       **Vai trò được phép:** ADMIN, STAFF, NURSE.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Staff gọi tên BN không thấy → bỏ qua, gọi số tiếp theo.
+ *       - Chuyển trạng thái: CHECKED_IN → SKIPPED.
+ *       - Queue tự động nhảy sang BN tiếp theo (theo priority + queue_number).
+ *       - BN bị skip có thể được gọi lại bằng API recall.
+ *       - Ghi audit log.
+ *     tags: [3.7 Check-in & Trạng thái]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID lịch khám
+ *         example: APT_fd5ed9f9-9d2
+ *     responses:
+ *       200:
+ *         description: Bỏ qua BN thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Bỏ qua bệnh nhân trong hàng đợi thành công"
+ *       400:
+ *         description: BN không ở trạng thái CHECKED_IN
+ *       404:
+ *         description: Lịch khám không tồn tại
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền
+ */
+appointmentStatusRoutes.patch(
+    '/:id/skip',
+    verifyAccessToken,
+    checkSessionStatus,
+    authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
+    AppointmentStatusController.skipPatient
+);
+
+/**
+ * @swagger
+ * /api/appointment-status/{id}/recall:
+ *   patch:
+ *     summary: Gọi lại BN đã bị skip (SKIPPED → CHECKED_IN)
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_STATUS_MANAGE.
+ *       **Vai trò được phép:** ADMIN, STAFF, NURSE.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Gọi lại BN đã bị bỏ qua trước đó.
+ *       - Chuyển trạng thái: SKIPPED → CHECKED_IN.
+ *       - Gán queue_number MỚI ở cuối hàng đợi (không giữ số cũ).
+ *       - Ghi audit log.
+ *     tags: [3.7 Check-in & Trạng thái]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID lịch khám
+ *         example: APT_fd5ed9f9-9d2
+ *     responses:
+ *       200:
+ *         description: Gọi lại BN thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Gọi lại bệnh nhân thành công, đã xếp vào cuối hàng"
+ *       400:
+ *         description: BN không ở trạng thái SKIPPED
+ *       404:
+ *         description: Lịch khám không tồn tại
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền
+ */
+appointmentStatusRoutes.patch(
+    '/:id/recall',
+    verifyAccessToken,
+    checkSessionStatus,
+    authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
+    AppointmentStatusController.recallPatient
 );

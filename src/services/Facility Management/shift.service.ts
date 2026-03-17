@@ -52,8 +52,8 @@ export class ShiftService {
     /**
      * Lấy danh sách Ca làm việc
      */
-    static async getShifts(status?: string, keyword?: string): Promise<Shift[]> {
-        return await ShiftRepository.getShifts(status, keyword);
+    static async getShifts(facilityId?: string, status?: string, keyword?: string): Promise<Shift[]> {
+        return await ShiftRepository.getShifts(facilityId, status, keyword);
     }
 
     /**

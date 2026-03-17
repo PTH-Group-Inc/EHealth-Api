@@ -505,7 +505,8 @@
 
     <!-- AUTH BAR -->
     <div class="auth-bar">
-        <div class="logo"><a href="index.html" style="color:white;text-decoration:none">← Quay về Hub</a> &nbsp;|&nbsp; 🏥 Quản lý Dịch vụ Y tế</div>
+        <div class="logo"><a href="index.html" style="color:white;text-decoration:none">← Quay về Hub</a> &nbsp;|&nbsp;
+            🏥 Quản lý Dịch vụ Y tế</div>
         <div class="user-info" id="authSection">
             <input type="text" id="loginEmail" placeholder="Email" value="admin@ehealth.com">
             <input type="password" id="loginPassword" placeholder="Mật khẩu" value="Admin@123">
@@ -756,10 +757,14 @@
             <div class="modal-body">
                 <input type="hidden" id="facEditId">
                 <div class="form-group"><label>Dịch vụ chuẩn *</label>
-                    <select id="fServiceId" class="master-srv-select"><option value="">-- Chọn dịch vụ --</option></select>
+                    <select id="fServiceId" class="master-srv-select">
+                        <option value="">-- Chọn dịch vụ --</option>
+                    </select>
                 </div>
                 <div class="form-group"><label>Khoa/Phòng</label>
-                    <select id="fDeptId" class="dept-select"><option value="">-- Tất cả (tuỳ chọn) --</option></select>
+                    <select id="fDeptId" class="dept-select">
+                        <option value="">-- Tất cả (tuỳ chọn) --</option>
+                    </select>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Giá cơ bản (VNĐ) *</label><input type="number" id="fBasePrice"
@@ -814,7 +819,9 @@
             </div>
             <div class="modal-body">
                 <div class="form-group"><label>Cơ sở</label>
-                    <select id="docAssignFacId" class="fac-select"><option value="">-- Chọn cơ sở --</option></select>
+                    <select id="docAssignFacId" class="fac-select">
+                        <option value="">-- Chọn cơ sở --</option>
+                    </select>
                 </div>
                 <button class="btn btn-outline btn-sm" onclick="loadFacServicesForDocAssign()"
                     style="margin-bottom:12px">Tải danh sách dịch vụ cơ sở</button>
@@ -830,7 +837,7 @@
     </div>
 
     <script>
-        const API = 'http://localhost:3000/api';
+        const API = 'http://160.250.186.97:3000/api';
         let token = null;
         let masterPage = 1, facPage = 1;
         let allMasterServicesCache = [];
@@ -935,7 +942,7 @@
                     const docs = docRes.value.data?.items || docRes.value.data || [];
                     document.querySelectorAll('.doc-select').forEach(sel => {
                         const val = sel.value;
-                        sel.innerHTML = '<option value="">-- Chọn bác sĩ --</option>' + docs.map(d => `<option value="${d.doctors_id || d.staff_id}">${d.full_name || d.user_name || d.staff_id} ${d.specialty_name ? '('+d.specialty_name+')' : ''}</option>`).join('');
+                        sel.innerHTML = '<option value="">-- Chọn bác sĩ --</option>' + docs.map(d => `<option value="${d.doctors_id || d.staff_id}">${d.full_name || d.user_name || d.staff_id} ${d.specialty_name ? '(' + d.specialty_name + ')' : ''}</option>`).join('');
                         if (val) sel.value = val;
                     });
                 }
@@ -961,7 +968,7 @@
                 }
                 // Load facility services cho dropdown tra cứu ngược
                 await loadFsrvDropdown();
-            } catch(e) { console.error('loadDropdowns error:', e); }
+            } catch (e) { console.error('loadDropdowns error:', e); }
         }
 
         /** Load danh sách dịch vụ cơ sở cho combo tra cứu ngược */
@@ -978,7 +985,7 @@
                     sel.innerHTML = '<option value="">-- Chọn dịch vụ cơ sở --</option>' + items.map(s => `<option value="${s.facility_services_id}">${s.service_code || ''} - ${s.service_name || s.name || ''} (${money(s.base_price)})</option>`).join('');
                     if (val) sel.value = val;
                 });
-            } catch(e) { /* silent - chưa chọn cơ sở */ }
+            } catch (e) { /* silent - chưa chọn cơ sở */ }
         }
 
         // ==================== 1. MASTER SERVICES ====================

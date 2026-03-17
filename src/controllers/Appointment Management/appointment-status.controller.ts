@@ -27,6 +27,25 @@ export class AppointmentStatusController {
         }
     }
 
+    /** POST /api/appointment-status/:id/check-in-test — Check-in TEST (bỏ qua kiểm tra ngày) */
+    static async checkInTest(req: Request, res: Response) {
+        try {
+            const userId = (req as any).auth?.user_id;
+            const result = await AppointmentStatusService.checkInTest(req.params.id.toString(), userId);
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: '[TEST] ' + STATUS_SUCCESS.CHECKED_IN,
+                data: result,
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi check-in test' });
+            }
+        }
+    }
+
     /** POST /api/appointment-status/generate-qr/:id — Sinh QR token */
     static async generateQr(req: Request, res: Response) {
         try {
@@ -231,6 +250,44 @@ export class AppointmentStatusController {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật cấu hình' });
+            }
+        }
+    }
+
+    /** PATCH /api/appointment-status/:id/skip — Bỏ qua BN trong hàng đợi */
+    static async skipPatient(req: Request, res: Response) {
+        try {
+            const userId = (req as any).auth?.user_id;
+            const result = await AppointmentStatusService.skipPatient(req.params.id.toString(), userId);
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: STATUS_SUCCESS.QUEUE_SKIPPED,
+                data: result,
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi bỏ qua BN' });
+            }
+        }
+    }
+
+    /** PATCH /api/appointment-status/:id/recall — Gọi lại BN đã skip */
+    static async recallPatient(req: Request, res: Response) {
+        try {
+            const userId = (req as any).auth?.user_id;
+            const result = await AppointmentStatusService.recallPatient(req.params.id.toString(), userId);
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: STATUS_SUCCESS.QUEUE_RECALLED,
+                data: result,
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi gọi lại BN' });
             }
         }
     }

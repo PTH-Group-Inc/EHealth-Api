@@ -63,7 +63,7 @@ export class AppointmentConfirmationController {
         }
     }
 
-    // ======================= CHECK-IN & COMPLETE =======================
+    // ======================= CHECK-IN =======================
 
     /** Check-in lịch khám (CONFIRMED → CHECKED_IN) */
     static async checkIn(req: Request, res: Response): Promise<void> {
@@ -75,27 +75,6 @@ export class AppointmentConfirmationController {
             res.status(200).json({
                 success: true,
                 message: CONFIRMATION_SUCCESS.CHECKED_IN,
-                data: result,
-            });
-        } catch (error: any) {
-            res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code || 'INTERNAL_ERROR',
-                message: error.message || 'Lỗi máy chủ',
-            });
-        }
-    }
-
-    /** Hoàn tất lịch khám (CHECKED_IN → COMPLETED) */
-    static async complete(req: Request, res: Response): Promise<void> {
-        try {
-            const id = req.params.id as string;
-            const userId = (req as any).auth?.user_id;
-
-            const result = await AppointmentConfirmationService.completeAppointment(id, userId);
-            res.status(200).json({
-                success: true,
-                message: CONFIRMATION_SUCCESS.COMPLETED,
                 data: result,
             });
         } catch (error: any) {

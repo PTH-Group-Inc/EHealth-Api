@@ -437,65 +437,395 @@
         }
 
         /* ====== CALENDAR STYLES ====== */
-        .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-        .cal-header h3 { font-size:1.05rem; color:#1e293b; min-width:200px; text-align:center; }
-        .cal-nav { display:flex; gap:6px; }
-        .cal-nav button { background:#e2e8f0; border:none; border-radius:6px; padding:6px 14px; cursor:pointer; font-weight:600; font-size:.9rem; transition:all .15s; }
-        .cal-nav button:hover { background:#0f3460; color:#fff; }
-        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:#e2e8f0; border-radius:8px; overflow:hidden; }
-        .cal-day-name { background:#0f3460; color:#fff; text-align:center; padding:8px 4px; font-weight:700; font-size:.78rem; text-transform:uppercase; }
-        .cal-cell { background:#fff; min-height:110px; padding:4px; position:relative; cursor:pointer; transition:background .15s; display:flex; flex-direction:column; }
-        .cal-cell:hover { background:#f1f5f9; }
-        .cal-cell.other-month { background:#f8fafc; }
-        .cal-cell.other-month .cal-date { color:#94a3b8; }
-        .cal-cell.today { background:#eff6ff; box-shadow:inset 0 0 0 2px #3b82f6; }
-        .cal-date { font-size:.78rem; font-weight:700; color:#475569; padding:2px 6px; display:flex; justify-content:space-between; align-items:center; }
-        .cal-date .cal-add-btn { width:20px; height:20px; border-radius:50%; background:#10b981; color:#fff; border:none; font-size:.9rem; cursor:pointer; opacity:0; transition:opacity .15s; display:flex; align-items:center; justify-content:center; line-height:1; }
-        .cal-cell:hover .cal-add-btn { opacity:1; }
-        .cal-events { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:2px; margin-top:2px; }
-        .cal-chip { font-size:.7rem; padding:3px 6px; border-radius:4px; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:transform .1s, box-shadow .1s; }
-        .cal-chip:hover { transform:scale(1.03); box-shadow:0 2px 8px rgba(0,0,0,.2); }
-        .cal-chip.morning { background:linear-gradient(135deg,#f59e0b,#ef4444); }
-        .cal-chip.afternoon { background:linear-gradient(135deg,#3b82f6,#6366f1); }
-        .cal-chip.night { background:linear-gradient(135deg,#1e293b,#475569); }
-        .cal-chip.leave { background:linear-gradient(135deg,#64748b,#94a3b8); text-decoration:line-through; }
+        .cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .cal-header h3 {
+            font-size: 1.05rem;
+            color: #1e293b;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .cal-nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .cal-nav button {
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .9rem;
+            transition: all .15s;
+        }
+
+        .cal-nav button:hover {
+            background: #0f3460;
+            color: #fff;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .cal-day-name {
+            background: #0f3460;
+            color: #fff;
+            text-align: center;
+            padding: 8px 4px;
+            font-weight: 700;
+            font-size: .78rem;
+            text-transform: uppercase;
+        }
+
+        .cal-cell {
+            background: #fff;
+            min-height: 110px;
+            padding: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: background .15s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cal-cell:hover {
+            background: #f1f5f9;
+        }
+
+        .cal-cell.other-month {
+            background: #f8fafc;
+        }
+
+        .cal-cell.other-month .cal-date {
+            color: #94a3b8;
+        }
+
+        .cal-cell.today {
+            background: #eff6ff;
+            box-shadow: inset 0 0 0 2px #3b82f6;
+        }
+
+        .cal-date {
+            font-size: .78rem;
+            font-weight: 700;
+            color: #475569;
+            padding: 2px 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cal-date .cal-add-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            font-size: .9rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity .15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .cal-cell:hover .cal-add-btn {
+            opacity: 1;
+        }
+
+        .cal-events {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 2px;
+        }
+
+        .cal-chip {
+            font-size: .7rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: transform .1s, box-shadow .1s;
+        }
+
+        .cal-chip:hover {
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+        }
+
+        .cal-chip.morning {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+        }
+
+        .cal-chip.afternoon {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+        }
+
+        .cal-chip.night {
+            background: linear-gradient(135deg, #1e293b, #475569);
+        }
+
+        .cal-chip.leave {
+            background: linear-gradient(135deg, #64748b, #94a3b8);
+            text-decoration: line-through;
+        }
 
         /* Schedule detail popup */
-        .sched-detail-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:3000; display:none; align-items:center; justify-content:center; }
-        .sched-detail-overlay.open { display:flex; }
-        .sched-detail-box { background:#fff; border-radius:12px; padding:20px 24px; min-width:360px; max-width:480px; box-shadow:0 12px 40px rgba(0,0,0,.2); position:relative; }
-        .sched-detail-box h3 { font-size:1rem; margin-bottom:12px; color:#0f3460; }
-        .sched-detail-box .close-btn { position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.2rem; cursor:pointer; color:#64748b; }
-        .sched-detail-box .detail-row { display:flex; gap:8px; margin-bottom:6px; font-size:.88rem; }
-        .sched-detail-box .detail-label { color:#64748b; font-weight:600; min-width:110px; }
-        .sched-detail-box .detail-val { color:#1e293b; }
-        .sched-detail-box .action-bar { margin-top:16px; display:flex; gap:8px; justify-content:flex-end; }
+        .sched-detail-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .35);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sched-detail-overlay.open {
+            display: flex;
+        }
+
+        .sched-detail-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 24px;
+            min-width: 360px;
+            max-width: 480px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
+            position: relative;
+        }
+
+        .sched-detail-box h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: #0f3460;
+        }
+
+        .sched-detail-box .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .sched-detail-box .detail-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: .88rem;
+        }
+
+        .sched-detail-box .detail-label {
+            color: #64748b;
+            font-weight: 600;
+            min-width: 110px;
+        }
+
+        .sched-detail-box .detail-val {
+            color: #1e293b;
+        }
+
+        .sched-detail-box .action-bar {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
 
         /* ====== STAFF PROFILE STYLES ====== */
-        .staff-profile { display:flex; flex-direction:column; gap:16px; }
-        .staff-profile .sp-header { display:flex; gap:16px; align-items:center; padding-bottom:12px; border-bottom:1px solid #e2e8f0; }
-        .staff-profile .sp-avatar { width:72px; height:72px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-size:2rem; overflow:hidden; flex-shrink:0; }
-        .staff-profile .sp-avatar img { width:100%; height:100%; object-fit:cover; }
-        .staff-profile .sp-name { font-size:1.2rem; font-weight:700; color:#0f3460; }
-        .staff-profile .sp-sub { font-size:.82rem; color:#64748b; }
-        .sp-section { background:#f8fafc; border-radius:8px; padding:12px 16px; }
-        .sp-section h4 { font-size:.88rem; color:#0f3460; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
-        .sp-section h4 button { font-size:.75rem; }
-        .sp-tags { display:flex; flex-wrap:wrap; gap:6px; }
-        .sp-tag { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:16px; font-size:.78rem; font-weight:600; }
-        .sp-tag .tag-del { background:none; border:none; cursor:pointer; color:inherit; opacity:.6; font-size:.9rem; }
-        .sp-tag .tag-del:hover { opacity:1; }
-        .sp-tag.role { background:#ede9fe; color:#6d28d9; }
-        .sp-tag.branch { background:#ecfdf5; color:#059669; }
-        .sp-info-grid { display:grid; grid-template-columns:130px 1fr; gap:4px 10px; font-size:.84rem; }
-        .sp-info-grid .lbl { color:#64748b; font-weight:600; }
-        .sp-info-grid .val { color:#1e293b; }
-        .sp-actions { display:flex; flex-wrap:wrap; gap:6px; padding-top:10px; border-top:1px solid #e2e8f0; }
-        .sp-inline-form { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; padding:10px; background:#fff; border-radius:6px; border:1px solid #e2e8f0; }
-        .sp-inline-form label { font-size:.78rem; color:#64748b; font-weight:600; width:100%; }
-        .sp-inline-form input, .sp-inline-form select, .sp-inline-form textarea { font-size:.82rem; padding:5px 8px; border:1px solid #cbd5e1; border-radius:4px; flex:1; min-width:120px; }
-        .sp-inline-form textarea { min-height:50px; }
-        .sp-signature { max-width:180px; max-height:80px; border:1px solid #e2e8f0; border-radius:6px; }
+        .staff-profile {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .staff-profile .sp-header {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .staff-profile .sp-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .staff-profile .sp-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .staff-profile .sp-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f3460;
+        }
+
+        .staff-profile .sp-sub {
+            font-size: .82rem;
+            color: #64748b;
+        }
+
+        .sp-section {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .sp-section h4 {
+            font-size: .88rem;
+            color: #0f3460;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sp-section h4 button {
+            font-size: .75rem;
+        }
+
+        .sp-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .sp-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: .78rem;
+            font-weight: 600;
+        }
+
+        .sp-tag .tag-del {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            opacity: .6;
+            font-size: .9rem;
+        }
+
+        .sp-tag .tag-del:hover {
+            opacity: 1;
+        }
+
+        .sp-tag.role {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .sp-tag.branch {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .sp-info-grid {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 4px 10px;
+            font-size: .84rem;
+        }
+
+        .sp-info-grid .lbl {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .sp-info-grid .val {
+            color: #1e293b;
+        }
+
+        .sp-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .sp-inline-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .sp-inline-form label {
+            font-size: .78rem;
+            color: #64748b;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .sp-inline-form input,
+        .sp-inline-form select,
+        .sp-inline-form textarea {
+            font-size: .82rem;
+            padding: 5px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .sp-inline-form textarea {
+            min-height: 50px;
+        }
+
+        .sp-signature {
+            max-width: 180px;
+            max-height: 80px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
     </style>
 </head>
 
@@ -637,7 +967,8 @@
                     </div>
                     <div class="cal-nav">
                         <button onclick="calToday()">Hôm nay</button>
-                        <button class="btn btn-success" onclick="openModal('scheduleModal', 'Phân lịch làm việc', null)">➕ Phân công</button>
+                        <button class="btn btn-success"
+                            onclick="openModal('scheduleModal', 'Phân lịch làm việc', null)">➕ Phân công</button>
                     </div>
                 </div>
                 <div class="cal-grid" id="calGrid"></div>
@@ -813,7 +1144,8 @@
                         </select></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Chức vụ</label><input id="stRoleTitle" placeholder="VD: Bác sĩ Trưởng khoa, Nhân viên..."></div>
+                    <div class="form-group"><label>Chức vụ</label><input id="stRoleTitle"
+                            placeholder="VD: Bác sĩ Trưởng khoa, Nhân viên..."></div>
                     <div class="form-group"><label>Vai trò chính (Role) *</label>
                         <select id="stRole">
                             <option value="DOCTOR">👨‍⚕️ Bác sĩ (DOCTOR)</option>
@@ -868,7 +1200,9 @@
             </div>
             <div class="modal-body">
                 <div class="form-row">
-                    <div class="form-group"><label>Nhân viên *</label><select id="scStaff"><option value="">-- Chọn chi nhánh trước --</option></select></div>
+                    <div class="form-group"><label>Nhân viên *</label><select id="scStaff">
+                            <option value="">-- Chọn chi nhánh trước --</option>
+                        </select></div>
                     <div class="form-group"><label>Ca thực hiện *</label><select id="scShift"
                             class="shift-select"></select></div>
                 </div>
@@ -877,9 +1211,11 @@
                     <div class="form-group"><label>Đến ngày</label><input type="date" id="scEnd"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Chi nhánh</label><select id="scBranch"
-                            class="branch-select" onchange="onScBranchChange(this.value)"></select></div>
-                    <div class="form-group"><label>Phòng khám</label><select id="scRoom"><option value="">-- Chọn chi nhánh trước --</option></select>
+                    <div class="form-group"><label>Chi nhánh</label><select id="scBranch" class="branch-select"
+                            onchange="onScBranchChange(this.value)"></select></div>
+                    <div class="form-group"><label>Phòng khám</label><select id="scRoom">
+                            <option value="">-- Chọn chi nhánh trước --</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -973,12 +1309,13 @@
     </div>
 
     <!-- ====== SCHEDULE DETAIL OVERLAY ====== -->
-    <div class="sched-detail-overlay" id="schedDetailOverlay" onclick="if(event.target===this) this.classList.remove('open')">
+    <div class="sched-detail-overlay" id="schedDetailOverlay"
+        onclick="if(event.target===this) this.classList.remove('open')">
         <div class="sched-detail-box"></div>
     </div>
 
     <script>
-        const API = 'http://localhost:3000/api', TABS = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5'];
+        const API = 'hhttp://localhost:3000/api', TABS = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5'];
         let token = null, pages = { f0: 1, f1: 1, f2: 1, f3: 1, f4: 1, f5: 1 };
         let cached = { branches: [], depts: [], shifts: [] };
 
@@ -1149,7 +1486,7 @@
                 const d = r.data;
                 document.getElementById('detailTitle').textContent = `Hồ sơ: ${d.full_name}`;
 
-                const genderMap = {MALE:'Nam', FEMALE:'Nữ', OTHER:'Khác'};
+                const genderMap = { MALE: 'Nam', FEMALE: 'Nữ', OTHER: 'Khác' };
                 const avatarHtml = d.avatar_url ? `<img src="${d.avatar_url}">` : '👤';
 
                 // Doctor info section
@@ -1174,10 +1511,10 @@
                     : '<em style="color:#94a3b8">Chưa có chữ ký</em>';
 
                 // Roles
-                let rolesHtml = (d.roles||[]).map(r => `<span class="sp-tag role">${r} <button class="tag-del" onclick="removeStaffRole('${id}','${r}')" title="Thu hồi">✕</button></span>`).join('');
+                let rolesHtml = (d.roles || []).map(r => `<span class="sp-tag role">${r} <button class="tag-del" onclick="removeStaffRole('${id}','${r}')" title="Thu hồi">✕</button></span>`).join('');
 
                 // Facilities / Branches
-                let branchHtml = (d.facilities||[]).map(f => `<span class="sp-tag branch">${f.facility_name} → ${f.branch_name}${f.department_name ? ' / ' + f.department_name : ''} <button class="tag-del" onclick="removeStaffBranch('${id}','${f.branch_id}')" title="Xóa">✕</button></span>`).join('');
+                let branchHtml = (d.facilities || []).map(f => `<span class="sp-tag branch">${f.facility_name} → ${f.branch_name}${f.department_name ? ' / ' + f.department_name : ''} <button class="tag-del" onclick="removeStaffBranch('${id}','${f.branch_id}')" title="Xóa">✕</button></span>`).join('');
 
                 const html = `<div class="staff-profile">
                     <div class="sp-header">
@@ -1487,8 +1824,8 @@
         async function loadSchedules() { await renderCalendar(); }
 
         async function renderCalendar() {
-            const MONTHS = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
-            const DAYS = ['CN','T2','T3','T4','T5','T6','T7'];
+            const MONTHS = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+            const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
             document.getElementById('calTitle').textContent = `${MONTHS[calMonth]} / ${calYear}`;
 
             // Fetch schedule data for the visible month range
@@ -1533,20 +1870,20 @@
 
             // Current month days
             for (let d = 1; d <= daysInMonth; d++) {
-                const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const isToday = dateStr === todayStr;
                 const entries = byDate[dateStr] || [];
 
                 let chipsHtml = entries.map(s => {
                     const shiftName = s.shift_name || cached.shifts.find(x => x.shifts_id === s.shift_id)?.name || 'Ca';
-                    const startH = parseInt((s.start_time||'08').substring(0,2));
+                    const startH = parseInt((s.start_time || '08').substring(0, 2));
                     let cls = 'cal-chip';
                     if (s.is_leave) cls += ' leave';
                     else if (startH < 12) cls += ' morning';
                     else if (startH < 18) cls += ' afternoon';
                     else cls += ' night';
-                    const label = `${(s.start_time||'').substring(0,5)} ${s.full_name || 'NV'}`;
-                    return `<div class="${cls}" onclick="event.stopPropagation(); showSchedDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})" title="${shiftName} - ${s.full_name||''}">${label}</div>`;
+                    const label = `${(s.start_time || '').substring(0, 5)} ${s.full_name || 'NV'}`;
+                    return `<div class="${cls}" onclick="event.stopPropagation(); showSchedDetail(${JSON.stringify(s).replace(/"/g, '&quot;')})" title="${shiftName} - ${s.full_name || ''}">${label}</div>`;
                 }).join('');
 
                 html += `<div class="cal-cell${isToday ? ' today' : ''}" onclick="addSchedOnDate('${dateStr}')">
@@ -1579,13 +1916,13 @@
             overlay.querySelector('.sched-detail-box').innerHTML = `
                 <button class="close-btn" onclick="document.getElementById('schedDetailOverlay').classList.remove('open')">&times;</button>
                 <h3>📋 Chi tiết Lịch phân công</h3>
-                <div class="detail-row"><span class="detail-label">📅 Ngày:</span><span class="detail-val"><strong>${(s.working_date||'').split('T')[0]}</strong></span></div>
+                <div class="detail-row"><span class="detail-label">📅 Ngày:</span><span class="detail-val"><strong>${(s.working_date || '').split('T')[0]}</strong></span></div>
                 <div class="detail-row"><span class="detail-label">👤 Nhân viên:</span><span class="detail-val">${s.full_name || s.user_id || '—'}</span></div>
                 <div class="detail-row"><span class="detail-label">⏰ Ca:</span><span class="detail-val">${shiftName}</span></div>
-                <div class="detail-row"><span class="detail-label">🕒 Giờ:</span><span class="detail-val">${(s.start_time||'').substring(0,5)} - ${(s.end_time||'').substring(0,5)}</span></div>
+                <div class="detail-row"><span class="detail-label">🕒 Giờ:</span><span class="detail-val">${(s.start_time || '').substring(0, 5)} - ${(s.end_time || '').substring(0, 5)}</span></div>
                 <div class="detail-row"><span class="detail-label">🏥 Phòng:</span><span class="detail-val">${s.room_name || 'N/A'}</span></div>
                 <div class="detail-row"><span class="detail-label">📋 Trạng thái:</span><span class="detail-val">${sBadge(s.status)}</span></div>
-                ${s.is_leave ? '<div class="detail-row"><span class="detail-label">📝 Nghỉ phép:</span><span class="detail-val">🔵 Có - ' + (s.leave_reason||'') + '</span></div>' : ''}
+                ${s.is_leave ? '<div class="detail-row"><span class="detail-label">📝 Nghỉ phép:</span><span class="detail-val">🔵 Có - ' + (s.leave_reason || '') + '</span></div>' : ''}
                 <div class="action-bar">
                     ${s.status === 'ACTIVE' ? `<button class="btn btn-warning btn-sm" onclick="suspendSchedule('${s.staff_schedules_id}'); document.getElementById('schedDetailOverlay').classList.remove('open');">⏸️ Tạm ngưng</button>` : ''}
                     ${s.status === 'SUSPENDED' ? `<button class="btn btn-success btn-sm" onclick="resumeSchedule('${s.staff_schedules_id}'); document.getElementById('schedDetailOverlay').classList.remove('open');">▶️ Kích hoạt</button>` : ''}
@@ -1597,9 +1934,9 @@
         }
 
 
-        async function suspendSchedule(id) { try { await apiFetch(`${API}/staff-schedules/${id}/suspend`, {method:'PATCH'}); toast('Tạm ngưng thành công','success'); loadSchedules(); } catch(e) { toast(e.message,'error'); } }
-        async function resumeSchedule(id) { try { await apiFetch(`${API}/staff-schedules/${id}/resume`, {method:'PATCH'}); toast('Mở lại thành công','success'); loadSchedules(); } catch(e) { toast(e.message,'error'); } }
-        async function delSchedule(id) { if(!confirm('Xóa lịch?')) return; try { await apiFetch(`${API}/staff-schedules/${id}`, {method:'DELETE'}); toast('Xóa thành công','success'); loadSchedules(); } catch(e) { toast(e.message,'error'); } }
+        async function suspendSchedule(id) { try { await apiFetch(`${API}/staff-schedules/${id}/suspend`, { method: 'PATCH' }); toast('Tạm ngưng thành công', 'success'); loadSchedules(); } catch (e) { toast(e.message, 'error'); } }
+        async function resumeSchedule(id) { try { await apiFetch(`${API}/staff-schedules/${id}/resume`, { method: 'PATCH' }); toast('Mở lại thành công', 'success'); loadSchedules(); } catch (e) { toast(e.message, 'error'); } }
+        async function delSchedule(id) { if (!confirm('Xóa lịch?')) return; try { await apiFetch(`${API}/staff-schedules/${id}`, { method: 'DELETE' }); toast('Xóa thành công', 'success'); loadSchedules(); } catch (e) { toast(e.message, 'error'); } }
 
         async function saveSchedule() {
             const body = {
@@ -1629,8 +1966,8 @@
                 if (!items || items.length === 0) { b.innerHTML = '<tr><td colspan="8" class="empty">Không có dữ liệu</td></tr>'; document.getElementById('f3Pag').innerHTML = ''; return; }
 
                 b.innerHTML = items.map(s => {
-                    const reqInfo = `${s.requester_shift_name || '—'}<br><small style="color:#64748b">${s.requester_working_date || ''} ${(s.requester_start_time||'').substring(0,5)}-${(s.requester_end_time||'').substring(0,5)}</small>`;
-                    const tgtInfo = `${s.target_shift_name || '—'}<br><small style="color:#64748b">${s.target_working_date || ''} ${(s.target_start_time||'').substring(0,5)}-${(s.target_end_time||'').substring(0,5)}</small>`;
+                    const reqInfo = `${s.requester_shift_name || '—'}<br><small style="color:#64748b">${s.requester_working_date || ''} ${(s.requester_start_time || '').substring(0, 5)}-${(s.requester_end_time || '').substring(0, 5)}</small>`;
+                    const tgtInfo = `${s.target_shift_name || '—'}<br><small style="color:#64748b">${s.target_working_date || ''} ${(s.target_start_time || '').substring(0, 5)}-${(s.target_end_time || '').substring(0, 5)}</small>`;
                     return `<tr>
                         <td><strong>${s.swap_id ? s.swap_id.split('_').pop() + '...' : '—'}</strong></td>
                         <td>${s.requester_name || '—'}</td>
@@ -1651,11 +1988,11 @@
             } catch (e) { toast(e.message, 'error') }
         }
 
-        async function approveSwap(id) { try { await apiFetch(`${API}/shift-swaps/${id}/approve`, {method:'PATCH', body: JSON.stringify({})}); toast('Đã duyệt','success'); loadSwaps(); } catch(e) { toast(e.message,'error'); } }
+        async function approveSwap(id) { try { await apiFetch(`${API}/shift-swaps/${id}/approve`, { method: 'PATCH', body: JSON.stringify({}) }); toast('Đã duyệt', 'success'); loadSwaps(); } catch (e) { toast(e.message, 'error'); } }
         async function rejectSwap(id) {
             const note = prompt('Lý do từ chối:');
             if (!note) return;
-            try { await apiFetch(`${API}/shift-swaps/${id}/reject`, {method:'PATCH', body: JSON.stringify({approver_note: note})}); toast('Đã từ chối','success'); loadSwaps(); } catch(e) { toast(e.message,'error'); }
+            try { await apiFetch(`${API}/shift-swaps/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ approver_note: note }) }); toast('Đã từ chối', 'success'); loadSwaps(); } catch (e) { toast(e.message, 'error'); }
         }
 
         async function saveSwap() {
@@ -1708,13 +2045,13 @@
             } catch (e) { toast(e.message, 'error') }
         }
 
-        async function approveLeave(id) { try { await apiFetch(`${API}/leaves/${id}/approve`, {method:'PATCH', body: JSON.stringify({})}); toast('Đã duyệt','success'); loadLeaves(); } catch(e) { toast(e.message,'error'); } }
+        async function approveLeave(id) { try { await apiFetch(`${API}/leaves/${id}/approve`, { method: 'PATCH', body: JSON.stringify({}) }); toast('Đã duyệt', 'success'); loadLeaves(); } catch (e) { toast(e.message, 'error'); } }
         async function rejectLeave(id) {
             const note = prompt('Lý do từ chối:');
             if (!note) return;
-            try { await apiFetch(`${API}/leaves/${id}/reject`, {method:'PATCH', body: JSON.stringify({approver_note: note})}); toast('Đã từ chối','success'); loadLeaves(); } catch(e) { toast(e.message,'error'); }
+            try { await apiFetch(`${API}/leaves/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ approver_note: note }) }); toast('Đã từ chối', 'success'); loadLeaves(); } catch (e) { toast(e.message, 'error'); }
         }
-        async function deleteLeave(id) { if(!confirm('Hủy đơn?')) return; try { await apiFetch(`${API}/leaves/${id}`, {method:'DELETE'}); toast('Đã hủy','success'); loadLeaves(); } catch(e) { toast(e.message,'error'); } }
+        async function deleteLeave(id) { if (!confirm('Hủy đơn?')) return; try { await apiFetch(`${API}/leaves/${id}`, { method: 'DELETE' }); toast('Đã hủy', 'success'); loadLeaves(); } catch (e) { toast(e.message, 'error'); } }
 
         async function saveLeave() {
             const body = {

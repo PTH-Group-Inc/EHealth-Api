@@ -2,8 +2,8 @@
 import { AppError } from '../../utils/app-error.util';
 import { AppointmentRepository } from '../../repository/Appointment Management/appointment.repository';
 import { AppointmentStatusRepository } from '../../repository/Appointment Management/appointment-status.repository';
+import { EncounterRepository } from '../../repository/EMR/encounter.repository';
 import { NotificationEngineService } from '../Core/notification-engine.service';
-import { pool } from '../../config/postgresdb';
 import { v4 as uuidv4 } from 'uuid';
 import {
     CHECK_IN_METHOD,
@@ -12,6 +12,7 @@ import {
     STATUS_TEMPLATE_CODES,
     STATUS_ERRORS,
     STATUS_CONFIG_LIMITS,
+    NO_SHOW_ALLOWED,
 } from '../../constants/appointment-status.constant';
 import { APPOINTMENT_ERRORS, APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
@@ -41,13 +42,29 @@ export class AppointmentStatusService {
         const { isLate, lateMinutes } = this.calculateLateStatus(appointment as any);
         const queueNumber = await AppointmentStatusRepository.getNextQueueNumber();
 
+        /** B4: Warning nếu BS đã đăng ký vắng đột xuất (không block check-in vì BN đã đến) */
+        let doctorAbsentWarning: string | null = null;
+        if (appointment.doctor_id) {
+            try {
+                const shiftId = appointment.slot_id ? await AppointmentRepository.getShiftIdBySlot(appointment.slot_id) : null;
+                const isAbsent = await AppointmentRepository.isDoctorAbsentOnDate(
+                    appointment.doctor_id, appointment.appointment_date, shiftId || undefined
+                );
+                if (isAbsent) {
+                    doctorAbsentWarning = STATUS_ERRORS.DOCTOR_ABSENT_WARNING;
+                }
+            } catch (err: any) {
+                console.error('[CHECK_IN] Lỗi kiểm tra BS vắng:', err.message);
+            }
+        }
+
         const auditLog = {
             appointment_audit_logs_id: `ALOG_${uuidv4().substring(0, 12)}`,
             appointment_id: appointmentId,
             changed_by: userId,
             old_status: APPOINTMENT_STATUS.CONFIRMED,
             new_status: APPOINTMENT_STATUS.CHECKED_IN,
-            action_note: `Check-in tại quầy. STT: ${queueNumber}${isLate ? `. Trễ ${lateMinutes} phút` : ''}`,
+            action_note: `Check-in tại quầy. STT: ${queueNumber}${isLate ? `. Trễ ${lateMinutes} phút` : ''}${doctorAbsentWarning ? '. CẢNH BÁO: BS vắng' : ''}`,
         };
 
         const result = await AppointmentStatusRepository.checkInWithQueue(
@@ -66,6 +83,43 @@ export class AppointmentStatusService {
             slot_time: (appointment as any).slot_time || '',
             doctor_name: appointment.doctor_name || 'Chưa chỉ định',
         });
+
+        return { ...result, queue_number: queueNumber, is_late: isLate, late_minutes: lateMinutes, doctor_absent_warning: doctorAbsentWarning };
+    }
+
+    /**
+     * Check-in TEST — bỏ qua kiểm tra ngày (chỉ dùng để test, KHÔNG dùng production)
+     */
+    static async checkInTest(appointmentId: string, userId: string): Promise<any> {
+        const appointment = await AppointmentRepository.findWithPatientAccount(appointmentId);
+        if (!appointment) {
+            throw new AppError(404, 'NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        if (appointment.status !== APPOINTMENT_STATUS.CONFIRMED) {
+            throw new AppError(400, 'NOT_CONFIRMED', STATUS_ERRORS.NOT_CONFIRMED);
+        }
+
+        // BỎ QUA kiểm tra appointment_date = TODAY
+
+        const { isLate, lateMinutes } = { isLate: false, lateMinutes: 0 };
+        const queueNumber = await AppointmentStatusRepository.getNextQueueNumber();
+
+        const auditLog = {
+            appointment_audit_logs_id: `ALOG_${uuidv4().substring(0, 12)}`,
+            appointment_id: appointmentId,
+            changed_by: userId,
+            old_status: APPOINTMENT_STATUS.CONFIRMED,
+            new_status: APPOINTMENT_STATUS.CHECKED_IN,
+            action_note: `[TEST] Check-in test (bỏ qua kiểm tra ngày). STT: ${queueNumber}`,
+        };
+
+        const result = await AppointmentStatusRepository.checkInWithQueue(
+            appointmentId, queueNumber, CHECK_IN_METHOD.COUNTER, isLate, lateMinutes, auditLog
+        );
+
+        if (!result) {
+            throw new AppError(400, 'CHECKIN_FAILED', STATUS_ERRORS.NOT_CONFIRMED);
+        }
 
         return { ...result, queue_number: queueNumber, is_late: isLate, late_minutes: lateMinutes };
     }
@@ -181,12 +235,14 @@ export class AppointmentStatusService {
             throw new AppError(400, 'MISSING_ROOM', STATUS_ERRORS.MISSING_ROOM);
         }
 
-        // Kiểm tra phòng đang trống
-        const roomCheck = await pool.query(
-            `SELECT room_status FROM medical_rooms WHERE medical_rooms_id = $1`,
-            [appointment.room_id]
-        );
-        if (roomCheck.rows[0]?.room_status === 'OCCUPIED') {
+        /** B1: Bắt buộc phải gán BS trước khi bắt đầu khám */
+        if (!appointment.doctor_id) {
+            throw new AppError(400, 'MISSING_DOCTOR', STATUS_ERRORS.MISSING_DOCTOR);
+        }
+
+        // Kiểm tra phòng đang trống (thông qua repository)
+        const roomStatus = await AppointmentStatusRepository.getRoomStatusById(appointment.room_id);
+        if (roomStatus === 'OCCUPIED') {
             throw new AppError(400, 'ROOM_OCCUPIED', STATUS_ERRORS.ROOM_OCCUPIED);
         }
 
@@ -207,6 +263,28 @@ export class AppointmentStatusService {
             throw new AppError(400, 'START_FAILED', STATUS_ERRORS.NOT_CHECKED_IN);
         }
 
+        /** Tự động tạo encounter khi bắt đầu khám */
+        let encounterId: string | null = null;
+        try {
+            const existingCount = await EncounterRepository.countByAppointmentId(appointmentId);
+            if (existingCount === 0 && appointment.doctor_id) {
+                const hasExisting = await EncounterRepository.hasExistingEncounters(appointment.patient_id);
+                const encounterType = hasExisting ? 'FOLLOW_UP' : 'FIRST_VISIT';
+                const visitNumber = await EncounterRepository.getVisitNumber(appointment.patient_id);
+                const encounter = await EncounterRepository.create({
+                    appointment_id: appointmentId,
+                    patient_id: appointment.patient_id,
+                    doctor_id: appointment.doctor_id,
+                    room_id: appointment.room_id,
+                    encounter_type: encounterType,
+                    visit_number: visitNumber,
+                });
+                encounterId = encounter.encounters_id;
+            }
+        } catch (err: any) {
+            console.error('[START_EXAM] Lỗi tạo encounter tự động:', err.message);
+        }
+
         // Gửi notification bắt đầu khám
         this.sendNotificationSafe(appointment.account_id, STATUS_TEMPLATE_CODES.START_EXAM, {
             patient_name: appointment.patient_name || 'Bệnh nhân',
@@ -215,7 +293,7 @@ export class AppointmentStatusService {
             doctor_name: appointment.doctor_name || 'Chưa chỉ định',
         });
 
-        return result;
+        return { ...result, encounter_id: encounterId };
     }
 
     /**
@@ -248,6 +326,16 @@ export class AppointmentStatusService {
             throw new AppError(400, 'COMPLETE_FAILED', STATUS_ERRORS.NOT_IN_PROGRESS);
         }
 
+        /** Tự động đóng encounter khi hoàn tất khám */
+        try {
+            const encounter = await EncounterRepository.findActiveByAppointmentId(appointmentId);
+            if (encounter) {
+                await EncounterRepository.updateStatus(encounter.encounters_id, 'COMPLETED');
+            }
+        } catch (err: any) {
+            console.error('[COMPLETE_EXAM] Lỗi đóng encounter tự động:', err.message);
+        }
+
         // Gửi notification hoàn tất
         this.sendNotificationSafe(appointment.account_id, APPOINTMENT_TEMPLATE_CODES.COMPLETED, {
             patient_name: appointment.patient_name || 'Bệnh nhân',
@@ -270,7 +358,8 @@ export class AppointmentStatusService {
             throw new AppError(404, 'NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
 
-        if (!['PENDING', 'CONFIRMED'].includes(appointment.status)) {
+        /** B2: Cho phép No-Show cho PENDING, CONFIRMED và CHECKED_IN (BN check-in rồi bỏ đi) */
+        if (!(NO_SHOW_ALLOWED as readonly string[]).includes(appointment.status)) {
             throw new AppError(400, 'NO_SHOW_NOT_ALLOWED', STATUS_ERRORS.NO_SHOW_NOT_ALLOWED);
         }
 
@@ -287,6 +376,19 @@ export class AppointmentStatusService {
 
         if (!result) {
             throw new AppError(400, 'NO_SHOW_FAILED', STATUS_ERRORS.NO_SHOW_NOT_ALLOWED);
+        }
+
+        /** Fix #5: Dọn dẹp encounter đang mở nếu có (edge case) */
+        try {
+            const encounter = await EncounterRepository.findActiveByAppointmentId(appointmentId);
+            if (encounter) {
+                await EncounterRepository.updateStatus(encounter.encounters_id, 'CANCELLED');
+                if (encounter.room_id) {
+                    await EncounterRepository.updateRoomStatus(encounter.room_id, 'AVAILABLE', null);
+                }
+            }
+        } catch (err: any) {
+            console.error('[MARK_NO_SHOW] Lỗi dọn dẹp encounter:', err.message);
         }
 
         // Gửi notification
@@ -328,6 +430,19 @@ export class AppointmentStatusService {
                 };
 
                 await AppointmentStatusRepository.markNoShow(apt.appointments_id, auditLog);
+
+                /** B3: Dọn dẹp encounter + giải phóng phòng (tương tự markNoShow thủ công) */
+                try {
+                    const encounter = await EncounterRepository.findActiveByAppointmentId(apt.appointments_id);
+                    if (encounter) {
+                        await EncounterRepository.updateStatus(encounter.encounters_id, 'CANCELLED');
+                        if (encounter.room_id) {
+                            await EncounterRepository.updateRoomStatus(encounter.room_id, 'AVAILABLE', null);
+                        }
+                    }
+                } catch (cleanupErr: any) {
+                    console.error(`[AUTO-NOSHOW] Lỗi dọn encounter cho ${apt.appointment_code}:`, cleanupErr.message);
+                }
 
                 // Notification
                 if (apt.account_id) {
@@ -420,15 +535,7 @@ export class AppointmentStatusService {
         late_threshold_minutes: number;
     }> {
         const keys = Object.values(STATUS_SETTING_KEYS);
-        const result = await pool.query(
-            `SELECT setting_key, setting_value FROM system_settings WHERE setting_key = ANY($1)`,
-            [keys]
-        );
-
-        const settings: Record<string, any> = {};
-        for (const row of result.rows) {
-            settings[row.setting_key] = row.setting_value?.value;
-        }
+        const settings = await AppointmentStatusRepository.getSettingsByKeys(keys);
 
         return {
             no_show_buffer_minutes: settings[STATUS_SETTING_KEYS.NO_SHOW_BUFFER_MINUTES]
@@ -478,10 +585,7 @@ export class AppointmentStatusService {
         }
 
         for (const update of updates) {
-            await pool.query(
-                `UPDATE system_settings SET setting_value = $1, updated_at = CURRENT_TIMESTAMP WHERE setting_key = $2`,
-                [JSON.stringify(update.value), update.key]
-            );
+            await AppointmentStatusRepository.updateSetting(update.key, update.value);
         }
 
         return this.getSettings();
@@ -533,5 +637,52 @@ export class AppointmentStatusService {
         } catch (error: any) {
             console.error(`[NOTIFICATION] Lỗi gửi thông báo ${templateCode}:`, error.message);
         }
+    }
+
+    /**
+     * Bỏ qua BN trong hàng đợi (CHECKED_IN → SKIPPED)
+     */
+    static async skipPatient(appointmentId: string, userId: string): Promise<any> {
+        const appointment = await AppointmentRepository.findById(appointmentId);
+        if (!appointment) {
+            throw new AppError(404, 'NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        if (appointment.status !== APPOINTMENT_STATUS.CHECKED_IN) {
+            throw new AppError(400, 'NOT_CHECKED_IN_FOR_SKIP', STATUS_ERRORS.NOT_CHECKED_IN_FOR_SKIP);
+        }
+
+        const result = await AppointmentStatusRepository.skipQueueItem(appointmentId, {
+            appointment_audit_logs_id: `AAL_${uuidv4().slice(0, 8)}`,
+            appointment_id: appointmentId,
+            changed_by: userId,
+            old_status: APPOINTMENT_STATUS.CHECKED_IN,
+            new_status: APPOINTMENT_STATUS.SKIPPED,
+            action_note: `Bỏ qua BN (số ${appointment.queue_number}) — không có mặt khi gọi tên`
+        });
+        return result;
+    }
+
+    /**
+     * Gọi lại BN đã skip (SKIPPED → CHECKED_IN, gán queue_number mới ở cuối hàng)
+     */
+    static async recallPatient(appointmentId: string, userId: string): Promise<any> {
+        const appointment = await AppointmentRepository.findById(appointmentId);
+        if (!appointment) {
+            throw new AppError(404, 'NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        if (appointment.status !== APPOINTMENT_STATUS.SKIPPED) {
+            throw new AppError(400, 'NOT_SKIPPED', STATUS_ERRORS.NOT_SKIPPED);
+        }
+
+        const newQueueNumber = await AppointmentStatusRepository.getNextQueueNumber();
+        const result = await AppointmentStatusRepository.recallQueueItem(appointmentId, newQueueNumber, {
+            appointment_audit_logs_id: `AAL_${uuidv4().slice(0, 8)}`,
+            appointment_id: appointmentId,
+            changed_by: userId,
+            old_status: APPOINTMENT_STATUS.SKIPPED,
+            new_status: APPOINTMENT_STATUS.CHECKED_IN,
+            action_note: `Gọi lại BN — xếp cuối hàng, số mới: ${newQueueNumber}`
+        });
+        return result;
     }
 }

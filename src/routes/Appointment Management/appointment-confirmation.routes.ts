@@ -224,66 +224,10 @@ appointmentConfirmationRoutes.patch(
     AppointmentConfirmationController.checkIn
 );
 
-/**
- * @swagger
- * /api/appointment-confirmations/{id}/complete:
- *   patch:
- *     summary: Hoàn tất lịch khám (CHECKED_IN → COMPLETED)
- *     description: |
- *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_CONFIRM.
- *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR.
- *
- *       **Mô tả chi tiết:**
- *       - Bác sĩ/lễ tân đánh dấu lịch khám đã hoàn tất.
- *       - Chuyển trạng thái `CHECKED_IN → COMPLETED`.
- *       - Ghi audit log, gửi thông báo hoàn tất tới bệnh nhân.
- *       - **Toàn bộ logic chạy trong Transaction.**
- *       - Chỉ lịch ở trạng thái CHECKED_IN mới được hoàn tất.
- *     tags: [3.6 Xác nhận & Nhắc lịch]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID lịch khám
- *         example: "APT_abc123def45"
- *     responses:
- *       200:
- *         description: Hoàn tất lịch khám thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Hoàn tất lịch khám thành công"
- *                 data:
- *                   type: object
- *                   properties:
- *                     status:
- *                       type: string
- *                       example: "COMPLETED"
- *       400:
- *         description: Lịch khám không ở trạng thái CHECKED_IN
- *       404:
- *         description: Lịch khám không tồn tại
- */
-appointmentConfirmationRoutes.patch(
-    '/:id/complete',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CONFIRM')],
-    AppointmentConfirmationController.complete
-);
 
 // =====================================================================
 // 3.6.3. NHẮC LỊCH KHÁM (Appointment Reminder)
-// =====================================================================
+// =============================================================================
 
 /**
  * @swagger

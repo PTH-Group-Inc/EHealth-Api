@@ -14,18 +14,21 @@ export const appointmentRoutes = Router();
  * @swagger
  * /api/appointments:
  *   post:
- *     summary: Đặt lịch khám mới
+ *     summary: Đặt lịch khám mới (xếp hàng tự động)
  *     description: |
  *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_CREATE.
  *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE, PATIENT.
  *
  *       **Mô tả chi tiết:**
- *       - Tạo một lịch hẹn khám mới cho bệnh nhân. Trạng thái khởi tạo là `PENDING`.
- *       - Hệ thống tự sinh mã tra cứu `appointment_code` (VD: `APP-20260312-A1B2`).
- *       - Các trường `doctor_id`, `slot_id`, `room_id`, `facility_service_id` là **tuỳ chọn** để hỗ trợ đặt lịch linh hoạt.
- *       - Nếu truyền `slot_id`: hệ thống kiểm tra sức chứa slot (so với `max_patients_per_slot` trong `booking_configurations`). Nếu đầy → từ chối.
- *       - Nếu truyền `doctor_id`: kiểm tra bác sĩ tồn tại và đang hoạt động.
- *       - **Toàn bộ logic chạy trong Transaction** (BEGIN/COMMIT/ROLLBACK).
+ *       - Tạo lịch khám mới theo cơ chế **xếp hàng tự động (queue-based)**.
+ *       - Bệnh nhân chỉ cần chọn: **cơ sở (branch)**, **ca khám (shift)**, **ngày khám**, **kênh đặt**.
+ *       - **Hệ thống tự động gán:**
+ *         1. **Slot**: khung giờ đầu tiên còn chỗ trong ca (FIFO queue)
+ *         2. **Bác sĩ**: BS ít tải nhất đang trực ca đó tại chi nhánh
+ *         3. **Phòng khám**: phòng CONSULTATION trống tại branch
+ *       - Nếu ca đã đầy (tất cả slot hết chỗ) → trả lỗi `SHIFT_FULL`.
+ *       - Kênh `DIRECT_CLINIC` / `HOTLINE` tự động chuyển sang `CONFIRMED`.
+ *       - **Toàn bộ logic chạy trong Transaction** (tránh race condition khi nhiều BN book cùng lúc).
  *       - Ghi log hành động vào bảng `appointment_audit_logs`.
  *     tags: [3.1 Quản lý Lịch khám]
  *     security:
@@ -38,18 +41,28 @@ export const appointmentRoutes = Router();
  *             type: object
  *             required:
  *               - patient_id
+ *               - branch_id
+ *               - shift_id
  *               - appointment_date
  *               - booking_channel
  *             properties:
  *               patient_id:
  *                 type: string
- *                 description: ID bệnh nhân (UUID)
+ *                 description: ID bệnh nhân
  *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *               branch_id:
+ *                 type: string
+ *                 description: ID chi nhánh/cơ sở khám (bắt buộc)
+ *                 example: "BR_HCM_001"
+ *               shift_id:
+ *                 type: string
+ *                 description: ID ca khám (VD ca sáng, ca chiều — bắt buộc). Hệ thống sẽ tự xếp BN vào slot trong ca này.
+ *                 example: "SH_MORNING"
  *               appointment_date:
  *                 type: string
  *                 format: date
- *                 description: Ngày khám (YYYY-MM-DD)
- *                 example: "2026-03-15"
+ *                 description: Ngày khám (YYYY-MM-DD, phải >= hôm nay)
+ *                 example: "2026-03-20"
  *               booking_channel:
  *                 type: string
  *                 enum: [APP, WEB, HOTLINE, DIRECT_CLINIC, ZALO]
@@ -63,21 +76,6 @@ export const appointmentRoutes = Router();
  *                 type: string
  *                 description: Ghi chú triệu chứng bổ sung
  *                 example: "Kèm theo chóng mặt buổi sáng"
- *               doctor_id:
- *                 type: string
- *                 nullable: true
- *                 description: ID bác sĩ (tuỳ chọn, có thể gán sau)
- *                 example: "DOC_2603_abc12345"
- *               slot_id:
- *                 type: string
- *                 nullable: true
- *                 description: ID khung giờ khám (tuỳ chọn)
- *                 example: "SLOT_001"
- *               room_id:
- *                 type: string
- *                 nullable: true
- *                 description: ID phòng khám (tuỳ chọn)
- *                 example: "ROOM_001"
  *               facility_service_id:
  *                 type: string
  *                 nullable: true
@@ -85,7 +83,7 @@ export const appointmentRoutes = Router();
  *                 example: "FS_001"
  *     responses:
  *       201:
- *         description: Đặt lịch khám thành công
+ *         description: Đặt lịch khám thành công (hệ thống đã tự gán slot + BS + phòng)
  *         content:
  *           application/json:
  *             schema:
@@ -97,12 +95,50 @@ export const appointmentRoutes = Router();
  *                 message:
  *                   type: string
  *                   example: "Đặt lịch khám thành công"
+ *                 warning:
+ *                   type: string
+ *                   nullable: true
+ *                   description: Cảnh báo nếu không tìm được BS đúng chuyên khoa
+ *                   example: null
  *                 data:
  *                   type: object
+ *                   properties:
+ *                     appointments_id:
+ *                       type: string
+ *                       example: "APT_abc123def45"
+ *                     appointment_code:
+ *                       type: string
+ *                       example: "APP-20260320-A1B2"
+ *                     branch_id:
+ *                       type: string
+ *                       example: "BR_HCM_001"
+ *                     slot_id:
+ *                       type: string
+ *                       description: Slot được hệ thống tự gán (FIFO)
+ *                       example: "SLOT_001"
+ *                     doctor_id:
+ *                       type: string
+ *                       description: BS được hệ thống tự gán (ít tải nhất)
+ *                       example: "DOC_2603_abc12345"
+ *                     room_id:
+ *                       type: string
+ *                       description: Phòng được hệ thống tự gán
+ *                       example: "ROOM_001"
+ *                     status:
+ *                       type: string
+ *                       example: "PENDING"
  *       400:
- *         description: Thiếu dữ liệu bắt buộc hoặc slot đã đầy
+ *         description: |
+ *           Các lỗi có thể:
+ *           - `MISSING_REQUIRED_FIELDS`: Thiếu patient_id, branch_id, shift_id, appointment_date, booking_channel
+ *           - `INVALID_DATE`: Ngày khám < hôm nay
+ *           - `SHIFT_FULL`: Tất cả slot trong ca đã đầy
+ *           - `INVALID_BOOKING_CHANNEL`: Kênh không hợp lệ
  *       404:
- *         description: Bệnh nhân / Bác sĩ / Slot không tồn tại
+ *         description: |
+ *           - `PATIENT_NOT_FOUND`: Bệnh nhân không tồn tại
+ *           - `BRANCH_NOT_FOUND`: Chi nhánh không tồn tại
+ *           - `SHIFT_NOT_FOUND`: Ca khám không tồn tại
  *       401:
  *         description: Chưa đăng nhập hoặc token hết hạn
  *       403:

@@ -43,8 +43,8 @@ export const START_EXAM_ALLOWED = ['CHECKED_IN'] as const;
 /** Trạng thái cho phép hoàn tất khám */
 export const COMPLETE_EXAM_ALLOWED = ['IN_PROGRESS'] as const;
 
-/** Trạng thái cho phép đánh No-Show */
-export const NO_SHOW_ALLOWED = ['PENDING', 'CONFIRMED'] as const;
+/** Trạng thái cho phép đánh No-Show (bao gồm CHECKED_IN: BN check-in rồi bỏ đi) */
+export const NO_SHOW_ALLOWED = ['PENDING', 'CONFIRMED', 'CHECKED_IN'] as const;
 
 /** Giới hạn validate */
 export const STATUS_CONFIG_LIMITS = {
@@ -61,14 +61,18 @@ export const STATUS_ERRORS = {
     NOT_IN_PROGRESS: 'Chỉ lịch khám ở trạng thái IN_PROGRESS mới được hoàn tất',
     NOT_TODAY: 'Chỉ có thể check-in cho lịch khám trong ngày hôm nay',
     MISSING_ROOM: 'Lịch khám chưa được gán phòng khám, không thể bắt đầu khám',
+    MISSING_DOCTOR: 'Lịch khám chưa được gán bác sĩ, không thể bắt đầu khám',
     MISSING_QR_TOKEN: 'Vui lòng cung cấp mã QR (qr_token)',
     INVALID_QR_TOKEN: 'Mã QR không hợp lệ hoặc đã hết hạn',
     QR_DISABLED: 'Chức năng check-in bằng QR đang tắt',
     QR_ALREADY_GENERATED: 'Mã QR đã được tạo cho lịch khám này',
     ROOM_OCCUPIED: 'Phòng khám đang bận, vui lòng chờ',
-    NO_SHOW_NOT_ALLOWED: 'Chỉ có thể đánh dấu No-Show cho lịch khám ở trạng thái PENDING hoặc CONFIRMED',
+    NO_SHOW_NOT_ALLOWED: 'Chỉ có thể đánh dấu No-Show cho lịch khám ở trạng thái PENDING, CONFIRMED hoặc CHECKED_IN',
+    DOCTOR_ABSENT_WARNING: 'Cảnh báo: Bác sĩ đã đăng ký vắng mặt vào ngày/ca này',
     INVALID_BUFFER: `Số phút buffer No-Show phải từ 5 đến 120`,
     INVALID_LATE_THRESHOLD: `Ngưỡng trễ phải từ 0 đến 60 phút`,
+    NOT_CHECKED_IN_FOR_SKIP: 'Chỉ có thể bỏ qua BN đang ở trạng thái CHECKED_IN',
+    NOT_SKIPPED: 'Chỉ có thể gọi lại BN đang ở trạng thái SKIPPED',
 } as const;
 
 /** Thông báo thành công */
@@ -84,4 +88,6 @@ export const STATUS_SUCCESS = {
     ROOM_STATUS_FETCHED: 'Lấy trạng thái phòng khám thành công',
     SETTINGS_FETCHED: 'Lấy cấu hình check-in thành công',
     SETTINGS_UPDATED: 'Cập nhật cấu hình check-in thành công',
+    QUEUE_SKIPPED: 'Bỏ qua bệnh nhân trong hàng đợi thành công',
+    QUEUE_RECALLED: 'Gọi lại bệnh nhân thành công, đã xếp vào cuối hàng',
 } as const;

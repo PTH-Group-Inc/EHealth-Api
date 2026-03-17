@@ -319,7 +319,15 @@ export class AppointmentStatusRepository {
                 COUNT(*) FILTER (WHERE a.status = 'CANCELLED') AS cancelled,
                 COUNT(*) FILTER (WHERE a.status = 'NO_SHOW') AS no_show,
                 MIN(a.queue_number) FILTER (WHERE a.status = 'IN_PROGRESS') AS current_serving,
-                MIN(a.queue_number) FILTER (WHERE a.status = 'CHECKED_IN') AS next_in_line,
+                (
+                    SELECT queue_number FROM appointments sub
+                    LEFT JOIN medical_rooms smr ON sub.room_id = smr.medical_rooms_id
+                    WHERE sub.appointment_date = COALESCE(${date ? `$1::date` : `CURRENT_DATE`}, CURRENT_DATE)
+                      AND sub.status = 'CHECKED_IN'
+                      ${branchId ? `AND smr.branch_id = '${branchId}'` : ''}
+                    ORDER BY CASE sub.priority WHEN 'EMERGENCY' THEN 0 WHEN 'URGENT' THEN 1 ELSE 2 END, sub.queue_number ASC
+                    LIMIT 1
+                ) AS next_in_line,
                 COUNT(*) FILTER (WHERE a.status = 'CHECKED_IN') AS total_waiting
             FROM appointments a
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
@@ -345,11 +353,14 @@ export class AppointmentStatusRepository {
 
     /**
      * Hàng đợi hôm nay (CHECKED_IN + IN_PROGRESS)
+     * Sắp xếp: EMERGENCY → URGENT → NORMAL, rồi theo queue_number.
+     * Lọc thêm theo chuyên khoa để xem hàng đợi từng khoa.
      */
     static async getQueueToday(filters: {
         branch_id?: string;
         room_id?: string;
         status?: string;
+        specialty_id?: string;
     }): Promise<any[]> {
         const conditions: string[] = [`a.appointment_date = CURRENT_DATE`, `a.status IN ('CHECKED_IN', 'IN_PROGRESS')`];
         const params: any[] = [];
@@ -367,12 +378,17 @@ export class AppointmentStatusRepository {
             conditions.push(`a.status = $${paramIdx++}`);
             params.push(filters.status);
         }
+        if (filters.specialty_id) {
+            conditions.push(`d.specialty_id = $${paramIdx++}`);
+            params.push(filters.specialty_id);
+        }
 
         const query = `
             SELECT
                 a.appointments_id,
                 a.appointment_code,
                 a.status,
+                a.priority,
                 a.queue_number,
                 a.is_late,
                 a.late_minutes,
@@ -382,19 +398,90 @@ export class AppointmentStatusRepository {
                 TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
                 p.full_name AS patient_name,
                 up.full_name AS doctor_name,
+                sp.name AS specialty_name,
                 mr.name AS room_name,
                 CONCAT(sl.start_time, ' - ', sl.end_time) AS slot_time
             FROM appointments a
             LEFT JOIN patients p ON a.patient_id = p.id::varchar
             LEFT JOIN doctors d ON a.doctor_id = d.doctors_id
             LEFT JOIN user_profiles up ON d.user_id = up.user_id
+            LEFT JOIN specialties sp ON d.specialty_id = sp.specialties_id
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
             LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
             WHERE ${conditions.join(' AND ')}
-            ORDER BY a.queue_number ASC NULLS LAST;
+            ORDER BY
+                CASE a.priority WHEN 'EMERGENCY' THEN 0 WHEN 'URGENT' THEN 1 ELSE 2 END,
+                a.queue_number ASC NULLS LAST;
         `;
         const result = await pool.query(query, params);
         return result.rows;
+    }
+
+    /**
+     * Bỏ qua 1 BN trong hàng đợi (status CHECKED_IN → SKIPPED tạm)
+     * Staff dùng khi gọi BN không thấy → bỏ qua, gọi số tiếp theo.
+     */
+    static async skipQueueItem(
+        id: string,
+        auditLog: { appointment_audit_logs_id: string; appointment_id: string; changed_by: string; old_status: string; new_status: string; action_note: string }
+    ): Promise<Appointment | null> {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const query = `
+                UPDATE appointments
+                SET status = 'SKIPPED',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE appointments_id = $1 AND status = 'CHECKED_IN'
+                RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
+            `;
+            const result = await client.query(query, [id]);
+            const skipped = result.rows[0] || null;
+            if (skipped) {
+                await AppointmentAuditLogRepository.create(auditLog, client);
+            }
+            await client.query('COMMIT');
+            return skipped;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Gọi lại BN đã bị skip (SKIPPED → CHECKED_IN, gán queue_number mới ở cuối hàng)
+     */
+    static async recallQueueItem(
+        id: string,
+        newQueueNumber: number,
+        auditLog: { appointment_audit_logs_id: string; appointment_id: string; changed_by: string; old_status: string; new_status: string; action_note: string }
+    ): Promise<Appointment | null> {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const query = `
+                UPDATE appointments
+                SET status = 'CHECKED_IN',
+                    queue_number = $2,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE appointments_id = $1 AND status = 'SKIPPED'
+                RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
+            `;
+            const result = await client.query(query, [id, newQueueNumber]);
+            const recalled = result.rows[0] || null;
+            if (recalled) {
+                await AppointmentAuditLogRepository.create(auditLog, client);
+            }
+            await client.query('COMMIT');
+            return recalled;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 
     /**
@@ -435,5 +522,39 @@ export class AppointmentStatusRepository {
         `;
         const result = await pool.query(query, params);
         return result.rows;
+    }
+
+    /**
+     * Lấy trạng thái phòng khám theo ID (dùng cho kiểm tra trước khi bắt đầu khám)
+     */
+    static async getRoomStatusById(roomId: string): Promise<string | null> {
+        const query = `SELECT room_status FROM medical_rooms WHERE medical_rooms_id = $1`;
+        const result = await pool.query(query, [roomId]);
+        return result.rows[0]?.room_status || null;
+    }
+
+    /**
+     * Đọc cấu hình check-in & no-show từ system_settings
+     */
+    static async getSettingsByKeys(keys: string[]): Promise<Record<string, any>> {
+        const result = await pool.query(
+            `SELECT setting_key, setting_value FROM system_settings WHERE setting_key = ANY($1)`,
+            [keys]
+        );
+        const settings: Record<string, any> = {};
+        for (const row of result.rows) {
+            settings[row.setting_key] = row.setting_value?.value;
+        }
+        return settings;
+    }
+
+    /**
+     * Cập nhật 1 setting trong system_settings
+     */
+    static async updateSetting(key: string, value: any): Promise<void> {
+        await pool.query(
+            `UPDATE system_settings SET setting_value = $1, updated_at = CURRENT_TIMESTAMP WHERE setting_key = $2`,
+            [JSON.stringify(value), key]
+        );
     }
 }

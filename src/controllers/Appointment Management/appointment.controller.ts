@@ -18,16 +18,21 @@ export class AppointmentController {
      */
     static async create(req: Request, res: Response) {
         try {
-            const { patient_id, appointment_date, booking_channel } = req.body;
-            if (!patient_id || !appointment_date || !booking_channel) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS', APPOINTMENT_ERRORS.MISSING_REQUIRED_FIELDS);
+            const { patient_id, branch_id, shift_id, appointment_date, booking_channel } = req.body;
+            if (!patient_id || !branch_id || !shift_id || !appointment_date || !booking_channel) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
+                    'Thiếu thông tin bắt buộc: patient_id, branch_id, shift_id, appointment_date, booking_channel');
             }
             const userId = (req as any).auth?.user_id;
             const appointment = await AppointmentService.createAppointment(req.body, userId);
+            const { warning, ...appointmentData } = appointment;
             res.status(HTTP_STATUS.CREATED).json({
                 success: true,
-                message: APPOINTMENT_SUCCESS.CREATED,
-                data: appointment
+                message: warning
+                    ? `${APPOINTMENT_SUCCESS.CREATED}. Lưu ý: ${warning}`
+                    : APPOINTMENT_SUCCESS.CREATED,
+                warning: warning || undefined,
+                data: appointmentData
             });
         } catch (error: any) {
             if (error instanceof AppError) {
