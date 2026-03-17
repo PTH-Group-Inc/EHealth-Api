@@ -285,8 +285,14 @@ const options = {
       { name: '4.7 Treatment Progress', description: 'API Quản lý tiến trình điều trị' },
       { name: '4.8 Medical Sign-off', description: 'API Ký số & xác nhận hồ sơ y khoa: xác nhận hoàn tất khám, ký nháp/chính thức, thu hồi, xác minh toàn vẹn, khóa chỉnh sửa, audit log' },
 
-
-
+      // ===== MODULE 5: QUẢN LÝ THUỐC =====
+      { name: '5.1 Quản lý danh mục thuốc', description: 'API Quản lý danh mục thuốc' },
+      { name: '5.5 Dispensing Management', description: 'API Cấp phát thuốc & xuất kho: tạo phiếu, trừ kho, kiểm tra tồn kho, hủy + hoàn kho' },
+      { name: '5.6 Drug Inventory Tracking', description: 'API Theo dõi tồn kho: danh sách, cảnh báo hết hạn, cảnh báo tồn kho thấp, nhập kho, cập nhật' },
+      { name: '5.7 Warehouse Management', description: 'API Quản lý kho thuốc: CRUD kho theo chi nhánh' },
+      { name: '5.8 Stock-In Management', description: 'API Nhập kho & NCC: CRUD NCC, phiếu nhập kho (DRAFT→CONFIRMED→RECEIVED→CANCELLED)' },
+      { name: '5.9 Stock-Out Management', description: 'API Xuất kho & Hủy hàng: hủy thuốc, trả NCC, chuyển kho, hao hụt' },
+      { name: '5.10 Medication Instructions', description: 'API Hướng dẫn sử dụng thuốc: mẫu chuẩn hóa (DOSAGE/FREQUENCY/ROUTE/INSTRUCTION) + hướng dẫn mặc định theo thuốc' },
 
 
 

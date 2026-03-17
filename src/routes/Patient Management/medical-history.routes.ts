@@ -79,7 +79,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('ENCOUNTER_VIEW'), MedicalHistoryController.getEncounters);
+router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getEncounters);
 
 /**
  * @swagger
@@ -87,7 +87,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('ENC
  *   get:
  *     summary: Tra cứu lần khám gần nhất của bệnh nhân
  *     description: |
- *       **Phân quyền:** Yêu cầu quyền ENCOUNTER_VIEW.
+ *       **Phân quyền:** Yêu cầu quyền EMR_ENCOUNTER_VIEW.
  *       **Vai trò được phép:** Super Admin, Admin cơ sở, Bác sĩ, Y tá, Lễ tân.
  *
  *       Trả về thông tin lượt khám gần nhất theo thời gian, bao gồm tên bác sĩ, chuyên khoa, phòng, triệu chứng, chẩn đoán chính.
@@ -108,7 +108,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('ENC
  *       404:
  *         description: Không tìm thấy bệnh nhân hoặc chưa có lượt khám
  */
-router.get('/patient/:patientId/latest', verifyAccessToken, checkSessionStatus, authorizePermissions('ENCOUNTER_VIEW'), MedicalHistoryController.getLatestEncounter);
+router.get('/patient/:patientId/latest', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getLatestEncounter);
 
 /**
  * @swagger
@@ -116,7 +116,7 @@ router.get('/patient/:patientId/latest', verifyAccessToken, checkSessionStatus, 
  *   get:
  *     summary: Xem dòng thời gian sức khỏe của bệnh nhân
  *     description: |
- *       **Phân quyền:** Yêu cầu quyền ENCOUNTER_VIEW.
+ *       **Phân quyền:** Yêu cầu quyền EMR_ENCOUNTER_VIEW.
  *       **Vai trò được phép:** Super Admin, Admin cơ sở, Bác sĩ, Y tá.
  *
  *       Trả về danh sách sự kiện sức khỏe theo dòng thời gian (mới nhất trước).
@@ -159,7 +159,7 @@ router.get('/patient/:patientId/latest', verifyAccessToken, checkSessionStatus, 
  *       404:
  *         description: Không tìm thấy bệnh nhân
  */
-router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus, authorizePermissions('ENCOUNTER_VIEW'), MedicalHistoryController.getTimeline);
+router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getTimeline);
 
 /**
  * @swagger
@@ -167,7 +167,7 @@ router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus
  *   get:
  *     summary: Tổng hợp lịch sử khám bệnh nhân
  *     description: |
- *       **Phân quyền:** Yêu cầu quyền ENCOUNTER_VIEW.
+ *       **Phân quyền:** Yêu cầu quyền EMR_ENCOUNTER_VIEW.
  *       **Vai trò được phép:** Super Admin, Admin cơ sở, Bác sĩ, Y tá, Lễ tân.
  *
  *       Trả về thông tin tổng hợp:
@@ -194,7 +194,7 @@ router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus
  *       404:
  *         description: Không tìm thấy bệnh nhân
  */
-router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus, authorizePermissions('ENCOUNTER_VIEW'), MedicalHistoryController.getPatientSummary);
+router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getPatientSummary);
 
 /**
  * @swagger
@@ -202,7 +202,7 @@ router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus,
  *   get:
  *     summary: Xem chi tiết đầy đủ lượt khám
  *     description: |
- *       **Phân quyền:** Yêu cầu quyền ENCOUNTER_VIEW.
+ *       **Phân quyền:** Yêu cầu quyền EMR_ENCOUNTER_VIEW.
  *       **Vai trò được phép:** Super Admin, Admin cơ sở, Bác sĩ, Y tá, Lễ tân.
  *
  *       **Mô tả chi tiết:**
@@ -231,6 +231,6 @@ router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus,
  *       404:
  *         description: Không tìm thấy lượt khám
  */
-router.get('/:encounterId', verifyAccessToken, checkSessionStatus, authorizePermissions('ENCOUNTER_VIEW'), MedicalHistoryController.getEncounterDetail);
+router.get('/:encounterId', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getEncounterDetail);
 
 export const medicalHistoryRoutes = router;

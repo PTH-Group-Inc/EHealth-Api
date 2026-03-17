@@ -526,4 +526,176 @@ export class PrescriptionRepository {
         );
         return result.rows[0].exists;
     }
+
+    /**
+     * Lịch sử đơn thuốc theo bác sĩ (phân trang + filter)
+     */
+    static async findByDoctorId(
+        doctorId: string,
+        page: number,
+        limit: number,
+        status?: string,
+        fromDate?: string,
+        toDate?: string
+    ): Promise<{ data: PrescriptionRecord[]; total: number }> {
+        const conditions: string[] = ['p.doctor_id = $1'];
+        const values: any[] = [doctorId];
+        let paramIndex = 2;
+
+        if (status) {
+            conditions.push(`p.status = $${paramIndex++}`);
+            values.push(status);
+        }
+        if (fromDate) {
+            conditions.push(`p.prescribed_at >= $${paramIndex++}`);
+            values.push(fromDate);
+        }
+        if (toDate) {
+            conditions.push(`p.prescribed_at <= ($${paramIndex++}::date + INTERVAL '1 day')`);
+            values.push(toDate);
+        }
+
+        const whereClause = conditions.join(' AND ');
+        const offset = (page - 1) * limit;
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*)::int AS total
+             FROM prescriptions p
+             WHERE ${whereClause}`,
+            values
+        );
+
+        const dataValues = [...values, limit, offset];
+        const dataResult = await pool.query(
+            `SELECT p.*,
+                    up.full_name AS doctor_name,
+                    pat.full_name AS patient_name,
+                    ed.diagnosis_name,
+                    ed.icd10_code
+             FROM prescriptions p
+             LEFT JOIN user_profiles up ON up.user_id = p.doctor_id
+             LEFT JOIN patients pat ON pat.id::text = p.patient_id
+             LEFT JOIN encounter_diagnoses ed ON ed.encounter_diagnoses_id = p.primary_diagnosis_id
+             WHERE ${whereClause}
+             ORDER BY p.prescribed_at DESC
+             LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+            dataValues
+        );
+
+        return { data: dataResult.rows, total: countResult.rows[0].total };
+    }
+
+    /**
+     * Kiểm tra bác sĩ (user) tồn tại
+     */
+    static async doctorExists(doctorId: string): Promise<boolean> {
+        const result = await pool.query(
+            `SELECT EXISTS(SELECT 1 FROM users WHERE users_id = $1 AND deleted_at IS NULL) AS exists`,
+            [doctorId]
+        );
+        return result.rows[0].exists;
+    }
+
+    //  SEARCH (Module 5.9) 
+
+    /**
+     * Tìm kiếm tổng hợp đơn thuốc — multi-filter + text search + phân trang
+     */
+    static async searchPrescriptions(
+        page: number, limit: number,
+        q?: string, status?: string, doctorId?: string, patientId?: string,
+        fromDate?: string, toDate?: string
+    ): Promise<{ data: PrescriptionRecord[]; total: number }> {
+        const conditions: string[] = [];
+        const values: any[] = [];
+        let paramIdx = 1;
+
+        if (q) {
+            conditions.push(`(p.prescription_code ILIKE $${paramIdx} OR pat.full_name ILIKE $${paramIdx} OR up.full_name ILIKE $${paramIdx})`);
+            values.push(`%${q}%`);
+            paramIdx++;
+        }
+        if (status) { conditions.push(`p.status = $${paramIdx++}`); values.push(status); }
+        if (doctorId) { conditions.push(`p.doctor_id = $${paramIdx++}`); values.push(doctorId); }
+        if (patientId) { conditions.push(`p.patient_id = $${paramIdx++}`); values.push(patientId); }
+        if (fromDate) { conditions.push(`p.prescribed_at >= $${paramIdx++}`); values.push(fromDate); }
+        if (toDate) { conditions.push(`p.prescribed_at <= ($${paramIdx++}::date + INTERVAL '1 day')`); values.push(toDate); }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        const offset = (page - 1) * limit;
+
+        const countR = await pool.query(
+            `SELECT COUNT(*)::int AS total
+             FROM prescriptions p
+             LEFT JOIN user_profiles up ON up.user_id = p.doctor_id
+             LEFT JOIN patients pat ON pat.id::text = p.patient_id
+             ${whereClause}`, values
+        );
+
+        const dataValues = [...values, limit, offset];
+        const dataR = await pool.query(
+            `SELECT p.*,
+                    up.full_name AS doctor_name,
+                    pat.full_name AS patient_name,
+                    ed.diagnosis_name, ed.icd10_code,
+                    (SELECT COUNT(*)::int FROM prescription_details pd WHERE pd.prescription_id = p.prescriptions_id AND pd.is_active = TRUE) AS detail_count
+             FROM prescriptions p
+             LEFT JOIN user_profiles up ON up.user_id = p.doctor_id
+             LEFT JOIN patients pat ON pat.id::text = p.patient_id
+             LEFT JOIN encounter_diagnoses ed ON ed.encounter_diagnoses_id = p.primary_diagnosis_id
+             ${whereClause}
+             ORDER BY p.prescribed_at DESC
+             LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
+            dataValues
+        );
+
+        return { data: dataR.rows, total: countR.rows[0].total };
+    }
+
+    /**
+     * Tìm đơn thuốc theo mã đơn (prescription_code) — trả về kèm details
+     */
+    static async findByCode(code: string): Promise<PrescriptionRecord | null> {
+        const r = await pool.query(
+            `SELECT p.*,
+                    up.full_name AS doctor_name,
+                    pat.full_name AS patient_name,
+                    ed.diagnosis_name, ed.icd10_code
+             FROM prescriptions p
+             LEFT JOIN user_profiles up ON up.user_id = p.doctor_id
+             LEFT JOIN patients pat ON pat.id::text = p.patient_id
+             LEFT JOIN encounter_diagnoses ed ON ed.encounter_diagnoses_id = p.primary_diagnosis_id
+             WHERE p.prescription_code = $1`, [code]
+        );
+        return r.rows[0] || null;
+    }
+
+    /**
+     * Thống kê đơn thuốc theo trạng thái
+     */
+    static async getStats(
+        doctorId?: string, patientId?: string, fromDate?: string, toDate?: string
+    ): Promise<Record<string, number>> {
+        const conditions: string[] = [];
+        const values: any[] = [];
+        let paramIdx = 1;
+
+        if (doctorId) { conditions.push(`doctor_id = $${paramIdx++}`); values.push(doctorId); }
+        if (patientId) { conditions.push(`patient_id = $${paramIdx++}`); values.push(patientId); }
+        if (fromDate) { conditions.push(`prescribed_at >= $${paramIdx++}`); values.push(fromDate); }
+        if (toDate) { conditions.push(`prescribed_at <= ($${paramIdx++}::date + INTERVAL '1 day')`); values.push(toDate); }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+        const r = await pool.query(
+            `SELECT status, COUNT(*)::int AS count FROM prescriptions ${whereClause} GROUP BY status`, values
+        );
+
+        const stats: Record<string, number> = { DRAFT: 0, PRESCRIBED: 0, DISPENSED: 0, CANCELLED: 0, total: 0 };
+        for (const row of r.rows) {
+            stats[row.status] = row.count;
+            stats.total += row.count;
+        }
+        return stats;
+    }
 }

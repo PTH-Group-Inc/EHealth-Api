@@ -5,10 +5,6 @@ import { SIGNOFF_ERRORS } from '../constants/medical-signoff.constant';
 
 /**
  * Middleware kiểm tra khóa chỉnh sửa.
- * Chặn sửa/xóa data khi encounter đã ký chính thức (OFFICIAL sign).
- *
- * Sử dụng: gắn vào route sửa/xóa ở module 4.2–4.5, 4.7.
- * Lấy encounterId từ req.params.encounterId hoặc req.body.encounter_id.
  */
 export const checkEditLock = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
