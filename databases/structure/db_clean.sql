@@ -1545,6 +1545,123 @@ CREATE TABLE IF NOT EXISTS appointment_coordination_logs (
 );
 
 
+
+-- 1. Kế hoạch điều trị
+CREATE TABLE treatment_plans (
+    treatment_plans_id VARCHAR(50) PRIMARY KEY,
+    plan_code VARCHAR(50) UNIQUE NOT NULL,
+    patient_id VARCHAR(50) NOT NULL,
+    primary_diagnosis_code VARCHAR(20) NOT NULL,
+    primary_diagnosis_name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    goals TEXT,
+    start_date DATE NOT NULL,
+    expected_end_date DATE,
+    actual_end_date DATE,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    created_by VARCHAR(50) NOT NULL,
+    created_encounter_id VARCHAR(50),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    FOREIGN KEY (created_encounter_id) REFERENCES encounters(encounters_id)
+);
+
+CREATE INDEX idx_tp_patient ON treatment_plans(patient_id);
+CREATE INDEX idx_tp_status ON treatment_plans(status);
+CREATE INDEX idx_tp_diagnosis ON treatment_plans(primary_diagnosis_code);
+
+-- 2. Ghi nhận diễn tiến
+CREATE TABLE treatment_progress_notes (
+    treatment_progress_notes_id VARCHAR(50) PRIMARY KEY,
+    plan_id VARCHAR(50) NOT NULL,
+    encounter_id VARCHAR(50),
+    note_type VARCHAR(50) NOT NULL,
+    title VARCHAR(255),
+    content TEXT NOT NULL,
+    severity VARCHAR(20) DEFAULT 'NORMAL',
+    recorded_by VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES treatment_plans(treatment_plans_id) ON DELETE CASCADE,
+    FOREIGN KEY (encounter_id) REFERENCES encounters(encounters_id),
+    FOREIGN KEY (recorded_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX idx_tpn_plan ON treatment_progress_notes(plan_id);
+CREATE INDEX idx_tpn_encounter ON treatment_progress_notes(encounter_id);
+CREATE INDEX idx_tpn_type ON treatment_progress_notes(note_type);
+
+-- 3. Liên kết chuỗi tái khám
+CREATE TABLE encounter_follow_up_links (
+    encounter_follow_up_links_id VARCHAR(50) PRIMARY KEY,
+    plan_id VARCHAR(50) NOT NULL,
+    previous_encounter_id VARCHAR(50) NOT NULL,
+    follow_up_encounter_id VARCHAR(50) NOT NULL,
+    follow_up_reason TEXT,
+    scheduled_date DATE,
+    actual_date DATE,
+    notes TEXT,
+    created_by VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES treatment_plans(treatment_plans_id) ON DELETE CASCADE,
+    FOREIGN KEY (previous_encounter_id) REFERENCES encounters(encounters_id),
+    FOREIGN KEY (follow_up_encounter_id) REFERENCES encounters(encounters_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    UNIQUE(previous_encounter_id, follow_up_encounter_id)
+);
+
+-- =====================================================================
+-- MODULE 4.5: KÊ ĐƠN THUỐC (PRESCRIPTION MANAGEMENT)
+-- Bổ sung cột cho bảng prescriptions & prescription_details
+-- =====================================================================
+
+-- 1. UNIQUE constraint: 1 encounter = 1 đơn thuốc
+ALTER TABLE prescriptions
+    ADD CONSTRAINT uq_prescriptions_encounter UNIQUE (encounter_id);
+
+-- 2. Liên kết chẩn đoán chính
+ALTER TABLE prescriptions
+    ADD COLUMN primary_diagnosis_id VARCHAR(50) NULL
+        REFERENCES encounter_diagnoses(encounter_diagnoses_id) ON DELETE SET NULL;
+
+-- 3. Timestamps quản lý vòng đời
+ALTER TABLE prescriptions
+    ADD COLUMN updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN cancelled_at TIMESTAMPTZ NULL,
+    ADD COLUMN cancelled_reason TEXT NULL;
+
+-- 4. Index tối ưu truy vấn
+CREATE INDEX idx_prescriptions_status ON prescriptions(status);
+CREATE INDEX idx_prescriptions_doctor ON prescriptions(doctor_id);
+CREATE INDEX idx_prescriptions_patient ON prescriptions(patient_id);
+
+-- =====================================================================
+-- PRESCRIPTION DETAILS — Bổ sung cột
+-- =====================================================================
+
+-- 1. Đường dùng thuốc + ghi chú BS
+ALTER TABLE prescription_details
+    ADD COLUMN route_of_administration VARCHAR(50) NULL,
+    ADD COLUMN notes TEXT NULL;
+
+-- 2. Sắp xếp + soft delete
+ALTER TABLE prescription_details
+    ADD COLUMN sort_order INT DEFAULT 0,
+    ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+-- 3. Timestamps
+ALTER TABLE prescription_details
+    ADD COLUMN created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+
+-- Index cho tìm kiếm dòng thuốc theo đơn
+CREATE INDEX idx_prescription_details_prescription ON prescription_details(prescription_id);
+CREATE INDEX idx_prescription_details_drug ON prescription_details(drug_id);
+
+
+
 -- *********************************************************************
 -- PERFORMANCE INDEXES
 -- *********************************************************************

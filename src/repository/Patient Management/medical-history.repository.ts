@@ -69,7 +69,7 @@ export class MedicalHistoryRepository {
                 up.full_name AS doctor_name,
                 d.title AS doctor_title,
                 s.name AS specialty_name,
-                cr.room_name, cr.room_code,
+                mr.name AS room_name, mr.code AS room_code,
                 p.patient_code,
                 p.full_name AS patient_name,
                 ce.chief_complaint,
@@ -80,7 +80,7 @@ export class MedicalHistoryRepository {
             LEFT JOIN doctors d ON d.doctors_id = e.doctor_id
             LEFT JOIN user_profiles up ON up.user_id = d.user_id
             LEFT JOIN specialties s ON s.specialties_id = d.specialty_id
-            LEFT JOIN clinic_rooms cr ON cr.clinic_rooms_id = e.room_id
+            LEFT JOIN medical_rooms mr ON mr.medical_rooms_id = e.room_id
             LEFT JOIN patients p ON p.id::VARCHAR = e.patient_id
             LEFT JOIN clinical_examinations ce ON ce.encounter_id = e.encounters_id
             ${whereClause}
@@ -111,14 +111,14 @@ export class MedicalHistoryRepository {
                 up.full_name AS doctor_name,
                 d.title AS doctor_title,
                 s.name AS specialty_name,
-                cr.room_name, cr.room_code,
+                mr.name AS room_name, mr.code AS room_code,
                 p.patient_code,
                 p.full_name AS patient_name
             FROM encounters e
             LEFT JOIN doctors d ON d.doctors_id = e.doctor_id
             LEFT JOIN user_profiles up ON up.user_id = d.user_id
             LEFT JOIN specialties s ON s.specialties_id = d.specialty_id
-            LEFT JOIN clinic_rooms cr ON cr.clinic_rooms_id = e.room_id
+            LEFT JOIN medical_rooms mr ON mr.medical_rooms_id = e.room_id
             LEFT JOIN patients p ON p.id::VARCHAR = e.patient_id
             WHERE e.encounters_id = $1
         `;
@@ -223,7 +223,7 @@ export class MedicalHistoryRepository {
                 up.full_name AS doctor_name,
                 d.title AS doctor_title,
                 s.name AS specialty_name,
-                cr.room_name, cr.room_code,
+                mr.name AS room_name, mr.code AS room_code,
                 p.patient_code,
                 p.full_name AS patient_name,
                 ce.chief_complaint,
@@ -234,7 +234,7 @@ export class MedicalHistoryRepository {
             LEFT JOIN doctors d ON d.doctors_id = e.doctor_id
             LEFT JOIN user_profiles up ON up.user_id = d.user_id
             LEFT JOIN specialties s ON s.specialties_id = d.specialty_id
-            LEFT JOIN clinic_rooms cr ON cr.clinic_rooms_id = e.room_id
+            LEFT JOIN medical_rooms mr ON mr.medical_rooms_id = e.room_id
             LEFT JOIN patients p ON p.id::VARCHAR = e.patient_id
             LEFT JOIN clinical_examinations ce ON ce.encounter_id = e.encounters_id
             WHERE e.patient_id = $1

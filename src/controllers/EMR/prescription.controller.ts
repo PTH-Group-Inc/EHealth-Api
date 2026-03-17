@@ -268,4 +268,108 @@ export class PrescriptionController {
             }
         }
     }
+
+    /** API 13: GET /api/prescriptions/by-doctor/:doctorId — Lịch sử đơn thuốc theo bác sĩ */
+    static async getByDoctor(req: Request, res: Response) {
+        try {
+            const doctorId = req.params.doctorId as string;
+            const page = parseInt(req.query.page as string) || PRESCRIPTION_CONFIG.DEFAULT_PAGE;
+            const limit = parseInt(req.query.limit as string) || PRESCRIPTION_CONFIG.DEFAULT_LIMIT;
+            const status = req.query.status as string | undefined;
+            const fromDate = req.query.from_date as string | undefined;
+            const toDate = req.query.to_date as string | undefined;
+
+            const result = await PrescriptionService.getByDoctorId(doctorId, page, limit, status, fromDate, toDate);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: PRESCRIPTION_SUCCESS.DOCTOR_HISTORY_FETCHED,
+                data: result,
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                console.error('[PrescriptionController.getByDoctor] Error:', error);
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
+            }
+        }
+    }
+
+    //  SEARCH (Module 5.9) 
+
+    /** API 14: GET /api/prescriptions/search — Tìm kiếm tổng hợp */
+    static async search(req: Request, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || PRESCRIPTION_CONFIG.DEFAULT_PAGE;
+            const limit = parseInt(req.query.limit as string) || PRESCRIPTION_CONFIG.DEFAULT_LIMIT;
+            const q = req.query.q as string | undefined;
+            const status = req.query.status as string | undefined;
+            const doctorId = req.query.doctor_id as string | undefined;
+            const patientId = req.query.patient_id as string | undefined;
+            const fromDate = req.query.from_date as string | undefined;
+            const toDate = req.query.to_date as string | undefined;
+
+            const result = await PrescriptionService.search(page, limit, q, status, doctorId, patientId, fromDate, toDate);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: PRESCRIPTION_SUCCESS.SEARCH_FETCHED,
+                data: result,
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                console.error('[PrescriptionController.search] Error:', error);
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
+            }
+        }
+    }
+
+    /** API 15: GET /api/prescriptions/search/by-code/:code — Tìm theo mã đơn */
+    static async searchByCode(req: Request, res: Response) {
+        try {
+            const code = req.params.code as string;
+            const result = await PrescriptionService.findByCode(code);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: PRESCRIPTION_SUCCESS.CODE_FETCHED,
+                data: result,
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                console.error('[PrescriptionController.searchByCode] Error:', error);
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
+            }
+        }
+    }
+
+    /** API 16: GET /api/prescriptions/search/stats — Thống kê */
+    static async getStats(req: Request, res: Response) {
+        try {
+            const doctorId = req.query.doctor_id as string | undefined;
+            const patientId = req.query.patient_id as string | undefined;
+            const fromDate = req.query.from_date as string | undefined;
+            const toDate = req.query.to_date as string | undefined;
+
+            const result = await PrescriptionService.getStats(doctorId, patientId, fromDate, toDate);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: PRESCRIPTION_SUCCESS.STATS_FETCHED,
+                data: result,
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                console.error('[PrescriptionController.getStats] Error:', error);
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
+            }
+        }
+    }
 }

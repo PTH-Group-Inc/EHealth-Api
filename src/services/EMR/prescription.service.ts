@@ -314,4 +314,72 @@ export class PrescriptionService {
         }
         return PrescriptionRepository.getSummary(encounterId);
     }
+
+    // Lịch sử đơn thuốc theo bác sĩ
+    /**
+     * Lấy danh sách đơn thuốc theo bác sĩ, hỗ trợ phân trang + filter.
+     * Dùng cho BS xem lại lịch sử kê đơn hoặc Admin tra cứu.
+     */
+    static async getByDoctorId(
+        doctorId: string,
+        page: number,
+        limit: number,
+        status?: string,
+        fromDate?: string,
+        toDate?: string
+    ): Promise<{ data: PrescriptionRecord[]; total: number; page: number; limit: number; totalPages: number }> {
+        const exists = await PrescriptionRepository.doctorExists(doctorId);
+        if (!exists) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'DOCTOR_NOT_FOUND', PRESCRIPTION_ERRORS.DOCTOR_NOT_FOUND);
+        }
+
+        const safeLimit = Math.min(limit, PRESCRIPTION_CONFIG.MAX_LIMIT);
+        const result = await PrescriptionRepository.findByDoctorId(doctorId, page, safeLimit, status, fromDate, toDate);
+
+        return {
+            ...result,
+            page,
+            limit: safeLimit,
+            totalPages: Math.ceil(result.total / safeLimit),
+        };
+    }
+
+    //  SEARCH (Module 5.9) 
+
+    /**
+     * Tìm kiếm tổng hợp: text search (mã đơn/tên BN/tên BS) + multi-filter + phân trang
+     */
+    static async search(
+        page: number, limit: number,
+        q?: string, status?: string, doctorId?: string, patientId?: string,
+        fromDate?: string, toDate?: string
+    ) {
+        const safeLimit = Math.min(limit, PRESCRIPTION_CONFIG.MAX_LIMIT);
+        const result = await PrescriptionRepository.searchPrescriptions(page, safeLimit, q, status, doctorId, patientId, fromDate, toDate);
+        return {
+            ...result,
+            page,
+            limit: safeLimit,
+            totalPages: Math.ceil(result.total / safeLimit),
+        };
+    }
+
+    /**
+     * Tìm đơn thuốc theo mã đơn — trả kèm danh sách dòng thuốc
+     */
+    static async findByCode(code: string) {
+        const prescription = await PrescriptionRepository.findByCode(code);
+        if (!prescription) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'PRESCRIPTION_NOT_FOUND', PRESCRIPTION_ERRORS.NOT_FOUND);
+        }
+        const details = await PrescriptionRepository.findDetailsByPrescriptionId(prescription.prescriptions_id);
+        return { prescription, details };
+    }
+
+    /**
+     * Thống kê đơn thuốc theo trạng thái (dùng cho dashboard)
+     */
+    static async getStats(doctorId?: string, patientId?: string, fromDate?: string, toDate?: string) {
+        return PrescriptionRepository.getStats(doctorId, patientId, fromDate, toDate);
+    }
 }

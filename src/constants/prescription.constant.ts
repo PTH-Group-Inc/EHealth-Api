@@ -62,6 +62,7 @@ export const PRESCRIPTION_ERRORS = {
     CANNOT_CANCEL: 'Không thể hủy đơn thuốc ở trạng thái hiện tại',
     MISSING_CANCEL_REASON: 'Thiếu lý do hủy đơn thuốc (cancelled_reason) khi đơn đã xác nhận',
     PATIENT_NOT_FOUND: 'Bệnh nhân không tồn tại trong hệ thống',
+    DOCTOR_NOT_FOUND: 'Bác sĩ không tồn tại trong hệ thống',
     MISSING_SEARCH_QUERY: 'Thiếu từ khóa tìm kiếm (q)',
 } as const;
 
@@ -79,4 +80,8 @@ export const PRESCRIPTION_SUCCESS = {
     DETAILS_FETCHED: 'Lấy danh sách dòng thuốc thành công',
     DRUGS_SEARCHED: 'Tìm kiếm thuốc thành công',
     SUMMARY_FETCHED: 'Lấy tóm tắt đơn thuốc thành công',
+    DOCTOR_HISTORY_FETCHED: 'Lấy lịch sử đơn thuốc theo bác sĩ thành công',
+    SEARCH_FETCHED: 'Tìm kiếm đơn thuốc thành công',
+    CODE_FETCHED: 'Lấy đơn thuốc theo mã thành công',
+    STATS_FETCHED: 'Lấy thống kê đơn thuốc thành công',
 } as const;

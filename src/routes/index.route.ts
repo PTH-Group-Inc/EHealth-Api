@@ -14,7 +14,8 @@ import apiPermissionRoutes from './Core/api-permission.routes';
 import systemRoutes from './Core/system.routes';
 import specialtyRouter from './Facility Management/specialty.route';
 import masterDataRoutes from './Core/master-data.routes';
-import pharmacyRoutes from './Core/pharmacy.routes';
+import { drugCategoryRoutes } from './Medication Management/drug-category.routes';
+import { drugRoutes } from './Medication Management/drug.routes';
 import medicalServiceRoutes from './Facility Management/medical-service.routes';
 import specialtyServiceRoutes from './Facility Management/specialty-service.routes';
 import doctorServiceRoutes from './Facility Management/doctor-service.routes';
@@ -67,6 +68,13 @@ import { prescriptionRoutes } from './EMR/prescription.routes';
 import { medicalRecordRoutes } from './EMR/medical-record.routes';
 import { treatmentProgressRoutes } from './EMR/treatment-progress.routes';
 import { signOffRoutes } from './EMR/medical-signoff.routes';
+import { dispensingRoutes } from './Medication Management/dispensing.routes';
+import { inventoryRoutes } from './Medication Management/inventory.routes';
+import { warehouseRoutes } from './Medication Management/warehouse.routes';
+import { supplierRoutes } from './Medication Management/supplier.routes';
+import { stockInRoutes } from './Medication Management/stock-in.routes';
+import { stockOutRoutes } from './Medication Management/stock-out.routes';
+import { medInstructionRoutes } from './Medication Management/med-instruction.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -151,8 +159,28 @@ export const initRoutes = (app: Express) => {
     // master data routes
     app.use('/api/master-data', masterDataRoutes);
 
-    // pharmacy routes
-    app.use('/api/pharmacy', pharmacyRoutes);
+    // Module 5.1 – Medication Management (Danh mục thuốc & Dữ liệu chuẩn)
+    app.use('/api/pharmacy/categories', drugCategoryRoutes);
+    app.use('/api/pharmacy/drugs', drugRoutes);
+
+    // Module 5.5 – Dispensing Management (Cấp phát thuốc & xuất kho)
+    app.use('/api/dispensing', dispensingRoutes);
+
+    // Module 5.6 – Drug Inventory Tracking (Theo dõi tồn kho)
+    app.use('/api/inventory', inventoryRoutes);
+
+    // Warehouse Management (Quản lý kho thuốc)
+    app.use('/api/warehouses', warehouseRoutes);
+
+    // Module 5.7/5.8 – Stock-In Management (Nhập kho & NCC)
+    app.use('/api/suppliers', supplierRoutes);
+    app.use('/api/stock-in', stockInRoutes);
+
+    // Module 5.9 – Stock-Out Management (Xuất kho & Hủy hàng)
+    app.use('/api/stock-out', stockOutRoutes);
+
+    // Module 5.10 – Medication Instructions (Hướng dẫn sử dụng thuốc)
+    app.use('/api/medication-instructions', medInstructionRoutes);
 
     // medical services
     app.use('/api/medical-services', medicalServiceRoutes);

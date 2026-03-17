@@ -87,6 +87,178 @@ prescriptionRoutes.get(
     PrescriptionController.searchDrugs
 );
 
+// =====================================================================
+// MODULE 5.9 – TRA CỨU & TÌM KIẾM ĐƠN THUỐC
+// =====================================================================
+
+/**
+ * @swagger
+ * /api/prescriptions/search:
+ *   get:
+ *     summary: Tìm kiếm đơn thuốc tổng hợp
+ *     description: |
+ *       Tìm kiếm đơn thuốc theo nhiều tiêu chí kết hợp: text search (mã đơn / tên bệnh nhân / tên bác sĩ),
+ *       trạng thái, bác sĩ kê, bệnh nhân, khoảng thời gian. Hỗ trợ phân trang.
+ *
+ *       Mỗi kết quả kèm `detail_count` — số dòng thuốc trong đơn.
+ *
+ *       **Phân quyền:** Yêu cầu đăng nhập + session hợp lệ.
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST (ai có quyền `EMR_PRESCRIPTION_VIEW`).
+ *     tags:
+ *       - "4.5 Prescription Management"
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *           example: ""
+ *         description: Text search (mã đơn / tên BN / tên BS)
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [DRAFT, PRESCRIBED, DISPENSED, CANCELLED]
+ *           example: ""
+ *         description: Lọc theo trạng thái
+ *       - in: query
+ *         name: doctor_id
+ *         schema:
+ *           type: string
+ *           example: ""
+ *         description: Lọc theo bác sĩ kê đơn
+ *       - in: query
+ *         name: patient_id
+ *         schema:
+ *           type: string
+ *           example: ""
+ *         description: Lọc theo bệnh nhân
+ *       - in: query
+ *         name: from_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: ""
+ *         description: Từ ngày
+ *       - in: query
+ *         name: to_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: ""
+ *         description: Đến ngày
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 20
+ *     responses:
+ *       200:
+ *         description: Tìm kiếm đơn thuốc thành công
+ *       401:
+ *         description: Chưa đăng nhập
+ */
+prescriptionRoutes.get(
+    '/search',
+    verifyAccessToken,
+    checkSessionStatus,
+    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
+    PrescriptionController.search
+);
+
+/**
+ * @swagger
+ * /api/prescriptions/search/stats:
+ *   get:
+ *     summary: Thống kê đơn thuốc theo trạng thái
+ *     description: |
+ *       Đếm số đơn thuốc theo từng trạng thái (DRAFT, PRESCRIBED, DISPENSED, CANCELLED).
+ *       Hỗ trợ filter theo bác sĩ, bệnh nhân, khoảng thời gian.
+ *       Dùng cho dashboard tổng quan.
+ *
+ *       **Phân quyền:** Yêu cầu đăng nhập + session hợp lệ.
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST (ai có quyền `EMR_PRESCRIPTION_VIEW`).
+ *     tags:
+ *       - "4.5 Prescription Management"
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: doctor_id
+ *         schema:
+ *           type: string
+ *           example: ""
+ *       - in: query
+ *         name: patient_id
+ *         schema:
+ *           type: string
+ *           example: ""
+ *       - in: query
+ *         name: from_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: ""
+ *       - in: query
+ *         name: to_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: ""
+ *     responses:
+ *       200:
+ *         description: Lấy thống kê thành công
+ */
+prescriptionRoutes.get(
+    '/search/stats',
+    verifyAccessToken,
+    checkSessionStatus,
+    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
+    PrescriptionController.getStats
+);
+
+/**
+ * @swagger
+ * /api/prescriptions/search/by-code/{code}:
+ *   get:
+ *     summary: Tìm đơn thuốc theo mã đơn
+ *     description: |
+ *       Tra cứu đơn thuốc bằng mã đơn (prescription_code). Trả về thông tin đơn kèm danh sách dòng thuốc chi tiết.
+ *
+ *       **Phân quyền:** Yêu cầu đăng nhập + session hợp lệ.
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST (ai có quyền `EMR_PRESCRIPTION_VIEW`).
+ *     tags:
+ *       - "4.5 Prescription Management"
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "RX-260317-2AA51C3D"
+ *         description: Mã đơn thuốc (prescription_code)
+ *     responses:
+ *       200:
+ *         description: Lấy đơn thuốc thành công
+ *       404:
+ *         description: Không tìm thấy đơn thuốc
+ */
+prescriptionRoutes.get(
+    '/search/by-code/:code',
+    verifyAccessToken,
+    checkSessionStatus,
+    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
+    PrescriptionController.searchByCode
+);
+
 /**
  * @swagger
  * /api/prescriptions/by-patient/{patientId}:
@@ -154,6 +326,102 @@ prescriptionRoutes.get(
     checkSessionStatus,
     authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.getByPatient
+);
+
+/**
+ * @swagger
+ * /api/prescriptions/by-doctor/{doctorId}:
+ *   get:
+ *     summary: Lịch sử đơn thuốc theo bác sĩ
+ *     description: |
+ *       Lấy danh sách tất cả đơn thuốc mà bác sĩ đã kê, hỗ trợ phân trang và lọc.
+ *       Dùng cho bác sĩ xem lại lịch sử kê đơn hoặc Admin tra cứu.
+ *
+ *       **Phân quyền:** Yêu cầu đăng nhập + session hợp lệ.
+ *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE (ai có quyền `EMR_PRESCRIPTION_VIEW`).
+ *     tags:
+ *       - "4.5 Prescription Management"
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: doctorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "USR_0001"
+ *         description: ID bác sĩ (users_id)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 20
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [DRAFT, PRESCRIBED, DISPENSED, CANCELLED]
+ *           example: ""
+ *         description: Lọc theo trạng thái
+ *       - in: query
+ *         name: from_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: ""
+ *       - in: query
+ *         name: to_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: ""
+ *     responses:
+ *       200:
+ *         description: Lấy lịch sử đơn thuốc theo bác sĩ thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy lịch sử đơn thuốc theo bác sĩ thành công"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền truy cập
+ *       404:
+ *         description: Bác sĩ không tồn tại
+ */
+prescriptionRoutes.get(
+    '/by-doctor/:doctorId',
+    verifyAccessToken,
+    checkSessionStatus,
+    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
+    PrescriptionController.getByDoctor
 );
 
 /**
