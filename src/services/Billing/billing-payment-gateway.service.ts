@@ -25,12 +25,10 @@ export class PaymentGatewayService {
         return `${prefix}_${randomUUID().substring(0, 16).replace(/-/g, '')}`;
     }
 
-    /** Tạo mã lệnh thanh toán: PO-20260318-WXYZ */
+    /** Tạo mã lệnh thanh toán: EHealth + 5 số ngẫu nhiên (VD: EHealth83921) */
     private static generateOrderCode(): string {
-        const now = new Date();
-        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-        const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-        return `${PAYMENT_GATEWAY_CONFIG.ORDER_CODE_PREFIX}-${dateStr}-${rand}`;
+        const rand = Math.floor(10000 + Math.random() * 90000);
+        return `EHealth${rand}`;
     }
 
     // QR GENERATION
@@ -68,14 +66,14 @@ export class PaymentGatewayService {
         if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
         if (!config.is_active) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_INACTIVE;
 
-        /* 5. Sinh mã order + QR URL */
+        /* 5. Sinh mã order + QR URL — nội dung CK chỉ là order_code */
         const orderId = this.generateId('PO');
         const orderCode = this.generateOrderCode();
-        const transferContent = `${PAYMENT_GATEWAY_CONFIG.TRANSFER_CONTENT_PREFIX} ${orderCode}`;
+        const transferContent = orderCode;
 
-        const vaAccount = config.va_account || config.bank_account_number || '';
+        const bankAccount = config.bank_account_number || config.va_account || '';
         const bankName = config.bank_name || 'MBBank';
-        const qrCodeUrl = generateSepayQRUrl(vaAccount, bankName, amount, transferContent);
+        const qrCodeUrl = generateSepayQRUrl(bankAccount, bankName, amount, transferContent);
 
         /* 6. Tính thời gian hết hạn */
         const expiresAt = new Date();
