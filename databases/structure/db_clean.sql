@@ -1720,3 +1720,423 @@ CREATE INDEX idx_audit_logs_module ON audit_logs(module_name);
 CREATE INDEX idx_audit_logs_created ON audit_logs(created_at DESC);
 CREATE INDEX idx_user_notifications_user ON user_notifications(user_id);
 CREATE INDEX idx_user_notifications_read ON user_notifications(is_read) WHERE is_read = FALSE;
+
+
+
+
+-- 1. Bảng warehouses
+CREATE TABLE IF NOT EXISTS warehouses (
+    warehouse_id     VARCHAR(50) PRIMARY KEY,
+    branch_id        VARCHAR(50) NOT NULL,
+    code             VARCHAR(50) NOT NULL,
+    name             VARCHAR(100) NOT NULL,
+    warehouse_type   VARCHAR(20) DEFAULT 'MAIN',  -- MAIN | SECONDARY
+    address          TEXT,
+    is_active        BOOLEAN DEFAULT TRUE,
+    created_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
+    UNIQUE(branch_id, code)
+);
+
+-- 2. Gắn pharmacy_inventory vào kho
+ALTER TABLE pharmacy_inventory
+    ADD COLUMN IF NOT EXISTS warehouse_id VARCHAR(50) REFERENCES warehouses(warehouse_id);
+
+
+
+-- 1. Kế hoạch điều trị
+CREATE TABLE treatment_plans (
+    treatment_plans_id VARCHAR(50) PRIMARY KEY,
+    plan_code VARCHAR(50) UNIQUE NOT NULL,
+    patient_id VARCHAR(50) NOT NULL,
+    primary_diagnosis_code VARCHAR(20) NOT NULL,
+    primary_diagnosis_name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    goals TEXT,
+    start_date DATE NOT NULL,
+    expected_end_date DATE,
+    actual_end_date DATE,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    created_by VARCHAR(50) NOT NULL,
+    created_encounter_id VARCHAR(50),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    FOREIGN KEY (created_encounter_id) REFERENCES encounters(encounters_id)
+);
+
+CREATE INDEX idx_tp_patient ON treatment_plans(patient_id);
+CREATE INDEX idx_tp_status ON treatment_plans(status);
+CREATE INDEX idx_tp_diagnosis ON treatment_plans(primary_diagnosis_code);
+
+-- 2. Ghi nhận diễn tiến
+CREATE TABLE treatment_progress_notes (
+    treatment_progress_notes_id VARCHAR(50) PRIMARY KEY,
+    plan_id VARCHAR(50) NOT NULL,
+    encounter_id VARCHAR(50),
+    note_type VARCHAR(50) NOT NULL,
+    title VARCHAR(255),
+    content TEXT NOT NULL,
+    severity VARCHAR(20) DEFAULT 'NORMAL',
+    recorded_by VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES treatment_plans(treatment_plans_id) ON DELETE CASCADE,
+    FOREIGN KEY (encounter_id) REFERENCES encounters(encounters_id),
+    FOREIGN KEY (recorded_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX idx_tpn_plan ON treatment_progress_notes(plan_id);
+CREATE INDEX idx_tpn_encounter ON treatment_progress_notes(encounter_id);
+CREATE INDEX idx_tpn_type ON treatment_progress_notes(note_type);
+
+-- 3. Liên kết chuỗi tái khám
+CREATE TABLE encounter_follow_up_links (
+    encounter_follow_up_links_id VARCHAR(50) PRIMARY KEY,
+    plan_id VARCHAR(50) NOT NULL,
+    previous_encounter_id VARCHAR(50) NOT NULL,
+    follow_up_encounter_id VARCHAR(50) NOT NULL,
+    follow_up_reason TEXT,
+    scheduled_date DATE,
+    actual_date DATE,
+    notes TEXT,
+    created_by VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES treatment_plans(treatment_plans_id) ON DELETE CASCADE,
+    FOREIGN KEY (previous_encounter_id) REFERENCES encounters(encounters_id),
+    FOREIGN KEY (follow_up_encounter_id) REFERENCES encounters(encounters_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    UNIQUE(previous_encounter_id, follow_up_encounter_id)
+);
+
+
+
+
+-- 1. Phiếu xuất kho
+CREATE TABLE IF NOT EXISTS stock_out_orders (
+    stock_out_order_id   VARCHAR(50) PRIMARY KEY,
+    order_code           VARCHAR(50) UNIQUE NOT NULL,
+    warehouse_id         VARCHAR(50) NOT NULL,
+    reason_type          VARCHAR(30) NOT NULL,
+    supplier_id          VARCHAR(50),
+    dest_warehouse_id    VARCHAR(50),
+    created_by           VARCHAR(50) NOT NULL,
+    status               VARCHAR(20) DEFAULT 'DRAFT',
+    notes                TEXT,
+    total_quantity       INT DEFAULT 0,
+    confirmed_at         TIMESTAMPTZ,
+    confirmed_by         VARCHAR(50),
+    cancelled_at         TIMESTAMPTZ,
+    cancelled_reason     TEXT,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(warehouse_id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
+    FOREIGN KEY (dest_warehouse_id) REFERENCES warehouses(warehouse_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    FOREIGN KEY (confirmed_by) REFERENCES users(users_id)
+);
+
+-- 2. Chi tiết xuất kho
+CREATE TABLE IF NOT EXISTS stock_out_details (
+    stock_out_detail_id  VARCHAR(50) PRIMARY KEY,
+    stock_out_order_id   VARCHAR(50) NOT NULL,
+    inventory_id         VARCHAR(50) NOT NULL,
+    drug_id              VARCHAR(50) NOT NULL,
+    batch_number         VARCHAR(100) NOT NULL,
+    quantity             INT NOT NULL,
+    reason_note          TEXT,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (stock_out_order_id) REFERENCES stock_out_orders(stock_out_order_id) ON DELETE CASCADE,
+    FOREIGN KEY (inventory_id) REFERENCES pharmacy_inventory(pharmacy_inventory_id),
+    FOREIGN KEY (drug_id) REFERENCES drugs(drugs_id)
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_stock_out_orders_warehouse ON stock_out_orders(warehouse_id);
+CREATE INDEX IF NOT EXISTS idx_stock_out_orders_status ON stock_out_orders(status);
+CREATE INDEX IF NOT EXISTS idx_stock_out_orders_reason ON stock_out_orders(reason_type);
+CREATE INDEX IF NOT EXISTS idx_stock_out_details_order ON stock_out_details(stock_out_order_id);
+
+
+
+-- 1. UNIQUE constraint: 1 encounter = 1 đơn thuốc
+ALTER TABLE prescriptions
+    ADD CONSTRAINT uq_prescriptions_encounter UNIQUE (encounter_id);
+
+-- 2. Liên kết chẩn đoán chính
+ALTER TABLE prescriptions
+    ADD COLUMN primary_diagnosis_id VARCHAR(50) NULL
+        REFERENCES encounter_diagnoses(encounter_diagnoses_id) ON DELETE SET NULL;
+
+-- 3. Timestamps quản lý vòng đời
+ALTER TABLE prescriptions
+    ADD COLUMN updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN cancelled_at TIMESTAMPTZ NULL,
+    ADD COLUMN cancelled_reason TEXT NULL;
+
+-- 4. Index tối ưu truy vấn
+CREATE INDEX idx_prescriptions_status ON prescriptions(status);
+CREATE INDEX idx_prescriptions_doctor ON prescriptions(doctor_id);
+CREATE INDEX idx_prescriptions_patient ON prescriptions(patient_id);
+
+
+
+-- 1. Bảng metadata EHR — 1:1 với patients
+-- Lưu ghi chú tổng hợp, mức rủi ro, thời điểm BS review gần nhất
+CREATE TABLE IF NOT EXISTS ehr_health_profiles (
+    ehr_profile_id       VARCHAR(50) PRIMARY KEY,
+    patient_id           VARCHAR(50) NOT NULL UNIQUE,
+    risk_level           VARCHAR(20) DEFAULT 'LOW',       -- LOW, MODERATE, HIGH, CRITICAL
+    ehr_notes            TEXT,                              -- Ghi chú tổng hợp của BS
+    last_reviewed_by     VARCHAR(50),                       -- BS xem xét gần nhất
+    last_reviewed_at     TIMESTAMPTZ,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (last_reviewed_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_ehr_profiles_patient ON ehr_health_profiles(patient_id);
+CREATE INDEX IF NOT EXISTS idx_ehr_profiles_risk ON ehr_health_profiles(risk_level);
+
+-- 2. Bảng cảnh báo y tế thủ công
+-- Cảnh báo TỰ ĐỘNG được tính runtime (không lưu DB), chỉ cảnh báo THỦ CÔNG lưu ở đây
+CREATE TABLE IF NOT EXISTS ehr_health_alerts (
+    alert_id             VARCHAR(50) PRIMARY KEY,
+    patient_id           VARCHAR(50) NOT NULL,
+    alert_type           VARCHAR(50) NOT NULL,              -- MANUAL_NOTE, DRUG_WARNING, CONDITION_NOTE
+    severity             VARCHAR(20) DEFAULT 'INFO',        -- INFO, WARNING, CRITICAL
+    title                VARCHAR(255) NOT NULL,
+    description          TEXT,
+    created_by           VARCHAR(50) NOT NULL,
+    is_active            BOOLEAN DEFAULT TRUE,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at           TIMESTAMPTZ,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+
+-- Bảng events thủ công trên timeline
+CREATE TABLE IF NOT EXISTS health_timeline_events (
+    event_id             VARCHAR(50) PRIMARY KEY,
+    patient_id           VARCHAR(50) NOT NULL,
+    event_type           VARCHAR(50) NOT NULL,        -- MANUAL_NOTE, EXTERNAL_VISIT, EXTERNAL_LAB, EXTERNAL_PROCEDURE
+    event_time           TIMESTAMPTZ NOT NULL,
+    title                VARCHAR(255) NOT NULL,
+    description          TEXT,
+    metadata             JSONB,                        -- Dữ liệu bổ sung tùy loại event
+    created_by           VARCHAR(50) NOT NULL,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at           TIMESTAMPTZ,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+
+
+-- 1. Bảng mới: Yếu tố nguy cơ
+CREATE TABLE IF NOT EXISTS patient_risk_factors (
+    risk_factor_id       VARCHAR(50) PRIMARY KEY,
+    patient_id           VARCHAR(50) NOT NULL,
+    factor_type          VARCHAR(50) NOT NULL,        -- SMOKING, ALCOHOL, OCCUPATION, LIFESTYLE, GENETIC, OTHER
+    severity             VARCHAR(20) DEFAULT 'LOW',   -- LOW, MODERATE, HIGH
+    details              TEXT NOT NULL,
+    start_date           DATE,
+    end_date             DATE,
+    is_active            BOOLEAN DEFAULT TRUE,
+    recorded_by          VARCHAR(50),
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at           TIMESTAMPTZ,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (recorded_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_prf_patient ON patient_risk_factors(patient_id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_prf_type ON patient_risk_factors(factor_type) WHERE deleted_at IS NULL;
+
+-- 2. Bảng mới: Tình trạng đặc biệt
+CREATE TABLE IF NOT EXISTS patient_special_conditions (
+    special_condition_id VARCHAR(50) PRIMARY KEY,
+    patient_id           VARCHAR(50) NOT NULL,
+    condition_type       VARCHAR(50) NOT NULL,        -- PREGNANCY, DISABILITY, IMPLANT, TRANSPLANT, INFECTIOUS, MENTAL_HEALTH, OTHER
+    description          TEXT NOT NULL,
+    start_date           DATE,
+    end_date             DATE,
+    is_active            BOOLEAN DEFAULT TRUE,
+    recorded_by          VARCHAR(50),
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at           TIMESTAMPTZ,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (recorded_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_psc_patient ON patient_special_conditions(patient_id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_psc_type ON patient_special_conditions(condition_type) WHERE deleted_at IS NULL;
+
+-- 3. Bổ sung cột cho patient_medical_histories (tiền sử bệnh)
+ALTER TABLE patient_medical_histories
+    ADD COLUMN IF NOT EXISTS relationship VARCHAR(50),       -- FATHER, MOTHER, SIBLING... (chỉ dùng khi history_type=FAMILY)
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_pmh_patient ON patient_medical_histories(patient_id);
+CREATE INDEX IF NOT EXISTS idx_pmh_type ON patient_medical_histories(history_type);
+
+-- 4. Bổ sung cột cho patient_allergies (dị ứng)
+ALTER TABLE patient_allergies
+    ADD COLUMN IF NOT EXISTS reported_by VARCHAR(50) REFERENCES users(users_id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_pa_patient ON patient_allergies(patient_id);
+CREATE INDEX IF NOT EXISTS idx_pa_type ON patient_allergies(allergen_type);
+
+
+
+
+-- 1. Bảng mới: Theo dõi tuân thủ dùng thuốc
+CREATE TABLE IF NOT EXISTS ehr_medication_adherence (
+    adherence_id             VARCHAR(50) PRIMARY KEY,
+    patient_id               VARCHAR(50) NOT NULL,
+    prescription_detail_id   VARCHAR(50) NOT NULL,
+    adherence_date           DATE NOT NULL,
+    taken                    BOOLEAN NOT NULL DEFAULT TRUE,
+    skip_reason              TEXT,
+    recorded_by              VARCHAR(50),
+    created_at               TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (prescription_detail_id) REFERENCES prescription_details(prescription_details_id) ON DELETE CASCADE,
+    FOREIGN KEY (recorded_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+
+
+-- 1. Bảng mới: Ngưỡng tham chiếu chuẩn hóa
+CREATE TABLE IF NOT EXISTS vital_reference_ranges (
+    range_id         VARCHAR(50) PRIMARY KEY,
+    metric_code      VARCHAR(50) NOT NULL,
+    metric_name      VARCHAR(100) NOT NULL,
+    unit             VARCHAR(20) NOT NULL,
+    normal_min       DECIMAL(10,2),
+    normal_max       DECIMAL(10,2),
+    warning_min      DECIMAL(10,2),
+    warning_max      DECIMAL(10,2),
+    critical_min     DECIMAL(10,2),
+    critical_max     DECIMAL(10,2),
+    age_group        VARCHAR(20) DEFAULT 'ADULT',
+    gender           VARCHAR(10) DEFAULT 'ALL',
+    is_active        BOOLEAN DEFAULT TRUE
+);
+
+
+
+
+-- 1. Quản lý nguồn dữ liệu
+CREATE TABLE IF NOT EXISTS ehr_data_sources (
+    source_id          VARCHAR(50) PRIMARY KEY,
+    source_name        VARCHAR(255) NOT NULL,
+    source_type        VARCHAR(50) NOT NULL,
+    protocol           VARCHAR(50) DEFAULT 'MANUAL',
+    endpoint_url       VARCHAR(500),
+    api_key_encrypted  TEXT,
+    contact_info       VARCHAR(255),
+    description        TEXT,
+    is_active          BOOLEAN DEFAULT TRUE,
+    created_by         VARCHAR(50),
+    created_at         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_eds_type ON ehr_data_sources(source_type);
+CREATE INDEX IF NOT EXISTS idx_eds_active ON ehr_data_sources(is_active);
+
+-- 2. Log đồng bộ thiết bị y tế
+CREATE TABLE IF NOT EXISTS ehr_device_sync_log (
+    sync_log_id        VARCHAR(50) PRIMARY KEY,
+    patient_id         VARCHAR(50) NOT NULL,
+    source_id          VARCHAR(50),
+    device_name        VARCHAR(255) NOT NULL,
+    device_type        VARCHAR(50),
+    sync_time          TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    records_synced     INT DEFAULT 0,
+    status             VARCHAR(50) DEFAULT 'SUCCESS',
+    error_message      TEXT,
+    synced_by          VARCHAR(50),
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (source_id) REFERENCES ehr_data_sources(source_id),
+    FOREIGN KEY (synced_by) REFERENCES users(users_id)
+);
+
+
+
+
+-- 1. Chính sách giá linh hoạt theo đối tượng bệnh nhân
+-- Mỗi dịch vụ cơ sở có thể có NHIỀU chính sách giá cho các đối tượng khác nhau
+CREATE TABLE IF NOT EXISTS service_price_policies (
+    policy_id            VARCHAR(50) PRIMARY KEY,
+    facility_service_id  VARCHAR(50) NOT NULL,
+    patient_type         VARCHAR(50) NOT NULL,           -- STANDARD, INSURANCE, VIP, EMPLOYEE, CHILD, ELDERLY
+    price                DECIMAL(12,2) NOT NULL,
+    currency             VARCHAR(10) DEFAULT 'VND',
+    description          TEXT,
+    effective_from       DATE NOT NULL,
+    effective_to         DATE,                           -- NULL = vô thời hạn
+    is_active            BOOLEAN DEFAULT TRUE,
+    created_by           VARCHAR(50) NOT NULL,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_service_id) REFERENCES facility_services(facility_services_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    UNIQUE(facility_service_id, patient_type, effective_from)
+);
+
+-- 2. Giá theo chuyên khoa
+-- Cùng 1 dịch vụ cơ sở, chuyên khoa khác nhau có thể áp dụng giá khác nhau
+CREATE TABLE IF NOT EXISTS facility_service_specialty_prices (
+    specialty_price_id   VARCHAR(50) PRIMARY KEY,
+    facility_service_id  VARCHAR(50) NOT NULL,
+    specialty_id         VARCHAR(50) NOT NULL,
+    patient_type         VARCHAR(50) DEFAULT 'STANDARD',
+    price                DECIMAL(12,2) NOT NULL,
+    effective_from       DATE NOT NULL,
+    effective_to         DATE,
+    is_active            BOOLEAN DEFAULT TRUE,
+    created_by           VARCHAR(50) NOT NULL,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_service_id) REFERENCES facility_services(facility_services_id) ON DELETE CASCADE,
+    FOREIGN KEY (specialty_id) REFERENCES specialties(specialties_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    UNIQUE(facility_service_id, specialty_id, patient_type, effective_from)
+);
+
+-- 3. Lịch sử thay đổi giá (Audit Trail)
+CREATE TABLE IF NOT EXISTS service_price_history (
+    history_id           VARCHAR(50) PRIMARY KEY,
+    facility_service_id  VARCHAR(50) NOT NULL,
+    change_type          VARCHAR(20) NOT NULL,            -- CREATE, UPDATE, DELETE
+    change_source        VARCHAR(50) NOT NULL,            -- PRICE_POLICY, SPECIALTY_PRICE, FACILITY_SERVICE
+    reference_id         VARCHAR(50) NOT NULL,            -- ID bản ghi bị thay đổi
+    patient_type         VARCHAR(50),
+    specialty_id         VARCHAR(50),
+    old_price            DECIMAL(12,2),
+    new_price            DECIMAL(12,2),
+    old_effective_from   DATE,
+    new_effective_from   DATE,
+    old_effective_to     DATE,
+    new_effective_to     DATE,
+    reason               TEXT,
+    changed_by           VARCHAR(50) NOT NULL,
+    changed_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_service_id) REFERENCES facility_services(facility_services_id) ON DELETE CASCADE,
+    FOREIGN KEY (changed_by) REFERENCES users(users_id)
+);

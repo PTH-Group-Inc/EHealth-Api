@@ -75,6 +75,16 @@ import { supplierRoutes } from './Medication Management/supplier.routes';
 import { stockInRoutes } from './Medication Management/stock-in.routes';
 import { stockOutRoutes } from './Medication Management/stock-out.routes';
 import { medInstructionRoutes } from './Medication Management/med-instruction.routes';
+import { healthProfileRoutes } from './EHR/health-profile.routes';
+import { healthTimelineRoutes } from './EHR/health-timeline.routes';
+import { medicalHistoryEhrRoutes } from './EHR/medical-history-ehr.routes';
+import { clinicalResultsRoutes } from './EHR/clinical-results.routes';
+import { medicationTreatmentRoutes } from './EHR/medication-treatment.routes';
+import { vitalSignsRoutes } from './EHR/vital-signs.routes';
+import { dataIntegrationRoutes } from './EHR/data-integration.routes';
+import billingPricingRoutes from './Billing/billing-pricing.routes';
+import billingInvoiceRoutes from './Billing/billing-invoices.routes';
+import billingPaymentGatewayRoutes from './Billing/billing-payment-gateway.routes';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -285,5 +295,37 @@ export const initRoutes = (app: Express) => {
 
     // Module 4.8 – Medical Sign-off (Ký số & Xác nhận Hồ sơ Y khoa)
     app.use('/api/sign-off', signOffRoutes);
+
+    // ═══ MODULE 6: HỒ SƠ SỨC KHỎE ĐIỆN TỬ (EHR) ═══
+    // Module 6.1 – Patient Health Profile (Hồ sơ sức khỏe tổng hợp)
+    app.use('/api/ehr', healthProfileRoutes);
+
+    // Module 6.2 – Health Timeline (Dòng thời gian sức khỏe)
+    app.use('/api/ehr', healthTimelineRoutes);
+
+    // Module 6.3 – Medical History & Risk Factors (Tiền sử bệnh & yếu tố nguy cơ)
+    app.use('/api/ehr', medicalHistoryEhrRoutes);
+
+    // Module 6.4 – Clinical Results (Kết quả xét nghiệm & cận lâm sàng)
+    app.use('/api/ehr', clinicalResultsRoutes);
+
+    // Module 6.5 – Medication & Treatment Records (Hồ sơ đơn thuốc & điều trị)
+    app.use('/api/ehr', medicationTreatmentRoutes);
+
+    // Module 6.6 – Vital Signs & Health Metrics (Chỉ số sức khỏe & sinh hiệu)
+    app.use('/api/ehr', vitalSignsRoutes);
+
+    // Module 6.8 – Data Integration (Đồng bộ dữ liệu & tích hợp bên ngoài)
+    app.use('/api/ehr', dataIntegrationRoutes);
+
+    // ═══ MODULE 9: THANH TOÁN (BILLING) ═══
+    // Module 9.1 – Quản lý danh mục dịch vụ & bảng giá
+    app.use('/api/billing/pricing', billingPricingRoutes);
+
+    // Module 9.2 – Thu phí khám & dịch vụ y tế
+    app.use('/api/billing', billingInvoiceRoutes);
+
+    // Module 9.3 – Thanh toán trực tuyến (SePay)
+    app.use('/api/billing/payments', billingPaymentGatewayRoutes);
 }
 
