@@ -137,10 +137,11 @@ export class PaymentGatewayRepository {
 
         const normalized = content.toUpperCase();
 
-        const match = normalized.match(/PO-?(\d{8})-?([A-Z0-9]{4})/);
+        /* Match pattern: EHEALTH + 5 số (VD: EHEALTH83921) */
+        const match = normalized.match(/EHEALTH(\d{5})/);
         if (!match) return null;
 
-        const orderCode = `PO-${match[1]}-${match[2]}`;
+        const orderCode = `EHealth${match[1]}`;
         return await this.getOrderByCode(orderCode);
     }
 

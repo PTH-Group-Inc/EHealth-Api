@@ -60,7 +60,7 @@ INSERT INTO payment_gateway_config (
     environment, bank_account_number, bank_name, account_holder, va_account
 ) VALUES (
     'GW_SEPAY', 'SEPAY', '8327', 'HUEWBOCJK4A1QAAHI5XIF95FHL3RKTRJ62OE90UWNTPDTRDBR471YLX8IVQ0MNJG',
-    'PRODUCTION', '3015112004', 'MBBank', 'PHAN THANH HAI', 'VQRQAHSGO9410'
+    'PRODUCTION', '3015112004', 'MBBank', 'PHAN THANH HAI', '3015112004'
 ) ON CONFLICT (gateway_name) DO NOTHING;
 
 -- 6. PERMISSIONS
