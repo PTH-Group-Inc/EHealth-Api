@@ -15,12 +15,12 @@ export const verifySepayWebhook = (req: Request, res: Response, next: NextFuncti
         return;
     }
 
-    const apiKey = process.env.SEPAY_API_KEY || '';
+    const webhookSecret = process.env.SEPAY_WEBHOOK_SECRET || '';
 
-    /* SePay format: "Apikey xxx" hoặc "Bearer xxx" */
+    /* SePay format: "Apikey xxx" */
     const token = authHeader.replace(/^(Apikey|Bearer)\s+/i, '');
 
-    if (token !== apiKey) {
+    if (token !== webhookSecret) {
         res.status(401).json({
             success: false,
             ...PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED,
