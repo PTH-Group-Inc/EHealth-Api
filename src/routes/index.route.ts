@@ -85,6 +85,8 @@ import { dataIntegrationRoutes } from './EHR/data-integration.routes';
 import billingPricingRoutes from './Billing/billing-pricing.routes';
 import billingInvoiceRoutes from './Billing/billing-invoices.routes';
 import billingPaymentGatewayRoutes from './Billing/billing-payment-gateway.routes';
+import { verifySepayWebhook } from '../middleware/verifyWebhook.middleware';
+import { sepayWebhook } from '../controllers/Billing/billing-payment-gateway.controller';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
 export const initRoutes = (app: Express) => {
@@ -327,5 +329,8 @@ export const initRoutes = (app: Express) => {
 
     // Module 9.3 – Thanh toán trực tuyến (SePay)
     app.use('/api/billing/payments', billingPaymentGatewayRoutes);
+
+    // Webhook alias — Nginx strip /api/ nên SePay gọi /api/hooks/sepay-payment → Express nhận /hooks/sepay-payment
+    app.post('/hooks/sepay-payment', verifySepayWebhook, sepayWebhook);
 }
 
