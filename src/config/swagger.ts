@@ -294,8 +294,33 @@ const options = {
       { name: '5.9 Stock-Out Management', description: 'API Xuất kho & Hủy hàng: hủy thuốc, trả NCC, chuyển kho, hao hụt' },
       { name: '5.10 Medication Instructions', description: 'API Hướng dẫn sử dụng thuốc: mẫu chuẩn hóa (DOSAGE/FREQUENCY/ROUTE/INSTRUCTION) + hướng dẫn mặc định theo thuốc' },
 
+      // ===== MODULE 6: HỒ SƠ SỨC KHỎE ĐIỆN TỬ (EHR) =====
+      { name: '6.1 Patient Health Profile', description: 'API Hồ sơ sức khỏe tổng hợp: panorama sức khỏe, sinh hiệu, bệnh lý, dị ứng, thuốc đang dùng, lịch sử chẩn đoán, bảo hiểm, cảnh báo y tế (tự động + thủ công), ghi chú EHR' },
+      { name: '6.2 Health Timeline', description: 'API Dòng thời gian sức khỏe: hợp nhất events từ 11 bảng EMR, thống kê, lọc theo encounter/ICD-10, sự kiện thủ công' },
+      { name: '6.3 Medical History', description: 'API Tiền sử bệnh & yếu tố nguy cơ: CRUD tiền sử cá nhân/gia đình, dị ứng, yếu tố nguy cơ, tình trạng đặc biệt' },
+      { name: '6.4 Clinical Results', description: 'API Kết quả xét nghiệm & cận lâm sàng: danh sách kết quả, chi tiết, xu hướng, thống kê, file đính kèm, bất thường' },
+      { name: '6.5 Medication & Treatment', description: 'API Hồ sơ đơn thuốc & điều trị: lịch sử đơn thuốc, thuốc đang dùng, kế hoạch điều trị, tuân thủ, tương tác, timeline' },
+      { name: '6.6 Vital Signs', description: 'API Chỉ số sức khỏe & sinh hiệu: lịch sử sinh hiệu, xu hướng, bất thường, tổng hợp BMI/BP, health metrics, timeline hợp nhất' },
+      { name: '6.8 Data Integration', description: 'API Đồng bộ dữ liệu & tích hợp bên ngoài: nguồn dữ liệu, hồ sơ bên ngoài, HL7/FHIR, thiết bị, dashboard' },
 
+      // ===== MODULE 9: THANH TOÁN (BILLING) =====
+      { name: '9.1.1 Danh mục dịch vụ & bảng giá', description: 'Danh mục tổng hợp dịch vụ y tế (khám, cận lâm sàng) và bảng giá tại từng cơ sở' },
+      { name: '9.1.2 Chính sách giá theo đối tượng', description: 'Quản lý chính sách giá linh hoạt theo đối tượng bệnh nhân (thường, BHYT, VIP, nhân viên, trẻ em, người cao tuổi), tạo hàng loạt, tra cứu giá cuối cùng' },
+      { name: '9.1.3 Giá theo chuyên khoa', description: 'Override giá cho từng chuyên khoa cụ thể, cùng 1 dịch vụ chuyên khoa khác nhau có thể có giá khác nhau' },
+      { name: '9.1.4 Lịch sử & thống kê bảng giá', description: 'Audit trail thay đổi giá, thống kê tổng hợp, so sánh giá liên cơ sở, cảnh báo chính sách sắp hết hạn' },
 
+      // Module 9.2: Thu phí khám & dịch vụ y tế
+      { name: '9.2.1 Quản lý Hóa đơn', description: 'Tạo HĐ thủ công / tự động từ encounter, gom phí khám + CLS + thuốc, cập nhật, hủy, tra cứu theo encounter/BN' },
+      { name: '9.2.2 Chi tiết Hóa đơn', description: 'Thêm/sửa/xóa dòng chi tiết (CONSULTATION/LAB_ORDER/DRUG), tính lại tổng tiền tự động' },
+      { name: '9.2.3 Thanh toán', description: 'Ghi nhận thanh toán (CASH/CARD/VNPAY/MOMO), thanh toán 1 phần, hoàn tiền, kiểm tra overpayment' },
+      { name: '9.2.4 Ca thu ngân', description: 'Mở/đóng ca thu ngân, tính system balance tự động, phát hiện chênh lệch (DISCREPANCY)' },
+      { name: '9.2.5 Thống kê doanh thu', description: 'Thống kê doanh thu theo cơ sở, claim BHYT, phân tích theo status' },
+
+      // Module 9.3: Thanh toán trực tuyến (SePay)
+      { name: '9.3 Payment Orders', description: 'Sinh QR Code VietQR qua SePay, quản lý lệnh thanh toán, kiểm tra trạng thái (polling)' },
+      { name: '9.3 Webhook', description: 'Webhook nhận callback từ SePay khi phát hiện giao dịch, xác minh thủ công qua SePay API' },
+      { name: '9.3 Gateway Config', description: 'Cấu hình cổng thanh toán SePay: API Key, tài khoản VA, bank, test kết nối' },
+      { name: '9.3 Online Payment Stats', description: 'Lịch sử & thống kê thanh toán online: tổng orders, tỷ lệ thành công, doanh thu' },
 
     ]
   },
