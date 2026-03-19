@@ -2140,3 +2140,654 @@ CREATE TABLE IF NOT EXISTS service_price_history (
     FOREIGN KEY (facility_service_id) REFERENCES facility_services(facility_services_id) ON DELETE CASCADE,
     FOREIGN KEY (changed_by) REFERENCES users(users_id)
 );
+
+
+
+-- =====================================================================
+-- 1. ALTER bảng invoices — bổ sung cột
+-- =====================================================================
+ALTER TABLE invoices
+    ADD COLUMN IF NOT EXISTS facility_id      VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS notes            TEXT,
+    ADD COLUMN IF NOT EXISTS cancelled_reason TEXT,
+    ADD COLUMN IF NOT EXISTS cancelled_by     VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS cancelled_at     TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS updated_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+
+-- FK facility_id → facilities
+DO $$ BEGIN
+    ALTER TABLE invoices
+        ADD CONSTRAINT fk_invoices_facility
+        FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- FK cancelled_by → users
+DO $$ BEGIN
+    ALTER TABLE invoices
+        ADD CONSTRAINT fk_invoices_cancelled_by
+        FOREIGN KEY (cancelled_by) REFERENCES users(users_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =====================================================================
+-- 2. ALTER bảng invoice_details — bổ sung cột
+-- =====================================================================
+ALTER TABLE invoice_details
+    ADD COLUMN IF NOT EXISTS discount_amount   DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS insurance_covered  DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS patient_pays       DECIMAL(12,2),
+    ADD COLUMN IF NOT EXISTS notes              TEXT;
+
+-- =====================================================================
+-- 3. ALTER bảng payment_transactions — bổ sung cột
+-- =====================================================================
+ALTER TABLE payment_transactions
+    ADD COLUMN IF NOT EXISTS notes         TEXT,
+    ADD COLUMN IF NOT EXISTS refund_reason TEXT,
+    ADD COLUMN IF NOT EXISTS created_at    TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+
+-- =====================================================================
+-- 4. Bảng mới: invoice_insurance_claims
+-- Lưu thông tin claim BHYT cho từng hóa đơn
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS invoice_insurance_claims (
+    claim_id               VARCHAR(50) PRIMARY KEY,
+    invoice_id             VARCHAR(50) NOT NULL,
+    patient_insurance_id   VARCHAR(50) NOT NULL,
+    coverage_percent       DECIMAL(5,2) NOT NULL,
+    total_claimable        DECIMAL(12,2) NOT NULL DEFAULT 0,
+    approved_amount        DECIMAL(12,2) DEFAULT 0,
+    claim_status           VARCHAR(50) DEFAULT 'PENDING',  -- PENDING, APPROVED, REJECTED, PARTIAL
+    submitted_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    processed_at           TIMESTAMPTZ,
+    notes                  TEXT,
+    created_by             VARCHAR(50),
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id) ON DELETE CASCADE,
+    FOREIGN KEY (patient_insurance_id) REFERENCES patient_insurances(patient_insurances_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    UNIQUE(invoice_id)
+);
+
+
+
+-- 1. BẢNG LỆNH THANH TOÁN QR (Payment Orders)
+CREATE TABLE IF NOT EXISTS payment_orders (
+    payment_orders_id       VARCHAR(50) PRIMARY KEY,
+    order_code              VARCHAR(100) UNIQUE NOT NULL,
+    invoice_id              VARCHAR(50) NOT NULL,
+    amount                  DECIMAL(12,2) NOT NULL,
+    description             VARCHAR(500),
+    qr_code_url             TEXT,
+    payment_url             TEXT,
+    gateway_order_id        VARCHAR(255),
+    status                  VARCHAR(30) DEFAULT 'PENDING',
+    expires_at              TIMESTAMPTZ NOT NULL,
+    paid_at                 TIMESTAMPTZ,
+    gateway_transaction_id  VARCHAR(255),
+    gateway_response        JSONB,
+    created_by              VARCHAR(50),
+    created_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+-- 2. BẢNG CẤU HÌNH CỔNG THANH TOÁN (Payment Gateway Config)
+CREATE TABLE IF NOT EXISTS payment_gateway_config (
+    config_id               VARCHAR(50) PRIMARY KEY,
+    gateway_name            VARCHAR(50) UNIQUE NOT NULL,
+    merchant_id             VARCHAR(255),
+    api_key                 VARCHAR(500),
+    secret_key              VARCHAR(500),
+    webhook_secret          VARCHAR(500),
+    environment             VARCHAR(20) DEFAULT 'SANDBOX',
+    bank_account_number     VARCHAR(50),
+    bank_name               VARCHAR(100),
+    account_holder          VARCHAR(255),
+    va_account              VARCHAR(50),
+    is_active               BOOLEAN DEFAULT TRUE,
+    config_data             JSONB,
+    created_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- =====================================================================
+-- 1. Bảng mới: pos_terminals — Quản lý thiết bị POS/máy quẹt thẻ
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS pos_terminals (
+    terminal_id          VARCHAR(50) PRIMARY KEY,
+    terminal_code        VARCHAR(50) UNIQUE NOT NULL,
+    terminal_name        VARCHAR(100) NOT NULL,
+    terminal_type        VARCHAR(30) DEFAULT 'COMBO',       -- CARD_READER | QR_SCANNER | COMBO
+    brand                VARCHAR(100),
+    model                VARCHAR(100),
+    serial_number        VARCHAR(100),
+    location_description VARCHAR(255),
+    branch_id            VARCHAR(50) NOT NULL,
+    is_active            BOOLEAN DEFAULT TRUE,
+    created_by           VARCHAR(50),
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pos_terminals_branch ON pos_terminals(branch_id);
+CREATE INDEX IF NOT EXISTS idx_pos_terminals_active ON pos_terminals(is_active) WHERE is_active = TRUE;
+
+-- =====================================================================
+-- 2. ALTER bảng payment_transactions — bổ sung thông tin POS & VOID
+-- =====================================================================
+ALTER TABLE payment_transactions
+    ADD COLUMN IF NOT EXISTS terminal_id    VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS shift_id       VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS approval_code  VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS card_last_four VARCHAR(4),
+    ADD COLUMN IF NOT EXISTS card_brand     VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS voided_at      TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS voided_by      VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS void_reason    TEXT;
+
+-- FK terminal_id → pos_terminals
+DO $$ BEGIN
+    ALTER TABLE payment_transactions
+        ADD CONSTRAINT fk_payment_trans_terminal
+        FOREIGN KEY (terminal_id) REFERENCES pos_terminals(terminal_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- FK shift_id → cashier_shifts
+DO $$ BEGIN
+    ALTER TABLE payment_transactions
+        ADD CONSTRAINT fk_payment_trans_shift
+        FOREIGN KEY (shift_id) REFERENCES cashier_shifts(cashier_shifts_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- FK voided_by → users
+DO $$ BEGIN
+    ALTER TABLE payment_transactions
+        ADD CONSTRAINT fk_payment_trans_voided_by
+        FOREIGN KEY (voided_by) REFERENCES users(users_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_payment_trans_shift ON payment_transactions(shift_id);
+CREATE INDEX IF NOT EXISTS idx_payment_trans_terminal ON payment_transactions(terminal_id);
+CREATE INDEX IF NOT EXISTS idx_payment_trans_voided ON payment_transactions(voided_at) WHERE voided_at IS NOT NULL;
+
+-- =====================================================================
+-- 3. ALTER bảng cashier_shifts — bổ sung thông tin chi nhánh & thống kê
+-- =====================================================================
+ALTER TABLE cashier_shifts
+    ADD COLUMN IF NOT EXISTS branch_id                VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS facility_id              VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS total_cash_payments      DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_card_payments      DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_transfer_payments  DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_refunds            DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_voids              DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS transaction_count        INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS closed_by                VARCHAR(50);
+
+-- FK branch_id → branches
+DO $$ BEGIN
+    ALTER TABLE cashier_shifts
+        ADD CONSTRAINT fk_cashier_shifts_branch
+        FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- FK facility_id → facilities
+DO $$ BEGIN
+    ALTER TABLE cashier_shifts
+        ADD CONSTRAINT fk_cashier_shifts_facility
+        FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- FK closed_by → users
+DO $$ BEGIN
+    ALTER TABLE cashier_shifts
+        ADD CONSTRAINT fk_cashier_shifts_closed_by
+        FOREIGN KEY (closed_by) REFERENCES users(users_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_cashier_shifts_branch ON cashier_shifts(branch_id);
+CREATE INDEX IF NOT EXISTS idx_cashier_shifts_facility ON cashier_shifts(facility_id);
+
+-- =====================================================================
+-- 4. Bảng mới: payment_receipts — Biên lai thanh toán
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS payment_receipts (
+    receipt_id                 VARCHAR(50) PRIMARY KEY,
+    receipt_number             VARCHAR(100) UNIQUE NOT NULL,      -- RCP-YYYYMMDD-XXXX
+    payment_transaction_id     VARCHAR(50) NOT NULL,
+    invoice_id                 VARCHAR(50) NOT NULL,
+    patient_id                 VARCHAR(50) NOT NULL,
+    -- Snapshot thông tin tại thời điểm in
+    patient_name               VARCHAR(255) NOT NULL,
+    patient_code               VARCHAR(50),
+    facility_name              VARCHAR(255),
+    facility_address           TEXT,
+    cashier_name               VARCHAR(255) NOT NULL,
+    cashier_id                 VARCHAR(50) NOT NULL,
+    items_snapshot             JSONB NOT NULL,                     -- [{item_name, qty, unit_price, subtotal, discount, insurance}]
+    total_amount               DECIMAL(12,2) NOT NULL DEFAULT 0,
+    discount_amount            DECIMAL(12,2) DEFAULT 0,
+    insurance_amount           DECIMAL(12,2) DEFAULT 0,
+    net_amount                 DECIMAL(12,2) NOT NULL DEFAULT 0,
+    paid_amount                DECIMAL(12,2) NOT NULL DEFAULT 0,
+    payment_method             VARCHAR(50) NOT NULL,
+    change_amount              DECIMAL(12,2) DEFAULT 0,           -- Tiền thừa
+    receipt_type               VARCHAR(20) DEFAULT 'PAYMENT',     -- PAYMENT | REFUND | VOID
+    printed_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    reprint_count              INT DEFAULT 0,
+    voided_at                  TIMESTAMPTZ,
+    voided_by                  VARCHAR(50),
+    void_reason                TEXT,
+    shift_id                   VARCHAR(50),
+    created_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (payment_transaction_id) REFERENCES payment_transactions(payment_transactions_id),
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id),
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (cashier_id) REFERENCES users(users_id),
+    FOREIGN KEY (voided_by) REFERENCES users(users_id),
+    FOREIGN KEY (shift_id) REFERENCES cashier_shifts(cashier_shifts_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_receipts_transaction ON payment_receipts(payment_transaction_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_invoice ON payment_receipts(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_shift ON payment_receipts(shift_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_number ON payment_receipts(receipt_number);
+CREATE INDEX IF NOT EXISTS idx_receipts_type ON payment_receipts(receipt_type);
+
+-- =====================================================================
+-- 5. Bảng mới: shift_cash_denominations — Mệnh giá tiền khi đóng ca
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS shift_cash_denominations (
+    denomination_id      VARCHAR(50) PRIMARY KEY,
+    shift_id             VARCHAR(50) NOT NULL,
+    denomination_value   INT NOT NULL,                  -- 500000, 200000, 100000, ...
+    quantity             INT NOT NULL DEFAULT 0,
+    subtotal             DECIMAL(12,2) NOT NULL DEFAULT 0,
+    created_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (shift_id) REFERENCES cashier_shifts(cashier_shifts_id) ON DELETE CASCADE,
+    UNIQUE(shift_id, denomination_value)
+);
+
+
+-- =====================================================================
+-- 1. Bảng mới: e_invoice_config — Cấu hình phát hành HĐĐT theo cơ sở
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS e_invoice_config (
+    config_id              VARCHAR(50) PRIMARY KEY,
+    facility_id            VARCHAR(50) NOT NULL,
+    seller_name            VARCHAR(255) NOT NULL,
+    seller_tax_code        VARCHAR(20) NOT NULL,
+    seller_address         TEXT,
+    seller_phone           VARCHAR(20),
+    seller_bank_account    VARCHAR(50),
+    seller_bank_name       VARCHAR(100),
+    invoice_template       VARCHAR(20) DEFAULT '1C24TAA',    -- Ký hiệu mẫu số
+    invoice_series         VARCHAR(20) DEFAULT 'C24TAA',     -- Ký hiệu hóa đơn
+    current_number         INT DEFAULT 0,                     -- Số HĐ hiện tại (auto-increment)
+    tax_rate_default       DECIMAL(5,2) DEFAULT 0,            -- Thuế suất mặc định: 0, 5, 8, 10
+    currency_default       VARCHAR(10) DEFAULT 'VND',
+    is_active              BOOLEAN DEFAULT TRUE,
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    UNIQUE(facility_id)
+);
+
+-- =====================================================================
+-- 2. Bảng mới: e_invoices — Hóa đơn điện tử chính thức
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS e_invoices (
+    e_invoice_id           VARCHAR(50) PRIMARY KEY,
+    e_invoice_number       VARCHAR(20) NOT NULL,              -- Số HĐĐT liên tục: 00000001
+    invoice_template       VARCHAR(20) NOT NULL,              -- Ký hiệu mẫu: 1C24TAA
+    invoice_series         VARCHAR(20) NOT NULL,              -- Ký hiệu HĐ: C24TAA
+    lookup_code            VARCHAR(50),                       -- Mã tra cứu CQT
+    invoice_id             VARCHAR(50),                       -- Liên kết HĐ nội bộ (Module 9.2)
+    payment_transaction_id VARCHAR(50),                       -- Giao dịch thanh toán
+    invoice_type           VARCHAR(20) DEFAULT 'SALES',       -- SALES | VAT
+    -- Bên bán (snapshot)
+    seller_name            VARCHAR(255) NOT NULL,
+    seller_tax_code        VARCHAR(20) NOT NULL,
+    seller_address         TEXT,
+    seller_phone           VARCHAR(20),
+    seller_bank_account    VARCHAR(50),
+    seller_bank_name       VARCHAR(100),
+    -- Bên mua (snapshot)
+    buyer_name             VARCHAR(255),
+    buyer_tax_code         VARCHAR(20),
+    buyer_address          TEXT,
+    buyer_email            VARCHAR(255),
+    buyer_type             VARCHAR(20) DEFAULT 'INDIVIDUAL',  -- INDIVIDUAL | COMPANY
+    -- Tài chính
+    total_before_tax       DECIMAL(12,2) NOT NULL DEFAULT 0,
+    tax_rate               DECIMAL(5,2) DEFAULT 0,
+    tax_amount             DECIMAL(12,2) DEFAULT 0,
+    total_after_tax        DECIMAL(12,2) NOT NULL DEFAULT 0,
+    discount_amount        DECIMAL(12,2) DEFAULT 0,
+    payment_method_text    VARCHAR(100),                       -- "Tiền mặt", "Chuyển khoản"...
+    amount_in_words        TEXT,                               -- Số tiền bằng chữ
+    -- Trạng thái & ký số
+    status                 VARCHAR(20) DEFAULT 'DRAFT',        -- DRAFT|ISSUED|SIGNED|SENT|CANCELLED|REPLACED|ADJUSTED
+    signed_at              TIMESTAMPTZ,
+    signed_by              VARCHAR(50),
+    cancelled_at           TIMESTAMPTZ,
+    cancelled_by           VARCHAR(50),
+    cancel_reason          TEXT,
+    replaced_by_id         VARCHAR(50),                        -- HĐĐT thay thế
+    adjustment_for_id      VARCHAR(50),                        -- HĐĐT gốc (nếu là HĐ điều chỉnh)
+    adjustment_type        VARCHAR(20),                        -- INCREASE | DECREASE
+    -- Metadata
+    notes                  TEXT,
+    currency               VARCHAR(10) DEFAULT 'VND',
+    facility_id            VARCHAR(50),
+    branch_id              VARCHAR(50),
+    issued_at              TIMESTAMPTZ,
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id) ON DELETE SET NULL,
+    FOREIGN KEY (payment_transaction_id) REFERENCES payment_transactions(payment_transactions_id) ON DELETE SET NULL,
+    FOREIGN KEY (signed_by) REFERENCES users(users_id),
+    FOREIGN KEY (cancelled_by) REFERENCES users(users_id),
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_einvoice_number ON e_invoices(e_invoice_number);
+CREATE INDEX IF NOT EXISTS idx_einvoice_lookup ON e_invoices(lookup_code);
+CREATE INDEX IF NOT EXISTS idx_einvoice_invoice ON e_invoices(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_einvoice_status ON e_invoices(status);
+CREATE INDEX IF NOT EXISTS idx_einvoice_type ON e_invoices(invoice_type);
+CREATE INDEX IF NOT EXISTS idx_einvoice_facility ON e_invoices(facility_id);
+CREATE INDEX IF NOT EXISTS idx_einvoice_created ON e_invoices(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_einvoice_buyer_tax ON e_invoices(buyer_tax_code) WHERE buyer_tax_code IS NOT NULL;
+
+-- =====================================================================
+-- 3. Bảng mới: e_invoice_items — Chi tiết dòng hàng trên HĐĐT
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS e_invoice_items (
+    item_id                VARCHAR(50) PRIMARY KEY,
+    e_invoice_id           VARCHAR(50) NOT NULL,
+    line_number            INT NOT NULL,                       -- STT dòng: 1, 2, 3...
+    item_name              VARCHAR(255) NOT NULL,
+    unit                   VARCHAR(50),                        -- "Lần", "Viên", "Hộp"...
+    quantity               INT NOT NULL DEFAULT 1,
+    unit_price             DECIMAL(12,2) NOT NULL DEFAULT 0,
+    discount_amount        DECIMAL(12,2) DEFAULT 0,
+    amount_before_tax      DECIMAL(12,2) NOT NULL DEFAULT 0,
+    tax_rate               DECIMAL(5,2) DEFAULT 0,
+    tax_amount             DECIMAL(12,2) DEFAULT 0,
+    amount_after_tax       DECIMAL(12,2) NOT NULL DEFAULT 0,
+    reference_type         VARCHAR(50),                        -- CONSULTATION | LAB_ORDER | DRUG
+    reference_id           VARCHAR(50),
+    notes                  TEXT,
+    FOREIGN KEY (e_invoice_id) REFERENCES e_invoices(e_invoice_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_einvoice_items_einv ON e_invoice_items(e_invoice_id);
+
+-- =====================================================================
+-- 4. Bảng mới: billing_documents — Lưu trữ chứng từ thanh toán
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS billing_documents (
+    document_id            VARCHAR(50) PRIMARY KEY,
+    document_code          VARCHAR(100) UNIQUE NOT NULL,       -- DOC-YYYYMMDD-XXXX
+    document_type          VARCHAR(30) NOT NULL,               -- E_INVOICE_PDF|RECEIPT_SCAN|VAT_PAPER|BANK_SLIP|REFUND_PROOF|OTHER
+    document_name          VARCHAR(255) NOT NULL,
+    file_url               TEXT NOT NULL,
+    file_size              INT,                                -- bytes
+    mime_type              VARCHAR(100),
+    -- Liên kết
+    invoice_id             VARCHAR(50),
+    e_invoice_id           VARCHAR(50),
+    payment_transaction_id VARCHAR(50),
+    -- Metadata
+    description            TEXT,
+    tags                   JSONB DEFAULT '[]',                  -- ["scan", "vat", "urgent"]
+    uploaded_by            VARCHAR(50),
+    upload_source          VARCHAR(20) DEFAULT 'MANUAL',       -- MANUAL | AUTO_GENERATED
+    is_archived            BOOLEAN DEFAULT FALSE,
+    archived_at            TIMESTAMPTZ,
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id) ON DELETE SET NULL,
+    FOREIGN KEY (e_invoice_id) REFERENCES e_invoices(e_invoice_id) ON DELETE SET NULL,
+    FOREIGN KEY (payment_transaction_id) REFERENCES payment_transactions(payment_transactions_id) ON DELETE SET NULL,
+    FOREIGN KEY (uploaded_by) REFERENCES users(users_id)
+);
+
+
+-- =====================================================================
+-- 1. reconciliation_sessions — Phiên đối soát
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS reconciliation_sessions (
+    session_id             VARCHAR(50) PRIMARY KEY,
+    session_code           VARCHAR(100) UNIQUE NOT NULL,       -- REC-YYYYMMDD-XXXX
+    reconciliation_type    VARCHAR(30) NOT NULL,               -- ONLINE | CASHIER_SHIFT | DAILY_SETTLEMENT
+    reconcile_date         DATE NOT NULL,
+    facility_id            VARCHAR(50),
+    -- Tổng kết
+    total_system_amount    DECIMAL(15,2) DEFAULT 0,
+    total_external_amount  DECIMAL(15,2) DEFAULT 0,
+    discrepancy_amount     DECIMAL(15,2) DEFAULT 0,
+    total_transactions_matched   INT DEFAULT 0,
+    total_transactions_unmatched INT DEFAULT 0,
+    -- Trạng thái
+    status                 VARCHAR(20) DEFAULT 'PENDING',      -- PENDING|REVIEWED|APPROVED|REJECTED|CLOSED
+    notes                  TEXT,
+    reviewed_by            VARCHAR(50),
+    reviewed_at            TIMESTAMPTZ,
+    approved_by            VARCHAR(50),
+    approved_at            TIMESTAMPTZ,
+    reject_reason          TEXT,
+    -- Liên kết tùy loại
+    shift_id               VARCHAR(50),                        -- Nếu type = CASHIER_SHIFT
+    gateway_name           VARCHAR(50),                        -- Nếu type = ONLINE
+    -- Metadata
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (shift_id) REFERENCES cashier_shifts(cashier_shifts_id) ON DELETE SET NULL,
+    FOREIGN KEY (reviewed_by) REFERENCES users(users_id),
+    FOREIGN KEY (approved_by) REFERENCES users(users_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_recon_type ON reconciliation_sessions(reconciliation_type);
+CREATE INDEX IF NOT EXISTS idx_recon_date ON reconciliation_sessions(reconcile_date DESC);
+CREATE INDEX IF NOT EXISTS idx_recon_status ON reconciliation_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_recon_facility ON reconciliation_sessions(facility_id);
+CREATE INDEX IF NOT EXISTS idx_recon_shift ON reconciliation_sessions(shift_id) WHERE shift_id IS NOT NULL;
+
+-- =====================================================================
+-- 2. reconciliation_items — Chi tiết từng dòng đối soát
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS reconciliation_items (
+    item_id                VARCHAR(50) PRIMARY KEY,
+    session_id             VARCHAR(50) NOT NULL,
+    match_status           VARCHAR(30) NOT NULL,               -- MATCHED|SYSTEM_ONLY|EXTERNAL_ONLY|AMOUNT_MISMATCH
+    -- Bên system
+    system_transaction_id  VARCHAR(50),
+    system_transaction_code VARCHAR(100),
+    system_amount          DECIMAL(15,2),
+    system_method          VARCHAR(50),
+    system_date            TIMESTAMPTZ,
+    -- Bên external
+    external_reference     VARCHAR(255),
+    external_amount        DECIMAL(15,2),
+    external_date          TIMESTAMPTZ,
+    external_raw           JSONB,                              -- Raw data từ bank/gateway
+    -- Chênh lệch
+    discrepancy_amount     DECIMAL(15,2) DEFAULT 0,
+    discrepancy_reason     TEXT,
+    resolution_status      VARCHAR(20) DEFAULT 'UNRESOLVED',   -- UNRESOLVED|RESOLVED|WRITTEN_OFF
+    resolved_by            VARCHAR(50),
+    resolved_at            TIMESTAMPTZ,
+    resolution_notes       TEXT,
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES reconciliation_sessions(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (system_transaction_id) REFERENCES payment_transactions(payment_transactions_id) ON DELETE SET NULL,
+    FOREIGN KEY (resolved_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_recon_item_session ON reconciliation_items(session_id);
+CREATE INDEX IF NOT EXISTS idx_recon_item_match ON reconciliation_items(match_status);
+CREATE INDEX IF NOT EXISTS idx_recon_item_resolution ON reconciliation_items(resolution_status) WHERE resolution_status = 'UNRESOLVED';
+
+-- =====================================================================
+-- 3. settlement_reports — Phiếu quyết toán
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS settlement_reports (
+    report_id              VARCHAR(50) PRIMARY KEY,
+    report_code            VARCHAR(100) UNIQUE NOT NULL,       -- STL-YYYYMMDD-XXXX
+    report_type            VARCHAR(20) NOT NULL,               -- DAILY|WEEKLY|MONTHLY|CUSTOM
+    period_start           DATE NOT NULL,
+    period_end             DATE NOT NULL,
+    facility_id            VARCHAR(50),
+    -- Tổng kết tài chính
+    total_revenue          DECIMAL(15,2) DEFAULT 0,
+    total_cash             DECIMAL(15,2) DEFAULT 0,
+    total_card             DECIMAL(15,2) DEFAULT 0,
+    total_transfer         DECIMAL(15,2) DEFAULT 0,
+    total_online           DECIMAL(15,2) DEFAULT 0,
+    total_refunds          DECIMAL(15,2) DEFAULT 0,
+    total_voids            DECIMAL(15,2) DEFAULT 0,
+    net_revenue            DECIMAL(15,2) DEFAULT 0,
+    total_discrepancies    INT DEFAULT 0,
+    unresolved_discrepancies INT DEFAULT 0,
+    -- Quyết toán
+    status                 VARCHAR(20) DEFAULT 'DRAFT',        -- DRAFT|SUBMITTED|APPROVED|REJECTED
+    submitted_by           VARCHAR(50),
+    submitted_at           TIMESTAMPTZ,
+    approved_by            VARCHAR(50),
+    approved_at            TIMESTAMPTZ,
+    reject_reason          TEXT,
+    notes                  TEXT,
+    export_data            JSONB,                              -- Snapshot data quyết toán đầy đủ
+    -- Metadata
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (submitted_by) REFERENCES users(users_id),
+    FOREIGN KEY (approved_by) REFERENCES users(users_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_settlement_type ON settlement_reports(report_type);
+CREATE INDEX IF NOT EXISTS idx_settlement_period ON settlement_reports(period_start DESC, period_end DESC);
+CREATE INDEX IF NOT EXISTS idx_settlement_status ON settlement_reports(status);
+CREATE INDEX IF NOT EXISTS idx_settlement_facility ON settlement_reports(facility_id);
+
+
+
+
+-- =====================================================================
+-- 1. refund_requests — Yêu cầu hoàn tiền (có phê duyệt)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS refund_requests (
+    request_id             VARCHAR(50) PRIMARY KEY,
+    request_code           VARCHAR(100) UNIQUE NOT NULL,       -- RFD-YYYYMMDD-XXXX
+    transaction_id         VARCHAR(50) NOT NULL,               -- GD gốc cần hoàn
+    invoice_id             VARCHAR(50) NOT NULL,
+    patient_id             VARCHAR(50),
+    -- Loại & số tiền
+    refund_type            VARCHAR(20) NOT NULL,               -- FULL | PARTIAL
+    original_amount        DECIMAL(15,2) NOT NULL,             -- Số tiền GD gốc
+    refund_amount          DECIMAL(15,2) NOT NULL,             -- Số tiền hoàn
+    refund_method          VARCHAR(50) NOT NULL,               -- CASH | CREDIT_CARD | BANK_TRANSFER
+    -- Lý do
+    reason_category        VARCHAR(50) NOT NULL,               -- OVERCHARGE | SERVICE_CANCELLED | ...
+    reason_detail          TEXT,
+    evidence_urls          JSONB,                              -- URLs bằng chứng
+    -- Workflow
+    status                 VARCHAR(20) DEFAULT 'PENDING',      -- PENDING|APPROVED|REJECTED|PROCESSING|COMPLETED|FAILED|CANCELLED
+    requested_by           VARCHAR(50),
+    requested_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    approved_by            VARCHAR(50),
+    approved_at            TIMESTAMPTZ,
+    rejected_by            VARCHAR(50),
+    rejected_at            TIMESTAMPTZ,
+    reject_reason          TEXT,
+    processed_by           VARCHAR(50),
+    processed_at           TIMESTAMPTZ,
+    completed_at           TIMESTAMPTZ,
+    -- Hoàn tiền — kết quả
+    refund_transaction_id  VARCHAR(50),                        -- ID txn REFUND mới tạo
+    gateway_refund_id      VARCHAR(255),                       -- ID hoàn trên gateway (nếu online)
+    -- Metadata
+    notes                  TEXT,
+    facility_id            VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (transaction_id) REFERENCES payment_transactions(payment_transactions_id),
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id),
+    FOREIGN KEY (patient_id) REFERENCES patients(patients_id) ON DELETE SET NULL,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (requested_by) REFERENCES users(users_id),
+    FOREIGN KEY (approved_by) REFERENCES users(users_id),
+    FOREIGN KEY (rejected_by) REFERENCES users(users_id),
+    FOREIGN KEY (processed_by) REFERENCES users(users_id),
+    FOREIGN KEY (refund_transaction_id) REFERENCES payment_transactions(payment_transactions_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_refund_status ON refund_requests(status);
+CREATE INDEX IF NOT EXISTS idx_refund_txn ON refund_requests(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_refund_invoice ON refund_requests(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_refund_patient ON refund_requests(patient_id);
+CREATE INDEX IF NOT EXISTS idx_refund_date ON refund_requests(requested_at DESC);
+CREATE INDEX IF NOT EXISTS idx_refund_pending ON refund_requests(status) WHERE status = 'PENDING';
+
+-- =====================================================================
+-- 2. transaction_adjustments — Điều chỉnh giao dịch
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS transaction_adjustments (
+    adjustment_id          VARCHAR(50) PRIMARY KEY,
+    adjustment_code        VARCHAR(100) UNIQUE NOT NULL,       -- ADJ-YYYYMMDD-XXXX
+    original_transaction_id VARCHAR(50) NOT NULL,
+    invoice_id             VARCHAR(50) NOT NULL,
+    -- Loại điều chỉnh
+    adjustment_type        VARCHAR(30) NOT NULL,               -- OVERCHARGE|UNDERCHARGE|WRONG_METHOD|DUPLICATE|OTHER
+    adjustment_amount      DECIMAL(15,2) NOT NULL,             -- + = cần thu thêm, - = cần hoàn
+    description            TEXT NOT NULL,
+    -- GD bù/hoàn
+    corrective_transaction_id VARCHAR(50),                     -- GD mới tạo để điều chỉnh
+    -- Workflow
+    status                 VARCHAR(20) DEFAULT 'PENDING',      -- PENDING|APPROVED|APPLIED|REJECTED
+    requested_by           VARCHAR(50),
+    requested_at           TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    approved_by            VARCHAR(50),
+    approved_at            TIMESTAMPTZ,
+    applied_by             VARCHAR(50),
+    applied_at             TIMESTAMPTZ,
+    reject_reason          TEXT,
+    notes                  TEXT,
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (original_transaction_id) REFERENCES payment_transactions(payment_transactions_id),
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id),
+    FOREIGN KEY (corrective_transaction_id) REFERENCES payment_transactions(payment_transactions_id),
+    FOREIGN KEY (requested_by) REFERENCES users(users_id),
+    FOREIGN KEY (approved_by) REFERENCES users(users_id),
+    FOREIGN KEY (applied_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_adj_status ON transaction_adjustments(status);
+CREATE INDEX IF NOT EXISTS idx_adj_txn ON transaction_adjustments(original_transaction_id);
+CREATE INDEX IF NOT EXISTS idx_adj_invoice ON transaction_adjustments(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_adj_date ON transaction_adjustments(requested_at DESC);

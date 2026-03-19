@@ -322,6 +322,45 @@ const options = {
       { name: '9.3 Gateway Config', description: 'Cấu hình cổng thanh toán SePay: API Key, tài khoản VA, bank, test kết nối' },
       { name: '9.3 Online Payment Stats', description: 'Lịch sử & thống kê thanh toán online: tổng orders, tỷ lệ thành công, doanh thu' },
 
+      // Module 9.4: Thanh toán tại quầy (Offline Payment)
+      { name: '9.4.1 Thanh toán tại quầy', description: 'Thanh toán tiền mặt/POS/chuyển khoản tại quầy, enforce ca mở, hủy giao dịch (VOID) trong 30 phút, danh sách giao dịch offline' },
+      { name: '9.4.2 Quản lý POS', description: 'CRUD thiết bị POS/máy quẹt thẻ theo chi nhánh, bật/tắt trạng thái' },
+      { name: '9.4.3 Biên lai thanh toán', description: 'Biên lai snapshot (lưu toàn bộ thông tin tại thời điểm in), in lại biên lai, đếm reprint' },
+      { name: '9.4.4 Ca thu ngân mở rộng', description: 'Kê khai mệnh giá tiền VND khi đóng ca, giao dịch trong ca, tổng kết ca chi tiết' },
+      { name: '9.4.5 Báo cáo', description: 'Báo cáo cuối ngày (tổng thu/hoàn/void phân theo phương thức & thu ngân), hiệu suất thu ngân (ca, chênh lệch, trung bình)' },
+
+      // Module 9.5: Quản lý hóa đơn & chứng từ thanh toán
+      { name: '9.5.1 Hóa đơn điện tử', description: 'Tạo HĐĐT (SALES/VAT), phát hành, ký số, gửi BN, hủy, thay thế, điều chỉnh — theo NĐ 123/2020 & TT 78/2021' },
+      { name: '9.5.2 In hóa đơn', description: 'Chuẩn bị dữ liệu in HĐĐT (seller/buyer/items/totals), lịch sử in/xuất' },
+      { name: '9.5.3 Tra cứu hóa đơn', description: 'Unified search (invoices + e_invoices + patients), dòng thời gian hóa đơn (timeline)' },
+      { name: '9.5.4 Chứng từ thanh toán', description: 'Upload/quản lý chứng từ đính kèm (scan biên lai, HĐ giấy, ủy nhiệm chi), archive hàng loạt' },
+      { name: '9.5.5 Cấu hình HĐĐT', description: 'Cấu hình phát hành HĐĐT theo cơ sở: thông tin bên bán, mẫu/ký hiệu, thuế suất mặc định' },
+
+      // Module 9.6: Đối soát & quyết toán thanh toán
+      { name: '9.6.1 Đối soát giao dịch', description: 'Đối soát online (SePay vs system), đối soát ca thu ngân (system vs actual vs denominations)' },
+      { name: '9.6.2 Xử lý chênh lệch', description: 'Báo cáo chênh lệch (severity/type), xử lý items, review/approve/reject phiên đối soát' },
+      { name: '9.6.3 Quyết toán', description: 'Tạo phiếu quyết toán (DAILY/WEEKLY/MONTHLY), workflow DRAFT→SUBMITTED→APPROVED' },
+      { name: '9.6.4 Lịch sử & xuất báo cáo', description: 'Lịch sử đối soát, xuất data quyết toán (JSON cho Excel/PDF)' },
+
+      // Module 9.7: Hoàn tiền & điều chỉnh giao dịch
+      { name: '9.7.1 Yêu cầu hoàn tiền', description: 'Tạo yêu cầu hoàn tiền FULL/PARTIAL, auto-approve ≤ 50k VND, 7 danh mục lý do' },
+      { name: '9.7.2 Phê duyệt hoàn tiền', description: 'Workflow PENDING→APPROVED→PROCESSING→COMPLETED, xử lý tạo GD REFUND' },
+      { name: '9.7.3 Điều chỉnh giao dịch', description: 'OVERCHARGE/UNDERCHARGE/WRONG_METHOD/DUPLICATE, tạo GD bù/hoàn' },
+      { name: '9.7.4 Dashboard & Tracking', description: 'Dashboard tổng quan hoàn tiền, timeline sự kiện, lịch sử hoàn/điều chỉnh GD' },
+
+      // Module 9.8: Quản lý chính sách giá & ưu đãi
+      { name: '9.8.1 Chính sách giảm giá', description: 'CRUD chính sách giảm giá PERCENTAGE/FIXED_AMOUNT, priority cascade, calculate' },
+      { name: '9.8.2 Voucher / Coupon', description: 'CRUD voucher, validate 5-check, redeem + ghi usage, lịch sử sử dụng' },
+      { name: '9.8.3 Gói dịch vụ', description: 'Combo nhiều DV, auto-calc giá lẻ vs giá gói, % tiết kiệm' },
+      { name: '9.8.4 Tổng quan & Lịch sử', description: 'Active promotions, lịch sử thay đổi chính sách giá' },
+
+      // Module 9.9: Quản lý phân quyền thu ngân
+      { name: '9.9.1 Hồ sơ thu ngân', description: 'CRUD hồ sơ thu ngân, gán quyền thu/hoàn/VOID, branch, supervisor' },
+      { name: '9.9.2 Giới hạn thao tác', description: 'Set/check giới hạn VND mỗi GD/ca/ngày, supervisor approval' },
+      { name: '9.9.3 Khóa ca / Mở ca', description: 'Lock/unlock/force-close/handover ca thu ngân' },
+      { name: '9.9.4 Nhật ký', description: 'Audit trail hoạt động thu ngân: SHIFT_OPEN, PAYMENT, VOID, LIMIT_EXCEEDED...' },
+      { name: '9.9.5 Dashboard', description: 'Dashboard tổng quan, thống kê cá nhân, limit usage %' },
+
     ]
   },
   apis: [

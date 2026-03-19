@@ -85,6 +85,12 @@ import { dataIntegrationRoutes } from './EHR/data-integration.routes';
 import billingPricingRoutes from './Billing/billing-pricing.routes';
 import billingInvoiceRoutes from './Billing/billing-invoices.routes';
 import billingPaymentGatewayRoutes from './Billing/billing-payment-gateway.routes';
+import billingOfflinePaymentRoutes from './Billing/billing-offline-payment.routes';
+import billingDocumentRoutes from './Billing/billing-document.routes';
+import billingReconciliationRoutes from './Billing/billing-reconciliation.routes';
+import billingRefundRoutes from './Billing/billing-refund.routes';
+import billingPricingPolicyRoutes from './Billing/billing-pricing-policy.routes';
+import billingCashierAuthRoutes from './Billing/billing-cashier-auth.routes';
 import { verifySepayWebhook } from '../middleware/verifyWebhook.middleware';
 import { sepayWebhook } from '../controllers/Billing/billing-payment-gateway.controller';
 import { auditMiddleware } from '../middleware/audit.middleware';
@@ -329,6 +335,24 @@ export const initRoutes = (app: Express) => {
 
     // Module 9.3 – Thanh toán trực tuyến (SePay)
     app.use('/api/billing/payments', billingPaymentGatewayRoutes);
+
+    // Module 9.4 – Thanh toán tại quầy (Offline Payment)
+    app.use('/api/billing', billingOfflinePaymentRoutes);
+
+    // Module 9.5 – Quản lý hóa đơn & chứng từ thanh toán
+    app.use('/api/billing', billingDocumentRoutes);
+
+    // Module 9.6 – Đối soát & quyết toán thanh toán
+    app.use('/api/billing', billingReconciliationRoutes);
+
+    // Module 9.7 – Hoàn tiền & điều chỉnh giao dịch
+    app.use('/api/billing', billingRefundRoutes);
+
+    // Module 9.8 – Quản lý chính sách giá & ưu đãi
+    app.use('/api/billing', billingPricingPolicyRoutes);
+
+    // Module 9.9 – Quản lý phân quyền thu ngân
+    app.use('/api/billing', billingCashierAuthRoutes);
 
     // Webhook alias — Nginx strip /api/ nên SePay gọi /api/hooks/sepay-payment → Express nhận /hooks/sepay-payment
     app.post('/hooks/sepay-payment', verifySepayWebhook, sepayWebhook);
