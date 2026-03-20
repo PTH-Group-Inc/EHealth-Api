@@ -91,6 +91,15 @@ import billingReconciliationRoutes from './Billing/billing-reconciliation.routes
 import billingRefundRoutes from './Billing/billing-refund.routes';
 import billingPricingPolicyRoutes from './Billing/billing-pricing-policy.routes';
 import billingCashierAuthRoutes from './Billing/billing-cashier-auth.routes';
+import { teleConsultationTypeRoutes } from './Remote Consultation/tele-consultation-type.routes';
+import { teleBookingRoutes } from './Remote Consultation/tele-booking.routes';
+import { teleRoomRoutes } from './Remote Consultation/tele-room.routes';
+import { medicalChatRoutes } from './Remote Consultation/tele-medical-chat.routes';
+import { teleResultRoutes } from './Remote Consultation/tele-result.routes';
+import { telePrescriptionRoutes } from './Remote Consultation/tele-prescription.routes';
+import { teleFollowUpRoutes } from './Remote Consultation/tele-followup.routes';
+import { teleQualityRoutes } from './Remote Consultation/tele-quality.routes';
+import { teleConfigRoutes } from './Remote Consultation/tele-config.routes';
 import { verifySepayWebhook } from '../middleware/verifyWebhook.middleware';
 import { sepayWebhook } from '../controllers/Billing/billing-payment-gateway.controller';
 import { auditMiddleware } from '../middleware/audit.middleware';
@@ -353,6 +362,26 @@ export const initRoutes = (app: Express) => {
 
     // Module 9.9 – Quản lý phân quyền thu ngân
     app.use('/api/billing', billingCashierAuthRoutes);
+
+    // ═══ MODULE 8: KHÁM TỪ XA (REMOTE CONSULTATION) ═══
+    // Module 8.1 – Quản lý hình thức khám từ xa
+    app.use('/api/teleconsultation', teleConsultationTypeRoutes);
+    // Module 8.2 – Đặt lịch tư vấn & khám từ xa
+    app.use('/api/teleconsultation', teleBookingRoutes);
+    // Module 8.3 – Phòng khám trực tuyến
+    app.use('/api/teleconsultation', teleRoomRoutes);
+    // Module 8.4 – Trao đổi thông tin y tế trực tuyến
+    app.use('/api/teleconsultation', medicalChatRoutes);
+    // Module 8.5 – Ghi nhận kết quả khám từ xa
+    app.use('/api/teleconsultation', teleResultRoutes);
+    // Module 8.6 – Kê đơn & chỉ định từ xa
+    app.use('/api/teleconsultation', telePrescriptionRoutes);
+    // Module 8.7 – Theo dõi sau tư vấn & tái khám
+    app.use('/api/teleconsultation', teleFollowUpRoutes);
+    // Module 8.8 – Quản lý chất lượng & đánh giá
+    app.use('/api/teleconsultation', teleQualityRoutes);
+    // Module 8.9 – Cấu hình & quản trị hệ thống
+    app.use('/api/teleconsultation', teleConfigRoutes);
 
     // Webhook alias — Nginx strip /api/ nên SePay gọi /api/hooks/sepay-payment → Express nhận /hooks/sepay-payment
     app.post('/hooks/sepay-payment', verifySepayWebhook, sepayWebhook);
