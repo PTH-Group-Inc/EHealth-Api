@@ -2791,3 +2791,1016 @@ CREATE INDEX IF NOT EXISTS idx_adj_status ON transaction_adjustments(status);
 CREATE INDEX IF NOT EXISTS idx_adj_txn ON transaction_adjustments(original_transaction_id);
 CREATE INDEX IF NOT EXISTS idx_adj_invoice ON transaction_adjustments(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_adj_date ON transaction_adjustments(requested_at DESC);
+
+
+-- =====================================================================
+-- 1. discount_policies — Chính sách giảm giá
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS discount_policies (
+    discount_id            VARCHAR(50) PRIMARY KEY,
+    discount_code          VARCHAR(100) UNIQUE NOT NULL,       -- DSC-YYYYMMDD-XXXX
+    name                   VARCHAR(255) NOT NULL,
+    description            TEXT,
+    -- Loại giảm giá
+    discount_type          VARCHAR(20) NOT NULL,               -- PERCENTAGE | FIXED_AMOUNT
+    discount_value         DECIMAL(15,2) NOT NULL,             -- % hoặc VND
+    max_discount_amount    DECIMAL(15,2),                      -- Giới hạn nếu PERCENTAGE
+    min_order_amount       DECIMAL(15,2) DEFAULT 0,            -- Đơn tối thiểu
+    -- Phạm vi áp dụng
+    apply_to               VARCHAR(30) DEFAULT 'ALL_SERVICES', -- ALL_SERVICES | SPECIFIC_SERVICES | SERVICE_GROUP
+    applicable_services    JSONB,                              -- [{facility_service_id, service_name}]
+    applicable_groups      JSONB,                              -- ["CONSULTATION","LAB_ORDER","DRUG"]
+    -- Đối tượng
+    target_patient_types   JSONB,                              -- ["VIP","ELDERLY"] hoặc null = all
+    -- Thời gian
+    effective_from         DATE NOT NULL,
+    effective_to           DATE,                               -- NULL = vô thời hạn
+    -- Trạng thái
+    is_active              BOOLEAN DEFAULT TRUE,
+    priority               INT DEFAULT 0,                      -- Cao hơn áp dụng trước
+    facility_id            VARCHAR(50),
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_disc_active ON discount_policies(is_active) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_disc_effective ON discount_policies(effective_from, effective_to);
+CREATE INDEX IF NOT EXISTS idx_disc_facility ON discount_policies(facility_id);
+CREATE INDEX IF NOT EXISTS idx_disc_priority ON discount_policies(priority DESC);
+
+-- =====================================================================
+-- 2. vouchers — Mã giảm giá / Coupon
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS vouchers (
+    voucher_id             VARCHAR(50) PRIMARY KEY,
+    voucher_code           VARCHAR(50) UNIQUE NOT NULL,        -- VN50K, WELCOME10
+    name                   VARCHAR(255) NOT NULL,
+    description            TEXT,
+    -- Giảm giá
+    discount_type          VARCHAR(20) NOT NULL,               -- PERCENTAGE | FIXED_AMOUNT
+    discount_value         DECIMAL(15,2) NOT NULL,
+    max_discount_amount    DECIMAL(15,2),
+    min_order_amount       DECIMAL(15,2) DEFAULT 0,
+    -- Giới hạn
+    max_usage              INT,                                -- Tổng lượt tối đa (null = unlimited)
+    max_usage_per_patient  INT DEFAULT 1,                      -- 1 BN dùng tối đa
+    current_usage          INT DEFAULT 0,
+    -- Đối tượng
+    target_patient_types   JSONB,                              -- null = all
+    -- Thời gian
+    valid_from             DATE NOT NULL,
+    valid_to               DATE,
+    is_active              BOOLEAN DEFAULT TRUE,
+    facility_id            VARCHAR(50),
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_voucher_code ON vouchers(voucher_code);
+CREATE INDEX IF NOT EXISTS idx_voucher_active ON vouchers(is_active) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_voucher_valid ON vouchers(valid_from, valid_to);
+
+-- =====================================================================
+-- 3. voucher_usage — Lịch sử sử dụng voucher
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS voucher_usage (
+    usage_id               VARCHAR(50) PRIMARY KEY,
+    voucher_id             VARCHAR(50) NOT NULL,
+    invoice_id             VARCHAR(50) NOT NULL,
+    patient_id             VARCHAR(50),
+    discount_amount        DECIMAL(15,2) NOT NULL,             -- Số tiền thực giảm
+    used_at                TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    used_by                VARCHAR(50),
+    FOREIGN KEY (voucher_id) REFERENCES vouchers(voucher_id),
+    FOREIGN KEY (invoice_id) REFERENCES invoices(invoices_id),
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE SET NULL,
+    FOREIGN KEY (used_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_vusage_voucher ON voucher_usage(voucher_id);
+CREATE INDEX IF NOT EXISTS idx_vusage_patient ON voucher_usage(patient_id);
+CREATE INDEX IF NOT EXISTS idx_vusage_invoice ON voucher_usage(invoice_id);
+
+-- =====================================================================
+-- 4. service_bundles — Gói dịch vụ combo
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS service_bundles (
+    bundle_id              VARCHAR(50) PRIMARY KEY,
+    bundle_code            VARCHAR(100) UNIQUE NOT NULL,       -- BDL-KHAMTQ, BDL-XETNGHIEM
+    name                   VARCHAR(255) NOT NULL,
+    description            TEXT,
+    bundle_price           DECIMAL(15,2) NOT NULL,             -- Giá gói
+    original_total_price   DECIMAL(15,2) DEFAULT 0,            -- Tổng giá lẻ
+    discount_percentage    DECIMAL(5,2) DEFAULT 0,             -- % tiết kiệm
+    -- Thời gian
+    valid_from             DATE NOT NULL,
+    valid_to               DATE,
+    -- Đối tượng
+    target_patient_types   JSONB,
+    max_purchases          INT,                                -- null = unlimited
+    current_purchases      INT DEFAULT 0,
+    is_active              BOOLEAN DEFAULT TRUE,
+    facility_id            VARCHAR(50),
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bundle_active ON service_bundles(is_active) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_bundle_valid ON service_bundles(valid_from, valid_to);
+
+-- =====================================================================
+-- 5. service_bundle_items — Chi tiết gói dịch vụ
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS service_bundle_items (
+    item_id                VARCHAR(50) PRIMARY KEY,
+    bundle_id              VARCHAR(50) NOT NULL,
+    facility_service_id    VARCHAR(50) NOT NULL,
+    quantity               INT DEFAULT 1,
+    unit_price             DECIMAL(15,2) NOT NULL,             -- Giá lẻ
+    item_price             DECIMAL(15,2) NOT NULL,             -- Giá trong gói
+    notes                  TEXT,
+    FOREIGN KEY (bundle_id) REFERENCES service_bundles(bundle_id) ON DELETE CASCADE,
+    FOREIGN KEY (facility_service_id) REFERENCES facility_services(facility_services_id)
+);
+
+
+-- *********************************************************************
+-- MODULE 9.9: QUẢN LÝ PHÂN QUYỀN THU NGÂN
+-- (Cashier Authorization Management)
+-- *********************************************************************
+
+-- =====================================================================
+-- 1. cashier_profiles — Hồ sơ thu ngân
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS cashier_profiles (
+    cashier_profile_id     VARCHAR(50) PRIMARY KEY,
+    user_id                VARCHAR(50) NOT NULL UNIQUE,       -- 1 user = 1 profile
+    employee_code          VARCHAR(50),                       -- Mã NV thu ngân
+    branch_id              VARCHAR(50),
+    facility_id            VARCHAR(50),
+    -- Quyền thao tác
+    can_collect_payment    BOOLEAN DEFAULT TRUE,
+    can_process_refund     BOOLEAN DEFAULT FALSE,
+    can_void_transaction   BOOLEAN DEFAULT FALSE,
+    can_open_shift         BOOLEAN DEFAULT TRUE,
+    can_close_shift        BOOLEAN DEFAULT TRUE,
+    -- Trạng thái
+    is_active              BOOLEAN DEFAULT TRUE,
+    supervisor_id          VARCHAR(50),                       -- Quản lý trực tiếp
+    notes                  TEXT,
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(users_id),
+    FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE SET NULL,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (supervisor_id) REFERENCES users(users_id),
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cashier_prof_user ON cashier_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_cashier_prof_branch ON cashier_profiles(branch_id);
+CREATE INDEX IF NOT EXISTS idx_cashier_prof_facility ON cashier_profiles(facility_id);
+CREATE INDEX IF NOT EXISTS idx_cashier_prof_active ON cashier_profiles(is_active) WHERE is_active = TRUE;
+
+-- =====================================================================
+-- 2. cashier_operation_limits — Giới hạn thao tác
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS cashier_operation_limits (
+    limit_id               VARCHAR(50) PRIMARY KEY,
+    cashier_profile_id     VARCHAR(50) NOT NULL UNIQUE,
+    -- Giới hạn mỗi giao dịch
+    max_single_payment     DECIMAL(15,2),                     -- Max VND 1 GD thu
+    max_single_refund      DECIMAL(15,2),                     -- Max VND 1 GD hoàn
+    max_single_void        DECIMAL(15,2),                     -- Max VND 1 GD VOID
+    -- Giới hạn mỗi ca
+    max_shift_total        DECIMAL(15,2),                     -- Tổng thu trong 1 ca
+    max_shift_refund_total DECIMAL(15,2),                     -- Tổng hoàn trong ca
+    max_shift_void_count   INT,                               -- Số VOID trong ca
+    -- Giới hạn mỗi ngày
+    max_daily_total        DECIMAL(15,2),
+    max_daily_refund_total DECIMAL(15,2),
+    max_daily_void_count   INT,
+    -- Phê duyệt
+    require_approval_above DECIMAL(15,2),                     -- GD > X VND cần supervisor
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cashier_profile_id) REFERENCES cashier_profiles(cashier_profile_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+-- =====================================================================
+-- 3. cashier_activity_logs — Nhật ký hoạt động
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS cashier_activity_logs (
+    log_id                 VARCHAR(50) PRIMARY KEY,
+    cashier_profile_id     VARCHAR(50),
+    user_id                VARCHAR(50) NOT NULL,
+    shift_id               VARCHAR(50),
+    action_type            VARCHAR(30) NOT NULL,               -- SHIFT_OPEN, SHIFT_CLOSE, SHIFT_LOCK, SHIFT_UNLOCK,
+                                                               -- PAYMENT, VOID, REFUND, LIMIT_EXCEEDED,
+                                                               -- FORCE_CLOSE, HANDOVER, PROFILE_UPDATE
+    action_detail          JSONB,                              -- {transaction_id, amount, reason, ...}
+    ip_address             VARCHAR(45),
+    user_agent             TEXT,
+    facility_id            VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cashier_profile_id) REFERENCES cashier_profiles(cashier_profile_id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id) REFERENCES users(users_id),
+    FOREIGN KEY (shift_id) REFERENCES cashier_shifts(cashier_shifts_id) ON DELETE SET NULL,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_cashier_log_profile ON cashier_activity_logs(cashier_profile_id);
+CREATE INDEX IF NOT EXISTS idx_cashier_log_user ON cashier_activity_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_cashier_log_shift ON cashier_activity_logs(shift_id);
+CREATE INDEX IF NOT EXISTS idx_cashier_log_action ON cashier_activity_logs(action_type);
+CREATE INDEX IF NOT EXISTS idx_cashier_log_created ON cashier_activity_logs(created_at DESC);
+
+-- =====================================================================
+-- 4. ALTER cashier_shifts — Mở rộng lock/handover
+-- =====================================================================
+ALTER TABLE cashier_shifts
+    ADD COLUMN IF NOT EXISTS locked_at     TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS locked_by     VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS lock_reason   TEXT,
+    ADD COLUMN IF NOT EXISTS force_closed  BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS handover_to   VARCHAR(50);
+
+DO $$ BEGIN
+    ALTER TABLE cashier_shifts
+        ADD CONSTRAINT fk_cashier_shifts_locked_by FOREIGN KEY (locked_by) REFERENCES users(users_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE cashier_shifts
+        ADD CONSTRAINT fk_cashier_shifts_handover_to FOREIGN KEY (handover_to) REFERENCES users(users_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+
+
+-- =====================================================================
+-- 1. tele_consultation_types — Danh mục hình thức khám từ xa
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_consultation_types (
+    type_id                VARCHAR(50) PRIMARY KEY,
+    code                   VARCHAR(50) UNIQUE NOT NULL,            -- VIDEO, AUDIO, CHAT, HYBRID
+    name                   VARCHAR(150) NOT NULL,
+    description            TEXT,
+    -- Platform & capabilities
+    default_platform       VARCHAR(50) DEFAULT 'AGORA',            -- AGORA, ZOOM, STRINGEE, INTERNAL_CHAT
+    requires_video         BOOLEAN DEFAULT FALSE,
+    requires_audio         BOOLEAN DEFAULT FALSE,
+    allows_file_sharing    BOOLEAN DEFAULT FALSE,
+    allows_screen_sharing  BOOLEAN DEFAULT FALSE,
+    -- Thời lượng mặc định (phút)
+    default_duration_minutes INT DEFAULT 30,
+    min_duration_minutes     INT DEFAULT 10,
+    max_duration_minutes     INT DEFAULT 120,
+    -- Hiển thị
+    icon_url               TEXT,
+    sort_order             INT DEFAULT 0,
+    -- Trạng thái
+    is_active              BOOLEAN DEFAULT TRUE,
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at             TIMESTAMPTZ,
+    FOREIGN KEY (created_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tele_type_code ON tele_consultation_types(code);
+CREATE INDEX IF NOT EXISTS idx_tele_type_active ON tele_consultation_types(is_active) WHERE is_active = TRUE AND deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_tele_type_sort ON tele_consultation_types(sort_order ASC);
+
+-- =====================================================================
+-- 2. tele_type_specialty_config — Cấu hình hình thức theo chuyên khoa & cơ sở
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_type_specialty_config (
+    config_id              VARCHAR(50) PRIMARY KEY,
+    type_id                VARCHAR(50) NOT NULL,
+    specialty_id           VARCHAR(50) NOT NULL,
+    facility_id            VARCHAR(50) NOT NULL,
+    -- Liên kết dịch vụ cơ sở (optional, để tận dụng hệ thống giá Module 9)
+    facility_service_id    VARCHAR(50),
+    -- Bật/tắt
+    is_enabled             BOOLEAN DEFAULT TRUE,
+    -- Platform override
+    allowed_platforms      JSONB DEFAULT '["AGORA"]',              -- ["AGORA","ZOOM"]
+    -- Thời lượng override (nếu null thì dùng default từ type)
+    min_duration_minutes   INT,
+    max_duration_minutes   INT,
+    default_duration_minutes INT,
+    -- Giá dịch vụ
+    base_price             DECIMAL(12,2) DEFAULT 0,                -- Giá cơ bản (VND)
+    insurance_price        DECIMAL(12,2),                          -- Giá BHYT chi trả
+    vip_price              DECIMAL(12,2),                          -- Giá VIP
+    -- Quy định đặt lịch
+    max_patients_per_slot  INT DEFAULT 1,
+    advance_booking_days   INT DEFAULT 30,                         -- Đặt trước tối đa N ngày
+    cancellation_hours     INT DEFAULT 2,                          -- Hủy trước N giờ
+    -- Ghi hình
+    auto_record            BOOLEAN DEFAULT FALSE,
+    -- Hiển thị
+    priority               INT DEFAULT 0,
+    notes                  TEXT,
+    -- Trạng thái
+    is_active              BOOLEAN DEFAULT TRUE,
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at             TIMESTAMPTZ,
+    -- FK
+    FOREIGN KEY (type_id) REFERENCES tele_consultation_types(type_id) ON DELETE CASCADE,
+    FOREIGN KEY (specialty_id) REFERENCES specialties(specialties_id) ON DELETE CASCADE,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE,
+    FOREIGN KEY (facility_service_id) REFERENCES facility_services(facility_services_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    -- 1 loại + 1 CK + 1 CS = 1 config duy nhất
+    UNIQUE(type_id, specialty_id, facility_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tsc_type ON tele_type_specialty_config(type_id);
+CREATE INDEX IF NOT EXISTS idx_tsc_specialty ON tele_type_specialty_config(specialty_id);
+CREATE INDEX IF NOT EXISTS idx_tsc_facility ON tele_type_specialty_config(facility_id);
+CREATE INDEX IF NOT EXISTS idx_tsc_enabled ON tele_type_specialty_config(is_enabled) WHERE is_enabled = TRUE AND deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_tsc_service ON tele_type_specialty_config(facility_service_id) WHERE facility_service_id IS NOT NULL;
+
+-- =====================================================================
+-- 3. ALTER tele_consultations — Bổ sung liên kết loại hình
+-- =====================================================================
+ALTER TABLE tele_consultations
+    ADD COLUMN IF NOT EXISTS consultation_type_id VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS specialty_config_id  VARCHAR(50);
+
+DO $$ BEGIN
+    ALTER TABLE tele_consultations
+        ADD CONSTRAINT fk_tele_consultation_type FOREIGN KEY (consultation_type_id) REFERENCES tele_consultation_types(type_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE tele_consultations
+        ADD CONSTRAINT fk_tele_specialty_config FOREIGN KEY (specialty_config_id) REFERENCES tele_type_specialty_config(config_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_tele_consult_type ON tele_consultations(consultation_type_id) WHERE consultation_type_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tele_consult_config ON tele_consultations(specialty_config_id) WHERE specialty_config_id IS NOT NULL;
+
+
+
+
+
+-- =====================================================================
+-- 1. tele_booking_sessions — Phiên đặt lịch từ xa
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_booking_sessions (
+    session_id             VARCHAR(50) PRIMARY KEY,
+    session_code           VARCHAR(50) UNIQUE NOT NULL,            -- TBS-YYYYMMDD-XXXX
+    patient_id             VARCHAR(50) NOT NULL,
+    specialty_id           VARCHAR(50) NOT NULL,
+    facility_id            VARCHAR(50) NOT NULL,
+    -- Liên kết Module 8.1
+    type_id                VARCHAR(50) NOT NULL,                   -- Hình thức (VIDEO/AUDIO/CHAT/HYBRID)
+    config_id              VARCHAR(50),                            -- Config chuyên khoa (giá, thời lượng)
+    -- BS & Lịch
+    doctor_id              VARCHAR(50),                            -- BS được chọn/gán
+    appointment_id         VARCHAR(50),                            -- Appointment được tạo sau xác nhận
+    tele_consultation_id   VARCHAR(50),                            -- Phiên tư vấn được tạo
+    invoice_id             VARCHAR(50),                            -- Hóa đơn thanh toán trước
+    -- Thông tin lịch
+    booking_date           DATE NOT NULL,
+    booking_start_time     TIME,
+    booking_end_time       TIME,
+    duration_minutes       INT DEFAULT 30,
+    slot_id                VARCHAR(50),                            -- Slot appointment (nếu dùng)
+    shift_id               VARCHAR(50),                            -- Ca khám
+    -- Platform & giá
+    platform               VARCHAR(50) DEFAULT 'AGORA',
+    price_amount           DECIMAL(12,2) DEFAULT 0,
+    price_type             VARCHAR(20) DEFAULT 'BASE',             -- BASE, INSURANCE, VIP
+    -- Trạng thái
+    status                 VARCHAR(30) DEFAULT 'DRAFT',            -- DRAFT, PENDING_PAYMENT, PAYMENT_COMPLETED, CONFIRMED, CANCELLED, EXPIRED
+    payment_required       BOOLEAN DEFAULT FALSE,
+    payment_status         VARCHAR(30) DEFAULT 'UNPAID',           -- UNPAID, PAID, REFUNDED
+    -- Ghi chú
+    reason_for_visit       TEXT,
+    symptoms_notes         TEXT,
+    patient_notes          TEXT,
+    cancellation_reason    TEXT,
+    cancelled_by           VARCHAR(50),
+    cancelled_at           TIMESTAMPTZ,
+    confirmed_at           TIMESTAMPTZ,
+    confirmed_by           VARCHAR(50),
+    expires_at             TIMESTAMPTZ,                            -- Hết hạn chờ thanh toán
+    -- Audit
+    created_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    -- FK
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (specialty_id) REFERENCES specialties(specialties_id),
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id),
+    FOREIGN KEY (type_id) REFERENCES tele_consultation_types(type_id),
+    FOREIGN KEY (config_id) REFERENCES tele_type_specialty_config(config_id) ON DELETE SET NULL,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(doctors_id) ON DELETE SET NULL,
+    FOREIGN KEY (appointment_id) REFERENCES appointments(appointments_id) ON DELETE SET NULL,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE SET NULL,
+    FOREIGN KEY (slot_id) REFERENCES appointment_slots(slot_id) ON DELETE SET NULL,
+    FOREIGN KEY (shift_id) REFERENCES shifts(shifts_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id),
+    FOREIGN KEY (cancelled_by) REFERENCES users(users_id),
+    FOREIGN KEY (confirmed_by) REFERENCES users(users_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tbs_patient ON tele_booking_sessions(patient_id);
+CREATE INDEX IF NOT EXISTS idx_tbs_doctor ON tele_booking_sessions(doctor_id) WHERE doctor_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tbs_specialty ON tele_booking_sessions(specialty_id);
+CREATE INDEX IF NOT EXISTS idx_tbs_facility ON tele_booking_sessions(facility_id);
+CREATE INDEX IF NOT EXISTS idx_tbs_type ON tele_booking_sessions(type_id);
+CREATE INDEX IF NOT EXISTS idx_tbs_status ON tele_booking_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_tbs_date ON tele_booking_sessions(booking_date);
+CREATE INDEX IF NOT EXISTS idx_tbs_appointment ON tele_booking_sessions(appointment_id) WHERE appointment_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tbs_code ON tele_booking_sessions(session_code);
+CREATE INDEX IF NOT EXISTS idx_tbs_expires ON tele_booking_sessions(expires_at) WHERE status = 'PENDING_PAYMENT';
+
+-- =====================================================================
+-- 2. ALTER appointments — Bổ sung flag teleconsultation
+-- =====================================================================
+ALTER TABLE appointments
+    ADD COLUMN IF NOT EXISTS is_teleconsultation BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS tele_booking_session_id VARCHAR(50);
+
+DO $$ BEGIN
+    ALTER TABLE appointments
+        ADD CONSTRAINT fk_apt_tele_booking_session FOREIGN KEY (tele_booking_session_id) REFERENCES tele_booking_sessions(session_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_apt_tele ON appointments(is_teleconsultation) WHERE is_teleconsultation = TRUE;
+CREATE INDEX IF NOT EXISTS idx_apt_tele_session ON appointments(tele_booking_session_id) WHERE tele_booking_session_id IS NOT NULL;
+
+-- =====================================================================
+-- 3. ALTER tele_consultations — Liên kết ngược booking & appointment
+-- =====================================================================
+ALTER TABLE tele_consultations
+    ADD COLUMN IF NOT EXISTS booking_session_id VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS appointment_id VARCHAR(50);
+
+DO $$ BEGIN
+    ALTER TABLE tele_consultations
+        ADD CONSTRAINT fk_tele_booking_session FOREIGN KEY (booking_session_id) REFERENCES tele_booking_sessions(session_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE tele_consultations
+        ADD CONSTRAINT fk_tele_appointment FOREIGN KEY (appointment_id) REFERENCES appointments(appointments_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_tele_consult_booking ON tele_consultations(booking_session_id) WHERE booking_session_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tele_consult_appointment ON tele_consultations(appointment_id) WHERE appointment_id IS NOT NULL;
+
+
+
+-- =====================================================================
+-- 1. tele_room_participants — Người tham gia phòng khám
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_room_participants (
+    participant_id         VARCHAR(50) PRIMARY KEY,
+    tele_consultation_id   VARCHAR(50) NOT NULL,
+    user_id                VARCHAR(50) NOT NULL,
+    participant_role       VARCHAR(20) DEFAULT 'GUEST',            -- HOST, GUEST, OBSERVER
+    join_time              TIMESTAMPTZ,
+    leave_time             TIMESTAMPTZ,
+    duration_seconds       INT DEFAULT 0,
+    is_video_on            BOOLEAN DEFAULT FALSE,
+    is_audio_on            BOOLEAN DEFAULT FALSE,
+    is_screen_sharing      BOOLEAN DEFAULT FALSE,
+    connection_quality     VARCHAR(20) DEFAULT 'GOOD',             -- EXCELLENT, GOOD, FAIR, POOR
+    device_info            JSONB,                                  -- {browser, os, ip_hash}
+    room_token             VARCHAR(255),
+    token_expires_at       TIMESTAMPTZ,
+    status                 VARCHAR(20) DEFAULT 'WAITING',          -- WAITING, IN_ROOM, LEFT, KICKED
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(users_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_trp_consultation ON tele_room_participants(tele_consultation_id);
+CREATE INDEX IF NOT EXISTS idx_trp_user ON tele_room_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_trp_status ON tele_room_participants(status);
+CREATE INDEX IF NOT EXISTS idx_trp_token ON tele_room_participants(room_token) WHERE room_token IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_trp_unique_active ON tele_room_participants(tele_consultation_id, user_id) WHERE status IN ('WAITING','IN_ROOM');
+
+-- =====================================================================
+-- 2. tele_room_events — Activity log phòng khám
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_room_events (
+    event_id               VARCHAR(50) PRIMARY KEY,
+    tele_consultation_id   VARCHAR(50) NOT NULL,
+    user_id                VARCHAR(50),
+    event_type             VARCHAR(50) NOT NULL,
+    -- JOIN, LEAVE, VIDEO_ON, VIDEO_OFF, AUDIO_ON, AUDIO_OFF,
+    -- SCREEN_SHARE_START, SCREEN_SHARE_STOP, FILE_SHARED,
+    -- ROOM_OPENED, ROOM_CLOSED, NETWORK_ISSUE, RECONNECTED, KICKED
+    event_data             JSONB,
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tre_consultation ON tele_room_events(tele_consultation_id);
+CREATE INDEX IF NOT EXISTS idx_tre_type ON tele_room_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_tre_time ON tele_room_events(tele_consultation_id, created_at ASC);
+
+-- =====================================================================
+-- 3. tele_shared_files — Tài liệu chia sẻ trong phiên
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_shared_files (
+    file_id                VARCHAR(50) PRIMARY KEY,
+    tele_consultation_id   VARCHAR(50) NOT NULL,
+    uploaded_by            VARCHAR(50) NOT NULL,
+    file_name              VARCHAR(255) NOT NULL,
+    file_url               TEXT NOT NULL,
+    file_type              VARCHAR(50) DEFAULT 'DOCUMENT',         -- IMAGE, PDF, DOCUMENT, LAB_RESULT, PRESCRIPTION
+    file_size              INT,                                    -- bytes
+    mime_type              VARCHAR(100),
+    thumbnail_url          TEXT,
+    description            TEXT,
+    is_medical_record      BOOLEAN DEFAULT FALSE,
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by) REFERENCES users(users_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_tsf_consultation ON tele_shared_files(tele_consultation_id);
+CREATE INDEX IF NOT EXISTS idx_tsf_uploader ON tele_shared_files(uploaded_by);
+CREATE INDEX IF NOT EXISTS idx_tsf_type ON tele_shared_files(file_type);
+
+-- =====================================================================
+-- 4. ALTER tele_consultations — Bổ sung quản lý phòng
+-- =====================================================================
+ALTER TABLE tele_consultations
+    ADD COLUMN IF NOT EXISTS room_status VARCHAR(30) DEFAULT 'SCHEDULED',
+    ADD COLUMN IF NOT EXISTS room_opened_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS room_opened_by VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS room_closed_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS total_duration_seconds INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS participant_count INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS has_video BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS has_audio BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS has_chat BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS has_file_sharing BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS network_issues_count INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS ended_reason VARCHAR(50);
+
+DO $$ BEGIN
+    ALTER TABLE tele_consultations
+        ADD CONSTRAINT fk_tele_room_opened_by FOREIGN KEY (room_opened_by) REFERENCES users(users_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_tele_room_status ON tele_consultations(room_status);
+CREATE INDEX IF NOT EXISTS idx_tele_room_active ON tele_consultations(room_status) WHERE room_status IN ('WAITING','ONGOING');
+
+
+
+-- =====================================================================
+-- 1. medical_conversations — Cuộc hội thoại y tế
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS medical_conversations (
+    conversation_id        VARCHAR(50) PRIMARY KEY,
+    patient_id             VARCHAR(50) NOT NULL,
+    doctor_id              VARCHAR(50) NOT NULL,
+    specialty_id           VARCHAR(50),
+    appointment_id         VARCHAR(50),
+    encounter_id           VARCHAR(50),
+    subject                VARCHAR(255),
+    status                 VARCHAR(20) DEFAULT 'ACTIVE',           -- ACTIVE, CLOSED, ARCHIVED
+    priority               VARCHAR(20) DEFAULT 'NORMAL',           -- NORMAL, URGENT, FOLLOW_UP
+    last_message_at        TIMESTAMPTZ,
+    last_message_preview   TEXT,
+    unread_count_patient   INT DEFAULT 0,
+    unread_count_doctor    INT DEFAULT 0,
+    is_patient_initiated   BOOLEAN DEFAULT FALSE,
+    closed_at              TIMESTAMPTZ,
+    closed_by              VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(doctors_id) ON DELETE CASCADE,
+    FOREIGN KEY (specialty_id) REFERENCES specialties(specialties_id) ON DELETE SET NULL,
+    FOREIGN KEY (appointment_id) REFERENCES appointments(appointments_id) ON DELETE SET NULL,
+    FOREIGN KEY (encounter_id) REFERENCES encounters(encounters_id) ON DELETE SET NULL,
+    FOREIGN KEY (closed_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_mc_patient ON medical_conversations(patient_id);
+CREATE INDEX IF NOT EXISTS idx_mc_doctor ON medical_conversations(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_mc_status ON medical_conversations(status);
+CREATE INDEX IF NOT EXISTS idx_mc_last_msg ON medical_conversations(last_message_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mc_priority ON medical_conversations(priority) WHERE priority = 'URGENT';
+
+-- =====================================================================
+-- 2. medical_chat_messages — Tin nhắn y tế
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS medical_chat_messages (
+    message_id             VARCHAR(50) PRIMARY KEY,
+    conversation_id        VARCHAR(50) NOT NULL,
+    sender_id              VARCHAR(50) NOT NULL,
+    sender_type            VARCHAR(20) NOT NULL,                   -- DOCTOR, PATIENT, SYSTEM
+    message_type           VARCHAR(30) DEFAULT 'TEXT',             -- TEXT, IMAGE, FILE, LAB_RESULT, PRESCRIPTION, SYSTEM_NOTE
+    content                TEXT,
+    is_read                BOOLEAN DEFAULT FALSE,
+    read_at                TIMESTAMPTZ,
+    is_pinned              BOOLEAN DEFAULT FALSE,
+    is_deleted             BOOLEAN DEFAULT FALSE,
+    reply_to_id            VARCHAR(50),
+    metadata               JSONB,
+    sent_at                TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (conversation_id) REFERENCES medical_conversations(conversation_id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(users_id) ON DELETE CASCADE,
+    FOREIGN KEY (reply_to_id) REFERENCES medical_chat_messages(message_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_mcm_conversation ON medical_chat_messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_mcm_sent ON medical_chat_messages(conversation_id, sent_at ASC);
+CREATE INDEX IF NOT EXISTS idx_mcm_pinned ON medical_chat_messages(conversation_id, is_pinned) WHERE is_pinned = TRUE;
+CREATE INDEX IF NOT EXISTS idx_mcm_unread ON medical_chat_messages(conversation_id, is_read) WHERE is_read = FALSE AND is_deleted = FALSE;
+
+-- =====================================================================
+-- 3. medical_chat_attachments — File đính kèm
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS medical_chat_attachments (
+    attachment_id          VARCHAR(50) PRIMARY KEY,
+    message_id             VARCHAR(50) NOT NULL,
+    file_name              VARCHAR(255) NOT NULL,
+    file_url               TEXT NOT NULL,
+    file_type              VARCHAR(50) DEFAULT 'DOCUMENT',         -- IMAGE, PDF, LAB_RESULT, PRESCRIPTION, DOCUMENT
+    file_size              INT,
+    mime_type              VARCHAR(100),
+    thumbnail_url          TEXT,
+    is_medical_record      BOOLEAN DEFAULT FALSE,
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (message_id) REFERENCES medical_chat_messages(message_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_mca_message ON medical_chat_attachments(message_id);
+CREATE INDEX IF NOT EXISTS idx_mca_medical ON medical_chat_attachments(is_medical_record) WHERE is_medical_record = TRUE;
+
+
+
+
+
+-- =====================================================================
+-- 1. tele_consultation_results — Kết quả khám từ xa
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_consultation_results (
+    result_id                  VARCHAR(50) PRIMARY KEY,
+    tele_consultation_id       VARCHAR(50) NOT NULL UNIQUE,
+    encounter_id               VARCHAR(50),
+    -- Triệu chứng BN mô tả
+    chief_complaint            TEXT,
+    symptom_description        TEXT,
+    symptom_duration           VARCHAR(100),
+    symptom_severity           VARCHAR(20),                         -- MILD, MODERATE, SEVERE
+    self_reported_vitals       JSONB,                               -- {temp, pulse, bp_systolic, bp_diastolic, spo2, weight}
+    -- Khám & Kết luận BS
+    remote_examination_notes   TEXT,
+    examination_limitations    TEXT,                                -- Giới hạn khám từ xa (bắt buộc y khoa)
+    clinical_impression        TEXT,
+    medical_conclusion         TEXT,
+    conclusion_type            VARCHAR(30) DEFAULT 'PRELIMINARY',   -- PRELIMINARY, FINAL
+    -- Tư vấn điều trị
+    treatment_plan             TEXT,
+    treatment_advice           TEXT,
+    lifestyle_recommendations  TEXT,
+    medication_notes           TEXT,
+    referral_needed            BOOLEAN DEFAULT FALSE,
+    referral_reason            TEXT,
+    referral_specialty         VARCHAR(50),
+    -- Follow-up
+    follow_up_needed           BOOLEAN DEFAULT FALSE,
+    follow_up_date             DATE,
+    follow_up_notes            TEXT,
+    follow_up_type             VARCHAR(20),                         -- TELECONSULTATION, IN_PERSON
+    -- Ký xác nhận
+    is_signed                  BOOLEAN DEFAULT FALSE,
+    signed_at                  TIMESTAMPTZ,
+    signed_by                  VARCHAR(50),
+    signature_notes            TEXT,
+    -- Metadata
+    status                     VARCHAR(20) DEFAULT 'DRAFT',         -- DRAFT, COMPLETED, SIGNED
+    created_by                 VARCHAR(50),
+    created_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE CASCADE,
+    FOREIGN KEY (encounter_id) REFERENCES encounters(encounters_id) ON DELETE SET NULL,
+    FOREIGN KEY (signed_by) REFERENCES users(users_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tcr_consultation ON tele_consultation_results(tele_consultation_id);
+CREATE INDEX IF NOT EXISTS idx_tcr_encounter ON tele_consultation_results(encounter_id) WHERE encounter_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tcr_status ON tele_consultation_results(status);
+CREATE INDEX IF NOT EXISTS idx_tcr_unsigned ON tele_consultation_results(is_signed) WHERE is_signed = FALSE AND status = 'COMPLETED';
+CREATE INDEX IF NOT EXISTS idx_tcr_followup ON tele_consultation_results(follow_up_needed, follow_up_date) WHERE follow_up_needed = TRUE;
+
+-- =====================================================================
+-- 2. ALTER tele_consultations — Bổ sung trạng thái kết quả
+-- =====================================================================
+ALTER TABLE tele_consultations
+    ADD COLUMN IF NOT EXISTS has_result BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS result_status VARCHAR(20);
+
+
+
+
+
+-- =====================================================================
+-- 1. tele_prescriptions — Đơn thuốc từ xa (bổ sung cho prescriptions)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_prescriptions (
+    tele_prescription_id         VARCHAR(50) PRIMARY KEY,
+    prescription_id              VARCHAR(50) NOT NULL UNIQUE,
+    tele_consultation_id         VARCHAR(50) NOT NULL,
+    encounter_id                 VARCHAR(50),
+    -- Kiểm soát từ xa
+    is_remote_prescription       BOOLEAN DEFAULT TRUE,
+    remote_restrictions_checked  BOOLEAN DEFAULT FALSE,
+    restriction_notes            TEXT,
+    -- Gửi đơn cho BN
+    delivery_method              VARCHAR(30),                        -- PICKUP, DELIVERY, DIGITAL
+    delivery_address             TEXT,
+    delivery_phone               VARCHAR(20),
+    delivery_notes               TEXT,
+    sent_to_patient              BOOLEAN DEFAULT FALSE,
+    sent_at                      TIMESTAMPTZ,
+    -- Pháp lý
+    legal_disclaimer             TEXT,
+    doctor_confirmed_identity    BOOLEAN DEFAULT FALSE,
+    -- Chỉ định kèm
+    has_lab_orders               BOOLEAN DEFAULT FALSE,
+    has_referral                 BOOLEAN DEFAULT FALSE,
+    referral_notes               TEXT,
+    -- Đồng bộ kho
+    pharmacy_notes               TEXT,
+    stock_checked                BOOLEAN DEFAULT FALSE,
+    stock_check_result           JSONB,
+    -- Metadata
+    created_at                   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at                   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (prescription_id) REFERENCES prescriptions(prescriptions_id) ON DELETE CASCADE,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE CASCADE,
+    FOREIGN KEY (encounter_id) REFERENCES encounters(encounters_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tp_prescription ON tele_prescriptions(prescription_id);
+CREATE INDEX IF NOT EXISTS idx_tp_consultation ON tele_prescriptions(tele_consultation_id);
+CREATE INDEX IF NOT EXISTS idx_tp_encounter ON tele_prescriptions(encounter_id);
+CREATE INDEX IF NOT EXISTS idx_tp_sent ON tele_prescriptions(sent_to_patient) WHERE sent_to_patient = FALSE;
+
+-- =====================================================================
+-- 2. tele_drug_restrictions — Danh mục thuốc hạn chế kê từ xa
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_drug_restrictions (
+    restriction_id               VARCHAR(50) PRIMARY KEY,
+    drug_id                      VARCHAR(50) NOT NULL,
+    restriction_type             VARCHAR(50) NOT NULL,               -- BANNED, REQUIRES_IN_PERSON, QUANTITY_LIMITED
+    max_quantity                 INT,                                -- Giới hạn SL (nếu QUANTITY_LIMITED)
+    reason                       TEXT NOT NULL,
+    legal_reference              TEXT,                               -- Tham chiếu văn bản pháp luật
+    is_active                    BOOLEAN DEFAULT TRUE,
+    created_at                   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (drug_id) REFERENCES drugs(drugs_id) ON DELETE CASCADE,
+    UNIQUE (drug_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tdr_drug ON tele_drug_restrictions(drug_id);
+CREATE INDEX IF NOT EXISTS idx_tdr_active ON tele_drug_restrictions(is_active) WHERE is_active = TRUE;
+
+
+
+
+-- =====================================================================
+-- 1. tele_follow_up_plans — Kế hoạch theo dõi
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_follow_up_plans (
+    plan_id                    VARCHAR(50) PRIMARY KEY,
+    tele_consultation_id       VARCHAR(50) NOT NULL,
+    patient_id                 VARCHAR(50) NOT NULL,
+    doctor_id                  VARCHAR(50) NOT NULL,
+    encounter_id               VARCHAR(50),
+    -- Kế hoạch
+    plan_type                  VARCHAR(30) NOT NULL,                 -- MEDICATION_MONITOR, SYMPTOM_TRACK, POST_PROCEDURE, CHRONIC_CARE
+    description                TEXT,
+    instructions               TEXT,
+    monitoring_items           JSONB,                                -- ["Nhiệt độ","Huyết áp","Đường huyết"]
+    frequency                  VARCHAR(50) DEFAULT 'WEEKLY',        -- DAILY, WEEKLY, BI_WEEKLY, MONTHLY
+    start_date                 DATE NOT NULL,
+    end_date                   DATE,
+    -- Tái khám
+    next_follow_up_date        DATE,
+    follow_up_type             VARCHAR(20),                          -- TELECONSULTATION, IN_PERSON
+    follow_up_booking_id       VARCHAR(50),
+    reminder_sent              BOOLEAN DEFAULT FALSE,
+    reminder_sent_at           TIMESTAMPTZ,
+    -- Kết quả
+    status                     VARCHAR(30) DEFAULT 'ACTIVE',        -- ACTIVE, COMPLETED, CONVERTED_IN_PERSON, CANCELLED
+    outcome                    TEXT,
+    outcome_rating             VARCHAR(20),                          -- IMPROVED, STABLE, WORSENED, RESOLVED
+    completed_at               TIMESTAMPTZ,
+    converted_reason           TEXT,
+    -- Metadata
+    created_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE CASCADE,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(doctors_id) ON DELETE CASCADE,
+    FOREIGN KEY (encounter_id) REFERENCES encounters(encounters_id) ON DELETE SET NULL,
+    FOREIGN KEY (follow_up_booking_id) REFERENCES tele_booking_sessions(session_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tfp_consultation ON tele_follow_up_plans(tele_consultation_id);
+CREATE INDEX IF NOT EXISTS idx_tfp_patient ON tele_follow_up_plans(patient_id);
+CREATE INDEX IF NOT EXISTS idx_tfp_doctor ON tele_follow_up_plans(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_tfp_status ON tele_follow_up_plans(status);
+CREATE INDEX IF NOT EXISTS idx_tfp_upcoming ON tele_follow_up_plans(next_follow_up_date) WHERE status = 'ACTIVE' AND next_follow_up_date IS NOT NULL;
+
+-- =====================================================================
+-- 2. tele_health_updates — Diễn biến sức khỏe BN
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_health_updates (
+    update_id                  VARCHAR(50) PRIMARY KEY,
+    plan_id                    VARCHAR(50) NOT NULL,
+    reported_by                VARCHAR(50) NOT NULL,
+    reporter_type              VARCHAR(20) NOT NULL,                 -- PATIENT, DOCTOR
+    update_type                VARCHAR(30) NOT NULL,                 -- SYMPTOM_UPDATE, VITAL_SIGNS, MEDICATION_RESPONSE, SIDE_EFFECT, GENERAL_NOTE
+    content                    TEXT,
+    vital_data                 JSONB,                                -- {temp, pulse, bp_systolic, bp_diastolic, spo2, weight}
+    severity_level             VARCHAR(20) DEFAULT 'NORMAL',        -- NORMAL, MILD, MODERATE, SEVERE, CRITICAL
+    attachments                JSONB,                                -- [{file_name, file_url}]
+    doctor_response            TEXT,
+    responded_at               TIMESTAMPTZ,
+    requires_attention         BOOLEAN DEFAULT FALSE,
+    created_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES tele_follow_up_plans(plan_id) ON DELETE CASCADE,
+    FOREIGN KEY (reported_by) REFERENCES users(users_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_thu_plan ON tele_health_updates(plan_id);
+CREATE INDEX IF NOT EXISTS idx_thu_attention ON tele_health_updates(requires_attention) WHERE requires_attention = TRUE AND doctor_response IS NULL;
+CREATE INDEX IF NOT EXISTS idx_thu_severity ON tele_health_updates(severity_level) WHERE severity_level IN ('SEVERE','CRITICAL');
+
+
+
+
+-- =====================================================================
+-- 1. tele_quality_reviews — Đánh giá chi tiết chất lượng
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_quality_reviews (
+    review_id                  VARCHAR(50) PRIMARY KEY,
+    tele_consultation_id       VARCHAR(50) NOT NULL UNIQUE,
+    patient_id                 VARCHAR(50) NOT NULL,
+    doctor_id                  VARCHAR(50) NOT NULL,
+    -- Đánh giá BS (1-5)
+    doctor_professionalism     INT CHECK (doctor_professionalism >= 1 AND doctor_professionalism <= 5),
+    doctor_communication       INT CHECK (doctor_communication >= 1 AND doctor_communication <= 5),
+    doctor_knowledge           INT CHECK (doctor_knowledge >= 1 AND doctor_knowledge <= 5),
+    doctor_empathy             INT CHECK (doctor_empathy >= 1 AND doctor_empathy <= 5),
+    doctor_overall             INT CHECK (doctor_overall >= 1 AND doctor_overall <= 5),
+    doctor_comment             TEXT,
+    -- Trải nghiệm BN
+    ease_of_use                INT CHECK (ease_of_use >= 1 AND ease_of_use <= 5),
+    waiting_time_rating        INT CHECK (waiting_time_rating >= 1 AND waiting_time_rating <= 5),
+    overall_satisfaction       INT CHECK (overall_satisfaction >= 1 AND overall_satisfaction <= 5),
+    would_recommend            BOOLEAN DEFAULT TRUE,
+    patient_comment            TEXT,
+    -- Chất lượng kết nối
+    video_quality              INT CHECK (video_quality >= 1 AND video_quality <= 5),
+    audio_quality              INT CHECK (audio_quality >= 1 AND audio_quality <= 5),
+    connection_stability       INT CHECK (connection_stability >= 1 AND connection_stability <= 5),
+    tech_issues                JSONB,                                -- ["AUDIO_LAG","VIDEO_FREEZE","DISCONNECTED"]
+    -- Metadata
+    is_anonymous               BOOLEAN DEFAULT FALSE,
+    created_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tele_consultation_id) REFERENCES tele_consultations(tele_consultations_id) ON DELETE CASCADE,
+    FOREIGN KEY (patient_id) REFERENCES users(users_id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES users(users_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_tqr_consultation ON tele_quality_reviews(tele_consultation_id);
+CREATE INDEX IF NOT EXISTS idx_tqr_doctor ON tele_quality_reviews(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_tqr_patient ON tele_quality_reviews(patient_id);
+CREATE INDEX IF NOT EXISTS idx_tqr_satisfaction ON tele_quality_reviews(overall_satisfaction);
+
+-- =====================================================================
+-- 2. tele_quality_alerts — Cảnh báo chất lượng
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_quality_alerts (
+    alert_id                   VARCHAR(50) PRIMARY KEY,
+    alert_type                 VARCHAR(30) NOT NULL,                 -- LOW_RATING, TECH_ISSUE, HIGH_CANCEL_RATE, PATIENT_COMPLAINT
+    severity                   VARCHAR(20) NOT NULL DEFAULT 'WARNING', -- WARNING, CRITICAL
+    target_type                VARCHAR(20) NOT NULL,                 -- DOCTOR, SYSTEM, PLATFORM
+    target_id                  VARCHAR(50),                          -- doctor_id hoặc null (system-wide)
+    title                      VARCHAR(200) NOT NULL,
+    description                TEXT,
+    metrics_snapshot           JSONB,                                -- {avg_rating, total_reviews, cancel_rate}
+    status                     VARCHAR(20) DEFAULT 'OPEN',          -- OPEN, ACKNOWLEDGED, RESOLVED, DISMISSED
+    resolved_by                VARCHAR(50),
+    resolution_notes           TEXT,
+    resolved_at                TIMESTAMPTZ,
+    created_at                 TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (resolved_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tqa_status ON tele_quality_alerts(status);
+CREATE INDEX IF NOT EXISTS idx_tqa_type ON tele_quality_alerts(alert_type);
+CREATE INDEX IF NOT EXISTS idx_tqa_target ON tele_quality_alerts(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_tqa_open ON tele_quality_alerts(status) WHERE status = 'OPEN';
+
+
+
+
+
+-- =====================================================================
+-- 1. tele_system_configs — Cấu hình hệ thống (key-value)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_system_configs (
+    config_id              VARCHAR(50) PRIMARY KEY,
+    config_key             VARCHAR(100) UNIQUE NOT NULL,
+    config_value           TEXT NOT NULL,
+    config_type            VARCHAR(20) NOT NULL DEFAULT 'STRING',   -- STRING, INTEGER, BOOLEAN, JSON
+    category               VARCHAR(50) NOT NULL,                    -- PLATFORM, SECURITY, USAGE_LIMIT, OPERATION, SLA
+    description            TEXT,
+    is_editable            BOOLEAN DEFAULT TRUE,
+    updated_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (updated_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tsc_key ON tele_system_configs(config_key);
+CREATE INDEX IF NOT EXISTS idx_tsc_category ON tele_system_configs(category);
+
+-- =====================================================================
+-- 2. tele_service_pricing — Chi phí dịch vụ khám từ xa
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_service_pricing (
+    pricing_id             VARCHAR(50) PRIMARY KEY,
+    type_id                VARCHAR(50) NOT NULL,
+    specialty_id           VARCHAR(50),
+    facility_id            VARCHAR(50),
+    base_price             DECIMAL(15,2) NOT NULL DEFAULT 0,
+    currency               VARCHAR(10) DEFAULT 'VND',
+    discount_percent       DECIMAL(5,2) DEFAULT 0,
+    effective_from         DATE NOT NULL,
+    effective_to           DATE,
+    is_active              BOOLEAN DEFAULT TRUE,
+    created_by             VARCHAR(50),
+    updated_by             VARCHAR(50),
+    created_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (type_id) REFERENCES tele_consultation_types(type_id) ON DELETE CASCADE,
+    FOREIGN KEY (specialty_id) REFERENCES specialties(specialties_id) ON DELETE SET NULL,
+    FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(users_id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES users(users_id) ON DELETE SET NULL,
+    UNIQUE (type_id, specialty_id, facility_id, effective_from)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tsp_type ON tele_service_pricing(type_id);
+CREATE INDEX IF NOT EXISTS idx_tsp_active ON tele_service_pricing(is_active) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_tsp_effective ON tele_service_pricing(effective_from, effective_to);
+
+-- =====================================================================
+-- 3. tele_config_audit_log — Lịch sử thay đổi config
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS tele_config_audit_log (
+    log_id                 VARCHAR(50) PRIMARY KEY,
+    config_key             VARCHAR(100) NOT NULL,
+    old_value              TEXT,
+    new_value              TEXT,
+    changed_by             VARCHAR(50),
+    changed_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (changed_by) REFERENCES users(users_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tcal_key ON tele_config_audit_log(config_key);
+CREATE INDEX IF NOT EXISTS idx_tcal_time ON tele_config_audit_log(changed_at DESC);
