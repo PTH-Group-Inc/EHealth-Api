@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Health AI Chat — Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #212121;
+            --sidebar: #171717;
+            --chat-bg: #2f2f2f;
+            --text: #ececec;
+            --text-muted: #8e8e8e;
+            --accent: #10a37f;
+            --accent-hover: #1a7f64;
+            --border: #3e3e3e;
+            --input-bg: #303030;
+            --danger: #ef4444;
+            --tag-mild: #22c55e;
+            --tag-moderate: #f59e0b;
+            --tag-severe: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+        }
+
+        /* ═══ SIDEBAR ═══ */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h3 { font-size: 1rem; color: var(--accent); }
+        .sidebar-header p { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        .btn-new-chat {
+            margin: 12px 16px;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-new-chat:hover { background: var(--accent-hover); }
+
+        .session-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .session-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .session-item:hover { background: var(--chat-bg); color: var(--text); }
+        .session-item.active { background: var(--chat-bg); color: var(--text); }
+        .session-status {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .status-ACTIVE { background: rgba(16,163,127,0.2); color: var(--accent); }
+        .status-COMPLETED { background: rgba(142,142,142,0.2); color: var(--text-muted); }
+
+        .sidebar-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ═══ CHAT MAIN ═══ */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header h4 { font-size: 0.95rem; }
+        .btn-end-session {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-end-session:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* ═══ MESSAGES ═══ */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 0;
+        }
+        .message-row {
+            padding: 16px 24px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .message-row .role-label {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .message-row.user .role-label { color: var(--text); }
+        .message-row.assistant .role-label { color: var(--accent); }
+        .message-row .msg-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ═══ ANALYSIS CARD ═══ */
+        .analysis-card {
+            margin-top: 12px;
+            background: var(--sidebar);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 0.8rem;
+        }
+        .analysis-card summary {
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 0.85rem;
+        }
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .analysis-item {
+            background: var(--chat-bg);
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .analysis-item.full { grid-column: 1 / -1; }
+        .analysis-item .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .analysis-item .value {
+            margin-top: 2px;
+            font-weight: 600;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .tag-mild { background: rgba(34,197,94,0.2); color: var(--tag-mild); }
+        .tag-moderate { background: rgba(245,158,11,0.2); color: var(--tag-moderate); }
+        .tag-severe { background: rgba(239,68,68,0.2); color: var(--tag-severe); }
+        .tag-normal { background: rgba(34,197,94,0.2); color: var(--tag-mild); }
+        .tag-soon { background: rgba(245,158,11,0.2); color: var(--tag-moderate); }
+        .tag-urgent { background: rgba(239,68,68,0.2); color: var(--tag-severe); }
+        .tag-yes { background: rgba(34,197,94,0.2); color: var(--tag-mild); }
+        .tag-no { background: rgba(142,142,142,0.2); color: var(--text-muted); }
+
+        .analysis-actions {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .action-chip {
+            background: rgba(16,163,127,0.15);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+        .action-chip.red {
+            background: rgba(239,68,68,0.15);
+            color: var(--danger);
+        }
+        .section-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        .analysis-meta {
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* ═══ WELCOME ═══ */
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+        .welcome-screen h2 { font-size: 1.5rem; color: var(--text); margin-bottom: 8px; }
+        .welcome-screen p { font-size: 0.9rem; max-width: 400px; text-align: center; line-height: 1.5; }
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+            justify-content: center;
+            max-width: 600px;
+        }
+        .suggestion-chip {
+            padding: 10px 16px;
+            background: var(--sidebar);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .suggestion-chip:hover { border-color: var(--accent); color: var(--text); }
+
+        /* ═══ INPUT BAR ═══ */
+        .input-bar {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+        }
+        .input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .input-wrapper textarea {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            min-height: 46px;
+        }
+        .input-wrapper textarea:focus { border-color: var(--accent); }
+        .btn-send {
+            width: 46px;
+            height: 46px;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-send:hover { background: var(--accent-hover); }
+        .btn-send:disabled { background: var(--border); cursor: default; }
+
+        .mode-toggle {
+            max-width: 800px;
+            margin: 8px auto 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .mode-toggle label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .mode-toggle input[type="checkbox"] { accent-color: var(--accent); }
+
+        /* ═══ TYPING ═══ */
+        .typing { color: var(--text-muted); font-style: italic; }
+        .typing .dots::after { content: ''; animation: dots 1.5s infinite; }
+        @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3>🏥 E-Health AI</h3>
+        <p>Tư vấn sức khỏe ban đầu</p>
+    </div>
+    <button class="btn-new-chat" onclick="resetChat()">＋ Phiên tư vấn mới</button>
+    <div class="session-list" id="sessionList"></div>
+    <div class="sidebar-footer">Không cần đăng nhập • Guest mode</div>
+</div>
+
+<!-- CHAT MAIN -->
+<div class="chat-main">
+    <div class="chat-header" id="chatHeader" style="display:none;">
+        <h4 id="chatTitle">Phiên tư vấn</h4>
+        <button class="btn-end-session" id="btnEndSession" onclick="endSession()">Kết thúc phiên</button>
+    </div>
+
+    <!-- Welcome -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <h2>🤖 AI Tư Vấn Sức Khỏe</h2>
+        <p>Mô tả triệu chứng của bạn, AI sẽ phân tích và gợi ý chuyên khoa phù hợp.</p>
+        <div class="suggestion-chips">
+            <div class="suggestion-chip" onclick="quickStart('Tôi bị ho khan 3 ngày, rát họng, không sốt')">🤧 Ho khan + rát họng</div>
+            <div class="suggestion-chip" onclick="quickStart('Tôi bị đau đầu từ sáng, mức độ khoảng 5/10')">🤕 Đau đầu</div>
+            <div class="suggestion-chip" onclick="quickStart('Tôi bị đau bụng bên phải dưới, kèm sốt nhẹ')">🤢 Đau bụng + sốt</div>
+            <div class="suggestion-chip" onclick="quickStart('Tôi bị nổi mẩn đỏ ngứa ở tay, 2 ngày rồi')">🖐️ Dị ứng da</div>
+            <div class="suggestion-chip" onclick="quickStart('Tôi bị đau ngực trái, khó thở')">🚨 Đau ngực + khó thở</div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-container" id="messagesContainer" style="display:none;"></div>
+
+    <!-- Input -->
+    <div class="input-bar">
+        <div class="input-wrapper">
+            <textarea id="messageInput" placeholder="Mô tả triệu chứng của bạn..." rows="1"
+                      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+            <button class="btn-send" id="btnSend" onclick="sendMessage()">➤</button>
+        </div>
+        <div class="mode-toggle">
+            <label><input type="checkbox" id="streamMode" checked> Streaming (SSE)</label>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ═══ CẤU HÌNH — sửa nếu server chạy ở port/IP khác ═══
+    const API_BASE = 'http://localhost:3000/api/ai/health-chat';
+
+    let currentSessionId = null;
+    let isProcessing = false;
+
+    // ═══ SESSIONS ═══
+    async function loadSessions() {
+        try {
+            const res = await fetch(`${API_BASE}/sessions?limit=20`);
+            const result = await res.json();
+            const list = document.getElementById('sessionList');
+            list.innerHTML = '';
+
+            const sessions = result.data?.data || result.data || [];
+            sessions.forEach(s => {
+                const div = document.createElement('div');
+                div.className = `session-item ${s.session_id === currentSessionId ? 'active' : ''}`;
+                div.innerHTML = `
+                    <span>${s.session_code}</span>
+                    <span class="session-status status-${s.status}">${s.status}</span>
+                `;
+                div.onclick = () => loadSession(s.session_id);
+                list.appendChild(div);
+            });
+        } catch (e) {
+            console.error('Load sessions error:', e);
+        }
+    }
+
+    async function loadSession(sessionId) {
+        try {
+            const res = await fetch(`${API_BASE}/sessions/${sessionId}`);
+            const result = await res.json();
+            if (!result.success) throw new Error(result.message);
+
+            currentSessionId = sessionId;
+            const { session, messages } = result.data;
+
+            showChatUI(session.session_code, session.status === 'ACTIVE');
+
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+
+            messages.forEach(msg => {
+                if (msg.role === 'USER') {
+                    appendMessage('user', msg.content);
+                } else if (msg.role === 'ASSISTANT') {
+                    appendMessage('assistant', msg.content, msg.analysis_data, msg.model_used, msg.response_time_ms);
+                }
+            });
+
+            scrollToBottom();
+            loadSessions();
+        } catch (e) {
+            console.error('Load session error:', e);
+        }
+    }
+
+    function showChatUI(title, showEndBtn) {
+        document.getElementById('welcomeScreen').style.display = 'none';
+        document.getElementById('messagesContainer').style.display = 'block';
+        document.getElementById('chatHeader').style.display = 'flex';
+        document.getElementById('chatTitle').textContent = title || 'Phiên tư vấn';
+        document.getElementById('btnEndSession').style.display = showEndBtn ? 'block' : 'none';
+    }
+
+    function resetChat() {
+        currentSessionId = null;
+        document.getElementById('welcomeScreen').style.display = 'flex';
+        document.getElementById('messagesContainer').style.display = 'none';
+        document.getElementById('messagesContainer').innerHTML = '';
+        document.getElementById('chatHeader').style.display = 'none';
+        document.getElementById('messageInput').value = '';
+    }
+
+    // ═══ QUICK START ═══
+    function quickStart(message) {
+        document.getElementById('messageInput').value = message;
+        sendMessage();
+    }
+
+    // ═══ SEND MESSAGE ═══
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        if (!message || isProcessing) return;
+
+        isProcessing = true;
+        setBtnLoading(true);
+        input.value = '';
+
+        // Nếu chưa có session → tạo mới
+        if (!currentSessionId) {
+            showChatUI('Đang tạo phiên...', false);
+            document.getElementById('messagesContainer').innerHTML = '';
+            appendMessage('user', message);
+            const typingId = showTyping();
+
+            try {
+                const res = await fetch(`${API_BASE}/sessions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) throw new Error(result.message);
+
+                currentSessionId = result.data.session.session_id;
+                showChatUI(result.data.session.session_code, true);
+
+                removeTyping(typingId);
+                appendMessage('assistant', result.data.ai_reply, result.data.analysis);
+                loadSessions();
+            } catch (e) {
+                removeTyping(typingId);
+                appendMessage('assistant', `❌ Lỗi: ${e.message}`);
+            } finally {
+                isProcessing = false;
+                setBtnLoading(false);
+            }
+            return;
+        }
+
+        // Có session → gửi message
+        appendMessage('user', message);
+        const useStream = document.getElementById('streamMode').checked;
+
+        if (useStream) {
+            await sendStream(message);
+        } else {
+            await sendJSON(message);
+        }
+
+        isProcessing = false;
+        setBtnLoading(false);
+    }
+
+    async function sendJSON(message) {
+        const typingId = showTyping();
+        try {
+            const res = await fetch(`${API_BASE}/sessions/${currentSessionId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) throw new Error(result.message);
+            removeTyping(typingId);
+            appendMessage('assistant', result.data.ai_reply, result.data.analysis);
+        } catch (e) {
+            removeTyping(typingId);
+            appendMessage('assistant', `❌ Lỗi: ${e.message}`);
+        }
+    }
+
+    async function sendStream(message) {
+        const row = createMessageRow('assistant');
+        const contentEl = row.querySelector('.msg-content');
+        contentEl.innerHTML = '<span class="typing">Đang suy nghĩ<span class="dots"></span></span>';
+        scrollToBottom();
+
+        let fullText = '';
+        let analysisData = null;
+
+        try {
+            const res = await fetch(`${API_BASE}/sessions/${currentSessionId}/messages/stream`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+                    try {
+                        const data = JSON.parse(line.substring(6));
+                        if (data.type === 'chunk') {
+                            fullText += data.content;
+                            contentEl.textContent = fullText;
+                            scrollToBottom();
+                        } else if (data.type === 'replace') {
+                            // Server gửi reply sạch (đã tách JSON) → thay thế nội dung
+                            contentEl.textContent = data.content;
+                        } else if (data.type === 'analysis') {
+                            analysisData = data.data;
+                        } else if (data.type === 'error') {
+                            contentEl.textContent = `❌ ${data.message}`;
+                        }
+                    } catch (e) { /* skip parse error */ }
+                }
+            }
+
+            if (analysisData) {
+                row.querySelector('.analysis-placeholder')?.remove();
+                const el = renderAnalysis(analysisData);
+                if (el) row.appendChild(el);
+            }
+        } catch (e) {
+            contentEl.textContent = `❌ Stream error: ${e.message}`;
+        }
+    }
+
+    // ═══ END SESSION ═══
+    async function endSession() {
+        if (!currentSessionId || !confirm('Kết thúc phiên tư vấn này?')) return;
+        try {
+            await fetch(`${API_BASE}/sessions/${currentSessionId}/complete`, { method: 'PATCH' });
+            document.getElementById('btnEndSession').style.display = 'none';
+            loadSessions();
+        } catch (e) { alert('Lỗi: ' + e.message); }
+    }
+
+    // ═══ UI HELPERS ═══
+    function appendMessage(role, content, analysis, modelUsed, responseTime) {
+        const container = document.getElementById('messagesContainer');
+        const row = createMessageRow(role);
+        row.querySelector('.msg-content').textContent = content;
+
+        if (analysis) {
+            const el = renderAnalysis(analysis, modelUsed, responseTime);
+            if (el) row.appendChild(el);
+        }
+        container.appendChild(row);
+        scrollToBottom();
+    }
+
+    function createMessageRow(role) {
+        const row = document.createElement('div');
+        row.className = `message-row ${role}`;
+        row.innerHTML = `
+            <div class="role-label">${role === 'user' ? '👤 Bạn' : '🤖 AI Tư vấn'}</div>
+            <div class="msg-content"></div>
+            <div class="analysis-placeholder"></div>
+        `;
+        document.getElementById('messagesContainer').appendChild(row);
+        return row;
+    }
+
+    function renderAnalysis(a, model, ms) {
+        if (!a) return null;
+
+        const el = document.createElement('details');
+        el.className = 'analysis-card';
+        el.open = a.is_complete;
+
+        const sevTag = a.severity ? `<span class="tag tag-${a.severity.toLowerCase()}">${a.severity}</span>` : '<span class="tag tag-no">—</span>';
+        const priTag = a.priority ? `<span class="tag tag-${a.priority.toLowerCase()}">${a.priority}</span>` : '<span class="tag tag-no">—</span>';
+        const selfTag = a.can_self_treat ? '<span class="tag tag-yes">✅ Có</span>' : '<span class="tag tag-no">❌ Không</span>';
+        const docTag = a.needs_doctor ? '<span class="tag tag-severe">🔴 Cần khám</span>' : '<span class="tag tag-yes">Chưa cần</span>';
+
+        let html = `
+            <summary>📊 Phân Tích AI ${a.is_complete ? '— ✅ Hoàn tất' : '— ⏳ Đang thu thập'}</summary>
+            <div class="analysis-grid">
+                <div class="analysis-item"><div class="label">Mức độ</div><div class="value">${sevTag}</div></div>
+                <div class="analysis-item"><div class="label">Ưu tiên</div><div class="value">${priTag}</div></div>
+                <div class="analysis-item"><div class="label">Tự điều trị</div><div class="value">${selfTag}</div></div>
+                <div class="analysis-item"><div class="label">Cần bác sĩ</div><div class="value">${docTag}</div></div>
+        `;
+
+        if (a.suggested_specialty_name) {
+            html += `<div class="analysis-item full"><div class="label">Chuyên khoa gợi ý</div><div class="value">🏥 ${a.suggested_specialty_name} (${a.suggested_specialty_code || ''})</div></div>`;
+        }
+        if (a.preliminary_assessment) {
+            html += `<div class="analysis-item full"><div class="label">Đánh giá sơ bộ</div><div class="value">${a.preliminary_assessment}</div></div>`;
+        }
+        if (a.reasoning) {
+            html += `<div class="analysis-item full"><div class="label">Lý do</div><div class="value">${a.reasoning}</div></div>`;
+        }
+
+        html += '</div>';
+
+        if (a.symptoms_collected?.length) {
+            html += `<div class="section-label">TRIỆU CHỨNG THU THẬP:</div><div class="analysis-actions">${a.symptoms_collected.map(s => `<span class="action-chip">${s}</span>`).join('')}</div>`;
+        }
+        if (a.recommended_actions?.length) {
+            html += `<div class="section-label">GỢI Ý XỬ LÝ:</div><div class="analysis-actions">${a.recommended_actions.map(s => `<span class="action-chip">💊 ${s}</span>`).join('')}</div>`;
+        }
+        if (a.red_flags_detected?.length) {
+            html += `<div class="section-label">⚠️ RED FLAGS:</div><div class="analysis-actions">${a.red_flags_detected.map(s => `<span class="action-chip red">🚨 ${s}</span>`).join('')}</div>`;
+        }
+        if (model || ms) {
+            html += `<div class="analysis-meta">${model ? 'Model: ' + model : ''} ${ms ? '| ' + ms + 'ms' : ''}</div>`;
+        }
+
+        el.innerHTML = html;
+        return el;
+    }
+
+    let typingCounter = 0;
+    function showTyping() {
+        const id = `typing-${++typingCounter}`;
+        const row = document.createElement('div');
+        row.className = 'message-row assistant';
+        row.id = id;
+        row.innerHTML = '<div class="role-label" style="color:var(--accent);">🤖 AI Tư vấn</div><div class="msg-content typing">Đang suy nghĩ<span class="dots"></span></div>';
+        document.getElementById('messagesContainer').appendChild(row);
+        scrollToBottom();
+        return id;
+    }
+    function removeTyping(id) { document.getElementById(id)?.remove(); }
+    function scrollToBottom() {
+        const c = document.getElementById('messagesContainer');
+        setTimeout(() => c.scrollTop = c.scrollHeight, 50);
+    }
+    function setBtnLoading(loading) {
+        const btn = document.getElementById('btnSend');
+        btn.disabled = loading;
+        btn.textContent = loading ? '⏳' : '➤';
+    }
+
+    // Auto-resize textarea
+    const textarea = document.getElementById('messageInput');
+    textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    });
+
+    // ═══ INIT ═══
+    window.onload = () => loadSessions();
+</script>
+</body>
+</html>

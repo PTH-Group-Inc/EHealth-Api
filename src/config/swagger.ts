@@ -398,6 +398,9 @@ const options = {
       { name: '9.9.4 Nhật ký', description: 'Audit trail hoạt động thu ngân: SHIFT_OPEN, PAYMENT, VOID, LIMIT_EXCEEDED...' },
       { name: '9.9.5 Dashboard', description: 'Dashboard tổng quan, thống kê cá nhân, limit usage %' },
 
+      // ===== MODULE 7: AI TƯ VẤN SỨC KHỎE =====
+      { name: '7.1 AI Tư Vấn Sức Khỏe', description: 'Chatbot AI tư vấn sức khỏe ban đầu: tiếp nhận triệu chứng, hỏi chi tiết, gợi ý chuyên khoa + ưu tiên, hướng dẫn đặt lịch, SSE streaming' },
+
     ]
   },
   apis: [
