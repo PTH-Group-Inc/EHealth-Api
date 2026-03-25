@@ -136,7 +136,11 @@ export class AccountRepository {
   /**
    * Tạo tài khoản mới
    */
-  static async createAccountWithProfileAndRole(user: User, profileId: string, fullName: string, roleCode: string): Promise<void> {
+  static async createAccountWithProfileAndRole(
+    user: User,
+    profileId: string,
+    fullName: string,
+    roleCode: string): Promise<void> {
     const client = await pool.connect();
 
     try {
@@ -155,7 +159,9 @@ export class AccountRepository {
         `, [profileId, user.users_id, fullName]);
 
       // Tìm roles_id
-      const roleResult = await client.query(`SELECT roles_id FROM roles WHERE code = $1 LIMIT 1`, [roleCode]);
+      const roleResult = await client.query(`SELECT roles_id FROM roles WHERE code = $1 LIMIT 1`,
+        [roleCode]);
+
       if (roleResult.rows.length > 0) {
         const roleId = roleResult.rows[0].roles_id;
         // Insert bảng user_roles
