@@ -6,8 +6,8 @@ import { authorizePermissions } from '../../middleware/authorizePermissions.midd
 
 const router = Router();
 
-router.use(verifyAccessToken);
-router.use(checkSessionStatus);
+// GET routes → PUBLIC (bệnh nhân xem bác sĩ & dịch vụ)
+// CUD routes → vẫn yêu cầu verifyAccessToken + checkSessionStatus
 
 /**
  * @swagger
@@ -267,7 +267,7 @@ router.get('/by-facility-service/:facilityServiceId', authorizePermissions('DOCT
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/:doctorId/services', authorizePermissions('DOCTOR_SERVICE_ASSIGN'), DoctorServiceController.assignServices);
+router.post('/:doctorId/services', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCTOR_SERVICE_ASSIGN'), DoctorServiceController.assignServices);
 
 /**
  * @swagger
@@ -319,6 +319,6 @@ router.post('/:doctorId/services', authorizePermissions('DOCTOR_SERVICE_ASSIGN')
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/:doctorId/services/:facilityServiceId', authorizePermissions('DOCTOR_SERVICE_ASSIGN'), DoctorServiceController.removeService);
+router.delete('/:doctorId/services/:facilityServiceId', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCTOR_SERVICE_ASSIGN'), DoctorServiceController.removeService);
 
 export default router;

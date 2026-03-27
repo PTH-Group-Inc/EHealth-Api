@@ -1,446 +1,207 @@
 import { randomUUID } from 'crypto';
+import { Response } from 'express';
 import { getGeminiModel, getGeminiModelByName } from '../../config/gemini';
 import { AiHealthChatRepository } from '../../repository/AI/ai-health-chat.repository';
+import { AiRagService } from './ai-rag.service';
 import {
     AiChatSession,
+    AiChatMessage,
+    AiAnalysisData,
     AiChatResponse,
     AiChatSessionDetail,
-    AiAnalysisData,
     SpecialtyForPrompt,
 } from '../../models/AI/ai-health-chat.model';
-import { AppError } from '../../utils/app-error.util';
-import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import {
-    AI_CHAT_SESSION_STATUS,
-    AI_CHAT_ROLE,
-    AI_CHAT_LIMITS,
-    AI_CHAT_ERRORS,
     AI_GEMINI_CONFIG,
+    AI_CHAT_CONFIG,
+    AI_CHAT_STATUS,
+    AI_CHAT_ROLES,
+    AI_CHAT_ERRORS,
+    AI_CHAT_SUCCESS,
     AI_CORE_PROMPT,
     AI_DISEASE_KNOWLEDGE_BASE,
 } from '../../constants/ai-health-chat.constant';
-import { Response } from 'express';
+import { AppError } from '../../utils/app-error.util';
+import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 
 /**
- * Service xử lý nghiệp vụ AI Tư Vấn Sức Khỏe Ban Đầu.
- *
- * Luồng nghiệp vụ:
- * 1. BN bắt đầu phiên → tạo session, build system prompt kèm danh sách chuyên khoa từ DB
- * 2. Gửi tin nhắn đầu tiên tới Gemini → AI hỏi thêm chi tiết triệu chứng
- * 3. BN trả lời → gửi toàn bộ history cho Gemini (multi-turn)
- * 4. Khi AI đủ thông tin → trả JSON có suggested_specialty + priority
- * 5. Service parse kết quả → map specialty_code sang specialty_id từ DB → lưu session
- *
- * Liên kết module:
- * - Module 2 (Facility): bảng specialties → lấy danh sách chuyên khoa
- * - Module 3 (Patient): bảng patients → optional link BN
- * - Module 3 (Appointment): bảng appointments → link nếu BN đặt lịch từ gợi ý
+ * Service chính cho Module 7.1 — AI Tư Vấn Sức Khỏe Ban Đầu.
+ * Chịu trách nhiệm toàn bộ nghiệp vụ: quản lý phiên, gọi Gemini, parse kết quả, ghi log.
  */
 export class AiHealthChatService {
 
-    /** Sinh session_id dạng AIC_YYMM_xxxxxxxx */
-    private static generateSessionId(): string {
-        const now = new Date();
-        const yy = String(now.getFullYear()).slice(-2);
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        return `AIC_${yy}${mm}_${randomUUID().substring(0, 8)}`;
-    }
-
-    /** Sinh session_code dạng AIC-YYYYMMDD-XXXX */
-    private static generateSessionCode(): string {
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const rand = randomUUID().substring(0, 4).toUpperCase();
-        return `AIC-${yyyy}${mm}${dd}-${rand}`;
-    }
-
-    /** Sinh message_id */
-    private static generateMessageId(): string {
-        return `MSG_${randomUUID().substring(0, 12)}`;
-    }
 
     /**
-     * Build system prompt động theo giai đoạn hội thoại.
-     * - Lượt 1 (Discovery): Chỉ gửi AI_CORE_PROMPT → tiết kiệm ~400 tokens.
-     * - Lượt 2+ (Assessment): Bơm thêm AI_DISEASE_KNOWLEDGE_BASE để AI tra cứu bệnh phổ thông.
-     */
-    private static buildSystemPrompt(specialties: SpecialtyForPrompt[], turnCount: number = 1): string {
-        const specialtiesList = specialties
-            .map(s => `- Code: ${s.code} | Tên: ${s.name}${s.description ? ` | Mô tả: ${s.description}` : ''}`)
-            .join('\n');
-
-        let prompt = AI_CORE_PROMPT.replace('{specialties_list}', specialtiesList);
-
-        // Assessment Phase: bơm knowledge base từ lượt 2 trở đi
-        if (turnCount >= 2) {
-            prompt += '\n\n' + AI_DISEASE_KNOWLEDGE_BASE;
-        }
-
-        return prompt;
-    }
-
-    /**
-     * Parse JSON response từ Gemini.
-     * Gemini trả plain text, cần extract JSON từ nó.
-     * Xử lý cả trường hợp Gemini wrap trong code block ```json ... ```
-     */
-    private static parseGeminiResponse(raw: string): { reply: string; analysis: AiAnalysisData } {
-        let cleaned = raw.trim();
-
-        // Xử lý trường hợp Gemini wrap trong code block
-        if (cleaned.startsWith('```json')) {
-            cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        } else if (cleaned.startsWith('```')) {
-            cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
-        }
-
-        try {
-            const parsed = JSON.parse(cleaned);
-
-            return {
-                reply: parsed.reply || '',
-                analysis: {
-                    is_complete: parsed.analysis?.is_complete ?? false,
-                    suggested_specialty_code: parsed.analysis?.suggested_specialty_code ?? null,
-                    suggested_specialty_name: parsed.analysis?.suggested_specialty_name ?? null,
-                    priority: parsed.analysis?.priority ?? null,
-                    symptoms_collected: parsed.analysis?.symptoms_collected ?? [],
-                    should_suggest_booking: parsed.analysis?.should_suggest_booking ?? false,
-                    reasoning: parsed._thought ?? null,
-                    severity: parsed.analysis?.severity ?? null,
-                    can_self_treat: parsed.analysis?.can_self_treat ?? false,
-                    preliminary_assessment: parsed.analysis?.preliminary_assessment ?? null,
-                    recommended_actions: parsed.analysis?.recommended_actions ?? [],
-                    red_flags_detected: parsed.analysis?.red_flags_detected ?? [],
-                    needs_doctor: parsed.analysis?.needs_doctor ?? false,
-                },
-            };
-        } catch {
-            // JSON bị lỗi (có thể truncated) → cố gắng trích xuất reply bằng regex
-            const replyMatch = raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
-            const extractedReply = replyMatch
-                ? replyMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"')
-                : raw.replace(/\{[\s\S]*$/s, '').trim() || raw;
-
-            // Cố gắng trích xuất các field analysis từ JSON bị cắt
-            const severityMatch = raw.match(/"severity"\s*:\s*"(MILD|MODERATE|SEVERE)"/i);
-            const assessmentMatch = raw.match(/"preliminary_assessment"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
-            const isCompleteMatch = raw.match(/"is_complete"\s*:\s*(true|false)/i);
-            const priorityMatch = raw.match(/"priority"\s*:\s*"(NORMAL|SOON|URGENT)"/i);
-            const needsDoctorMatch = raw.match(/"needs_doctor"\s*:\s*(true|false)/i);
-            const canSelfTreatMatch = raw.match(/"can_self_treat"\s*:\s*(true|false)/i);
-            const specialtyCodeMatch = raw.match(/"suggested_specialty_code"\s*:\s*"([^"]+)"/i);
-            const specialtyNameMatch = raw.match(/"suggested_specialty_name"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
-
-            return {
-                reply: extractedReply,
-                analysis: {
-                    is_complete: isCompleteMatch ? isCompleteMatch[1] === 'true' : false,
-                    suggested_specialty_code: specialtyCodeMatch?.[1] ?? null,
-                    suggested_specialty_name: specialtyNameMatch
-                        ? specialtyNameMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"')
-                        : null,
-                    priority: priorityMatch?.[1] ?? null,
-                    symptoms_collected: [],
-                    should_suggest_booking: false,
-                    reasoning: null,
-                    severity: severityMatch?.[1] ?? null,
-                    can_self_treat: canSelfTreatMatch ? canSelfTreatMatch[1] === 'true' : false,
-                    preliminary_assessment: assessmentMatch
-                        ? assessmentMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"')
-                        : null,
-                    recommended_actions: [],
-                    red_flags_detected: [],
-                    needs_doctor: needsDoctorMatch ? needsDoctorMatch[1] === 'true' : false,
-                },
-            };
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    //  1. START SESSION — Bắt đầu phiên tư vấn
-    // ═══════════════════════════════════════════════════════════════
-
-    /**
-     * Bắt đầu phiên tư vấn AI mới.
-     *
-     * Nghiệp vụ:
-     * - Kiểm tra giới hạn phiên ACTIVE (tránh spam)
-     * - Tạo session mới
-     * - Lấy danh sách chuyên khoa từ DB → build system prompt
-     * - Gửi tin nhắn đầu tiên tới Gemini
-     * - Lưu user message + AI response vào DB
-     * - Nếu AI trả kết quả complete ngay → cập nhật session
+     * Tạo phiên tư vấn AI mới.
      */
     static async startSession(
         userId: string | null,
-        message: string,
-        patientId?: string
+        message: string
     ): Promise<AiChatResponse> {
-        // Validate input
-        if (!message || message.trim().length === 0) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_MESSAGE', AI_CHAT_ERRORS.EMPTY_MESSAGE);
-        }
-        if (message.length > AI_CHAT_LIMITS.MAX_USER_MESSAGE_LENGTH) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MESSAGE_TOO_LONG', AI_CHAT_ERRORS.MESSAGE_TOO_LONG);
-        }
+        this.validateMessage(message);
 
-        // Kiểm tra giới hạn phiên ACTIVE (bỏ qua cho guest)
+        // Kiểm tra giới hạn phiên ACTIVE đồng thời (chỉ áp dụng cho user đã đăng nhập)
         if (userId) {
             const activeCount = await AiHealthChatRepository.countActiveSessionsByUser(userId);
-            if (activeCount >= AI_CHAT_LIMITS.MAX_ACTIVE_SESSIONS_PER_USER) {
-                throw new AppError(HTTP_STATUS.TOO_MANY_REQUESTS, 'MAX_ACTIVE_SESSIONS', AI_CHAT_ERRORS.MAX_ACTIVE_SESSIONS);
+            if (activeCount >= AI_CHAT_CONFIG.MAX_ACTIVE_SESSIONS) {
+                throw new AppError(HTTP_STATUS.TOO_MANY_REQUESTS, 'TOO_MANY_SESSIONS', AI_CHAT_ERRORS.MAX_SESSIONS_REACHED);
             }
         }
 
         // Tạo session mới
+        const sessionId = `AIC_${this.shortId()}`;
+        const sessionCode = this.generateSessionCode();
+
         const session = await AiHealthChatRepository.createSession({
-            session_id: AiHealthChatService.generateSessionId(),
-            session_code: AiHealthChatService.generateSessionCode(),
-            patient_id: patientId || null,
+            session_id: sessionId,
+            session_code: sessionCode,
             user_id: userId,
-            status: AI_CHAT_SESSION_STATUS.ACTIVE,
+            patient_id: null,
+            status: AI_CHAT_STATUS.ACTIVE,
             message_count: 0,
         });
 
-        // Lấy chuyên khoa từ DB để build system prompt
-        const specialties = await AiHealthChatRepository.getActiveSpecialties();
-        const systemPrompt = AiHealthChatService.buildSystemPrompt(specialties);
+        // Lấy danh sách chuyên khoa + RAG context song song
+        const [specialties, ragContext] = await Promise.all([
+            AiHealthChatRepository.getActiveSpecialties(),
+            this.safeRetrieveContext(message),
+        ]);
 
-        // Gọi Gemini API 
+        // Build system prompt — lượt đầu chỉ dùng AI_CORE_PROMPT (tiết kiệm token)
+        const systemPrompt = this.buildSystemPrompt(specialties, ragContext, true);
+
+        // Gọi Gemini
         const startTime = Date.now();
-        let geminiResponseText = '';
-        let tokensUsed = 0;
-        let modelUsed: string = AI_GEMINI_CONFIG.MODEL_NAME;
+        const aiRawResponse = await this.callGeminiWithFallback(systemPrompt, [], message);
+        const responseTimeMs = Date.now() - startTime;
 
-        const fallbackModels = AI_GEMINI_CONFIG.FALLBACK_MODELS;
-        let lastError: any = null;
+        // Parse kết quả
+        const { textReply, analysisData, modelUsed, tokensUsed } = aiRawResponse;
 
-        for (const currentModel of fallbackModels) {
-            try {
-                const model = getGeminiModelByName(currentModel);
-                const chat = model.startChat({
-                    history: [
-                        { role: 'user', parts: [{ text: systemPrompt }] },
-                        { role: 'model', parts: [{ text: 'Tôi đã hiểu. Tôi sẵn sàng tiếp nhận triệu chứng từ bệnh nhân và trả lời theo đúng format JSON đã quy định.' }] },
-                    ],
-                });
-                const result = await chat.sendMessage(message);
-                geminiResponseText = result.response.text();
-                tokensUsed = result.response.usageMetadata?.totalTokenCount ?? 0;
-                modelUsed = currentModel;
-                lastError = null;
-                break;
-            } catch (error: any) {
-                lastError = error;
-                const isRetryable = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('503') || error.message?.includes('500') || error.message?.includes('Service Unavailable') || error.message?.includes('overloaded');
-                if (isRetryable && currentModel !== fallbackModels[fallbackModels.length - 1]) {
-                    continue;
-                }
-                console.error('[AiHealthChatService.startSession] Gemini API Error:', error.message);
-                throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'GEMINI_API_ERROR', AI_CHAT_ERRORS.GEMINI_API_ERROR);
-            }
-        }
+        // Lưu 2 tin nhắn: USER + ASSISTANT
+        const userMsgId = `MSG_${this.shortId()}`;
+        const assistantMsgId = `MSG_${this.shortId()}`;
 
-        if (lastError) {
-            throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'GEMINI_API_ERROR', 'Tất cả model AI đều hết quota. Vui lòng thử lại sau.');
-        }
+        await Promise.all([
+            AiHealthChatRepository.addMessage({
+                message_id: userMsgId,
+                session_id: sessionId,
+                role: AI_CHAT_ROLES.USER,
+                content: message,
+                tokens_used: 0,
+                response_time_ms: 0,
+            }),
+            AiHealthChatRepository.addMessage({
+                message_id: assistantMsgId,
+                session_id: sessionId,
+                role: AI_CHAT_ROLES.ASSISTANT,
+                content: textReply,
+                model_used: modelUsed,
+                tokens_used: tokensUsed,
+                response_time_ms: responseTimeMs,
+                analysis_data: analysisData,
+            }),
+        ]);
 
-        const responseTime = Date.now() - startTime;
-
-        // Parse response
-        const { reply, analysis } = AiHealthChatService.parseGeminiResponse(geminiResponseText);
-
-        // Lưu user message
-        await AiHealthChatRepository.addMessage({
-            message_id: AiHealthChatService.generateMessageId(),
-            session_id: session.session_id,
-            role: AI_CHAT_ROLE.USER,
-            content: message.trim(),
-        });
-
-        // Lưu AI response
-        await AiHealthChatRepository.addMessage({
-            message_id: AiHealthChatService.generateMessageId(),
-            session_id: session.session_id,
-            role: AI_CHAT_ROLE.ASSISTANT,
-            content: reply,
-            model_used: modelUsed,
-            tokens_used: tokensUsed,
-            response_time_ms: responseTime,
-            analysis_data: analysis,
-        });
-
-        // Cập nhật session: message_count + kết quả nếu complete
-        const sessionUpdates: Partial<AiChatSession> = {
-            message_count: 2,
-        };
-
-        if (analysis.is_complete && analysis.suggested_specialty_code) {
-            await AiHealthChatService.applyAnalysisToSession(sessionUpdates, analysis);
-        }
-
-        const updatedSession = await AiHealthChatRepository.updateSession(
-            session.session_id,
-            sessionUpdates
-        );
+        // Cập nhật session (message_count + kết quả phân tích nếu AI đã đưa gợi ý)
+        const sessionUpdates = await this.buildSessionUpdates(analysisData, 2);
+        const updatedSession = await AiHealthChatRepository.updateSession(sessionId, sessionUpdates);
 
         return {
             session: updatedSession || session,
-            ai_reply: reply,
-            analysis,
+            ai_reply: textReply,
+            analysis: analysisData,
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  2. SEND MESSAGE — Gửi tin nhắn tiếp theo (JSON response)
-    // ═══════════════════════════════════════════════════════════════
-
     /**
-     * Gửi tin nhắn tiếp theo trong phiên (multi-turn conversation).
-     *
-     * Nghiệp vụ:
-     * - Validate session: phải ACTIVE, chưa hết tin nhắn
-     * - Load toàn bộ conversation history
-     * - Gửi cho Gemini kèm history (multi-turn)
-     * - Parse kết quả → nếu AI đã đủ info → map specialty → cập nhật session
+     * Gửi tin nhắn tiếp theo trong phiên (JSON response).
      */
     static async sendMessage(
         sessionId: string,
         userId: string | null,
         message: string
     ): Promise<AiChatResponse> {
-        // Validate input
-        if (!message || message.trim().length === 0) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_MESSAGE', AI_CHAT_ERRORS.EMPTY_MESSAGE);
-        }
-        if (message.length > AI_CHAT_LIMITS.MAX_USER_MESSAGE_LENGTH) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MESSAGE_TOO_LONG', AI_CHAT_ERRORS.MESSAGE_TOO_LONG);
-        }
+        this.validateMessage(message);
 
-        // Load session
-        const session = await AiHealthChatService.validateSession(sessionId, userId);
+        const session = await this.validateAndGetSession(sessionId, userId);
 
         // Kiểm tra giới hạn tin nhắn
-        if (session.message_count >= AI_CHAT_LIMITS.MAX_MESSAGES_PER_SESSION) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MAX_MESSAGES_REACHED', AI_CHAT_ERRORS.MAX_MESSAGES_REACHED);
+        if (session.message_count >= AI_CHAT_CONFIG.MAX_MESSAGES_PER_SESSION) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MAX_MESSAGES', AI_CHAT_ERRORS.MAX_MESSAGES_REACHED);
         }
 
-        // Load conversation history
-        const messages = await AiHealthChatRepository.getMessagesBySession(sessionId);
+        // Load history + specialties + RAG context song song
+        const [existingMessages, specialties, ragContext] = await Promise.all([
+            AiHealthChatRepository.getMessagesBySession(sessionId),
+            AiHealthChatRepository.getActiveSpecialties(),
+            this.safeRetrieveContext(message),
+        ]);
 
-        // Build Gemini chat history
-        const specialties = await AiHealthChatRepository.getActiveSpecialties();
-        // Đếm số lượt USER đã chat → xác định giai đoạn (Discovery vs Assessment)
-        const userTurnCount = messages.filter(m => m.role === AI_CHAT_ROLE.USER).length + 1;
-        const systemPrompt = AiHealthChatService.buildSystemPrompt(specialties, userTurnCount);
+        // Lượt 2 trở đi: inject thêm bảng kiến thức bệnh lý
+        const isFirstTurn = existingMessages.length <= 2;
+        const systemPrompt = this.buildSystemPrompt(specialties, ragContext, isFirstTurn);
 
-        const geminiHistory = [
-            { role: 'user' as const, parts: [{ text: systemPrompt }] },
-            { role: 'model' as const, parts: [{ text: 'Tôi đã hiểu. Tôi sẵn sàng tiếp nhận triệu chứng từ bệnh nhân và trả lời theo đúng format JSON đã quy định.' }] },
-        ];
+        // Convert history sang format Gemini
+        const geminiHistory = this.convertHistoryToGemini(existingMessages);
 
-        // Thêm lịch sử chat
-        for (const msg of messages) {
-            geminiHistory.push({
-                role: msg.role === AI_CHAT_ROLE.USER ? 'user' as const : 'model' as const,
-                parts: [{ text: msg.content }],
-            });
-        }
-
-        // Gọi Gemini API — với cơ chế fallback
+        // Gọi Gemini
         const startTime = Date.now();
-        let geminiResponseText = '';
-        let tokensUsed = 0;
-        let modelUsed: string = AI_GEMINI_CONFIG.MODEL_NAME;
+        const aiRawResponse = await this.callGeminiWithFallback(systemPrompt, geminiHistory, message);
+        const responseTimeMs = Date.now() - startTime;
 
-        const fallbackModels = AI_GEMINI_CONFIG.FALLBACK_MODELS;
-        let lastError: any = null;
+        const { textReply, analysisData, modelUsed, tokensUsed } = aiRawResponse;
 
-        for (const currentModel of fallbackModels) {
-            try {
-                const model = getGeminiModelByName(currentModel);
-                const chat = model.startChat({ history: geminiHistory });
-                const result = await chat.sendMessage(message.trim());
-                geminiResponseText = result.response.text();
-                tokensUsed = result.response.usageMetadata?.totalTokenCount ?? 0;
-                modelUsed = currentModel;
-                lastError = null;
-                break;
-            } catch (error: any) {
-                lastError = error;
-                const isRetryable = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('503') || error.message?.includes('500') || error.message?.includes('Service Unavailable') || error.message?.includes('overloaded');
-                if (isRetryable && currentModel !== fallbackModels[fallbackModels.length - 1]) {
-                    continue;
-                }
-                console.error('[AiHealthChatService.sendMessage] Gemini API Error:', error.message);
-                throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'GEMINI_API_ERROR', AI_CHAT_ERRORS.GEMINI_API_ERROR);
-            }
-        }
+        // Lưu 2 tin nhắn
+        const userMsgId = `MSG_${this.shortId()}`;
+        const assistantMsgId = `MSG_${this.shortId()}`;
 
-        if (lastError) {
-            throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'GEMINI_API_ERROR', 'Tất cả model AI đều hết quota. Vui lòng thử lại sau.');
-        }
-
-        const responseTime = Date.now() - startTime;
-
-        // Parse response
-        const { reply, analysis } = AiHealthChatService.parseGeminiResponse(geminiResponseText);
-
-        // Lưu user message
-        await AiHealthChatRepository.addMessage({
-            message_id: AiHealthChatService.generateMessageId(),
-            session_id: sessionId,
-            role: AI_CHAT_ROLE.USER,
-            content: message.trim(),
-        });
-
-        // Lưu AI response
-        await AiHealthChatRepository.addMessage({
-            message_id: AiHealthChatService.generateMessageId(),
-            session_id: sessionId,
-            role: AI_CHAT_ROLE.ASSISTANT,
-            content: reply,
-            model_used: modelUsed,
-            tokens_used: tokensUsed,
-            response_time_ms: responseTime,
-            analysis_data: analysis,
-        });
+        await Promise.all([
+            AiHealthChatRepository.addMessage({
+                message_id: userMsgId,
+                session_id: sessionId,
+                role: AI_CHAT_ROLES.USER,
+                content: message,
+                tokens_used: 0,
+                response_time_ms: 0,
+            }),
+            AiHealthChatRepository.addMessage({
+                message_id: assistantMsgId,
+                session_id: sessionId,
+                role: AI_CHAT_ROLES.ASSISTANT,
+                content: textReply,
+                model_used: modelUsed,
+                tokens_used: tokensUsed,
+                response_time_ms: responseTimeMs,
+                analysis_data: analysisData,
+            }),
+        ]);
 
         // Cập nhật session
-        const sessionUpdates: Partial<AiChatSession> = {
-            message_count: session.message_count + 2,
-        };
+        const newMessageCount = session.message_count + 2;
+        const sessionUpdates = await this.buildSessionUpdates(analysisData, newMessageCount);
 
-        if (analysis.is_complete && analysis.suggested_specialty_code) {
-            await AiHealthChatService.applyAnalysisToSession(sessionUpdates, analysis);
+        // Nếu AI đã gợi ý specialty_code → map sang specialty_id từ DB
+        if (analysisData?.suggested_specialty_code) {
+            const specialty = await AiHealthChatRepository.findSpecialtyByCode(analysisData.suggested_specialty_code);
+            if (specialty) {
+                sessionUpdates.suggested_specialty_id = specialty.specialties_id;
+                sessionUpdates.suggested_specialty_name = specialty.name;
+            }
         }
 
         const updatedSession = await AiHealthChatRepository.updateSession(sessionId, sessionUpdates);
 
         return {
             session: updatedSession || session,
-            ai_reply: reply,
-            analysis,
+            ai_reply: textReply,
+            analysis: analysisData,
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  3. SEND MESSAGE STREAM — SSE Streaming response
-    // ═══════════════════════════════════════════════════════════════
-
     /**
-     * Gửi tin nhắn và nhận phản hồi dạng streaming (SSE).
-     * Frontend nhận từng chunk text real-time giống ChatGPT.
-     *
-     * Sử dụng Server-Sent Events (SSE) — không cần WebSocket.
-     * Events:
-     *   - data: {"type":"chunk","content":"..."} → từng phần text
-     *   - data: {"type":"analysis","data":{...}} → kết quả phân tích cuối
-     *   - data: {"type":"done","session":{...}} → kết thúc stream
-     *   - data: {"type":"error","message":"..."} → lỗi
+     * Gửi tin nhắn với streaming response (SSE).
+     * SSE Events: chunk → analysis → done | error.
      */
     static async sendMessageStream(
         sessionId: string,
@@ -448,47 +209,12 @@ export class AiHealthChatService {
         message: string,
         res: Response
     ): Promise<void> {
-        // Validate
-        if (!message || message.trim().length === 0) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_MESSAGE', AI_CHAT_ERRORS.EMPTY_MESSAGE);
-        }
-        if (message.length > AI_CHAT_LIMITS.MAX_USER_MESSAGE_LENGTH) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MESSAGE_TOO_LONG', AI_CHAT_ERRORS.MESSAGE_TOO_LONG);
-        }
+        this.validateMessage(message);
 
-        const session = await AiHealthChatService.validateSession(sessionId, userId);
+        const session = await this.validateAndGetSession(sessionId, userId);
 
-        if (session.message_count >= AI_CHAT_LIMITS.MAX_MESSAGES_PER_SESSION) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MAX_MESSAGES_REACHED', AI_CHAT_ERRORS.MAX_MESSAGES_REACHED);
-        }
-
-        // Lưu user message trước
-        await AiHealthChatRepository.addMessage({
-            message_id: AiHealthChatService.generateMessageId(),
-            session_id: sessionId,
-            role: AI_CHAT_ROLE.USER,
-            content: message.trim(),
-        });
-
-        // Load history
-        const messages = await AiHealthChatRepository.getMessagesBySession(sessionId);
-        const specialties = await AiHealthChatRepository.getActiveSpecialties();
-        // Đếm số lượt USER đã chat (bao gồm tin vừa lưu) → xác định giai đoạn
-        const userTurnCount = messages.filter(m => m.role === AI_CHAT_ROLE.USER).length;
-        const systemPrompt = AiHealthChatService.buildSystemPrompt(specialties, userTurnCount);
-
-        const geminiHistory = [
-            { role: 'user' as const, parts: [{ text: systemPrompt }] },
-            { role: 'model' as const, parts: [{ text: 'Tôi đã hiểu. Tôi sẵn sàng tiếp nhận triệu chứng từ bệnh nhân và trả lời theo đúng format JSON đã quy định.' }] },
-        ];
-
-        for (const msg of messages) {
-            if (msg.role === AI_CHAT_ROLE.USER || msg.role === AI_CHAT_ROLE.ASSISTANT) {
-                geminiHistory.push({
-                    role: msg.role === AI_CHAT_ROLE.USER ? 'user' as const : 'model' as const,
-                    parts: [{ text: msg.content }],
-                });
-            }
+        if (session.message_count >= AI_CHAT_CONFIG.MAX_MESSAGES_PER_SESSION) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MAX_MESSAGES', AI_CHAT_ERRORS.MAX_MESSAGES_REACHED);
         }
 
         // Setup SSE headers
@@ -499,223 +225,512 @@ export class AiHealthChatService {
             'X-Accel-Buffering': 'no',
         });
 
-        const startTime = Date.now();
-        let fullResponse = '';
-        let tokensUsed = 0;
-        let modelUsed: string = AI_GEMINI_CONFIG.MODEL_NAME;
+        try {
+            const [existingMessages, specialties, ragContext] = await Promise.all([
+                AiHealthChatRepository.getMessagesBySession(sessionId),
+                AiHealthChatRepository.getActiveSpecialties(),
+                this.safeRetrieveContext(message),
+            ]);
 
-        const fallbackModels = AI_GEMINI_CONFIG.FALLBACK_MODELS;
-        let lastError: any = null;
+            const isFirstTurn = existingMessages.length <= 2;
+            const systemPrompt = this.buildSystemPrompt(specialties, ragContext, isFirstTurn);
+            const geminiHistory = this.convertHistoryToGemini(existingMessages);
 
-        for (const currentModel of fallbackModels) {
-            try {
-                const model = getGeminiModelByName(currentModel);
-                const chat = model.startChat({ history: geminiHistory });
-                const streamResult = await chat.sendMessageStream(message.trim());
+            const startTime = Date.now();
 
-                for await (const chunk of streamResult.stream) {
-                    const chunkText = chunk.text();
-                    if (chunkText) {
-                        fullResponse += chunkText;
-                        res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunkText })}\n\n`);
-                    }
+            // Gọi Gemini streaming
+            const { stream, modelUsed } = await this.callGeminiStreamWithFallback(systemPrompt, geminiHistory, message);
+
+            let fullText = '';
+            let totalTokens = 0;
+
+            // Stream từng chunk text tới client
+            for await (const chunk of stream) {
+                const chunkText = chunk.text();
+                if (chunkText) {
+                    fullText += chunkText;
+                    res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunkText })}\n\n`);
                 }
-
-                const finalResponse = await streamResult.response;
-                tokensUsed = finalResponse.usageMetadata?.totalTokenCount ?? 0;
-                modelUsed = currentModel;
-                lastError = null;
-                break;
-            } catch (error: any) {
-                lastError = error;
-                const isRetryable = error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('503') || error.message?.includes('500') || error.message?.includes('Service Unavailable') || error.message?.includes('overloaded');
-                if (isRetryable && currentModel !== fallbackModels[fallbackModels.length - 1]) {
-                    fullResponse = '';
-                    continue;
+                if (chunk.usageMetadata?.totalTokenCount) {
+                    totalTokens = chunk.usageMetadata.totalTokenCount;
                 }
-                console.error('[AiHealthChatService.sendMessageStream] Gemini API Error:', error.message);
-                res.write(`data: ${JSON.stringify({ type: 'error', message: AI_CHAT_ERRORS.GEMINI_API_ERROR })}\n\n`);
-                res.end();
-                return;
             }
-        }
 
-        if (lastError) {
-            res.write(`data: ${JSON.stringify({ type: 'error', message: 'Tất cả model AI đều hết quota.' })}\n\n`);
+            const responseTimeMs = Date.now() - startTime;
+
+            // Parse analysis từ full text
+            const analysisData = this.parseGeminiResponse(fullText);
+            const textReply = this.extractTextFromResponse(fullText);
+
+            // Gửi event replace — client thay thế nội dung đã stream bằng text sạch (đã loại bỏ JSON)
+            if (textReply !== fullText) {
+                res.write(`data: ${JSON.stringify({ type: 'replace', content: textReply })}\n\n`);
+            }
+
+            // Gửi event analysis
+            res.write(`data: ${JSON.stringify({ type: 'analysis', data: analysisData })}\n\n`);
+
+            // Lưu messages vào DB
+            const userMsgId = `MSG_${this.shortId()}`;
+            const assistantMsgId = `MSG_${this.shortId()}`;
+
+            await Promise.all([
+                AiHealthChatRepository.addMessage({
+                    message_id: userMsgId,
+                    session_id: sessionId,
+                    role: AI_CHAT_ROLES.USER,
+                    content: message,
+                    tokens_used: 0,
+                    response_time_ms: 0,
+                }),
+                AiHealthChatRepository.addMessage({
+                    message_id: assistantMsgId,
+                    session_id: sessionId,
+                    role: AI_CHAT_ROLES.ASSISTANT,
+                    content: textReply,
+                    model_used: modelUsed,
+                    tokens_used: totalTokens,
+                    response_time_ms: responseTimeMs,
+                    analysis_data: analysisData,
+                }),
+            ]);
+
+            // Cập nhật session
+            const newMessageCount = session.message_count + 2;
+            const sessionUpdates = await this.buildSessionUpdates(analysisData, newMessageCount);
+
+            if (analysisData?.suggested_specialty_code) {
+                const specialty = await AiHealthChatRepository.findSpecialtyByCode(analysisData.suggested_specialty_code);
+                if (specialty) {
+                    sessionUpdates.suggested_specialty_id = specialty.specialties_id;
+                    sessionUpdates.suggested_specialty_name = specialty.name;
+                }
+            }
+
+            const updatedSession = await AiHealthChatRepository.updateSession(sessionId, sessionUpdates);
+
+            // Gửi event done
+            res.write(`data: ${JSON.stringify({ type: 'done', session: updatedSession })}\n\n`);
             res.end();
-            return;
+
+        } catch (error: any) {
+            const errorMessage = error instanceof AppError ? error.message : AI_CHAT_ERRORS.AI_SERVICE_ERROR;
+            res.write(`data: ${JSON.stringify({ type: 'error', message: errorMessage })}\n\n`);
+            res.end();
         }
-
-        const responseTime = Date.now() - startTime;
-
-        // Parse full response
-        const { reply, analysis } = AiHealthChatService.parseGeminiResponse(fullResponse);
-
-        // Lưu AI response vào DB
-        await AiHealthChatRepository.addMessage({
-            message_id: AiHealthChatService.generateMessageId(),
-            session_id: sessionId,
-            role: AI_CHAT_ROLE.ASSISTANT,
-            content: reply,
-            model_used: modelUsed,
-            tokens_used: tokensUsed,
-            response_time_ms: responseTime,
-            analysis_data: analysis,
-        });
-
-        // Cập nhật session
-        const sessionUpdates: Partial<AiChatSession> = {
-            message_count: session.message_count + 2,
-        };
-
-        if (analysis.is_complete && analysis.suggested_specialty_code) {
-            await AiHealthChatService.applyAnalysisToSession(sessionUpdates, analysis);
-        }
-
-        const updatedSession = await AiHealthChatRepository.updateSession(sessionId, sessionUpdates);
-
-        // Gửi reply sạch (không chứa JSON) để client thay thế nội dung đã stream
-        res.write(`data: ${JSON.stringify({ type: 'replace', content: reply })}\n\n`);
-        // Gửi analysis data + session cuối stream
-        res.write(`data: ${JSON.stringify({ type: 'analysis', data: analysis })}\n\n`);
-        res.write(`data: ${JSON.stringify({ type: 'done', session: updatedSession })}\n\n`);
-        res.end();
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  4. COMPLETE SESSION — Kết thúc phiên
-    // ═══════════════════════════════════════════════════════════════
-
     /**
-     * Kết thúc phiên tư vấn AI.
-     * Đánh dấu COMPLETED, lưu thời điểm hoàn tất.
+     * Kết thúc phiên tư vấn — đánh dấu COMPLETED.
      */
-    static async completeSession(sessionId: string, userId: string | null): Promise<AiChatSession> {
-        const session = await AiHealthChatService.validateSession(sessionId, userId);
+    static async completeSession(
+        sessionId: string,
+        userId: string | null
+    ): Promise<AiChatSession> {
+        const session = await this.validateAndGetSession(sessionId, userId);
 
-        const updated = await AiHealthChatRepository.updateSession(sessionId, {
-            status: AI_CHAT_SESSION_STATUS.COMPLETED,
+        if (session.status !== AI_CHAT_STATUS.ACTIVE) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SESSION_NOT_ACTIVE', AI_CHAT_ERRORS.SESSION_NOT_ACTIVE);
+        }
+
+        const updatedSession = await AiHealthChatRepository.updateSession(sessionId, {
+            status: AI_CHAT_STATUS.COMPLETED,
             completed_at: new Date(),
         });
 
-        if (!updated) {
-            throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Không thể cập nhật phiên.');
-        }
-
-        return updated;
+        return updatedSession!;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  5. GET SESSION HISTORY — Lịch sử chat 1 phiên
-    // ═══════════════════════════════════════════════════════════════
-
     /**
-     * Lấy thông tin phiên kèm toàn bộ tin nhắn.
-     * Dùng để hiển thị lại lịch sử chat cho BN.
+     * Lấy lịch sử chat của 1 phiên (session + messages).
      */
-    static async getSessionHistory(sessionId: string, userId: string | null): Promise<AiChatSessionDetail> {
-        const session = await AiHealthChatRepository.getSessionById(sessionId);
-        if (!session) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'SESSION_NOT_FOUND', AI_CHAT_ERRORS.SESSION_NOT_FOUND);
-        }
-
-        // Kiểm tra quyền: chỉ user tạo phiên mới được xem (bỏ qua cho guest)
-        if (userId && session.user_id && session.user_id !== userId) {
-            throw new AppError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', AI_CHAT_ERRORS.UNAUTHORIZED);
-        }
-
+    static async getSessionHistory(
+        sessionId: string,
+        userId: string | null
+    ): Promise<AiChatSessionDetail> {
+        const session = await this.validateAndGetSession(sessionId, userId);
         const messages = await AiHealthChatRepository.getMessagesBySession(sessionId);
 
         return { session, messages };
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  6. GET USER SESSIONS — Danh sách phiên của user
-    // ═══════════════════════════════════════════════════════════════
-
     /**
-     * Lấy danh sách phiên tư vấn AI của user (phân trang).
-     * Hỗ trợ lọc theo status (ACTIVE, COMPLETED, EXPIRED).
+     * Danh sách phiên tư vấn AI của user (phân trang).
      */
     static async getUserSessions(
-        userId: string | null,
-        page: number = 1,
-        limit: number = 10,
+        userId: string,
+        page: number,
+        limit: number,
         status?: string
-    ): Promise<{ data: AiChatSession[]; total: number; page: number; limit: number }> {
-        const validPage = page > 0 ? page : 1;
-        const validLimit = limit > 0 && limit <= 50 ? limit : 10;
-
-        // Guest không có danh sách phiên
-        if (!userId) {
-            return { data: [], total: 0, page: validPage, limit: validLimit };
-        }
-
-        const [data, total] = await AiHealthChatRepository.getSessionsByUser(
-            userId,
-            validPage,
-            validLimit,
-            status
-        );
-
-        return { data, total, page: validPage, limit: validLimit };
+    ): Promise<{ sessions: AiChatSession[]; total: number }> {
+        const [sessions, total] = await AiHealthChatRepository.getSessionsByUser(userId, page, limit, status);
+        return { sessions, total };
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    /**
+     * Validate tin nhắn đầu vào: không rỗng, không quá dài.
+     */
+    private static validateMessage(message: string): void {
+        if (!message || !message.trim()) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_MESSAGE', AI_CHAT_ERRORS.EMPTY_MESSAGE);
+        }
+        if (message.length > AI_CHAT_CONFIG.MAX_MESSAGE_LENGTH) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MESSAGE_TOO_LONG', AI_CHAT_ERRORS.MESSAGE_TOO_LONG);
+        }
+    }
 
     /**
-     * Validate phiên: kiểm tra tồn tại, quyền truy cập, và trạng thái.
+     * Validate phiên tồn tại, thuộc sở hữu user, và đang ACTIVE.
      */
-    private static async validateSession(sessionId: string, userId: string | null): Promise<AiChatSession> {
+    private static async validateAndGetSession(
+        sessionId: string,
+        userId: string | null
+    ): Promise<AiChatSession> {
         const session = await AiHealthChatRepository.getSessionById(sessionId);
+
         if (!session) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SESSION_NOT_FOUND', AI_CHAT_ERRORS.SESSION_NOT_FOUND);
         }
-        // Bỏ qua kiểm tra quyền cho guest (userId = null)
+
+        // Kiểm tra quyền sở hữu (chỉ áp dụng nếu cả 2 đều có userId)
         if (userId && session.user_id && session.user_id !== userId) {
-            throw new AppError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', AI_CHAT_ERRORS.UNAUTHORIZED);
+            throw new AppError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED_SESSION', AI_CHAT_ERRORS.UNAUTHORIZED_SESSION);
         }
-        if (session.status === AI_CHAT_SESSION_STATUS.COMPLETED) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SESSION_COMPLETED', AI_CHAT_ERRORS.SESSION_ALREADY_COMPLETED);
+
+        if (session.status !== AI_CHAT_STATUS.ACTIVE) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SESSION_ENDED', AI_CHAT_ERRORS.SESSION_ENDED);
         }
-        if (session.status === AI_CHAT_SESSION_STATUS.EXPIRED) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SESSION_EXPIRED', AI_CHAT_ERRORS.SESSION_EXPIRED);
-        }
+
         return session;
     }
 
     /**
-     * Khi AI phân tích xong (is_complete = true), map specialty_code
-     * từ Gemini response sang specialty_id thật trong DB.
-     * Cập nhật session với kết quả gợi ý.
+     * Build system prompt hoàn chỉnh.
+     * Lượt đầu: chỉ AI_CORE_PROMPT + specialties + RAG.
+     * Lượt 2+: thêm AI_DISEASE_KNOWLEDGE_BASE để AI có thêm kiến thức mapping.
      */
-    private static async applyAnalysisToSession(
-        updates: Partial<AiChatSession>,
-        analysis: AiAnalysisData
-    ): Promise<void> {
-        if (analysis.suggested_specialty_code) {
-            const specialty = await AiHealthChatRepository.findSpecialtyByCode(
-                analysis.suggested_specialty_code
-            );
-            if (specialty) {
-                updates.suggested_specialty_id = specialty.specialties_id;
-                updates.suggested_specialty_name = specialty.name;
-            } else {
-                // Nếu AI gợi ý code không tồn tại trong DB → vẫn lưu tên
-                updates.suggested_specialty_name = analysis.suggested_specialty_name;
+    private static buildSystemPrompt(
+        specialties: SpecialtyForPrompt[],
+        ragContext: string,
+        isFirstTurn: boolean
+    ): string {
+        // Format danh sách chuyên khoa
+        const specialtiesList = specialties.length > 0
+            ? specialties.map(s => `- ${s.code}: ${s.name}${s.description ? ` (${s.description})` : ''}`).join('\n')
+            : '- Chưa có dữ liệu chuyên khoa. Hãy gợi ý chung.';
+
+        // Inject vào template prompt
+        let prompt = AI_CORE_PROMPT
+            .replace('{{SPECIALTIES_LIST}}', specialtiesList)
+            .replace('{{RAG_CONTEXT}}', ragContext || 'Không có tài liệu tham khảo bổ sung.');
+
+        // Từ lượt 2 trở đi mới inject bảng kiến thức bệnh lý
+        if (!isFirstTurn) {
+            prompt += '\n\n' + AI_DISEASE_KNOWLEDGE_BASE;
+        }
+
+        return prompt;
+    }
+
+    /**
+     * Gọi Gemini với cơ chế fallback — tự động loại model trùng lặp và tăng dần delay.
+     */
+    private static async callGeminiWithFallback(
+        systemPrompt: string,
+        history: Array<{ role: string; parts: Array<{ text: string }> }>,
+        userMessage: string
+    ): Promise<{
+        textReply: string;
+        analysisData: AiAnalysisData | null;
+        modelUsed: string;
+        tokensUsed: number;
+    }> {
+        // Deduplicate: loại bỏ model trùng tên để tránh retry cùng 1 model
+        const allModels = [...new Set([AI_GEMINI_CONFIG.MODEL_NAME, ...AI_GEMINI_CONFIG.FALLBACK_MODELS])];
+
+        for (let i = 0; i < allModels.length; i++) {
+            const modelName = allModels[i];
+            try {
+                const model = modelName === AI_GEMINI_CONFIG.MODEL_NAME
+                    ? getGeminiModel()
+                    : getGeminiModelByName(modelName);
+
+                const chat = model.startChat({
+                    history: [
+                        { role: 'user', parts: [{ text: 'system: ' + systemPrompt }] },
+                        { role: 'model', parts: [{ text: 'Đã hiểu. Tôi sẽ tuân thủ đúng vai trò trợ lý AI sàng lọc triệu chứng và các quy tắc được giao.' }] },
+                        ...history,
+                    ],
+                });
+
+                const result = await chat.sendMessage(userMessage);
+                const responseText = result.response.text();
+                const tokensUsed = result.response.usageMetadata?.totalTokenCount || 0;
+
+                // Parse analysis JSON từ response
+                const analysisData = this.parseGeminiResponse(responseText);
+                const textReply = this.extractTextFromResponse(responseText);
+
+                if (i > 0) {
+                    console.log(`✅ [AI Chat] Fallback thành công với model: ${modelName}`);
+                }
+
+                return {
+                    textReply,
+                    analysisData,
+                    modelUsed: modelName,
+                    tokensUsed,
+                };
+
+            } catch (error: any) {
+                const isRateLimit = error?.status === 429 || error?.status === 503 ||
+                    error?.message?.includes('429') || error?.message?.includes('503') ||
+                    error?.message?.includes('Resource has been exhausted');
+
+                // Model cuối cùng thất bại → throw
+                if (i === allModels.length - 1) {
+                    console.error(`❌ [AI Chat] Model ${modelName} thất bại (cuối cùng):`, error?.message);
+                    throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'AI_ERROR', AI_CHAT_ERRORS.AI_ALL_MODELS_FAILED);
+                }
+
+                if (isRateLimit) {
+                    console.warn(`⚠️ [AI Chat] Model ${modelName} bị 429/503, đang chuyển sang fallback...`);
+                    const delay = AI_GEMINI_CONFIG.RETRY_DELAY_MS;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                    // Lỗi khác (404, không hỗ trợ...) → bỏ qua model này, chuyển ngay sang model tiếp
+                    console.warn(`⚠️ [AI Chat] Model ${modelName} không khả dụng, bỏ qua: ${error?.message?.slice(0, 100)}`);
+                }
             }
         }
 
-        updates.suggested_priority = analysis.priority;
+        throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'AI_ERROR', AI_CHAT_ERRORS.AI_ALL_MODELS_FAILED);
+    }
 
-        if (analysis.symptoms_collected.length > 0) {
-            updates.symptoms_summary = analysis.symptoms_collected.join(', ');
+    /**
+     * Gọi Gemini Streaming với cơ chế fallback.
+     */
+    private static async callGeminiStreamWithFallback(
+        systemPrompt: string,
+        history: Array<{ role: string; parts: Array<{ text: string }> }>,
+        userMessage: string
+    ): Promise<{ stream: AsyncIterable<any>; modelUsed: string }> {
+        const allModels = [...new Set([AI_GEMINI_CONFIG.MODEL_NAME, ...AI_GEMINI_CONFIG.FALLBACK_MODELS])];
+
+        for (let i = 0; i < allModels.length; i++) {
+            const modelName = allModels[i];
+            try {
+                const model = modelName === AI_GEMINI_CONFIG.MODEL_NAME
+                    ? getGeminiModel()
+                    : getGeminiModelByName(modelName);
+
+                const chat = model.startChat({
+                    history: [
+                        { role: 'user', parts: [{ text: 'system: ' + systemPrompt }] },
+                        { role: 'model', parts: [{ text: 'Đã hiểu. Tôi sẽ tuân thủ đúng vai trò trợ lý AI sàng lọc triệu chứng và các quy tắc được giao.' }] },
+                        ...history,
+                    ],
+                });
+
+                const result = await chat.sendMessageStream(userMessage);
+
+                if (i > 0) {
+                    console.log(`✅ [AI Chat Stream] Fallback thành công với model: ${modelName}`);
+                }
+
+                return { stream: result.stream, modelUsed: modelName };
+
+            } catch (error: any) {
+                const isRateLimit = error?.status === 429 || error?.status === 503 ||
+                    error?.message?.includes('429') || error?.message?.includes('503') ||
+                    error?.message?.includes('Resource has been exhausted');
+
+                if (i === allModels.length - 1) {
+                    console.error(`❌ [AI Chat Stream] Model ${modelName} thất bại (cuối cùng):`, error?.message);
+                    throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'AI_ERROR', AI_CHAT_ERRORS.AI_ALL_MODELS_FAILED);
+                }
+
+                if (isRateLimit) {
+                    console.warn(`⚠️ [AI Chat Stream] Model ${modelName} bị 429/503, chuyển fallback...`);
+                    const delay = AI_GEMINI_CONFIG.RETRY_DELAY_MS;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                    console.warn(`⚠️ [AI Chat Stream] Model ${modelName} không khả dụng, bỏ qua: ${error?.message?.slice(0, 100)}`);
+                }
+            }
         }
 
-        if (analysis.reasoning) {
-            updates.ai_conclusion = analysis.reasoning;
+        throw new AppError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'AI_ERROR', AI_CHAT_ERRORS.AI_ALL_MODELS_FAILED);
+    }
+
+    /**
+     * Trích xuất JSON analysis_data từ response text.
+     * Nếu AI không trả JSON → trả về default analysis để frontend luôn có dữ liệu hiển thị.
+     */
+    private static parseGeminiResponse(rawText: string): AiAnalysisData {
+        try {
+            // Tìm block ```json ... ```
+            const jsonBlockRegex = /```json\s*([\s\S]*?)```/;
+            const match = rawText.match(jsonBlockRegex);
+
+            if (match && match[1]) {
+                const parsed = JSON.parse(match[1].trim());
+                return this.normalizeAnalysisData(parsed);
+            }
+
+            // Fallback: tìm object JSON raw trong text
+            const jsonObjectRegex = /\{[\s\S]*"is_complete"[\s\S]*\}/;
+            const fallbackMatch = rawText.match(jsonObjectRegex);
+
+            if (fallbackMatch) {
+                const parsed = JSON.parse(fallbackMatch[0]);
+                return this.normalizeAnalysisData(parsed);
+            }
+
+            // AI không trả JSON → dùng default analysis
+            console.warn('⚠️ [AI Chat] AI không trả JSON analysis, dùng default.');
+            return this.getDefaultAnalysis();
+        } catch (error) {
+            console.warn('⚠️ [AI Chat] Không thể parse analysis JSON, dùng default:', error);
+            return this.getDefaultAnalysis();
+        }
+    }
+
+    /**
+     * Chuẩn hóa dữ liệu analysis — đảm bảo tất cả trường đều có giá trị mặc định.
+     */
+    private static normalizeAnalysisData(raw: any): AiAnalysisData {
+        return {
+            is_complete: raw.is_complete ?? false,
+            suggested_specialty_code: raw.suggested_specialty_code || null,
+            suggested_specialty_name: raw.suggested_specialty_name || null,
+            priority: raw.priority || null,
+            symptoms_collected: Array.isArray(raw.symptoms_collected) ? raw.symptoms_collected : [],
+            should_suggest_booking: raw.should_suggest_booking ?? false,
+            reasoning: raw.reasoning || null,
+            severity: raw.severity || null,
+            can_self_treat: raw.can_self_treat ?? false,
+            preliminary_assessment: raw.preliminary_assessment || null,
+            recommended_actions: Array.isArray(raw.recommended_actions) ? raw.recommended_actions : [],
+            red_flags_detected: Array.isArray(raw.red_flags_detected) ? raw.red_flags_detected : [],
+            needs_doctor: raw.needs_doctor ?? false,
+        };
+    }
+
+    /**
+     * Trả về analysis mặc định khi AI không bao gồm JSON block trong phản hồi.
+     * Đảm bảo frontend luôn có dữ liệu để hiển thị bảng phân tích.
+     */
+    private static getDefaultAnalysis(): AiAnalysisData {
+        return {
+            is_complete: false,
+            suggested_specialty_code: null,
+            suggested_specialty_name: null,
+            priority: null,
+            symptoms_collected: [],
+            should_suggest_booking: false,
+            reasoning: 'Đang trong quá trình trao đổi, chưa đủ thông tin để phân tích.',
+            severity: null,
+            can_self_treat: false,
+            preliminary_assessment: null,
+            recommended_actions: [],
+            red_flags_detected: [],
+            needs_doctor: false,
+        };
+    }
+
+    /**
+     * Tách phần text phản hồi (hiển thị cho BN) ra khỏi block JSON.
+     * Xử lý 3 trường hợp:
+     * 1. Block ```json ... ``` chuẩn
+     * 2. Raw JSON object {...} chứa "is_complete" (khi AI quên backtick)
+     * 3. Dòng ``` thừa còn sót lại
+     */
+    private static extractTextFromResponse(rawText: string): string {
+        let text = rawText;
+
+        // 1. Loại bỏ block ```json ... ``` (chuẩn format)
+        text = text.replace(/```json[\s\S]*?```/g, '');
+
+        // 2. Loại bỏ block ``` ... ``` còn lại (ví dụ ``` { ... } ```)
+        text = text.replace(/```[\s\S]*?```/g, '');
+
+        // 3. Loại bỏ raw JSON object chứa "is_complete" (khi AI không bọc backtick)
+        text = text.replace(/\{[\s\S]*?"is_complete"[\s\S]*?\}/g, '');
+
+        // 4. Loại bỏ dòng ``` thừa nếu còn sót
+        text = text.replace(/```/g, '');
+
+        // 5. Trim và loại bỏ dòng trống liên tiếp
+        text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+        return text;
+    }
+
+    /**
+     * Convert lịch sử tin nhắn từ DB sang format Gemini SDK.
+     */
+    private static convertHistoryToGemini(
+        messages: AiChatMessage[]
+    ): Array<{ role: string; parts: Array<{ text: string }> }> {
+        return messages
+            .filter(m => m.role === AI_CHAT_ROLES.USER || m.role === AI_CHAT_ROLES.ASSISTANT)
+            .map(m => ({
+                role: m.role === AI_CHAT_ROLES.USER ? 'user' : 'model',
+                parts: [{ text: m.content }],
+            }));
+    }
+
+    /**
+     * Build object cập nhật cho session dựa trên analysis results.
+     */
+    private static async buildSessionUpdates(
+        analysisData: AiAnalysisData | null,
+        newMessageCount: number
+    ): Promise<Partial<AiChatSession>> {
+        const updates: Partial<AiChatSession> = {
+            message_count: newMessageCount,
+        };
+
+        if (analysisData) {
+            if (analysisData.priority) {
+                updates.suggested_priority = analysisData.priority;
+            }
+            if (analysisData.symptoms_collected && analysisData.symptoms_collected.length > 0) {
+                updates.symptoms_summary = analysisData.symptoms_collected.join(', ');
+            }
+            if (analysisData.is_complete && analysisData.preliminary_assessment) {
+                updates.ai_conclusion = analysisData.preliminary_assessment;
+            }
+        }
+
+        return updates;
+    }
+
+    /**
+     * Tạo mã phiên dạng AIC-YYYYMMDD-XXXX.
+     */
+    private static generateSessionCode(): string {
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const randomPart = randomUUID().replace(/-/g, '').slice(0, 4).toUpperCase();
+        return `${AI_CHAT_CONFIG.SESSION_CODE_PREFIX}-${dateStr}-${randomPart}`;
+    }
+
+    /** Tạo short ID duy nhất cho message/session */
+    private static shortId(): string {
+        return randomUUID().replace(/-/g, '').slice(0, 16);
+    }
+
+    /**
+     * Gọi RAG context an toàn — nếu lỗi thì trả empty string thay vì throw.
+     */
+    private static async safeRetrieveContext(query: string): Promise<string> {
+        try {
+            return await AiRagService.retrieveContext(query);
+        } catch (error) {
+            console.warn('⚠️ [AI Chat] Lỗi khi lấy RAG context, tiếp tục không có context:', error);
+            return '';
         }
     }
 }

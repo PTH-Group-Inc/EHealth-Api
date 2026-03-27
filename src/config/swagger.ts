@@ -400,6 +400,7 @@ const options = {
 
       // ===== MODULE 7: AI TƯ VẤN SỨC KHỎE =====
       { name: '7.1 AI Tư Vấn Sức Khỏe', description: 'Chatbot AI tư vấn sức khỏe ban đầu: tiếp nhận triệu chứng, hỏi chi tiết, gợi ý chuyên khoa + ưu tiên, hướng dẫn đặt lịch, SSE streaming' },
+      { name: '7.2 AI Knowledge Base (RAG)', description: 'Quản lý tài liệu Knowledge Base của AI: upload PDF → cắt nhỏ (chunking) → nhúng vector (embedding) → tìm kiếm ngữ nghĩa (Cosine Similarity). Dùng để AI trả lời câu hỏi về bảng giá, bác sĩ, quy định phòng khám.' },
 
     ]
   },

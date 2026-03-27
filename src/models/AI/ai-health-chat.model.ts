@@ -34,6 +34,7 @@ export interface AiChatMessage {
  * Dữ liệu phân tích triệu chứng từ AI (trả về trong mỗi tin nhắn ASSISTANT).
  */
 export interface AiAnalysisData {
+    intent_group?: number;
     is_complete: boolean;
     suggested_specialty_code: string | null;
     suggested_specialty_name: string | null;
@@ -49,10 +50,9 @@ export interface AiAnalysisData {
     needs_doctor: boolean;
 }
 
-/** Payload tạo phiên mới */
+/** Payload tạo phiên mới — userId lấy từ JWT token, không cần truyền patient_id */
 export interface StartSessionPayload {
     message: string;
-    patient_id?: string;
 }
 
 /** Payload gửi tin nhắn */

@@ -4,7 +4,7 @@ import { AI_GEMINI_CONFIG, AI_CHAT_ERRORS } from '../constants/ai-health-chat.co
 /**
  * Khởi tạo client Google Gemini AI.
  */
-const getGeminiClient = (): GoogleGenerativeAI => {
+export const getGeminiClient = (): GoogleGenerativeAI => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         throw new Error(AI_CHAT_ERRORS.MISSING_API_KEY);

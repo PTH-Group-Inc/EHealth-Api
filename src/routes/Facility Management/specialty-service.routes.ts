@@ -6,8 +6,8 @@ import { authorizePermissions } from '../../middleware/authorizePermissions.midd
 
 const router = Router();
 
-router.use(verifyAccessToken);
-router.use(checkSessionStatus);
+// GET routes → PUBLIC (xem dịch vụ theo chuyên khoa)
+// CUD routes → vẫn yêu cầu verifyAccessToken + checkSessionStatus
 
 /**
  * @swagger
@@ -200,7 +200,7 @@ router.get('/by-service/:serviceId', authorizePermissions('SPECIALTY_SERVICE_VIE
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/:specialtyId/services', authorizePermissions('SPECIALTY_SERVICE_ASSIGN'), SpecialtyServiceController.assignServices);
+router.post('/:specialtyId/services', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_SERVICE_ASSIGN'), SpecialtyServiceController.assignServices);
 
 /**
  * @swagger
@@ -252,6 +252,6 @@ router.post('/:specialtyId/services', authorizePermissions('SPECIALTY_SERVICE_AS
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/:specialtyId/services/:serviceId', authorizePermissions('SPECIALTY_SERVICE_ASSIGN'), SpecialtyServiceController.removeService);
+router.delete('/:specialtyId/services/:serviceId', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_SERVICE_ASSIGN'), SpecialtyServiceController.removeService);
 
 export default router;

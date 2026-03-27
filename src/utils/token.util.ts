@@ -6,12 +6,13 @@ export class TokenUtil {
     /*
      * Tạo access token và refresh token
      */
-    static generateAuthTokens(user: User, sessionId: string, permissions?: string[]) {
+    static generateAuthTokens(user: User, sessionId: string) {
+        // Chỉ nhúng thông tin định danh tối thiểu vào JWT.
+        // permissions KHÔNG được embed vào token để giảm kích thước — sẽ được query DB khi cần.
         const payload = {
             sub: user.users_id,
             roles: user.roles,
-            permissions: permissions || [],
-            sessionId: sessionId, // Thêm sessionId vào payload
+            sessionId,
         };
 
         const accessToken = jwt.sign(

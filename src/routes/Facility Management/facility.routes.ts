@@ -39,7 +39,7 @@ const facilityRoutes = Router();
  *                     code: "FCL-MED"
  *                     name: "Bệnh viện Đa khoa Medlatec"
  */
-facilityRoutes.get('/dropdown', verifyAccessToken, FacilityController.getFacilitiesForDropdown);
+facilityRoutes.get('/dropdown', FacilityController.getFacilitiesForDropdown);
 
 /**
  * @swagger
@@ -116,9 +116,6 @@ facilityRoutes.get('/dropdown', verifyAccessToken, FacilityController.getFacilit
  *                 message: "Bạn không có quyền thực hiện thao tác này. Yêu cầu một trong các quyền: FACILITY_VIEW"
  */
 facilityRoutes.get('/',
-    verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('FACILITY_VIEW'),
     FacilityController.getFacilities
 );
 
@@ -174,9 +171,6 @@ facilityRoutes.get('/',
  *                 message: "Không tìm thấy thông tin cơ sở y tế."
  */
 facilityRoutes.get('/:id',
-    verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('FACILITY_VIEW'),
     FacilityController.getFacilityById
 );
 

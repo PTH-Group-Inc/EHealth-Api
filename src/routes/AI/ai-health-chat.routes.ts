@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import { AiHealthChatController } from '../../controllers/AI/ai-health-chat.controller';
+import { optionalVerifyAccessToken } from '../../middleware/optionalVerifyAccessToken.middleware';
+import { aiSessionCreateLimiter, aiMessageSendLimiter, aiReadLimiter } from '../../middleware/aiChatRateLimit.middleware';
 
 const router = Router();
 
-// AI Chat không yêu cầu đăng nhập — ai cũng có thể chat
+/** AI Chat sử dụng optionalVerifyAccessToken — hỗ trợ cả Guest lẫn User đã đăng nhập */
+router.use(optionalVerifyAccessToken);
 
 /**
  * @swagger
@@ -13,12 +16,9 @@ const router = Router();
  *       Chatbot AI tư vấn sức khỏe ban đầu cho bệnh nhân.
  *       AI tiếp nhận triệu chứng → hỏi chi tiết → gợi ý chuyên khoa phù hợp + mức độ ưu tiên + hướng dẫn đặt lịch.
  *       Hỗ trợ hội thoại nhiều lượt (multi-turn) và streaming response (SSE).
- *       Liên kết: Module 2 (Chuyên khoa), Module 3 (Bệnh nhân), Module 3 (Lịch khám)
+ *       Liên kết: Module 2 (Chuyên khoa), Module 3 (Bệnh nhân), Module 4 (Lịch khám)
  */
 
-// ═══════════════════════════════════════════
-//  1. Bắt đầu phiên tư vấn AI
-// ═══════════════════════════════════════════
 
 /**
  * @swagger
@@ -33,11 +33,12 @@ const router = Router();
  *       **Nghiệp vụ:**
  *       - Tạo session mới (mã phiên dạng AIC-YYYYMMDD-XXXX)
  *       - AI sử dụng danh sách chuyên khoa thật từ DB để gợi ý
+ *       - Tích hợp RAG: AI tham khảo tài liệu nội bộ phòng khám (bảng giá, lịch bác sĩ...)
  *       - Giới hạn tối đa 3 phiên ACTIVE đồng thời / user
  *       - Tối đa 20 tin nhắn / phiên (10 lượt hỏi-đáp)
  *
- *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token)
- *       **Vai trò được phép:** Tất cả user đã đăng nhập (PATIENT, ADMIN, DOCTOR, NURSE...)
+ *       **Phân quyền:** Không bắt buộc đăng nhập (hỗ trợ Guest). Nếu có Bearer Token sẽ gắn session vào user.
+ *       **Vai trò được phép:** Tất cả (Guest + mọi user đã đăng nhập)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -54,11 +55,6 @@ const router = Router();
  *                 maxLength: 2000
  *                 description: Mô tả triệu chứng ban đầu
  *                 example: "Tôi bị đau bụng từ sáng nay, đau nhiều ở bên phải bụng dưới"
- *               patient_id:
- *                 type: string
- *                 nullable: true
- *                 description: ID bệnh nhân (nếu đã có hồ sơ, tùy chọn)
- *                 example: "PAT_2506_a1b2c3d4"
  *     responses:
  *       201:
  *         description: Tạo phiên thành công
@@ -80,19 +76,17 @@ const router = Router();
  *                       $ref: '#/components/schemas/AiChatSession'
  *                     ai_reply:
  *                       type: string
- *                       example: "Tôi hiểu bạn đang bị đau bụng. Để giúp bạn chính xác hơn, cho tôi hỏi thêm..."
+ *                       example: "Tôi hiểu bạn đang bị đau bụng. Để giúp bạn chính xác hơn, cho tôi hỏi thêm: Cơn đau ở mức nhẹ, vừa hay dữ dội?"
  *                     analysis:
  *                       $ref: '#/components/schemas/AiAnalysisData'
  *       400:
  *         description: Tin nhắn rỗng hoặc quá dài
- *       401:
- *         description: Chưa đăng nhập
  *       429:
- *         description: Quá nhiều phiên ACTIVE đồng thời
+ *         description: Quá nhiều phiên ACTIVE đồng thời (tối đa 3)
  *       503:
  *         description: Lỗi kết nối dịch vụ AI (Gemini)
  */
-router.post('/sessions', AiHealthChatController.startSession);
+router.post('/sessions', aiSessionCreateLimiter, AiHealthChatController.startSession as any);
 
 // ═══════════════════════════════════════════
 //  2. Gửi tin nhắn (JSON response)
@@ -105,18 +99,19 @@ router.post('/sessions', AiHealthChatController.startSession);
  *     tags: ['7.1 AI Tư Vấn Sức Khỏe']
  *     summary: Gửi tin nhắn tiếp theo (JSON response)
  *     description: |
- *       Gửi tin nhắn tiếp theo trong phiên hội thoại AI. AI sẽ dựa vào toàn bộ lịch sử chat
- *       (multi-turn) để hiểu ngữ cảnh và phản hồi.
+ *       Gửi tin nhắn tiếp theo trong phiên hội thoại AI. AI dựa vào toàn bộ lịch sử chat
+ *       (multi-turn) để hiểu ngữ cảnh và phản hồi phù hợp.
  *
  *       **Nghiệp vụ:**
  *       - Load toàn bộ conversation history → gửi cùng Gemini
- *       - Nếu AI chưa đủ thông tin → tiếp tục hỏi thêm
- *       - Nếu AI đủ thông tin → gợi ý chuyên khoa + ưu tiên + đặt lịch
+ *       - Giai đoạn Discovery: AI hỏi thêm 1-2 câu nếu chưa đủ thông tin
+ *       - Giai đoạn Recommendation: Gợi ý chuyên khoa + ưu tiên + đặt lịch khi đủ thông tin
  *       - Tự động map specialty_code từ AI → specialty_id trong DB
- *       - Luôn kèm cảnh báo "không thay thế bác sĩ"
+ *       - Phát hiện red flags → cảnh báo URGENT ngay lập tức
+ *       - Luôn kèm cảnh báo "AI không thay thế bác sĩ"
  *
- *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token) — chỉ chủ phiên mới gửi được
- *       **Vai trò được phép:** Tất cả user đã đăng nhập
+ *       **Phân quyền:** Chỉ chủ phiên mới gửi được (kiểm tra user_id)
+ *       **Vai trò được phép:** Tất cả
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -125,7 +120,8 @@ router.post('/sessions', AiHealthChatController.startSession);
  *         required: true
  *         schema:
  *           type: string
- *         example: "AIC_2603_a1b2c3d4"
+ *         description: ID phiên tư vấn
+ *         example: "AIC_a1b2c3d4e5f67890"
  *     requestBody:
  *       required: true
  *       content:
@@ -165,8 +161,6 @@ router.post('/sessions', AiHealthChatController.startSession);
  *                       $ref: '#/components/schemas/AiAnalysisData'
  *       400:
  *         description: Tin nhắn rỗng / quá dài / hết lượt tin nhắn / phiên đã kết thúc
- *       401:
- *         description: Chưa đăng nhập
  *       403:
  *         description: Không có quyền truy cập phiên này
  *       404:
@@ -174,7 +168,7 @@ router.post('/sessions', AiHealthChatController.startSession);
  *       503:
  *         description: Lỗi kết nối dịch vụ AI
  */
-router.post('/sessions/:sessionId/messages', AiHealthChatController.sendMessage);
+router.post('/sessions/:sessionId/messages', aiMessageSendLimiter, AiHealthChatController.sendMessage as any);
 
 // ═══════════════════════════════════════════
 //  3. Gửi tin nhắn (SSE Streaming response)
@@ -196,8 +190,8 @@ router.post('/sessions/:sessionId/messages', AiHealthChatController.sendMessage)
  *       - `{"type":"done","session":{...}}` — session cập nhật cuối cùng
  *       - `{"type":"error","message":"..."}` — lỗi trong quá trình stream
  *
- *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token) — chỉ chủ phiên
- *       **Vai trò được phép:** Tất cả user đã đăng nhập
+ *       **Phân quyền:** Chỉ chủ phiên
+ *       **Vai trò được phép:** Tất cả
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -206,7 +200,8 @@ router.post('/sessions/:sessionId/messages', AiHealthChatController.sendMessage)
  *         required: true
  *         schema:
  *           type: string
- *         example: "AIC_2603_a1b2c3d4"
+ *         description: ID phiên tư vấn
+ *         example: "AIC_a1b2c3d4e5f67890"
  *     requestBody:
  *       required: true
  *       content:
@@ -229,14 +224,12 @@ router.post('/sessions/:sessionId/messages', AiHealthChatController.sendMessage)
  *               type: string
  *       400:
  *         description: Tin nhắn rỗng / phiên đã kết thúc
- *       401:
- *         description: Chưa đăng nhập
  *       403:
  *         description: Không có quyền truy cập phiên này
  *       404:
  *         description: Không tìm thấy phiên
  */
-router.post('/sessions/:sessionId/messages/stream', AiHealthChatController.sendMessageStream);
+router.post('/sessions/:sessionId/messages/stream', aiMessageSendLimiter, AiHealthChatController.sendMessageStream as any);
 
 // ═══════════════════════════════════════════
 //  4. Kết thúc phiên tư vấn
@@ -252,8 +245,8 @@ router.post('/sessions/:sessionId/messages/stream', AiHealthChatController.sendM
  *       Đánh dấu phiên tư vấn là COMPLETED. Sau khi kết thúc, không thể gửi thêm tin nhắn.
  *       Phiên vẫn có thể xem lại lịch sử.
  *
- *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token) — chỉ chủ phiên
- *       **Vai trò được phép:** Tất cả user đã đăng nhập
+ *       **Phân quyền:** Chỉ chủ phiên
+ *       **Vai trò được phép:** Tất cả
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -262,7 +255,8 @@ router.post('/sessions/:sessionId/messages/stream', AiHealthChatController.sendM
  *         required: true
  *         schema:
  *           type: string
- *         example: "AIC_2603_a1b2c3d4"
+ *         description: ID phiên tư vấn cần kết thúc
+ *         example: "AIC_a1b2c3d4e5f67890"
  *     responses:
  *       200:
  *         description: Kết thúc phiên thành công
@@ -281,14 +275,12 @@ router.post('/sessions/:sessionId/messages/stream', AiHealthChatController.sendM
  *                   $ref: '#/components/schemas/AiChatSession'
  *       400:
  *         description: Phiên đã kết thúc/hết hạn rồi
- *       401:
- *         description: Chưa đăng nhập
  *       403:
  *         description: Không có quyền
  *       404:
  *         description: Không tìm thấy phiên
  */
-router.patch('/sessions/:sessionId/complete', AiHealthChatController.completeSession);
+router.patch('/sessions/:sessionId/complete', aiReadLimiter, AiHealthChatController.completeSession as any);
 
 // ═══════════════════════════════════════════
 //  5. Lịch sử chat 1 phiên
@@ -304,8 +296,8 @@ router.patch('/sessions/:sessionId/complete', AiHealthChatController.completeSes
  *       Trả về thông tin phiên + toàn bộ tin nhắn (BN ↔ AI) sắp xếp theo thời gian.
  *       Dùng để hiển thị lại lịch sử hội thoại.
  *
- *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token) — chỉ chủ phiên
- *       **Vai trò được phép:** Tất cả user đã đăng nhập
+ *       **Phân quyền:** Chỉ chủ phiên
+ *       **Vai trò được phép:** Tất cả
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -314,7 +306,8 @@ router.patch('/sessions/:sessionId/complete', AiHealthChatController.completeSes
  *         required: true
  *         schema:
  *           type: string
- *         example: "AIC_2603_a1b2c3d4"
+ *         description: ID phiên tư vấn
+ *         example: "AIC_a1b2c3d4e5f67890"
  *     responses:
  *       200:
  *         description: Lấy lịch sử thành công
@@ -326,6 +319,9 @@ router.patch('/sessions/:sessionId/complete', AiHealthChatController.completeSes
  *                 success:
  *                   type: boolean
  *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy lịch sử phiên thành công."
  *                 data:
  *                   type: object
  *                   properties:
@@ -335,14 +331,12 @@ router.patch('/sessions/:sessionId/complete', AiHealthChatController.completeSes
  *                       type: array
  *                       items:
  *                         $ref: '#/components/schemas/AiChatMessage'
- *       401:
- *         description: Chưa đăng nhập
  *       403:
  *         description: Không có quyền
  *       404:
  *         description: Không tìm thấy phiên
  */
-router.get('/sessions/:sessionId', AiHealthChatController.getSessionHistory);
+router.get('/sessions/:sessionId', aiReadLimiter, AiHealthChatController.getSessionHistory as any);
 
 // ═══════════════════════════════════════════
 //  6. Danh sách phiên tư vấn
@@ -393,6 +387,9 @@ router.get('/sessions/:sessionId', AiHealthChatController.getSessionHistory);
  *                 success:
  *                   type: boolean
  *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy danh sách phiên thành công."
  *                 data:
  *                   type: array
  *                   items:
@@ -415,10 +412,10 @@ router.get('/sessions/:sessionId', AiHealthChatController.getSessionHistory);
  *       401:
  *         description: Chưa đăng nhập
  */
-router.get('/sessions', AiHealthChatController.getUserSessions);
+router.get('/sessions', aiReadLimiter, AiHealthChatController.getUserSessions as any);
 
 // ═══════════════════════════════════════════
-//  Swagger Schemas
+//  Swagger Schemas (tái sử dụng qua $ref)
 // ═══════════════════════════════════════════
 
 /**
@@ -430,10 +427,10 @@ router.get('/sessions', AiHealthChatController.getUserSessions);
  *       properties:
  *         session_id:
  *           type: string
- *           example: "AIC_2603_a1b2c3d4"
+ *           example: "AIC_a1b2c3d4e5f67890"
  *         session_code:
  *           type: string
- *           example: "AIC-20260324-A1B2"
+ *           example: "AIC-20260327-A1B2"
  *         patient_id:
  *           type: string
  *           nullable: true
@@ -442,17 +439,17 @@ router.get('/sessions', AiHealthChatController.getUserSessions);
  *         suggested_specialty_id:
  *           type: string
  *           nullable: true
- *           description: ID chuyên khoa AI gợi ý (liên kết bảng specialties)
+ *           description: ID chuyên khoa AI gợi ý (FK → specialties)
  *         suggested_specialty_name:
  *           type: string
  *           nullable: true
  *           description: Tên chuyên khoa AI gợi ý
- *           example: "Ngoại khoa Tổng quát"
+ *           example: "Tiêu hóa"
  *         suggested_priority:
  *           type: string
  *           nullable: true
  *           enum: [NORMAL, SOON, URGENT]
- *           description: "NORMAL = bình thường, SOON = 1-2 ngày, URGENT = cấp cứu"
+ *           description: "NORMAL = bình thường, SOON = cần khám 1-2 ngày, URGENT = cấp cứu"
  *         symptoms_summary:
  *           type: string
  *           nullable: true
@@ -460,7 +457,7 @@ router.get('/sessions', AiHealthChatController.getUserSessions);
  *         ai_conclusion:
  *           type: string
  *           nullable: true
- *           description: Kết luận / lý do gợi ý
+ *           description: Đánh giá sơ bộ / lý do gợi ý
  *         status:
  *           type: string
  *           enum: [ACTIVE, COMPLETED, EXPIRED]
@@ -510,21 +507,16 @@ router.get('/sessions', AiHealthChatController.getUserSessions);
  *       properties:
  *         is_complete:
  *           type: boolean
- *           description: true khi AI đã thu thập đủ triệu chứng
- *         follow_up_questions:
- *           type: array
- *           items:
- *             type: string
- *           description: Câu hỏi AI muốn hỏi thêm
+ *           description: true khi AI đã thu thập đủ triệu chứng và đưa ra gợi ý
  *         suggested_specialty_code:
  *           type: string
  *           nullable: true
- *           description: Mã chuyên khoa gợi ý
- *           example: "NGOAI_KHOA"
+ *           description: Mã chuyên khoa gợi ý (dùng để map sang specialty_id)
+ *           example: "TIEU_HOA"
  *         suggested_specialty_name:
  *           type: string
  *           nullable: true
- *           example: "Ngoại khoa Tổng quát"
+ *           example: "Tiêu hóa"
  *         priority:
  *           type: string
  *           nullable: true
@@ -552,13 +544,13 @@ router.get('/sessions', AiHealthChatController.getUserSessions);
  *         preliminary_assessment:
  *           type: string
  *           nullable: true
- *           description: Đánh giá sơ bộ (VD Ho khan do viêm họng nhẹ)
- *           example: "Ho khan do viêm họng nhẹ / kích ứng đường hô hấp"
+ *           description: Đánh giá sơ bộ
+ *           example: "Triệu chứng có thể liên quan đến viêm dạ dày tá tràng"
  *         recommended_actions:
  *           type: array
  *           items:
  *             type: string
- *           description: Gợi ý hành động cụ thể (chăm sóc nhà, OTC, điều kiện cần khám)
+ *           description: Gợi ý hành động cụ thể
  *         red_flags_detected:
  *           type: array
  *           items:

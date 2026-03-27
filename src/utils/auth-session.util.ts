@@ -49,6 +49,12 @@ export class AuthSessionUtil {
             userAgent: clientInfo.userAgent,
             expiredAt,
         });
+
+        // Dọn session đã revoked cũ khi không có deviceId (tránh stack vô hạn).
+        // Chỉ giữ lại 5 session revoked gần nhất, xóa phần còn lại.
+        if (!clientInfo.deviceId) {
+            await UserSessionRepository.deleteOldRevokedSessions(userId, 5);
+        }
     }
 
     /*
