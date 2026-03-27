@@ -255,4 +255,25 @@ export class UserSessionRepository {
     );
     return result.rowCount ?? 0;
   }
+
+  /**
+   * Xóa các session đã revoked cũ của user, chỉ giữ lại N session gần nhất.
+   * Giúp tránh bảng user_sessions phình to khi user login/logout liên tục không có deviceId.
+   */
+  static async deleteOldRevokedSessions(userId: string, keepCount: number = 5): Promise<void> {
+    await pool.query(
+      `
+      DELETE FROM user_sessions
+      WHERE user_id = $1
+        AND revoked_at IS NOT NULL
+        AND user_sessions_id NOT IN (
+          SELECT user_sessions_id FROM user_sessions
+          WHERE user_id = $1 AND revoked_at IS NOT NULL
+          ORDER BY revoked_at DESC
+          LIMIT $2
+        )
+      `,
+      [userId, keepCount]
+    );
+  }
 }

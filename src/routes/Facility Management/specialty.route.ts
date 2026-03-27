@@ -6,8 +6,8 @@ import { authorizePermissions } from '../../middleware/authorizePermissions.midd
 
 const specialtyRouter = Router();
 
-specialtyRouter.use(verifyAccessToken);
-specialtyRouter.use(checkSessionStatus);
+// GET routes (danh sách, chi tiết) → PUBLIC — không yêu cầu đăng nhập
+// CUD routes → vẫn yêu cầu verifyAccessToken + checkSessionStatus
 
 /**
  * @swagger
@@ -248,7 +248,7 @@ specialtyRouter.get('/:id', authorizePermissions('SPECIALTY_VIEW'), SpecialtyCon
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.post('/', authorizePermissions('SPECIALTY_CREATE'), SpecialtyController.createSpecialty);
+specialtyRouter.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_CREATE'), SpecialtyController.createSpecialty);
 
 /**
  * @swagger
@@ -336,7 +336,7 @@ specialtyRouter.post('/', authorizePermissions('SPECIALTY_CREATE'), SpecialtyCon
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.put('/:id', authorizePermissions('SPECIALTY_UPDATE'), SpecialtyController.updateSpecialty);
+specialtyRouter.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_UPDATE'), SpecialtyController.updateSpecialty);
 
 /**
  * @swagger
@@ -388,6 +388,6 @@ specialtyRouter.put('/:id', authorizePermissions('SPECIALTY_UPDATE'), SpecialtyC
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.delete('/:id', authorizePermissions('SPECIALTY_DELETE'), SpecialtyController.deleteSpecialty);
+specialtyRouter.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_DELETE'), SpecialtyController.deleteSpecialty);
 
 export default specialtyRouter;

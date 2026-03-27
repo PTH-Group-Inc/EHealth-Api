@@ -1,129 +1,82 @@
 import { Request, Response } from 'express';
 import { AiHealthChatService } from '../../services/AI/ai-health-chat.service';
-import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
-import {
-    AI_CHAT_SUCCESS,
-    AI_CHAT_ERRORS,
-} from '../../constants/ai-health-chat.constant';
+import { AI_CHAT_ERRORS, AI_CHAT_SUCCESS } from '../../constants/ai-health-chat.constant';
+import { AppError } from '../../utils/app-error.util';
 
 /**
- * Controller tiếp nhận HTTP Request cho module AI Tư Vấn Sức Khỏe.
- * Chỉ parse request → gọi Service → trả response. Không chứa business logic.
+ * Controller cho Module 7.1 — AI Tư Vấn Sức Khỏe Ban Đầu.
+ * Chỉ làm nhiệm vụ: trích xuất dữ liệu từ HTTP request → gọi Service → trả HTTP response.
  */
 export class AiHealthChatController {
 
     /**
-     * POST /api/ai/health-chat/sessions — Bắt đầu phiên tư vấn AI mới
+     * Tạo phiên tư vấn AI mới.
      */
-    static async startSession(req: Request, res: Response) {
+    static async startSession(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).auth?.user_id || null;
-            const { message, patient_id } = req.body;
+            const { message } = req.body;
 
-            if (!message) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_MESSAGE', AI_CHAT_ERRORS.EMPTY_MESSAGE);
-            }
-
-            const result = await AiHealthChatService.startSession(userId, message, patient_id);
+            const result = await AiHealthChatService.startSession(userId, message);
 
             res.status(HTTP_STATUS.CREATED).json({
                 success: true,
-                message: AI_CHAT_SUCCESS.SESSION_CREATED,
-                data: {
-                    session: result.session,
-                    ai_reply: result.ai_reply,
-                    analysis: result.analysis,
-                },
+                message: AI_CHAT_SUCCESS.SESSION_STARTED,
+                data: result,
             });
         } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                console.error('[AiHealthChatController.startSession] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-                    success: false,
-                    message: 'Lỗi máy chủ khi bắt đầu phiên tư vấn AI.',
-                });
-            }
+            AiHealthChatController.handleError(res, error);
         }
     }
 
     /**
-     * POST /api/ai/health-chat/sessions/:sessionId/messages — Gửi tin nhắn (JSON response)
+     * Gửi tin nhắn tiếp theo (JSON response).
      */
-    static async sendMessage(req: Request, res: Response) {
+    static async sendMessage(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).auth?.user_id;
-            const sessionId = req.params.sessionId as string;
-            const { message } = req.body;
-
-            if (!message) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_MESSAGE', AI_CHAT_ERRORS.EMPTY_MESSAGE);
-            }
+            const userId = (req as any).auth?.user_id || null;
+            const sessionId = String(req.params.sessionId);
+            const message = String(req.body.message);
 
             const result = await AiHealthChatService.sendMessage(sessionId, userId, message);
 
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: AI_CHAT_SUCCESS.MESSAGE_SENT,
-                data: {
-                    session: result.session,
-                    ai_reply: result.ai_reply,
-                    analysis: result.analysis,
-                },
+                data: result,
             });
         } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                console.error('[AiHealthChatController.sendMessage] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-                    success: false,
-                    message: 'Lỗi máy chủ khi gửi tin nhắn.',
-                });
-            }
+            AiHealthChatController.handleError(res, error);
         }
     }
 
     /**
-     * POST /api/ai/health-chat/sessions/:sessionId/messages/stream — Gửi tin nhắn (SSE streaming)
+     * Gửi tin nhắn với streaming response (SSE).
      */
-    static async sendMessageStream(req: Request, res: Response) {
+    static async sendMessageStream(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).auth?.user_id;
-            const sessionId = req.params.sessionId as string;
-            const { message } = req.body;
+            const userId = (req as any).auth?.user_id || null;
+            const sessionId = String(req.params.sessionId);
+            const message = String(req.body.message);
 
-            if (!message) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'EMPTY_MESSAGE', AI_CHAT_ERRORS.EMPTY_MESSAGE);
-            }
-
-            // SSE streaming — Service sẽ ghi trực tiếp vào res
+            // Service sẽ tự set headers SSE và write stream
             await AiHealthChatService.sendMessageStream(sessionId, userId, message, res);
         } catch (error: any) {
-            // Nếu lỗi xảy ra TRƯỚC khi bắt đầu stream → trả JSON lỗi bình thường
+            // Nếu lỗi xảy ra trước khi stream bắt đầu (validation, DB)
             if (!res.headersSent) {
-                if (error instanceof AppError) {
-                    res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-                } else {
-                    console.error('[AiHealthChatController.sendMessageStream] Error:', error);
-                    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-                        success: false,
-                        message: 'Lỗi máy chủ khi stream phản hồi AI.',
-                    });
-                }
+                AiHealthChatController.handleError(res, error);
             }
         }
     }
 
     /**
-     * PATCH /api/ai/health-chat/sessions/:sessionId/complete — Kết thúc phiên tư vấn
+     * Kết thúc phiên tư vấn AI.
      */
-    static async completeSession(req: Request, res: Response) {
+    static async completeSession(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).auth?.user_id;
-            const sessionId = req.params.sessionId as string;
+            const userId = (req as any).auth?.user_id || null;
+            const sessionId = String(req.params.sessionId);
 
             const session = await AiHealthChatService.completeSession(sessionId, userId);
 
@@ -133,74 +86,79 @@ export class AiHealthChatController {
                 data: session,
             });
         } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                console.error('[AiHealthChatController.completeSession] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-                    success: false,
-                    message: 'Lỗi máy chủ khi kết thúc phiên.',
-                });
-            }
+            AiHealthChatController.handleError(res, error);
         }
     }
 
     /**
-     * GET /api/ai/health-chat/sessions/:sessionId — Lịch sử chat 1 phiên
+     * Lấy lịch sử chat của 1 phiên.
      */
-    static async getSessionHistory(req: Request, res: Response) {
+    static async getSessionHistory(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).auth?.user_id;
-            const sessionId = req.params.sessionId as string;
+            const userId = (req as any).auth?.user_id || null;
+            const sessionId = String(req.params.sessionId);
 
             const result = await AiHealthChatService.getSessionHistory(sessionId, userId);
 
             res.status(HTTP_STATUS.OK).json({
                 success: true,
-                message: AI_CHAT_SUCCESS.SESSION_FETCHED,
+                message: AI_CHAT_SUCCESS.SESSION_HISTORY,
                 data: result,
             });
         } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                console.error('[AiHealthChatController.getSessionHistory] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-                    success: false,
-                    message: 'Lỗi máy chủ khi lấy lịch sử phiên.',
-                });
-            }
+            AiHealthChatController.handleError(res, error);
         }
     }
 
     /**
-     * GET /api/ai/health-chat/sessions — Danh sách phiên tư vấn của user
+     * Danh sách phiên tư vấn AI của user (phân trang).
      */
-    static async getUserSessions(req: Request, res: Response) {
+    static async getUserSessions(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).auth?.user_id;
-            const page = req.query.page ? parseInt(req.query.page.toString()) : 1;
-            const limit = req.query.limit ? parseInt(req.query.limit.toString()) : 10;
-            const status = req.query.status?.toString();
+            if (!userId) {
+                throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'UNAUTHORIZED', 'Vui lòng đăng nhập để xem danh sách phiên tư vấn.');
+            }
 
-            const result = await AiHealthChatService.getUserSessions(userId, page, limit, status);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const rawStatus = req.query.status;
+            const status = Array.isArray(rawStatus) ? String(rawStatus[0]) : rawStatus as string | undefined;
+
+            const { sessions, total } = await AiHealthChatService.getUserSessions(userId, page, limit, status);
 
             res.status(HTTP_STATUS.OK).json({
                 success: true,
-                message: AI_CHAT_SUCCESS.SESSIONS_LISTED,
-                data: result.data,
+                message: AI_CHAT_SUCCESS.SESSION_LIST,
+                data: sessions,
                 pagination: {
-                    page: result.page,
-                    limit: result.limit,
-                    total: result.total,
-                    totalPages: Math.ceil(result.total / result.limit),
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
                 },
             });
         } catch (error: any) {
-            console.error('[AiHealthChatController.getUserSessions] Error:', error);
+            AiHealthChatController.handleError(res, error);
+        }
+    }
+
+    /**
+     * Xử lý lỗi tập trung — phân loại AppError vs lỗi hệ thống.
+     */
+    private static handleError(res: Response, error: any): void {
+        if (error instanceof AppError) {
+            res.status(error.httpCode).json({
+                success: false,
+                code: error.code,
+                message: error.message,
+            });
+        } else {
+            console.error('❌ [AI Health Chat Controller] Lỗi không xác định:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                message: 'Lỗi máy chủ khi lấy danh sách phiên.',
+                code: 'INTERNAL_ERROR',
+                message: AI_CHAT_ERRORS.AI_SERVICE_ERROR,
             });
         }
     }

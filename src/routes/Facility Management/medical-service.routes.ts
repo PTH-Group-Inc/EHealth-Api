@@ -8,9 +8,8 @@ import { uploadExcel } from '../../middleware/upload.middleware';
 
 const router = Router();
 
-// Middleware chung cho nhóm API này
-router.use(verifyAccessToken);
-router.use(checkSessionStatus);
+// GET routes → PUBLIC (xem danh mục dịch vụ y tế)
+// CUD routes → vẫn yêu cầu verifyAccessToken + checkSessionStatus
 
 /**
  * 1. DANH MỤC DỊCH VỤ CHUẨN QUỐC GIA (MASTER SERVICES)
@@ -87,7 +86,7 @@ router.get('/master', authorizePermissions('SERVICE_VIEW'), MasterServiceControl
  *               type: string
  *               format: binary
  */
-router.get('/master/export', authorizePermissions('SERVICE_EXPORT'), MasterServiceController.exportServices);
+router.get('/master/export', verifyAccessToken, checkSessionStatus, authorizePermissions('SERVICE_EXPORT'), MasterServiceController.exportServices);
 
 /**
  * @swagger
@@ -117,7 +116,7 @@ router.get('/master/export', authorizePermissions('SERVICE_EXPORT'), MasterServi
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-router.post('/master/import', authorizePermissions('SERVICE_IMPORT'), uploadExcel.single('file'), MasterServiceController.importServices);
+router.post('/master/import', verifyAccessToken, checkSessionStatus, authorizePermissions('SERVICE_IMPORT'), uploadExcel.single('file'), MasterServiceController.importServices);
 
 /**
  * @swagger
@@ -194,7 +193,7 @@ router.get('/master/:id', authorizePermissions('SERVICE_VIEW'), MasterServiceCon
  *       400:
  *         description: Lỗi trùng mã (SRV_002)
  */
-router.post('/master', authorizePermissions('SERVICE_CREATE'), MasterServiceController.createService);
+router.post('/master', verifyAccessToken, checkSessionStatus, authorizePermissions('SERVICE_CREATE'), MasterServiceController.createService);
 
 /**
  * @swagger
@@ -246,7 +245,7 @@ router.post('/master', authorizePermissions('SERVICE_CREATE'), MasterServiceCont
  *       404:
  *         description: Không tìm thấy (SRV_001)
  */
-router.put('/master/:id', authorizePermissions('SERVICE_UPDATE'), MasterServiceController.updateService);
+router.put('/master/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SERVICE_UPDATE'), MasterServiceController.updateService);
 
 /**
  * @swagger
@@ -281,7 +280,7 @@ router.put('/master/:id', authorizePermissions('SERVICE_UPDATE'), MasterServiceC
  *       200:
  *         description: Thành công
  */
-router.patch('/master/:id/status', authorizePermissions('SERVICE_UPDATE'), MasterServiceController.toggleServiceStatus);
+router.patch('/master/:id/status', verifyAccessToken, checkSessionStatus, authorizePermissions('SERVICE_UPDATE'), MasterServiceController.toggleServiceStatus);
 
 /**
  * @swagger
@@ -306,7 +305,7 @@ router.patch('/master/:id/status', authorizePermissions('SERVICE_UPDATE'), Maste
  *       404:
  *         description: Không tìm thấy
  */
-router.delete('/master/:id', authorizePermissions('SERVICE_DELETE'), MasterServiceController.deleteService);
+router.delete('/master/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SERVICE_DELETE'), MasterServiceController.deleteService);
 
 /**
  * =========================================================================
@@ -396,7 +395,7 @@ router.get('/facilities/:facilityId/services', authorizePermissions('FACILITY_SE
  *               type: string
  *               format: binary
  */
-router.get('/facilities/:facilityId/services/export', authorizePermissions('FACILITY_SERVICE_EXPORT'), FacilityServiceController.exportFacilityServices);
+router.get('/facilities/:facilityId/services/export', verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_SERVICE_EXPORT'), FacilityServiceController.exportFacilityServices);
 
 /**
  * @swagger
@@ -432,7 +431,7 @@ router.get('/facilities/:facilityId/services/export', authorizePermissions('FACI
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-router.post('/facilities/:facilityId/services/import', authorizePermissions('FACILITY_SERVICE_IMPORT'), uploadExcel.single('file'), FacilityServiceController.importFacilityServices);
+router.post('/facilities/:facilityId/services/import', verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_SERVICE_IMPORT'), uploadExcel.single('file'), FacilityServiceController.importFacilityServices);
 
 /**
  * @swagger
@@ -549,7 +548,7 @@ router.get('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_VI
  *       400:
  *         description: Lỗi trùng lặp hoặc sai ID (FSRV_002, SRV_001)
  */
-router.post('/facilities/:facilityId/services', authorizePermissions('FACILITY_SERVICE_CREATE'), FacilityServiceController.createFacilityService);
+router.post('/facilities/:facilityId/services', verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_SERVICE_CREATE'), FacilityServiceController.createFacilityService);
 
 /**
  * @swagger
@@ -597,7 +596,7 @@ router.post('/facilities/:facilityId/services', authorizePermissions('FACILITY_S
  *       200:
  *         description: Cập nhật thành công
  */
-router.put('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_UPDATE'), FacilityServiceController.updateFacilityService);
+router.put('/facilities/services/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_SERVICE_UPDATE'), FacilityServiceController.updateFacilityService);
 
 /**
  * @swagger
@@ -632,6 +631,6 @@ router.put('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_UP
  *       200:
  *         description: Ngưng cung cấp thành công
  */
-router.patch('/facilities/services/:id/status', authorizePermissions('FACILITY_SERVICE_UPDATE'), FacilityServiceController.toggleFacilityServiceStatus);
+router.patch('/facilities/services/:id/status', verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_SERVICE_UPDATE'), FacilityServiceController.toggleFacilityServiceStatus);
 
 export default router;

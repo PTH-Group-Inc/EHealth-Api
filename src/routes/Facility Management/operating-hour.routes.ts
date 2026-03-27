@@ -89,7 +89,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('OP
  *       200:
  *         description: Thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_VIEW'), OperatingHourController.getAll);
+router.get('/', OperatingHourController.getAll);
 
 /**
  * @swagger
@@ -117,7 +117,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_
  *       404:
  *         description: Không tìm thấy
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_VIEW'), OperatingHourController.getById);
+router.get('/:id', OperatingHourController.getById);
 
 /**
  * @swagger

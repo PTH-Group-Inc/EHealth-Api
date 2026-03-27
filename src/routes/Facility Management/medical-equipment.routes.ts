@@ -6,8 +6,8 @@ import { authorizePermissions } from '../../middleware/authorizePermissions.midd
 
 const router = Router();
 
-router.use(verifyAccessToken);
-router.use(checkSessionStatus);
+// GET routes → PUBLIC (xem thiết bị y tế)
+// CUD routes → vẫn yêu cầu verifyAccessToken + checkSessionStatus
 
 /**
  * @swagger
@@ -239,7 +239,7 @@ router.get('/:id', authorizePermissions('EQUIPMENT_VIEW'), MedicalEquipmentContr
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/', authorizePermissions('EQUIPMENT_CREATE'), MedicalEquipmentController.createEquipment);
+router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_CREATE'), MedicalEquipmentController.createEquipment);
 
 /**
  * @swagger
@@ -302,7 +302,7 @@ router.post('/', authorizePermissions('EQUIPMENT_CREATE'), MedicalEquipmentContr
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/:id', authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateEquipment);
+router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateEquipment);
 
 /**
  * @swagger
@@ -353,7 +353,7 @@ router.put('/:id', authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentCon
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/:id/status', authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateStatus);
+router.put('/:id/status', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateStatus);
 
 /**
  * @swagger
@@ -401,7 +401,7 @@ router.put('/:id/status', authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquip
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/:id/assign-room', authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.assignRoom);
+router.put('/:id/assign-room', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.assignRoom);
 
 /**
  * @swagger
@@ -435,7 +435,7 @@ router.put('/:id/assign-room', authorizePermissions('EQUIPMENT_UPDATE'), Medical
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/:id', authorizePermissions('EQUIPMENT_DELETE'), MedicalEquipmentController.deleteEquipment);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_DELETE'), MedicalEquipmentController.deleteEquipment);
 
 // ==================== MAINTENANCE LOGS ====================
 
@@ -559,7 +559,7 @@ router.get('/:id/maintenance', authorizePermissions('EQUIPMENT_VIEW'), MedicalEq
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/:id/maintenance', authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.createMaintenanceLog);
+router.post('/:id/maintenance', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.createMaintenanceLog);
 
 /**
  * @swagger
@@ -623,7 +623,7 @@ router.post('/:id/maintenance', authorizePermissions('EQUIPMENT_UPDATE'), Medica
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/maintenance/:logId', authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateMaintenanceLog);
+router.put('/maintenance/:logId', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateMaintenanceLog);
 
 /**
  * @swagger
@@ -657,6 +657,6 @@ router.put('/maintenance/:logId', authorizePermissions('EQUIPMENT_UPDATE'), Medi
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/maintenance/:logId', authorizePermissions('EQUIPMENT_DELETE'), MedicalEquipmentController.deleteMaintenanceLog);
+router.delete('/maintenance/:logId', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_DELETE'), MedicalEquipmentController.deleteMaintenanceLog);
 
 export default router;

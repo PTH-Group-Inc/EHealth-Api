@@ -2,17 +2,25 @@ import { pool } from '../../config/postgresdb';
 import {
     AiChatSession,
     AiChatMessage,
-    AiAnalysisData,
     SpecialtyForPrompt,
 } from '../../models/AI/ai-health-chat.model';
+import { AI_CHAT_STATUS } from '../../constants/ai-health-chat.constant';
 
 /**
- * Repository cho module AI Tư Vấn Sức Khỏe.
- * Chịu trách nhiệm toàn bộ thao tác DB: sessions, messages, specialties lookup.
+ * Repository cho Module 7.1 — AI Tư Vấn Sức Khỏe.
+ * Chịu trách nhiệm toàn bộ thao tác DB liên quan đến phiên chat AI,
+ * tin nhắn trong phiên, và tra cứu chuyên khoa.
  */
 export class AiHealthChatRepository {
 
-    /** Tạo phiên chat AI mới */
+    // ═══════════════════════════════════════════
+    //  SESSION MANAGEMENT
+    // ═══════════════════════════════════════════
+
+    /**
+     * Tạo phiên chat AI mới.
+     * Ghi nhận thông tin ban đầu: mã phiên, user_id, trạng thái ACTIVE.
+     */
     static async createSession(session: Partial<AiChatSession>): Promise<AiChatSession> {
         const query = `
             INSERT INTO ai_chat_sessions 
@@ -25,7 +33,7 @@ export class AiHealthChatRepository {
             session.session_code,
             session.patient_id || null,
             session.user_id || null,
-            session.status || 'ACTIVE',
+            session.status || AI_CHAT_STATUS.ACTIVE,
             session.message_count || 0,
         ];
         const result = await pool.query(query, values);
@@ -39,7 +47,7 @@ export class AiHealthChatRepository {
         return result.rows[0] ?? null;
     }
 
-    /** Lấy phiên chat theo session_code */
+    /** Lấy phiên chat theo session_code (dùng cho tra cứu bằng mã phiên) */
     static async getSessionByCode(sessionCode: string): Promise<AiChatSession | null> {
         const query = `SELECT * FROM ai_chat_sessions WHERE session_code = $1`;
         const result = await pool.query(query, [sessionCode]);
@@ -47,8 +55,8 @@ export class AiHealthChatRepository {
     }
 
     /**
-     * Cập nhật phiên chat (kết quả phân tích, trạng thái, ...).
-     * Chỉ cập nhật các trường được truyền vào.
+     * Cập nhật phiên chat — chỉ cập nhật các trường được truyền vào.
+     * Dùng dynamic query builder để tránh overwrite trường không liên quan.
      */
     static async updateSession(
         sessionId: string,
@@ -73,7 +81,7 @@ export class AiHealthChatRepository {
 
         if (fields.length === 0) return null;
 
-        // Luôn cập nhật updated_at
+        // Luôn cập nhật updated_at nếu chưa có trong danh sách
         if (!fields.some(f => f.startsWith('updated_at'))) {
             fields.push(`updated_at = CURRENT_TIMESTAMP`);
         }
@@ -90,7 +98,8 @@ export class AiHealthChatRepository {
     }
 
     /**
-     * Danh sách phiên chat của user, phân trang, sắp xếp mới nhất trước.
+     * Danh sách phiên chat của user — phân trang, sắp xếp mới nhất trước.
+     * Hỗ trợ lọc theo trạng thái (ACTIVE, COMPLETED, EXPIRED).
      */
     static async getSessionsByUser(
         userId: string,
@@ -124,20 +133,27 @@ export class AiHealthChatRepository {
     }
 
     /**
-     * Đếm số phiên ACTIVE của user.
+     * Đếm số phiên ACTIVE đồng thời của user.
+     * Dùng để kiểm tra giới hạn trước khi tạo phiên mới.
      */
     static async countActiveSessionsByUser(userId: string): Promise<number> {
         const query = `
             SELECT COUNT(*) as total 
             FROM ai_chat_sessions 
-            WHERE user_id = $1 AND status = 'ACTIVE'
+            WHERE user_id = $1 AND status = $2
         `;
-        const result = await pool.query(query, [userId]);
+        const result = await pool.query(query, [userId, AI_CHAT_STATUS.ACTIVE]);
         return parseInt(result.rows[0].total, 10);
     }
 
+    // ═══════════════════════════════════════════
+    //  MESSAGE MANAGEMENT
+    // ═══════════════════════════════════════════
 
-    /** Thêm tin nhắn mới vào phiên */
+    /**
+     * Thêm tin nhắn mới vào phiên.
+     * Lưu cả metadata AI: model_used, tokens_used, response_time_ms, analysis_data.
+     */
     static async addMessage(message: Partial<AiChatMessage>): Promise<AiChatMessage> {
         const query = `
             INSERT INTO ai_chat_messages 
@@ -160,7 +176,8 @@ export class AiHealthChatRepository {
     }
 
     /**
-     * Lấy toàn bộ tin nhắn trong phiên, sắp xếp theo thời gian ASC.
+     * Lấy toàn bộ tin nhắn trong phiên — sắp xếp theo thời gian ASC.
+     * Dùng để build conversation history gửi cho Gemini.
      */
     static async getMessagesBySession(sessionId: string): Promise<AiChatMessage[]> {
         const query = `
@@ -172,6 +189,9 @@ export class AiHealthChatRepository {
         return result.rows;
     }
 
+    // ═══════════════════════════════════════════
+    //  SPECIALTY LOOKUP (Liên kết Module 2)
+    // ═══════════════════════════════════════════
 
     /**
      * Lấy danh sách chuyên khoa đang hoạt động (chưa bị xóa mềm).
@@ -189,8 +209,8 @@ export class AiHealthChatRepository {
     }
 
     /**
-     * Tìm chuyên khoa theo code (dùng khi AI gợi ý specialty_code để map về specialty_id).
-     * Liên kết với Module 2 (Facility Management) — bảng specialties.
+     * Tìm chuyên khoa theo code — dùng khi AI gợi ý specialty_code để map về specialty_id.
+     * Ví dụ: AI trả "TIEU_HOA" → Repository tìm trong bảng specialties → trả về specialties_id.
      */
     static async findSpecialtyByCode(code: string): Promise<SpecialtyForPrompt | null> {
         const query = `
