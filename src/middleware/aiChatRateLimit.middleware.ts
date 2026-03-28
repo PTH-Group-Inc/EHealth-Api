@@ -18,6 +18,7 @@ export const aiSessionCreateLimiter = rateLimit({
 
         return (req as any).auth?.user_id || req.ip || 'unknown';
     },
+    validate: false,
 });
 
 /**
@@ -36,6 +37,7 @@ export const aiMessageSendLimiter = rateLimit({
     keyGenerator: (req) => {
         return (req as any).auth?.user_id || req.ip || 'unknown';
     },
+    validate: false,
 });
 
 /**
@@ -54,4 +56,5 @@ export const aiReadLimiter = rateLimit({
     keyGenerator: (req) => {
         return (req as any).auth?.user_id || req.ip || 'unknown';
     },
+    validate: false,
 });

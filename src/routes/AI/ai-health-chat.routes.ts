@@ -414,6 +414,202 @@ router.get('/sessions/:sessionId', aiReadLimiter, AiHealthChatController.getSess
  */
 router.get('/sessions', aiReadLimiter, AiHealthChatController.getUserSessions as any);
 
+//  7. Đánh giá phản hồi AI (Feedback Loop)
+
+/**
+ * @swagger
+ * /api/ai/health-chat/sessions/{sessionId}/messages/{messageId}/feedback:
+ *   patch:
+ *     tags: ['7.1 AI Tư Vấn Sức Khỏe']
+ *     summary: Đánh giá chất lượng phản hồi AI (GOOD / BAD)
+ *     description: |
+ *       Cho phép user đánh giá chất lượng từng tin nhắn phản hồi của AI.
+ *       Dữ liệu feedback được dùng để phân tích, thống kê và cải thiện prompt AI theo thời gian.
+ *
+ *       **Nghiệp vụ:**
+ *       - Chỉ đánh giá được tin nhắn có role = ASSISTANT (không đánh giá tin nhắn USER)
+ *       - Mỗi tin nhắn chỉ được đánh giá 1 lần, không cho ghi đè
+ *       - Giá trị feedback hợp lệ: `GOOD` hoặc `BAD`
+ *       - Ghi chú (note) tùy chọn, tối đa 500 ký tự
+ *
+ *       **Phân quyền:** Chỉ chủ phiên mới đánh giá được
+ *       **Vai trò được phép:** Tất cả (Guest + User đã đăng nhập)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID phiên tư vấn
+ *         example: "AIC_a1b2c3d4e5f67890"
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID tin nhắn ASSISTANT cần đánh giá
+ *         example: "MSG_a1b2c3d4e5f67890"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - feedback
+ *             properties:
+ *               feedback:
+ *                 type: string
+ *                 enum: [GOOD, BAD]
+ *                 description: "Đánh giá: GOOD = phản hồi hữu ích, BAD = phản hồi kém"
+ *                 example: "GOOD"
+ *               note:
+ *                 type: string
+ *                 maxLength: 500
+ *                 nullable: true
+ *                 description: Ghi chú tùy chọn (lý do đánh giá)
+ *                 example: "AI trả lời rất chi tiết và hữu ích"
+ *     responses:
+ *       200:
+ *         description: Đánh giá phản hồi thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Đánh giá phản hồi AI thành công."
+ *                 data:
+ *                   $ref: '#/components/schemas/AiChatMessage'
+ *       400:
+ *         description: |
+ *           Lỗi validation:
+ *           - Giá trị feedback không hợp lệ (chỉ GOOD/BAD)
+ *           - Tin nhắn không phải ASSISTANT
+ *           - Đã đánh giá rồi
+ *           - Ghi chú quá dài (>500 ký tự)
+ *       403:
+ *         description: Không có quyền truy cập phiên này
+ *       404:
+ *         description: Không tìm thấy phiên hoặc tin nhắn
+ */
+router.patch('/sessions/:sessionId/messages/:messageId/feedback', aiReadLimiter, AiHealthChatController.submitFeedback as any);
+
+//  8. Thống kê Token Usage (Admin only)
+
+/**
+ * @swagger
+ * /api/ai/health-chat/analytics/tokens:
+ *   get:
+ *     tags: ['7.1 AI Tư Vấn Sức Khỏe']
+ *     summary: Thống kê token usage & feedback của AI (Admin Dashboard)
+ *     description: |
+ *       Thống kê chi tiết lượng token AI sử dụng theo ngày, model, và tình hình feedback.
+ *       Dùng để kiểm soát chi phí AI và đánh giá chất lượng phản hồi.
+ *
+ *       **Dữ liệu trả về:**
+ *       - `daily`: Breakdown theo từng ngày + model (messages, tokens, response time)
+ *       - `summary`: Tổng hợp toàn khoảng thời gian (bao gồm feedback stats)
+ *
+ *       **Phân quyền:** Yêu cầu đăng nhập (Bearer token)
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Ngày bắt đầu (YYYY-MM-DD). Mặc định 30 ngày trước.
+ *         example: "2026-03-01"
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Ngày kết thúc (YYYY-MM-DD). Mặc định hôm nay.
+ *         example: "2026-03-28"
+ *     responses:
+ *       200:
+ *         description: Lấy thống kê thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy thống kê token usage thành công."
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     daily:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           usage_date:
+ *                             type: string
+ *                             example: "2026-03-28"
+ *                           model_used:
+ *                             type: string
+ *                             example: "gemini-2.5-flash-preview-04-17"
+ *                           total_messages:
+ *                             type: integer
+ *                             example: 45
+ *                           total_tokens:
+ *                             type: integer
+ *                             example: 12500
+ *                           avg_response_ms:
+ *                             type: integer
+ *                             example: 1230
+ *                     summary:
+ *                       type: object
+ *                       properties:
+ *                         total_messages:
+ *                           type: integer
+ *                           example: 320
+ *                         total_tokens:
+ *                           type: integer
+ *                           example: 89000
+ *                         avg_response_ms:
+ *                           type: integer
+ *                           example: 1150
+ *                         total_sessions:
+ *                           type: integer
+ *                           example: 85
+ *                         feedback_stats:
+ *                           type: object
+ *                           properties:
+ *                             good:
+ *                               type: integer
+ *                               example: 45
+ *                             bad:
+ *                               type: integer
+ *                               example: 8
+ *                             no_feedback:
+ *                               type: integer
+ *                               example: 267
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền (chỉ ADMIN/STAFF)
+ */
+import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
+import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+
+router.get('/analytics/tokens', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), AiHealthChatController.getTokenAnalytics as any);
+
 // ═══════════════════════════════════════════
 //  Swagger Schemas (tái sử dụng qua $ref)
 // ═══════════════════════════════════════════
@@ -560,5 +756,58 @@ router.get('/sessions', aiReadLimiter, AiHealthChatController.getUserSessions as
  *           type: boolean
  *           description: Có cần đi khám bác sĩ không
  */
+
+/**
+ * @swagger
+ * /api/ai/health-chat/sessions/{sessionId}:
+ *   delete:
+ *     tags: ['7.1 AI Tư Vấn Sức Khỏe']
+ *     summary: Xóa phiên tư vấn AI (soft delete)
+ *     description: |
+ *       Soft delete phiên tư vấn — chuyển trạng thái sang `DELETED`.
+ *       Phiên đã xóa sẽ không hiện trong danh sách phiên của user.
+ *
+ *       **Phân quyền:** Không yêu cầu token (Guest + User đều dùng được).
+ *       **Vai trò được phép:** Tất cả. User chỉ xóa được phiên của chính mình.
+ *
+ *       Lưu ý:
+ *       - Phiên đã xóa (DELETED) không thể xóa lại lần nữa.
+ *       - Dữ liệu phiên vẫn tồn tại trong DB phục vụ analytics, chỉ ẩn khỏi user.
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID phiên tư vấn cần xóa
+ *         example: "AIC_a1b2c3d4e5f67890"
+ *     responses:
+ *       200:
+ *         description: Xóa phiên thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Xóa phiên tư vấn thành công."
+ *       400:
+ *         description: Phiên đã bị xóa trước đó
+ *       403:
+ *         description: Không có quyền xóa phiên này
+ *       404:
+ *         description: Không tìm thấy phiên
+ *       500:
+ *         description: Lỗi server
+ */
+router.delete(
+    '/sessions/:sessionId',
+    aiReadLimiter,
+    AiHealthChatController.deleteSession as any
+);
 
 export { router as aiHealthChatRoutes };

@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg';
 import { pool as db } from '../../config/postgresdb';
 import { AiDocument, AiDocumentChunk, RAGSearchResult } from '../../models/AI/ai-rag.model';
-import { AI_RAG_DOCUMENT_STATUS } from '../../constants/ai-rag.constant';
+import { AI_RAG_DOCUMENT_STATUS, AI_RAG_DOCUMENT_CATEGORIES } from '../../constants/ai-rag.constant';
 
 export class AiRagRepository {
     /**
@@ -11,9 +11,9 @@ export class AiRagRepository {
         const query = `
             INSERT INTO ai_documents (
                 document_id, file_name, file_type, uploaded_by, 
-                file_size_bytes, status
+                file_size_bytes, status, document_category
             )
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
         `;
         const values = [
@@ -22,7 +22,8 @@ export class AiRagRepository {
             document.file_type || 'PDF',
             document.uploaded_by || null,
             document.file_size_bytes,
-            document.status || AI_RAG_DOCUMENT_STATUS.PROCESSING
+            document.status || AI_RAG_DOCUMENT_STATUS.PROCESSING,
+            document.document_category || AI_RAG_DOCUMENT_CATEGORIES.GENERAL
         ];
         const result = await db.query(query, values);
         return result.rows[0];
@@ -90,32 +91,53 @@ export class AiRagRepository {
 
     /**
      * Tìm kiếm Top K tài liệu (chunks) gần nghĩa với câu hỏi nhất.
-     * Sử dụng toán tử khoảng cách `cosine` (<=>) của pgvector.
-     * @param queryEmbedding Vector nhúng của câu hỏi (chuỗi mảng)
-     * @param limit Số lượng kết quả lấy ra (Top K)
-     * @returns Cấu trúc RAGSearchResult
+     * Hỗ trợ filter theo document_category để tăng độ chính xác.
      */
-    static async searchSimilarChunks(queryEmbedding: string, limit: number = 3): Promise<RAGSearchResult[]> {
-        const query = `
-            SELECT 
-                c.content,
-                c.document_id,
-                d.file_name,
-                (c.embedding <=> $1) AS cosine_distance
-            FROM ai_document_chunks c
-            JOIN ai_documents d ON c.document_id = d.document_id
-            ORDER BY cosine_distance ASC
-            LIMIT $2;
-        `;
-        const values = [queryEmbedding, limit];
+    static async searchSimilarChunks(
+        queryEmbedding: string,
+        limit: number = 3,
+        categories?: string[]
+    ): Promise<RAGSearchResult[]> {
+        let query: string;
+        let values: any[];
+
+        if (categories && categories.length > 0) {
+            query = `
+                SELECT 
+                    c.content,
+                    c.document_id,
+                    d.file_name,
+                    (c.embedding <=> $1) AS cosine_distance
+                FROM ai_document_chunks c
+                JOIN ai_documents d ON c.document_id = d.document_id
+                WHERE d.status = 'COMPLETED'
+                  AND d.document_category = ANY($3)
+                ORDER BY cosine_distance ASC
+                LIMIT $2;
+            `;
+            values = [queryEmbedding, limit, categories];
+        } else {
+            query = `
+                SELECT 
+                    c.content,
+                    c.document_id,
+                    d.file_name,
+                    (c.embedding <=> $1) AS cosine_distance
+                FROM ai_document_chunks c
+                JOIN ai_documents d ON c.document_id = d.document_id
+                WHERE d.status = 'COMPLETED'
+                ORDER BY cosine_distance ASC
+                LIMIT $2;
+            `;
+            values = [queryEmbedding, limit];
+        }
+
         const result = await db.query(query, values);
 
         return result.rows.map((row: any) => ({
             content: row.content,
             document_id: row.document_id,
             file_name: row.file_name,
-            // Cosine similarity = 1 - cosine distance
-            // Khoảng cách nhỏ (gần 0) tức là tương đồng cao (gần 1)
             similarity: 1 - parseFloat(row.cosine_distance)
         }));
     }

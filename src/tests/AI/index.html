@@ -244,6 +244,7 @@
             justify-content: space-between;
             align-items: center;
             transition: background 0.15s;
+            position: relative;
         }
         .session-item:hover { background: var(--chat-bg); color: var(--text); }
         .session-item.active { background: var(--chat-bg); color: var(--text); }
@@ -256,6 +257,18 @@
         .status-ACTIVE   { background: rgba(16,163,127,0.2); color: var(--accent); }
         .status-COMPLETED{ background: rgba(142,142,142,0.2); color: var(--text-muted); }
         .status-EXPIRED  { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+        /* Nút xóa phiên trên sidebar */
+        .btn-delete-session-item {
+            background: none; border: none;
+            color: var(--text-muted); cursor: pointer;
+            font-size: 0.85rem; padding: 2px 4px;
+            border-radius: 4px; flex-shrink: 0;
+            margin-left: 4px; opacity: 0;
+            transition: all 0.15s;
+        }
+        .session-item:hover .btn-delete-session-item { opacity: 1; }
+        .btn-delete-session-item:hover { color: var(--danger); background: rgba(239,68,68,0.15); }
 
         .sidebar-footer {
             padding: 10px 14px;
@@ -274,7 +287,7 @@
         }
         .chat-header-left h4 { font-size: 0.9rem; }
         .chat-header-left p  { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
-        .btn-end-session {
+        .btn-end-session, .btn-delete-session {
             padding: 5px 12px;
             background: transparent;
             border: 1px solid var(--border);
@@ -283,7 +296,9 @@
             font-size: 0.78rem;
             transition: all 0.2s;
         }
-        .btn-end-session:hover { border-color: var(--danger); color: var(--danger); }
+        .btn-end-session:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-delete-session:hover { border-color: var(--danger); color: var(--danger); }
+        .chat-header-actions { display: flex; gap: 6px; }
 
         /* ═══ MESSAGES ═══ */
         .messages-container {
@@ -354,6 +369,116 @@
         .chip        { background: rgba(16,163,127,0.15); color: var(--accent); padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; }
         .chip.red    { background: rgba(239,68,68,0.15);  color: var(--danger); }
         .analysis-meta { margin-top: 8px; font-size: 0.65rem; color: var(--text-muted); }
+
+        /* ═══ FEEDBACK BAR (ChatGPT-style) ═══ */
+        .feedback-bar {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-top: 6px;
+        }
+
+        .fb-btn {
+            background: none;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 4px 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-muted);
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .fb-btn:hover {
+            background: var(--chat-bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+        .fb-btn.active-good {
+            color: var(--accent);
+            border-color: rgba(16,163,127,0.3);
+            background: rgba(16,163,127,0.1);
+        }
+        .fb-btn.active-bad {
+            color: var(--danger);
+            border-color: rgba(239,68,68,0.3);
+            background: rgba(239,68,68,0.1);
+        }
+        .fb-btn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .fb-btn:disabled:hover {
+            background: none;
+            border-color: transparent;
+        }
+
+        /* Feedback modal */
+        .fb-modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000;
+        }
+        .fb-modal {
+            background: var(--sidebar);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            width: 380px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+        }
+        .fb-modal h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .fb-modal textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.85rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            max-height: 160px;
+            outline: none;
+        }
+        .fb-modal textarea:focus { border-color: var(--accent); }
+        .fb-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .fb-modal-actions button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .fb-btn-cancel {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border) !important;
+        }
+        .fb-btn-cancel:hover { color: var(--text); border-color: var(--text-muted) !important; }
+        .fb-btn-submit {
+            background: var(--accent);
+            color: white;
+        }
+        .fb-btn-submit:hover { background: var(--accent-hover); }
 
         /* ═══ WELCOME ═══ */
         .welcome-screen {
@@ -518,7 +643,10 @@
             <h4 id="chatTitle">Phiên tư vấn</h4>
             <p id="chatSubtitle">AI Tư Vấn Sức Khỏe</p>
         </div>
-        <button class="btn-end-session" id="btnEndSession" onclick="doEndSession()">Kết thúc phiên ✓</button>
+        <div class="chat-header-actions">
+            <button class="btn-end-session" id="btnEndSession" onclick="doEndSession()">Kết thúc ✓</button>
+            <button class="btn-delete-session" id="btnDeleteSession" onclick="doDeleteCurrentSession()">Xóa 🗑</button>
+        </div>
     </div>
 
     <!-- Welcome -->
@@ -562,8 +690,8 @@
 <script type="module">
     import { login, logout, isLoggedIn, getUserInfo, buildHeaders, getToken } from './auth.js';
     import {
-        sendMessage, loadSessions, loadSession, resetSession, endSession,
-        setChatCallbacks, currentSessionId
+        sendMessage, loadSessions, loadSession, resetSession, endSession, deleteSession,
+        setChatCallbacks, currentSessionId, submitFeedback
     } from './chat.js';
 
     // ─── expose to onclick handlers ───────────────────────────
@@ -574,7 +702,10 @@
     window.doNewChat      = doNewChat;
     window.doSendMessage  = doSendMessage;
     window.doEndSession   = doEndSession;
+    window.doDeleteCurrentSession = doDeleteCurrentSession;
+    window.doDeleteSession = doDeleteSession;
     window.quickStart     = quickStart;
+    window.handleFeedback = handleFeedback;
 
     // ─── streaming state ──────────────────────────────────────
     let streamingRow = null;
@@ -684,6 +815,7 @@
             div.innerHTML = `
                 <span class="session-code" title="${s.session_code}">${s.session_code}</span>
                 <span class="session-status status-${s.status}">${s.status === 'ACTIVE' ? 'Active' : s.status === 'COMPLETED' ? 'Done' : s.status}</span>
+                <button class="btn-delete-session-item" onclick="event.stopPropagation(); doDeleteSession('${s.session_id}')" title="Xóa phiên">🗑</button>
             `;
             div.onclick = () => doLoadSession(s.session_id);
             list.appendChild(div);
@@ -704,7 +836,7 @@
             if (msg.role === 'USER') {
                 appendMessage('user', msg.content);
             } else if (msg.role === 'ASSISTANT') {
-                appendMessage('assistant', msg.content, msg.analysis_data, msg.model_used, msg.response_time_ms);
+                appendMessage('assistant', msg.content, msg.analysis_data, msg.model_used, msg.response_time_ms, msg.message_id, msg.user_feedback);
             }
         });
 
@@ -731,6 +863,7 @@
         document.getElementById('chatHeader').style.display = 'flex';
         document.getElementById('chatTitle').textContent = title || 'Phiên tư vấn';
         document.getElementById('btnEndSession').style.display = showEnd ? 'inline-block' : 'none';
+        document.getElementById('btnDeleteSession').style.display = 'inline-block';
     }
 
     function quickStart(message) {
@@ -761,11 +894,31 @@
         showToast('Phiên đã kết thúc.');
     }
 
+    /** Xóa phiên theo sessionId (từ sidebar) */
+    async function doDeleteSession(sessionId) {
+        if (!confirm('Xóa phiên tư vấn này? Phiên sẽ bị ẩn khỏi danh sách.')) return;
+        const result = await deleteSession(sessionId);
+        if (result?.success) {
+            showToast('Đã xóa phiên.', 'success');
+            // Nếu đang xem phiên bị xóa → quay về welcome
+            if (!currentSessionId) doNewChat();
+        } else {
+            showToast(result?.message || 'Lỗi xóa phiên.', 'error');
+        }
+    }
+
+    /** Xóa phiên hiện tại đang mở (từ header button) */
+    async function doDeleteCurrentSession() {
+        if (!currentSessionId) return;
+        await doDeleteSession(currentSessionId);
+        doNewChat();
+    }
+
     // ─── MESSAGE CALLBACKS ────────────────────────────────────
-    function handleNewMessage(type, content, analysis, model, ms, session) {
+    function handleNewMessage(type, content, analysis, model, ms, session, assistantMessageId) {
         switch (type) {
             case 'assistant':
-                appendMessage('assistant', content, analysis, model, ms);
+                appendMessage('assistant', content, analysis, model, ms, assistantMessageId);
                 if (session) showChatUI(session.session_code, session.status === 'ACTIVE');
                 break;
             case 'stream-start':
@@ -791,6 +944,11 @@
                     const el = renderAnalysis(analysis, model, ms);
                     if (el) streamingRow.appendChild(el);
                 }
+                // Gắn message_id cho feedback buttons trong streaming row
+                if (streamingRow && assistantMessageId) {
+                    const bar = streamingRow.querySelector('.feedback-bar');
+                    if (bar) bar.dataset.msgId = assistantMessageId;
+                }
                 if (session) showChatUI(session.session_code, session.status === 'ACTIVE');
                 streamingRow = null;
                 streamingContentEl = null;
@@ -801,7 +959,6 @@
 
     let typingEl = null;
     function handleTypingStart(mode) {
-        if (mode === 'stream') return; // streaming tự tạo row
         const row = document.createElement('div');
         row.className = 'message-row assistant';
         row.id = 'typing-indicator';
@@ -817,9 +974,9 @@
     }
 
     // ─── DOM HELPERS ──────────────────────────────────────────
-    function appendMessage(role, content, analysis, model, ms) {
+    function appendMessage(role, content, analysis, model, ms, messageId, existingFeedback) {
         const container = document.getElementById('messagesContainer');
-        const row = createMessageRow(role);
+        const row = createMessageRow(role, messageId, existingFeedback);
         row.querySelector('.msg-content').textContent = content;
         if (analysis) {
             const el = renderAnalysis(analysis, model, ms);
@@ -829,15 +986,96 @@
         scrollToBottom();
     }
 
-    function createMessageRow(role) {
+    function createMessageRow(role, messageId, existingFeedback) {
         const row = document.createElement('div');
         row.className = `message-row ${role}`;
-        row.innerHTML = `
-            <div class="role-label">${role === 'user' ? '👤 Bạn' : '🤖 AI Tư vấn'}</div>
-            <div class="msg-content"></div>
-            <div class="analysis-placeholder"></div>
-        `;
+        if (role === 'assistant') {
+            const goodActive = existingFeedback === 'GOOD' ? 'active-good' : '';
+            const badActive  = existingFeedback === 'BAD'  ? 'active-bad'  : '';
+            const disabled   = existingFeedback ? 'disabled' : '';
+            const hasClass   = existingFeedback ? 'has-feedback' : '';
+            const mid        = messageId || '';
+            row.innerHTML = `
+                <div class="role-label">🤖 AI Tư vấn</div>
+                <div class="msg-content"></div>
+                <div class="feedback-bar ${hasClass}" data-msg-id="${mid}">
+                    <button class="fb-btn ${goodActive}" ${disabled} onclick="handleFeedback(this, 'GOOD')" title="Phản hồi hữu ích">👍</button>
+                    <button class="fb-btn ${badActive}" ${disabled} onclick="handleFeedback(this, 'BAD')" title="Phản hồi chưa tốt">👎</button>
+                </div>
+                <div class="analysis-placeholder"></div>
+            `;
+        } else {
+            row.innerHTML = `
+                <div class="role-label">👤 Bạn</div>
+                <div class="msg-content"></div>
+                <div class="analysis-placeholder"></div>
+            `;
+        }
         return row;
+    }
+
+    // ─── FEEDBACK HANDLER (ChatGPT-style) ─────────────────────
+    function handleFeedback(btn, feedbackValue) {
+        const bar = btn.closest('.feedback-bar');
+        const messageId = bar?.dataset.msgId;
+
+        if (feedbackValue === 'BAD') {
+            // Hiện modal ghi chú (giống ChatGPT khi nhấn dislike)
+            showFeedbackModal(messageId, bar);
+        } else {
+            // GOOD → gửi ngay
+            doSubmitFeedback(messageId, 'GOOD', null, bar);
+        }
+    }
+
+    function showFeedbackModal(messageId, bar) {
+        const overlay = document.createElement('div');
+        overlay.className = 'fb-modal-overlay';
+        overlay.innerHTML = `
+            <div class="fb-modal">
+                <h3>👎 Phản hồi chưa tốt</h3>
+                <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Cho chúng tôi biết vấn đề để cải thiện AI:</p>
+                <textarea id="fbNote" placeholder="Ví dụ: Thông tin không chính xác, trả lời chung chung..." maxlength="500"></textarea>
+                <div class="fb-modal-actions">
+                    <button class="fb-btn-cancel" onclick="this.closest('.fb-modal-overlay').remove()">Hủy</button>
+                    <button class="fb-btn-submit" id="fbSubmitBtn">Gửi đánh giá</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#fbNote').focus();
+        overlay.querySelector('#fbSubmitBtn').onclick = () => {
+            const note = overlay.querySelector('#fbNote').value.trim();
+            overlay.remove();
+            doSubmitFeedback(messageId, 'BAD', note || null, bar);
+        };
+        // Đóng khi click ngoài modal
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+    }
+
+    async function doSubmitFeedback(messageId, feedback, note, bar) {
+        if (!currentSessionId || !messageId) {
+            showToast('Không thể gửi đánh giá. Thiếu thông tin phiên.', 'error');
+            return;
+        }
+        // Disable buttons ngay
+        bar.querySelectorAll('.fb-btn').forEach(b => b.disabled = true);
+
+        const result = await submitFeedback(currentSessionId, messageId, feedback, note);
+        if (result.success) {
+            // Highlight button được chọn
+            const [goodBtn, badBtn] = bar.querySelectorAll('.fb-btn');
+            goodBtn.className = `fb-btn ${feedback === 'GOOD' ? 'active-good' : ''}`;
+            badBtn.className  = `fb-btn ${feedback === 'BAD'  ? 'active-bad'  : ''}`;
+            bar.classList.add('has-feedback');
+            showToast(feedback === 'GOOD' ? '👍 Cảm ơn phản hồi!' : '👎 Cảm ơn! Chúng tôi sẽ cải thiện.', 'success');
+        } else {
+            // Enable lại nếu lỗi
+            bar.querySelectorAll('.fb-btn').forEach(b => b.disabled = false);
+            showToast(result.message || 'Lỗi gửi đánh giá', 'error');
+        }
     }
 
     function renderAnalysis(a, model, ms) {

@@ -162,4 +162,76 @@ export class AiHealthChatController {
             });
         }
     }
+
+    /**
+     * Ghi nhận đánh giá phản hồi AI (GOOD / BAD).
+     */
+    static async submitFeedback(req: Request, res: Response): Promise<void> {
+        try {
+            const userId = (req as any).auth?.user_id || null;
+            const sessionId = String(req.params.sessionId);
+            const messageId = String(req.params.messageId);
+            const { feedback, note } = req.body;
+
+            const updatedMessage = await AiHealthChatService.submitFeedback(
+                sessionId,
+                userId,
+                messageId,
+                feedback,
+                note || null
+            );
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: AI_CHAT_SUCCESS.FEEDBACK_SUBMITTED,
+                data: updatedMessage,
+            });
+        } catch (error: any) {
+            AiHealthChatController.handleError(res, error);
+        }
+    }
+
+    /**
+     * GET /analytics/tokens — Thống kê token usage cho admin.
+     */
+    static async getTokenAnalytics(req: Request, res: Response): Promise<void> {
+        try {
+            // Default: 30 ngày gần nhất
+            const now = new Date();
+            const defaultStart = new Date(now);
+            defaultStart.setDate(defaultStart.getDate() - 30);
+
+            const startDate = (req.query.start_date as string) || defaultStart.toISOString().split('T')[0];
+            const endDate = (req.query.end_date as string) || now.toISOString().split('T')[0];
+
+            const data = await AiHealthChatService.getTokenAnalytics(startDate, endDate);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: AI_CHAT_SUCCESS.TOKEN_ANALYTICS,
+                data,
+            });
+        } catch (error: any) {
+            AiHealthChatController.handleError(res, error);
+        }
+    }
+
+    /**
+     * DELETE /sessions/:sessionId — Soft delete phiên tư vấn.
+     */
+    static async deleteSession(req: Request, res: Response): Promise<void> {
+        try {
+            const userId = (req as any).auth?.user_id || null;
+            const sessionId = String(req.params.sessionId);
+
+            await AiHealthChatService.deleteSession(sessionId, userId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: AI_CHAT_SUCCESS.SESSION_DELETED,
+            });
+        } catch (error: any) {
+            AiHealthChatController.handleError(res, error);
+        }
+    }
 }

@@ -3,29 +3,40 @@ import {
     AiChatSession,
     AiChatMessage,
     SpecialtyForPrompt,
+    ConversationState,
+    AiTokenUsageDaily,
+    AiTokenUsageSummary,
 } from '../../models/AI/ai-health-chat.model';
-import { AI_CHAT_STATUS } from '../../constants/ai-health-chat.constant';
+import { AI_CHAT_STATUS, AI_CONVERSATION_PHASES } from '../../constants/ai-health-chat.constant';
 
-/**
- * Repository cho Module 7.1 — AI Tư Vấn Sức Khỏe.
- * Chịu trách nhiệm toàn bộ thao tác DB liên quan đến phiên chat AI,
- * tin nhắn trong phiên, và tra cứu chuyên khoa.
- */
+
 export class AiHealthChatRepository {
-
-    // ═══════════════════════════════════════════
-    //  SESSION MANAGEMENT
-    // ═══════════════════════════════════════════
 
     /**
      * Tạo phiên chat AI mới.
      * Ghi nhận thông tin ban đầu: mã phiên, user_id, trạng thái ACTIVE.
      */
     static async createSession(session: Partial<AiChatSession>): Promise<AiChatSession> {
+        /** Khởi tạo conversation_state mặc định nếu chưa có */
+        const defaultState: ConversationState = {
+            phase: AI_CONVERSATION_PHASES.GREETING,
+            locked_specialty_group: null,
+            locked_specialty_name: null,
+            symptoms_collected: [],
+            symptoms_excluded: [],
+            questions_asked: 0,
+            discovery_complete: false,
+            conversation_summary: null,
+            last_severity: null,
+            last_priority: null,
+            last_needs_doctor: false,
+            symptom_tracking: null,
+        };
+
         const query = `
             INSERT INTO ai_chat_sessions 
-                (session_id, session_code, patient_id, user_id, status, message_count)
-            VALUES ($1, $2, $3, $4, $5, $6)
+                (session_id, session_code, patient_id, user_id, status, message_count, conversation_state)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
         `;
         const values = [
@@ -35,6 +46,7 @@ export class AiHealthChatRepository {
             session.user_id || null,
             session.status || AI_CHAT_STATUS.ACTIVE,
             session.message_count || 0,
+            JSON.stringify(session.conversation_state || defaultState),
         ];
         const result = await pool.query(query, values);
         return result.rows[0];
@@ -65,7 +77,7 @@ export class AiHealthChatRepository {
         const allowedFields = [
             'suggested_specialty_id', 'suggested_specialty_name', 'suggested_priority',
             'symptoms_summary', 'ai_conclusion', 'status', 'message_count',
-            'appointment_id', 'completed_at', 'updated_at',
+            'appointment_id', 'completed_at', 'updated_at', 'conversation_state',
         ];
         const fields: string[] = [];
         const values: any[] = [];
@@ -74,7 +86,13 @@ export class AiHealthChatRepository {
         for (const field of allowedFields) {
             if ((updates as any)[field] !== undefined) {
                 fields.push(`${field} = $${paramIndex}`);
-                values.push((updates as any)[field]);
+                /**
+                 * conversation_state là JSONB → cần serialize trước khi gửi query.
+                 */
+                const value = field === 'conversation_state'
+                    ? JSON.stringify((updates as any)[field])
+                    : (updates as any)[field];
+                values.push(value);
                 paramIndex++;
             }
         }
@@ -100,6 +118,7 @@ export class AiHealthChatRepository {
     /**
      * Danh sách phiên chat của user — phân trang, sắp xếp mới nhất trước.
      * Hỗ trợ lọc theo trạng thái (ACTIVE, COMPLETED, EXPIRED).
+     * Phiên DELETED luôn bị ẩn khỏi danh sách.
      */
     static async getSessionsByUser(
         userId: string,
@@ -109,7 +128,7 @@ export class AiHealthChatRepository {
     ): Promise<[AiChatSession[], number]> {
         const offset = (page - 1) * limit;
         const params: any[] = [userId];
-        let whereClause = 'WHERE user_id = $1';
+        let whereClause = `WHERE user_id = $1 AND status != '${AI_CHAT_STATUS.DELETED}'`;
 
         if (status) {
             params.push(status);
@@ -146,9 +165,6 @@ export class AiHealthChatRepository {
         return parseInt(result.rows[0].total, 10);
     }
 
-    // ═══════════════════════════════════════════
-    //  MESSAGE MANAGEMENT
-    // ═══════════════════════════════════════════
 
     /**
      * Thêm tin nhắn mới vào phiên.
@@ -189,9 +205,25 @@ export class AiHealthChatRepository {
         return result.rows;
     }
 
-    // ═══════════════════════════════════════════
-    //  SPECIALTY LOOKUP (Liên kết Module 2)
-    // ═══════════════════════════════════════════
+    /**
+     * Lấy N tin nhắn gần nhất trong phiên — dùng cho Rolling Memory.
+     * Khi phiên dài (>6 tin), thay vì gửi toàn bộ history cho AI,
+     * chỉ gửi summary + N tin gần nhất để tiết kiệm tokens.
+     */
+    static async getRecentMessages(sessionId: string, limit: number): Promise<AiChatMessage[]> {
+        const query = `
+            SELECT * FROM (
+                SELECT * FROM ai_chat_messages
+                WHERE session_id = $1
+                ORDER BY created_at DESC
+                LIMIT $2
+            ) sub
+            ORDER BY created_at ASC
+        `;
+        const result = await pool.query(query, [sessionId, limit]);
+        return result.rows;
+    }
+
 
     /**
      * Lấy danh sách chuyên khoa đang hoạt động (chưa bị xóa mềm).
@@ -221,4 +253,134 @@ export class AiHealthChatRepository {
         const result = await pool.query(query, [code]);
         return result.rows[0] ?? null;
     }
+
+    /**
+     * Lấy tin nhắn theo ID — dùng khi submit feedback để validate tin nhắn tồn tại.
+     */
+    static async getMessageById(messageId: string): Promise<AiChatMessage | null> {
+        const query = `SELECT * FROM ai_chat_messages WHERE message_id = $1`;
+        const result = await pool.query(query, [messageId]);
+        return result.rows[0] ?? null;
+    }
+
+    /**
+     * Cập nhật đánh giá feedback cho tin nhắn AI.
+     */
+    static async updateMessageFeedback(
+        messageId: string,
+        feedback: string,
+        note: string | null
+    ): Promise<AiChatMessage | null> {
+        const query = `
+            UPDATE ai_chat_messages
+            SET user_feedback = $1, feedback_note = $2
+            WHERE message_id = $3
+            RETURNING *
+        `;
+        const result = await pool.query(query, [feedback, note, messageId]);
+        return result.rows[0] ?? null;
+    }
+
+    /**
+     * Lấy danh sách feedback notes gần đây theo loại (GOOD/BAD).
+     */
+    static async getRecentFeedbackNotes(
+        feedbackType: string,
+        limit: number,
+        lookbackDays: number
+    ): Promise<{ feedback_note: string }[]> {
+        const query = `
+            SELECT DISTINCT feedback_note
+            FROM ai_chat_messages
+            WHERE user_feedback = $1
+              AND feedback_note IS NOT NULL
+              AND feedback_note != ''
+              AND created_at > NOW() - INTERVAL '1 day' * $3
+            ORDER BY feedback_note
+            LIMIT $2
+        `;
+        const result = await pool.query(query, [feedbackType, limit, lookbackDays]);
+        return result.rows;
+    }
+
+    /**
+     * Lấy nội dung tin nhắn ASSISTANT được đánh giá GOOD (truncated).
+     * Dùng làm sample để AI học theo phong cách phản hồi hiệu quả.
+     */
+    static async getGoodRatedMessageSamples(
+        limit: number,
+        lookbackDays: number,
+        truncateLength: number
+    ): Promise<{ content: string }[]> {
+        const query = `
+            SELECT LEFT(content, $3) AS content
+            FROM ai_chat_messages
+            WHERE user_feedback = 'GOOD'
+              AND role = 'ASSISTANT'
+              AND created_at > NOW() - INTERVAL '1 day' * $2
+            ORDER BY created_at DESC
+            LIMIT $1
+        `;
+        const result = await pool.query(query, [limit, lookbackDays, truncateLength]);
+        return result.rows;
+    }
+
+    /**
+     * Lấy thống kê token usage theo ngày (từ VIEW ai_token_usage_daily).
+     */
+    static async getTokenUsageDaily(
+        startDate: string,
+        endDate: string
+    ): Promise<AiTokenUsageDaily[]> {
+        const query = `
+            SELECT usage_date, model_used, total_messages, total_tokens, avg_response_ms
+            FROM ai_token_usage_daily
+            WHERE usage_date >= $1 AND usage_date <= $2
+            ORDER BY usage_date DESC, model_used
+        `;
+        const result = await pool.query(query, [startDate, endDate]);
+        return result.rows;
+    }
+
+    /**
+     * Lấy tổng hợp thống kê: tổng messages, tokens, sessions, feedback.
+     */
+    static async getTokenUsageSummary(
+        startDate: string,
+        endDate: string
+    ): Promise<AiTokenUsageSummary> {
+        const query = `
+            SELECT
+                COALESCE(SUM(CASE WHEN role = 'ASSISTANT' THEN 1 ELSE 0 END), 0)::INTEGER AS total_messages,
+                COALESCE(SUM(CASE WHEN role = 'ASSISTANT' THEN tokens_used ELSE 0 END), 0)::INTEGER AS total_tokens,
+                COALESCE(AVG(CASE WHEN role = 'ASSISTANT' THEN response_time_ms END), 0)::INTEGER AS avg_response_ms,
+                COALESCE(SUM(CASE WHEN role = 'ASSISTANT' AND user_feedback = 'GOOD' THEN 1 ELSE 0 END), 0)::INTEGER AS good_count,
+                COALESCE(SUM(CASE WHEN role = 'ASSISTANT' AND user_feedback = 'BAD' THEN 1 ELSE 0 END), 0)::INTEGER AS bad_count,
+                COALESCE(SUM(CASE WHEN role = 'ASSISTANT' AND user_feedback IS NULL THEN 1 ELSE 0 END), 0)::INTEGER AS no_feedback_count
+            FROM ai_chat_messages
+            WHERE created_at >= $1::DATE AND created_at < ($2::DATE + INTERVAL '1 day')
+        `;
+        const msgResult = await pool.query(query, [startDate, endDate]);
+        const msg = msgResult.rows[0];
+
+        const sessionQuery = `
+            SELECT COUNT(*)::INTEGER AS total_sessions
+            FROM ai_chat_sessions
+            WHERE created_at >= $1::DATE AND created_at < ($2::DATE + INTERVAL '1 day')
+        `;
+        const sessionResult = await pool.query(sessionQuery, [startDate, endDate]);
+
+        return {
+            total_messages: msg.total_messages,
+            total_tokens: msg.total_tokens,
+            avg_response_ms: msg.avg_response_ms,
+            total_sessions: sessionResult.rows[0]?.total_sessions || 0,
+            feedback_stats: {
+                good: msg.good_count,
+                bad: msg.bad_count,
+                no_feedback: msg.no_feedback_count,
+            },
+        };
+    }
 }
+

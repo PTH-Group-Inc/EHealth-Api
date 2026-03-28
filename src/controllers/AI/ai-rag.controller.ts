@@ -37,9 +37,10 @@ export class AiRagController {
         
         // Lấy ID của Admin từ token (nếu có gắn Auth Middleware)
         const uploadedBy = (req as any).auth?.user_id || null;
+        const category = req.body.document_category || 'GENERAL';
 
         // Trả về response ngay lập tức (202 Accepted) vì việc xử lý PDF + Call API có thể mất 10-30s
-        const documentInfo = await AiRagService.processDocumentFile(fileBuffer, fileName, uploadedBy);
+        const documentInfo = await AiRagService.processDocumentFile(fileBuffer, fileName, uploadedBy, category);
 
         res.status(202).json({
             success: true,
