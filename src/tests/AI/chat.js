@@ -110,7 +110,7 @@ async function _startNewSession(message) {
 
         currentSessionId = result.data.session.session_id;
         onTypingEnd?.();
-        onNewMessage?.('assistant', result.data.ai_reply, result.data.analysis, null, null, result.data.session);
+        onNewMessage?.('assistant', result.data.ai_reply, result.data.analysis, null, null, result.data.session, result.data.assistant_message_id);
         await loadSessions();
     } catch (e) {
         onTypingEnd?.();
@@ -131,8 +131,8 @@ async function _sendJSON(message) {
         const result = await res.json();
         if (!res.ok || !result.success) throw new Error(result.message || `${res.status}`);
         onTypingEnd?.(typingId);
-        // Controller trả: { data: { session, ai_reply, analysis } }
-        onNewMessage?.('assistant', result.data.ai_reply, result.data.analysis, null, null, result.data.session);
+        // Controller trả: { data: { session, ai_reply, analysis, assistant_message_id } }
+        onNewMessage?.('assistant', result.data.ai_reply, result.data.analysis, null, null, result.data.session, result.data.assistant_message_id);
     } catch (e) {
         onTypingEnd?.(typingId);
         onNewMessage?.('assistant', `❌ Lỗi: ${e.message}`);
@@ -167,6 +167,7 @@ async function _sendStream(message) {
         let streamChunks = '';
         let analysisData = null;
         let finalSession = null;
+        let assistantMessageId = null;
 
         // Báo UI: bắt đầu nhận streaming text
         onTypingEnd?.('stream');
@@ -197,6 +198,7 @@ async function _sendStream(message) {
                             break;
                         case 'done':
                             finalSession = data.session;
+                            assistantMessageId = data.assistant_message_id || null;
                             break;
                         case 'error':
                             throw new Error(data.message);
@@ -206,7 +208,7 @@ async function _sendStream(message) {
         }
 
         // Kết thúc stream: đẩy analysis card
-        onNewMessage?.('stream-end', streamChunks, analysisData, null, null, finalSession);
+        onNewMessage?.('stream-end', streamChunks, analysisData, null, null, finalSession, assistantMessageId);
         await loadSessions();
     } catch (e) {
         onTypingEnd?.('stream');
@@ -230,6 +232,50 @@ export async function endSession() {
         await loadSessions();
     } catch (e) {
         onSessionError?.(e.message);
+    }
+}
+
+/** Xóa phiên tư vấn (soft delete) */
+export async function deleteSession(sessionId) {
+    try {
+        const res = await fetch(`${CHAT_BASE}/sessions/${sessionId}`, {
+            method: 'DELETE',
+            headers: buildHeaders(),
+        });
+        if (res.status === 401) { handleAuthError(); return { success: false, message: 'Phiên đăng nhập hết hạn.' }; }
+        const result = await res.json();
+        if (result.success) {
+            // Nếu xóa phiên đang active → reset
+            if (currentSessionId === sessionId) {
+                currentSessionId = null;
+            }
+            await loadSessions();
+        }
+        return result;
+    } catch (e) {
+        onSessionError?.(e.message);
+        return { success: false, message: e.message };
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEEDBACK
+// ═══════════════════════════════════════════════════════════
+
+/** Gửi đánh giá feedback (GOOD/BAD) cho tin nhắn AI */
+export async function submitFeedback(sessionId, messageId, feedback, note = null) {
+    try {
+        const res = await fetch(`${CHAT_BASE}/sessions/${sessionId}/messages/${messageId}/feedback`, {
+            method: 'PATCH',
+            headers: buildHeaders(),
+            body: JSON.stringify({ feedback, note }),
+        });
+        if (res.status === 401) { handleAuthError(); return { success: false, message: 'Phiên đăng nhập hết hạn.' }; }
+        const result = await res.json();
+        return result;
+    } catch (e) {
+        console.error('[chat] submitFeedback error:', e);
+        return { success: false, message: e.message };
     }
 }
 

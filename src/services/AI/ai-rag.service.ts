@@ -5,7 +5,7 @@ const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = require('pdf-par
 import { getOpenAIClient } from '../../config/openai';
 import { AiRagRepository } from '../../repository/AI/ai-rag.repository';
 import { AiDocument, AiDocumentChunk, RAGSearchResult } from '../../models/AI/ai-rag.model';
-import { AI_RAG_CONFIG, AI_RAG_ERRORS, AI_RAG_SUCCESS, AI_RAG_DOCUMENT_STATUS } from '../../constants/ai-rag.constant';
+import { AI_RAG_CONFIG, AI_RAG_ERRORS, AI_RAG_SUCCESS, AI_RAG_DOCUMENT_STATUS, AI_RAG_DOCUMENT_CATEGORIES } from '../../constants/ai-rag.constant';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 
@@ -17,7 +17,8 @@ export class AiRagService {
     static async processDocumentFile(
         fileBuffer: Buffer,
         fileName: string,
-        uploadedBy: string | null
+        uploadedBy: string | null,
+        category: string = AI_RAG_DOCUMENT_CATEGORIES.GENERAL
     ): Promise<AiDocument> {
         const utf8FileName = Buffer.from(fileName, 'latin1').toString('utf8');
         const docId = `DOC_${randomUUID().replace(/-/g, '').slice(0, 16)}`;
@@ -27,7 +28,8 @@ export class AiRagService {
             file_type: 'PDF',
             uploaded_by: uploadedBy,
             file_size_bytes: fileBuffer.length,
-            status: AI_RAG_DOCUMENT_STATUS.PROCESSING
+            status: AI_RAG_DOCUMENT_STATUS.PROCESSING,
+            document_category: category,
         });
 
         this.runIngestionPipeline(fileBuffer, docId).catch((error) => {
@@ -226,9 +228,10 @@ export class AiRagService {
     }
 
     /**
-     * Tìm kiếm ngữ cảnh: Biến câu hỏi thành Vector -> So sánh Cosine trên DB
+     * Tìm kiếm ngữ cảnh: Biến câu hỏi thành Vector -> So sánh Cosine trên DB.
+     * Hỗ trợ filter theo document categories để tăng độ chính xác.
      */
-    static async retrieveContext(queryText: string): Promise<string> {
+    static async retrieveContext(queryText: string, categories?: string[]): Promise<string> {
         try {
             const client = getOpenAIClient();
 
@@ -244,7 +247,8 @@ export class AiRagService {
 
             const topResults = await AiRagRepository.searchSimilarChunks(
                 queryVectorStr,
-                AI_RAG_CONFIG.TOP_K_RESULTS
+                AI_RAG_CONFIG.TOP_K_RESULTS,
+                categories
             );
 
 

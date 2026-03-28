@@ -3876,3 +3876,61 @@ CREATE TABLE IF NOT EXISTS ai_chat_messages (
 
     FOREIGN KEY (session_id) REFERENCES ai_chat_sessions(session_id) ON DELETE CASCADE
 );
+
+-- *********************************************************************
+-- MODULE 7.1 — CẢI THIỆN AI HEALTH CHAT
+-- Conversation State Machine + Server-side Symptom Tracking
+-- *********************************************************************
+
+-- =====================================================================
+-- 1. Thêm cột conversation_state JSONB vào ai_chat_sessions
+-- Lưu trữ trạng thái hội thoại (phase, chủ đề đã khóa, triệu chứng
+-- đã thu thập phía server) để kiểm soát flow và chống lạc đề.
+-- =====================================================================
+ALTER TABLE ai_chat_sessions
+    ADD COLUMN IF NOT EXISTS conversation_state JSONB DEFAULT '{
+        "phase": "GREETING",
+        "locked_specialty_group": null,
+        "symptoms_collected": [],
+        "symptoms_excluded": [],
+        "questions_asked": 0,
+        "discovery_complete": false,
+        "conversation_summary": null
+    }';
+
+-- Index cho truy vấn theo phase (debug/thống kê)
+CREATE INDEX IF NOT EXISTS idx_acs_phase
+    ON ai_chat_sessions ((conversation_state->>'phase'));
+
+
+-- *********************************************************************
+-- MODULE 7.1 — AI CHAT FEEDBACK LOOP
+-- Thu thập phản hồi đánh giá chất lượng từ user cho mỗi tin nhắn AI.
+-- Dùng để phân tích và cải thiện prompt AI theo thời gian.
+-- *********************************************************************
+
+-- Thêm cột feedback vào bảng tin nhắn
+ALTER TABLE ai_chat_messages
+    ADD COLUMN IF NOT EXISTS user_feedback VARCHAR(10),   -- GOOD | BAD
+    ADD COLUMN IF NOT EXISTS feedback_note TEXT;           -- Ghi chú tùy chọn
+
+-- Index hỗ trợ thống kê feedback (chỉ index các tin nhắn đã có feedback)
+CREATE INDEX IF NOT EXISTS idx_acm_feedback
+    ON ai_chat_messages (user_feedback)
+    WHERE user_feedback IS NOT NULL;
+
+
+-- Migration: Tạo VIEW thống kê token usage hàng ngày
+-- Aggregate từ dữ liệu có sẵn trong ai_chat_messages (không cần table mới)
+
+CREATE OR REPLACE VIEW ai_token_usage_daily AS
+SELECT 
+    DATE(created_at) AS usage_date,
+    model_used,
+    COUNT(*) AS total_messages,
+    SUM(tokens_used) AS total_tokens,
+    AVG(response_time_ms)::INTEGER AS avg_response_ms
+FROM ai_chat_messages 
+WHERE role = 'ASSISTANT'
+GROUP BY DATE(created_at), model_used
+ORDER BY usage_date DESC;

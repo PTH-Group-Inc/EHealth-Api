@@ -51,6 +51,19 @@ const upload = multer({
  *                 type: string
  *                 format: binary
  *                 description: "File PDF cần đưa vào Knowledge Base. Tối đa 20MB."
+ *               document_category:
+ *                 type: string
+ *                 enum: [GENERAL, PRICING, SCHEDULE, POLICY, MEDICAL_INFO, FAQ]
+ *                 default: GENERAL
+ *                 description: |
+ *                   Phân loại tài liệu để AI tìm kiếm chính xác hơn:
+ *                   - `GENERAL`: Thông tin chung (giới thiệu phòng khám)
+ *                   - `PRICING`: Bảng giá dịch vụ
+ *                   - `SCHEDULE`: Lịch bác sĩ / giờ hoạt động
+ *                   - `POLICY`: Nội quy, chính sách
+ *                   - `MEDICAL_INFO`: Kiến thức y khoa
+ *                   - `FAQ`: Câu hỏi thường gặp
+ *                 example: "PRICING"
  *     responses:
  *       202:
  *         description: Đã tiếp nhận file, đang xử lý ngầm

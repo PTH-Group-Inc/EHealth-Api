@@ -12,6 +12,7 @@ export interface AiDocument {
     file_size_bytes: number;
     total_chunks: number;
     status: typeof AI_RAG_DOCUMENT_STATUS[keyof typeof AI_RAG_DOCUMENT_STATUS];
+    document_category: string;
     error_message: string | null;
     created_at: Date;
     updated_at: Date;

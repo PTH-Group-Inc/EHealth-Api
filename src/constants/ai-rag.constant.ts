@@ -7,6 +7,16 @@ export const AI_RAG_DOCUMENT_STATUS = {
     FAILED: 'FAILED'
 } as const;
 
+/** Phân loại tài liệu RAG — dùng để filter context-aware search */
+export const AI_RAG_DOCUMENT_CATEGORIES = {
+    GENERAL: 'GENERAL',
+    PRICING: 'PRICING',
+    SCHEDULE: 'SCHEDULE',
+    POLICY: 'POLICY',
+    MEDICAL_INFO: 'MEDICAL_INFO',
+    FAQ: 'FAQ',
+} as const;
+
 /**
  * Cấu hình hệ thống RAG (Retrieval-Augmented Generation)
  */
