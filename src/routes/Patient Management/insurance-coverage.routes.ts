@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { InsuranceCoverageController } from '../../controllers/Patient Management/insurance-coverage.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -46,7 +44,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_COVERAGE_VIEW'), InsuranceCoverageController.getCoverages);
+router.get('/', verifyAccessToken, checkSessionStatus, InsuranceCoverageController.getCoverages);
 
 /**
  * @swagger
@@ -98,7 +96,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('INS
  *       404:
  *         description: Không tìm thấy đơn vị bảo hiểm
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_COVERAGE_CREATE'), InsuranceCoverageController.createCoverage);
+router.post('/', verifyAccessToken, checkSessionStatus, InsuranceCoverageController.createCoverage);
 
 /**
  * @swagger
@@ -145,7 +143,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('IN
  *       404:
  *         description: Không tìm thấy tỷ lệ chi trả
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_COVERAGE_UPDATE'), InsuranceCoverageController.updateCoverage);
+router.put('/:id', verifyAccessToken, checkSessionStatus, InsuranceCoverageController.updateCoverage);
 
 /**
  * @swagger
@@ -174,6 +172,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy tỷ lệ chi trả
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_COVERAGE_DELETE'), InsuranceCoverageController.deleteCoverage);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, InsuranceCoverageController.deleteCoverage);
 
 export default router;

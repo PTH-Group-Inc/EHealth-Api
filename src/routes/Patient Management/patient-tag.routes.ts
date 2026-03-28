@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { PatientTagController } from '../../controllers/Patient Management/patient-tag.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // 2.6.1 QUẢN LÝ DANH MỤC THẺ (TAGS)
@@ -57,7 +55,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_MANAGE'), PatientTagController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, PatientTagController.create);
 
 /**
  * @swagger
@@ -97,7 +95,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TA
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_VIEW'), PatientTagController.getAll);
+router.get('/', verifyAccessToken, checkSessionStatus, PatientTagController.getAll);
 
 /**
  * @swagger
@@ -130,7 +128,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_VIEW'), PatientTagController.getById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, PatientTagController.getById);
 
 /**
  * @swagger
@@ -182,7 +180,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_MANAGE'), PatientTagController.update);
+router.put('/:id', verifyAccessToken, checkSessionStatus, PatientTagController.update);
 
 /**
  * @swagger
@@ -217,6 +215,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_MANAGE'), PatientTagController.delete);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, PatientTagController.delete);
 
 export const patientTagRoutes = router;

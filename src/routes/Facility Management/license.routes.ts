@@ -3,7 +3,6 @@ import { Router } from 'express';
 import { LicenseController } from '../../controllers/Facility Management/license.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import multer from 'multer';
 import { LICENSE_CONFIG } from '../../constants/system.constant';
 
@@ -82,7 +81,7 @@ const upload = multer({
  *       409:
  *         description: Số giấy phép đã tồn tại
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_CREATE'), LicenseController.createLicense);
+router.post('/', verifyAccessToken, checkSessionStatus, LicenseController.createLicense);
 
 /**
  * @swagger
@@ -121,7 +120,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LI
  *       200:
  *         description: Thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_VIEW'), LicenseController.getLicenses);
+router.get('/', verifyAccessToken, checkSessionStatus, LicenseController.getLicenses);
 
 /**
  * @swagger
@@ -177,7 +176,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LIC
  *                       days_remaining:
  *                         type: integer
  */
-router.get('/dashboard/expiring', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_VIEW'), LicenseController.getExpiringLicenses);
+router.get('/dashboard/expiring', verifyAccessToken, checkSessionStatus, LicenseController.getExpiringLicenses);
 
 /**
  * @swagger
@@ -226,7 +225,7 @@ router.get('/dashboard/expiring', verifyAccessToken, checkSessionStatus, authori
  *                         type: integer
  *                         description: "Giá trị âm = số ngày đã quá hạn"
  */
-router.get('/dashboard/expired', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_VIEW'), LicenseController.getExpiredLicenses);
+router.get('/dashboard/expired', verifyAccessToken, checkSessionStatus, LicenseController.getExpiredLicenses);
 
 /**
  * @swagger
@@ -253,7 +252,7 @@ router.get('/dashboard/expired', verifyAccessToken, checkSessionStatus, authoriz
  *       404:
  *         description: Giấy phép không tồn tại
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_VIEW'), LicenseController.getLicenseById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, LicenseController.getLicenseById);
 
 /**
  * @swagger
@@ -311,7 +310,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       409:
  *         description: Số giấy phép đã tồn tại
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_UPDATE'), LicenseController.updateLicense);
+router.put('/:id', verifyAccessToken, checkSessionStatus, LicenseController.updateLicense);
 
 /**
  * @swagger
@@ -338,7 +337,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Giấy phép không tồn tại
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_DELETE'), LicenseController.deleteLicense);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, LicenseController.deleteLicense);
 
 /**
  * @swagger
@@ -404,7 +403,7 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *       500:
  *         description: Lỗi upload lên Cloudinary
  */
-router.post('/:id/upload', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_UPDATE'), upload.single('file'), LicenseController.uploadFile);
+router.post('/:id/upload', verifyAccessToken, checkSessionStatus, upload.single('file'), LicenseController.uploadFile);
 
 /**
  * @swagger
@@ -445,7 +444,7 @@ router.post('/:id/upload', verifyAccessToken, checkSessionStatus, authorizePermi
  *       404:
  *         description: Giấy phép không tồn tại hoặc chưa có file đính kèm
  */
-router.get('/:id/file', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_VIEW'), LicenseController.getFile);
+router.get('/:id/file', verifyAccessToken, checkSessionStatus, LicenseController.getFile);
 
 /**
  * @swagger
@@ -474,6 +473,6 @@ router.get('/:id/file', verifyAccessToken, checkSessionStatus, authorizePermissi
  *       404:
  *         description: Giấy phép không tồn tại hoặc chưa có file đính kèm
  */
-router.delete('/:id/file', verifyAccessToken, checkSessionStatus, authorizePermissions('LICENSE_DELETE'), LicenseController.deleteFile);
+router.delete('/:id/file', verifyAccessToken, checkSessionStatus, LicenseController.deleteFile);
 
 export const licenseRoutes = router;

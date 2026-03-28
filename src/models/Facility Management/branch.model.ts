@@ -7,6 +7,7 @@ export interface BranchInfo {
     phone: string | null;
     status: string;
     established_date: Date | null;
+    logo_url?: string | null;
     facility_name?: string;
     deleted_at?: Date | null;
 }
@@ -26,6 +27,7 @@ export interface CreateBranchInput {
     address: string;
     phone?: string;
     established_date?: string;
+    logo_url?: string;
 }
 
 // Input cập nhật thông tin chi nhánh
@@ -35,6 +37,7 @@ export interface UpdateBranchInput {
     address?: string;
     phone?: string;
     established_date?: string;
+    logo_url?: string;
 }
 
 // Query filter cho danh sách chi nhánh

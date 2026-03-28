@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { ClinicalExamController } from '../../controllers/EMR/clinical-exam.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const clinicalExamRoutes = Router();
 
 // ─── Static routes PHẢI đặt TRƯỚC dynamic routes ───
@@ -88,10 +86,8 @@ clinicalExamRoutes.get(
     '/by-patient/:patientId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_CLINICAL_EXAM_VIEW'),
     ClinicalExamController.getByPatient
 );
-
 
 /**
  * @swagger
@@ -173,10 +169,8 @@ clinicalExamRoutes.patch(
     '/:encounterId/vitals',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_CLINICAL_EXAM_EDIT'),
     ClinicalExamController.updateVitals
 );
-
 
 /**
  * @swagger
@@ -231,10 +225,8 @@ clinicalExamRoutes.patch(
     '/:encounterId/finalize',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_CLINICAL_EXAM_EDIT'),
     ClinicalExamController.finalize
 );
-
 
 /**
  * @swagger
@@ -295,10 +287,8 @@ clinicalExamRoutes.get(
     '/:encounterId/summary',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_CLINICAL_EXAM_VIEW'),
     ClinicalExamController.getSummary
 );
-
 
 // ─── Dynamic routes ───
 
@@ -426,10 +416,8 @@ clinicalExamRoutes.post(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_CLINICAL_EXAM_CREATE'),
     ClinicalExamController.create
 );
-
 
 /**
  * @swagger
@@ -466,10 +454,8 @@ clinicalExamRoutes.get(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_CLINICAL_EXAM_VIEW'),
     ClinicalExamController.getByEncounterId
 );
-
 
 /**
  * @swagger
@@ -549,6 +535,5 @@ clinicalExamRoutes.patch(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_CLINICAL_EXAM_EDIT'),
     ClinicalExamController.update
 );

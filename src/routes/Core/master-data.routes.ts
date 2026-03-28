@@ -3,7 +3,6 @@ import { MasterDataController } from '../../controllers/Core/master-data.control
 import { MasterDataItemController } from '../../controllers/Core/master-data-item.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { uploadExcel } from '../../middleware/upload.middleware';
 
 const masterDataRoutes = Router();
@@ -108,7 +107,7 @@ masterDataRoutes.use(checkSessionStatus);
  *       403:
  *         description: Không có quyền truy cập (FORBIDDEN_ACCESS)
  */
-masterDataRoutes.get('/categories', authorizePermissions('MASTER_DATA_VIEW'), MasterDataController.getCategories);
+masterDataRoutes.get('/categories', MasterDataController.getCategories);
 
 /**
  * @swagger
@@ -167,7 +166,7 @@ masterDataRoutes.get('/categories', authorizePermissions('MASTER_DATA_VIEW'), Ma
  *       403:
  *         description: Không có quyền truy cập
  */
-masterDataRoutes.post('/categories', authorizePermissions('MASTER_DATA_CREATE'), MasterDataController.createCategory);
+masterDataRoutes.post('/categories', MasterDataController.createCategory);
 
 /**
  * @swagger
@@ -189,7 +188,7 @@ masterDataRoutes.post('/categories', authorizePermissions('MASTER_DATA_CREATE'),
  *               type: string
  *               format: binary
  */
-masterDataRoutes.get('/categories/export', authorizePermissions('MASTER_DATA_EXPORT'), MasterDataController.exportCategories);
+masterDataRoutes.get('/categories/export', MasterDataController.exportCategories);
 
 /**
  * @swagger
@@ -220,7 +219,7 @@ masterDataRoutes.get('/categories/export', authorizePermissions('MASTER_DATA_EXP
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-masterDataRoutes.post('/categories/import', authorizePermissions('MASTER_DATA_IMPORT'), uploadExcel.single('file'), MasterDataController.importCategories);
+masterDataRoutes.post('/categories/import', uploadExcel.single('file'), MasterDataController.importCategories);
 
 /**
  * @swagger
@@ -256,7 +255,7 @@ masterDataRoutes.post('/categories/import', authorizePermissions('MASTER_DATA_IM
  *
  *           Không tìm thấy nhóm danh mục hoặc đã bị xóa
  */
-masterDataRoutes.get('/categories/:id', authorizePermissions('MASTER_DATA_VIEW'), MasterDataController.getCategoryById);
+masterDataRoutes.get('/categories/:id', MasterDataController.getCategoryById);
 
 /**
  * @swagger
@@ -310,7 +309,7 @@ masterDataRoutes.get('/categories/:id', authorizePermissions('MASTER_DATA_VIEW')
  *
  *           Không tìm thấy nhóm danh mục
  */
-masterDataRoutes.put('/categories/:id', authorizePermissions('MASTER_DATA_UPDATE'), MasterDataController.updateCategory);
+masterDataRoutes.put('/categories/:id', MasterDataController.updateCategory);
 
 /**
  * @swagger
@@ -372,7 +371,7 @@ masterDataRoutes.put('/categories/:id', authorizePermissions('MASTER_DATA_UPDATE
  *
  *           Không tìm thấy nhóm danh mục
  */
-masterDataRoutes.delete('/categories/:id', authorizePermissions('MASTER_DATA_DELETE'), MasterDataController.deleteCategory);
+masterDataRoutes.delete('/categories/:id', MasterDataController.deleteCategory);
 
 /**
  * MASTER DATA ITEMS (CHI TIẾT DANH MỤC)
@@ -404,7 +403,7 @@ masterDataRoutes.delete('/categories/:id', authorizePermissions('MASTER_DATA_DEL
  *               type: string
  *               format: binary
  */
-masterDataRoutes.get('/categories/:categoryCode/items/export', authorizePermissions('MASTER_DATA_EXPORT'), MasterDataItemController.exportItems);
+masterDataRoutes.get('/categories/:categoryCode/items/export', MasterDataItemController.exportItems);
 
 /**
  * @swagger
@@ -440,7 +439,7 @@ masterDataRoutes.get('/categories/:categoryCode/items/export', authorizePermissi
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-masterDataRoutes.post('/categories/:categoryCode/items/import', authorizePermissions('MASTER_DATA_IMPORT'), uploadExcel.single('file'), MasterDataItemController.importItems);
+masterDataRoutes.post('/categories/:categoryCode/items/import', uploadExcel.single('file'), MasterDataItemController.importItems);
 
 /**
  * @swagger
@@ -550,7 +549,7 @@ masterDataRoutes.get('/categories/:categoryCode/items', verifyAccessToken, check
  *       403:
  *         description: Lỗi phân quyền
  */
-masterDataRoutes.get('/items', authorizePermissions('MASTER_DATA_VIEW'), MasterDataItemController.getItems);
+masterDataRoutes.get('/items', MasterDataItemController.getItems);
 
 /**
  * @swagger
@@ -602,7 +601,7 @@ masterDataRoutes.get('/items', authorizePermissions('MASTER_DATA_VIEW'), MasterD
  *       404:
  *         description: Nhóm danh mục không tồn tại
  */
-masterDataRoutes.post('/categories/:categoryCode/items', authorizePermissions('MASTER_DATA_CREATE'), MasterDataItemController.createItem);
+masterDataRoutes.post('/categories/:categoryCode/items', MasterDataItemController.createItem);
 
 /**
  * @swagger
@@ -646,7 +645,7 @@ masterDataRoutes.post('/categories/:categoryCode/items', authorizePermissions('M
  *       404:
  *         description: Không tìm thấy item
  */
-masterDataRoutes.put('/items/:id', authorizePermissions('MASTER_DATA_UPDATE'), MasterDataItemController.updateItem);
+masterDataRoutes.put('/items/:id', MasterDataItemController.updateItem);
 
 /**
  * @swagger
@@ -674,6 +673,6 @@ masterDataRoutes.put('/items/:id', authorizePermissions('MASTER_DATA_UPDATE'), M
  *       404:
  *         description: Không tìm thấy item
  */
-masterDataRoutes.delete('/items/:id', authorizePermissions('MASTER_DATA_DELETE'), MasterDataItemController.deleteItem);
+masterDataRoutes.delete('/items/:id', MasterDataItemController.deleteItem);
 
 export default masterDataRoutes;

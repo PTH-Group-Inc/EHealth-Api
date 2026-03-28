@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { BedController } from '../../controllers/Facility Management/bed.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -81,7 +79,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('BED_VIEW'), BedController.getBeds);
+router.get('/', verifyAccessToken, checkSessionStatus, BedController.getBeds);
 
 /**
  * @swagger
@@ -110,7 +108,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('BED
  *       404:
  *         description: Không tìm thấy giường
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('BED_VIEW'), BedController.getBedById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, BedController.getBedById);
 
 /**
  * @swagger
@@ -173,7 +171,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('BED_CREATE'), BedController.createBed);
+router.post('/', verifyAccessToken, checkSessionStatus, BedController.createBed);
 
 /**
  * @swagger
@@ -222,7 +220,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('BE
  *       404:
  *         description: Không tìm thấy giường
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('BED_UPDATE'), BedController.updateBed);
+router.put('/:id', verifyAccessToken, checkSessionStatus, BedController.updateBed);
 
 /**
  * @swagger
@@ -271,7 +269,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy giường
  */
-router.put('/:id/assign', verifyAccessToken, checkSessionStatus, authorizePermissions('BED_UPDATE'), BedController.assignBed);
+router.put('/:id/assign', verifyAccessToken, checkSessionStatus, BedController.assignBed);
 
 /**
  * @swagger
@@ -321,7 +319,7 @@ router.put('/:id/assign', verifyAccessToken, checkSessionStatus, authorizePermis
  *       404:
  *         description: Không tìm thấy giường
  */
-router.put('/:id/status', verifyAccessToken, checkSessionStatus, authorizePermissions('BED_UPDATE'), BedController.updateStatus);
+router.put('/:id/status', verifyAccessToken, checkSessionStatus, BedController.updateStatus);
 
 /**
  * @swagger
@@ -353,6 +351,6 @@ router.put('/:id/status', verifyAccessToken, checkSessionStatus, authorizePermis
  *       404:
  *         description: Không tìm thấy giường
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('BED_DELETE'), BedController.deleteBed);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, BedController.deleteBed);
 
 export const bedRoutes = router;

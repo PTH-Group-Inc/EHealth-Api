@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { AppointmentController } from '../../controllers/Appointment Management/appointment.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const appointmentRoutes = Router();
 
 // =====================================================================
@@ -148,7 +146,7 @@ export const appointmentRoutes = Router();
  */
 appointmentRoutes.post(
     '/',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CREATE')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.create
 );
 
@@ -278,11 +276,9 @@ appointmentRoutes.post(
  */
 appointmentRoutes.get(
     '/',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.getAll
 );
-
-
 
 /**
  * @swagger
@@ -342,7 +338,7 @@ appointmentRoutes.get(
  */
 appointmentRoutes.put(
     '/:id',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.update
 );
 
@@ -394,7 +390,7 @@ appointmentRoutes.put(
  */
 appointmentRoutes.delete(
     '/:id',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CANCEL')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.cancel
 );
 
@@ -450,7 +446,7 @@ appointmentRoutes.delete(
  */
 appointmentRoutes.patch(
     '/:id/assign-doctor',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.assignDoctor
 );
 
@@ -496,7 +492,7 @@ appointmentRoutes.patch(
  */
 appointmentRoutes.get(
     '/doctor/:doctorId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.getByDoctor
 );
 
@@ -549,7 +545,7 @@ appointmentRoutes.get(
  */
 appointmentRoutes.patch(
     '/:id/assign-room',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.assignRoom
 );
 
@@ -599,7 +595,7 @@ appointmentRoutes.patch(
  */
 appointmentRoutes.patch(
     '/:id/assign-service',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.assignService
 );
 
@@ -684,7 +680,7 @@ appointmentRoutes.patch(
  */
 appointmentRoutes.get(
     '/available-slots',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.getAvailableSlots
 );
 
@@ -743,7 +739,7 @@ appointmentRoutes.get(
  */
 appointmentRoutes.patch(
     '/:id/reschedule',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.reschedule
 );
 
@@ -839,7 +835,7 @@ appointmentRoutes.patch(
  */
 appointmentRoutes.post(
     '/check-conflict',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.checkConflict
 );
 
@@ -897,7 +893,7 @@ appointmentRoutes.post(
  */
 appointmentRoutes.patch(
     '/:id/visit-reason',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.updateVisitReason
 );
 
@@ -949,7 +945,7 @@ appointmentRoutes.patch(
  */
 appointmentRoutes.get(
     '/:id/visit-reason',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.getVisitReason
 );
 
@@ -1033,7 +1029,7 @@ appointmentRoutes.get(
  */
 appointmentRoutes.post(
     '/book-by-staff',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CREATE')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.bookByStaff
 );
 
@@ -1095,6 +1091,6 @@ appointmentRoutes.post(
  */
 appointmentRoutes.get(
     '/:id',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentController.getById
 );

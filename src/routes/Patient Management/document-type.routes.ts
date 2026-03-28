@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { DocumentTypeController } from '../../controllers/Patient Management/document-type.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -57,7 +55,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCUMENT_TYPE_VIEW'), DocumentTypeController.getAll);
+router.get('/', verifyAccessToken, checkSessionStatus, DocumentTypeController.getAll);
 
 /**
  * @swagger
@@ -108,7 +106,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('DOC
  *       403:
  *         description: Không có quyền
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCUMENT_TYPE_MANAGE'), DocumentTypeController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, DocumentTypeController.create);
 
 /**
  * @swagger
@@ -164,7 +162,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('DO
  *       403:
  *         description: Không có quyền
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCUMENT_TYPE_MANAGE'), DocumentTypeController.update);
+router.put('/:id', verifyAccessToken, checkSessionStatus, DocumentTypeController.update);
 
 /**
  * @swagger
@@ -201,6 +199,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCUMENT_TYPE_MANAGE'), DocumentTypeController.delete);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, DocumentTypeController.delete);
 
 export const documentTypeRoutes = router;

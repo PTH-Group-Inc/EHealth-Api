@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { SignOffController } from '../../controllers/EMR/medical-signoff.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const signOffRoutes = Router();
 
 // =====================================================================
@@ -66,7 +64,6 @@ signOffRoutes.get(
     '/by-doctor/pending',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_SIGNOFF_DRAFT'),
     SignOffController.getPending
 );
 
@@ -114,7 +111,6 @@ signOffRoutes.patch(
     '/:encounterId/complete',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_SIGNOFF_COMPLETE'),
     SignOffController.completeEncounter
 );
 
@@ -178,7 +174,6 @@ signOffRoutes.post(
     '/:encounterId/draft-sign',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_SIGNOFF_DRAFT'),
     SignOffController.draftSign
 );
 
@@ -242,7 +237,6 @@ signOffRoutes.post(
     '/:encounterId/official-sign',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_SIGN'),
     SignOffController.officialSign
 );
 
@@ -301,7 +295,6 @@ signOffRoutes.post(
     '/:encounterId/revoke',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_SIGNOFF_REVOKE'),
     SignOffController.revoke
 );
 
@@ -342,7 +335,6 @@ signOffRoutes.get(
     '/:encounterId/signatures',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     SignOffController.getSignatures
 );
 
@@ -402,7 +394,6 @@ signOffRoutes.get(
     '/:encounterId/verify',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     SignOffController.verify
 );
 
@@ -440,7 +431,6 @@ signOffRoutes.get(
     '/:encounterId/audit-log',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     SignOffController.getAuditLog
 );
 
@@ -500,6 +490,5 @@ signOffRoutes.get(
     '/:encounterId/lock-status',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     SignOffController.getLockStatus
 );

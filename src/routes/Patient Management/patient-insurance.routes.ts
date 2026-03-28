@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { PatientInsuranceController } from '../../controllers/Patient Management/patient-insurance.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 
 const router = Router();
@@ -47,7 +46,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientInsuranceController.getInsurances);
+router.get('/', verifyAccessToken, checkSessionStatus, PatientInsuranceController.getInsurances);
 
 /**
  * @swagger
@@ -88,7 +87,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PAT
  *       403:
  *         description: Không có quyền
  */
-router.get('/active', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientInsuranceController.getActiveInsurances);
+router.get('/active', verifyAccessToken, checkSessionStatus, PatientInsuranceController.getActiveInsurances);
 
 /**
  * @swagger
@@ -129,7 +128,7 @@ router.get('/active', verifyAccessToken, checkSessionStatus, authorizePermission
  *       403:
  *         description: Không có quyền
  */
-router.get('/expired', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientInsuranceController.getExpiredInsurances);
+router.get('/expired', verifyAccessToken, checkSessionStatus, PatientInsuranceController.getExpiredInsurances);
 
 /**
  * @swagger
@@ -169,7 +168,7 @@ router.get('/expired', verifyAccessToken, checkSessionStatus, authorizePermissio
  *       404:
  *         description: Không tìm thấy thẻ bảo hiểm
  */
-router.get('/:id/history', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientInsuranceController.getInsuranceHistory);
+router.get('/:id/history', verifyAccessToken, checkSessionStatus, PatientInsuranceController.getInsuranceHistory);
 
 /**
  * @swagger
@@ -198,7 +197,7 @@ router.get('/:id/history', verifyAccessToken, checkSessionStatus, authorizePermi
  *       404:
  *         description: Không tìm thấy thẻ bảo hiểm
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientInsuranceController.getInsuranceById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, PatientInsuranceController.getInsuranceById);
 
 /**
  * @swagger
@@ -261,7 +260,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy bệnh nhân hoặc đơn vị bảo hiểm
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientInsuranceController.createInsurance);
+router.post('/', verifyAccessToken, checkSessionStatus, PatientInsuranceController.createInsurance);
 
 /**
  * @swagger
@@ -307,7 +306,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PA
  *       404:
  *         description: Không tìm thấy thẻ bảo hiểm
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientInsuranceController.updateInsurance);
+router.put('/:id', verifyAccessToken, checkSessionStatus, PatientInsuranceController.updateInsurance);
 
 /**
  * @swagger
@@ -334,6 +333,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy thẻ bảo hiểm
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientInsuranceController.deleteInsurance);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, PatientInsuranceController.deleteInsurance);
 
 export default router;

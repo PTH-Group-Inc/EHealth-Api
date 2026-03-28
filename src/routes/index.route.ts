@@ -18,6 +18,7 @@ import { drugCategoryRoutes } from './Medication Management/drug-category.routes
 import { drugRoutes } from './Medication Management/drug.routes';
 import medicalServiceRoutes from './Facility Management/medical-service.routes';
 import specialtyServiceRoutes from './Facility Management/specialty-service.routes';
+import departmentSpecialtyRoutes from './Facility Management/department-specialty.routes';
 import doctorServiceRoutes from './Facility Management/doctor-service.routes';
 import medicalEquipmentRoutes from './Facility Management/medical-equipment.routes';
 import { bedRoutes } from './Facility Management/bed.routes';
@@ -217,7 +218,10 @@ export const initRoutes = (app: Express) => {
     // specialty-service mapping (2.9.1)
     app.use('/api/specialty-services', specialtyServiceRoutes);
 
-    // doctor-service mapping (2.9.2)
+    // Gán chuyên khoa - Phòng ban (2.3.1)
+    app.use('/api/department-specialties', departmentSpecialtyRoutes);
+
+    //doctor services routes
     app.use('/api/doctor-services', doctorServiceRoutes);
 
     // medical equipment management (2.10)

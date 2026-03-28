@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { FacilityStatusController } from '../../controllers/Facility Management/facility-status.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -72,7 +70,7 @@ const router = Router();
  *       400:
  *         description: Thiếu facility_id
  */
-router.get('/today', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_VIEW'), FacilityStatusController.getToday);
+router.get('/today', verifyAccessToken, checkSessionStatus, FacilityStatusController.getToday);
 
 /**
  * @swagger
@@ -112,7 +110,7 @@ router.get('/today', verifyAccessToken, checkSessionStatus, authorizePermissions
  *       400:
  *         description: Thiếu facility_id hoặc date
  */
-router.get('/date/:date', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_VIEW'), FacilityStatusController.getByDate);
+router.get('/date/:date', verifyAccessToken, checkSessionStatus, FacilityStatusController.getByDate);
 
 /**
  * @swagger
@@ -193,6 +191,6 @@ router.get('/date/:date', verifyAccessToken, checkSessionStatus, authorizePermis
  *       400:
  *         description: Thiếu facility_id hoặc month/year không hợp lệ
  */
-router.get('/calendar', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_VIEW'), FacilityStatusController.getCalendar);
+router.get('/calendar', verifyAccessToken, checkSessionStatus, FacilityStatusController.getCalendar);
 
 export const facilityStatusRoutes = router;

@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { InventoryController } from '../../controllers/Medication Management/inventory.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const inventoryRoutes = Router();
 
 // =====================================================================
@@ -85,7 +83,6 @@ inventoryRoutes.get(
     '/alerts/expiring',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('INVENTORY_VIEW'),
     InventoryController.getExpiringAlerts
 );
 
@@ -146,7 +143,6 @@ inventoryRoutes.get(
     '/alerts/low-stock',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('INVENTORY_VIEW'),
     InventoryController.getLowStockAlerts
 );
 
@@ -241,7 +237,6 @@ inventoryRoutes.get(
     '/',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('INVENTORY_VIEW'),
     InventoryController.getAll
 );
 
@@ -320,7 +315,6 @@ inventoryRoutes.post(
     '/',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('INVENTORY_MANAGE'),
     InventoryController.create
 );
 
@@ -360,7 +354,6 @@ inventoryRoutes.get(
     '/:batchId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('INVENTORY_VIEW'),
     InventoryController.getById
 );
 
@@ -429,6 +422,5 @@ inventoryRoutes.patch(
     '/:batchId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('INVENTORY_MANAGE'),
     InventoryController.update
 );

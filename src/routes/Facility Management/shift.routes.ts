@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { ShiftController } from '../../controllers/Facility Management/shift.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const shiftRoutes = Router();
 
 // THIẾT LẬP VÀ QUẢN LÝ TIÊU CHUẨN CA LÀM VIỆC (SHIFT MANAGEMENT)
@@ -41,7 +39,7 @@ const shiftRoutes = Router();
  *       200:
  *         description: Lấy danh sách thành công
  */
-shiftRoutes.get('/', [verifyAccessToken, checkSessionStatus, authorizePermissions('SHIFT_VIEW')], ShiftController.getShifts);
+shiftRoutes.get('/', [verifyAccessToken, checkSessionStatus], ShiftController.getShifts);
 
 /**
  * @swagger
@@ -66,7 +64,7 @@ shiftRoutes.get('/', [verifyAccessToken, checkSessionStatus, authorizePermission
  *       404:
  *         description: Không tìm thấy ID quy định ca làm việc
  */
-shiftRoutes.get('/:id', [verifyAccessToken, checkSessionStatus, authorizePermissions('SHIFT_VIEW')], ShiftController.getShiftById);
+shiftRoutes.get('/:id', [verifyAccessToken, checkSessionStatus], ShiftController.getShiftById);
 
 /**
  * @swagger
@@ -117,7 +115,7 @@ shiftRoutes.get('/:id', [verifyAccessToken, checkSessionStatus, authorizePermiss
  *       400:
  *         description: Thời gian ko hợp lệ hoặc trùng lặp `code`
  */
-shiftRoutes.post('/', [verifyAccessToken, checkSessionStatus, authorizePermissions('SHIFT_CREATE')], ShiftController.createShift);
+shiftRoutes.post('/', [verifyAccessToken, checkSessionStatus], ShiftController.createShift);
 
 /**
  * @swagger
@@ -169,7 +167,7 @@ shiftRoutes.post('/', [verifyAccessToken, checkSessionStatus, authorizePermissio
  *       200:
  *         description: Cập nhật thành công
  */
-shiftRoutes.put('/:id', [verifyAccessToken, checkSessionStatus, authorizePermissions('SHIFT_UPDATE')], ShiftController.updateShift);
+shiftRoutes.put('/:id', [verifyAccessToken, checkSessionStatus], ShiftController.updateShift);
 
 /**
  * @swagger
@@ -196,6 +194,6 @@ shiftRoutes.put('/:id', [verifyAccessToken, checkSessionStatus, authorizePermiss
  *       200:
  *         description: Đã xóa mềm ca làm việc thành công
  */
-shiftRoutes.delete('/:id', [verifyAccessToken, checkSessionStatus, authorizePermissions('SHIFT_DELETE')], ShiftController.deleteShift);
+shiftRoutes.delete('/:id', [verifyAccessToken, checkSessionStatus], ShiftController.deleteShift);
 
 export default shiftRoutes;

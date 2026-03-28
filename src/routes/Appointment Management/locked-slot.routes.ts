@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { LockedSlotController } from '../../controllers/Appointment Management/locked-slot.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const lockedSlotRoutes = Router();
 
 // =====================================================================
@@ -90,7 +88,7 @@ export const lockedSlotRoutes = Router();
  */
 lockedSlotRoutes.post(
     '/lock',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     LockedSlotController.lockSlots
 );
 
@@ -168,7 +166,7 @@ lockedSlotRoutes.post(
  */
 lockedSlotRoutes.get(
     '/locked',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     LockedSlotController.getLockedSlots
 );
 
@@ -203,7 +201,7 @@ lockedSlotRoutes.get(
  */
 lockedSlotRoutes.delete(
     '/lock/:lockedSlotId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     LockedSlotController.unlockSlot
 );
 
@@ -274,7 +272,7 @@ lockedSlotRoutes.delete(
  */
 lockedSlotRoutes.post(
     '/lock-by-shift',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     LockedSlotController.lockByShift
 );
 
@@ -337,6 +335,6 @@ lockedSlotRoutes.post(
  */
 lockedSlotRoutes.delete(
     '/unlock-by-shift',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     LockedSlotController.unlockByShift
 );

@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { UserNotificationController } from '../../controllers/Core/user-notification.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const userNotificationRoutes = Router();
 
 // Khu vực ADMIN - Quản lý Gửi Broadcast
@@ -54,7 +52,7 @@ const userNotificationRoutes = Router();
  *       200:
  *         description: Trả về số lượng user được phát tin thành công
  */
-userNotificationRoutes.post('/admin-broadcast', [verifyAccessToken, checkSessionStatus, authorizePermissions('NOTIFICATION_TEMPLATE_UPDATE')], UserNotificationController.sendManualNotification);
+userNotificationRoutes.post('/admin-broadcast', [verifyAccessToken, checkSessionStatus], UserNotificationController.sendManualNotification);
 
 // ============================================
 // Khu vực NGƯỜI DÙNG - Hộp thư cá nhân Inbox

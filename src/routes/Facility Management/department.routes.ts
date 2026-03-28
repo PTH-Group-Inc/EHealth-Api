@@ -1,9 +1,6 @@
 import { Router } from 'express';
 import { DepartmentController } from '../../controllers/Facility Management/department.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizeApi } from '../../middleware/authorizeApi.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const departmentRoutes = Router();
 
 /**
@@ -116,8 +113,6 @@ departmentRoutes.get('/dropdown', verifyAccessToken, DepartmentController.getDep
  */
 departmentRoutes.get('/',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('DEPARTMENT_VIEW'),
     DepartmentController.getDepartments
 );
 
@@ -164,8 +159,6 @@ departmentRoutes.get('/',
  */
 departmentRoutes.get('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('DEPARTMENT_VIEW'),
     DepartmentController.getDepartmentById
 );
 
@@ -233,8 +226,6 @@ departmentRoutes.get('/:id',
  */
 departmentRoutes.post('/',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('DEPARTMENT_CREATE'),
     DepartmentController.createDepartment
 );
 
@@ -284,8 +275,6 @@ departmentRoutes.post('/',
  */
 departmentRoutes.put('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('DEPARTMENT_UPDATE'),
     DepartmentController.updateDepartment
 );
 
@@ -335,8 +324,6 @@ departmentRoutes.put('/:id',
  */
 departmentRoutes.patch('/:id/status',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('DEPARTMENT_UPDATE'),
     DepartmentController.changeDepartmentStatus
 );
 
@@ -375,8 +362,6 @@ departmentRoutes.patch('/:id/status',
  */
 departmentRoutes.delete('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('DEPARTMENT_DELETE'),
     DepartmentController.deleteDepartment
 );
 

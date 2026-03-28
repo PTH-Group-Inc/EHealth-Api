@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { DoctorAvailabilityController } from '../../controllers/Appointment Management/doctor-availability.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const doctorAvailabilityRoutes = Router();
 
 // 3.3 QUẢN LÝ LỊCH BÁC SĨ (Doctor Availability)
@@ -76,7 +74,7 @@ export const doctorAvailabilityRoutes = Router();
  */
 doctorAvailabilityRoutes.get(
     '/by-specialty/:specialtyId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAvailabilityController.getDoctorsBySpecialty
 );
 
@@ -124,7 +122,7 @@ doctorAvailabilityRoutes.get(
  */
 doctorAvailabilityRoutes.get(
     '/by-date/:date',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAvailabilityController.getDoctorOverviewByDate
 );
 
@@ -187,7 +185,7 @@ doctorAvailabilityRoutes.get(
  */
 doctorAvailabilityRoutes.get(
     '/:doctorId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAvailabilityController.getDoctorSchedule
 );
 
@@ -261,7 +259,7 @@ doctorAvailabilityRoutes.get(
  */
 doctorAvailabilityRoutes.get(
     '/:doctorId/conflicts',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAvailabilityController.checkConflicts
 );
 
@@ -324,6 +322,6 @@ doctorAvailabilityRoutes.get(
  */
 doctorAvailabilityRoutes.get(
     '/:doctorId/facilities',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAvailabilityController.getDoctorMultiFacilitySchedule
 );

@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { EncounterController } from '../../controllers/EMR/encounter.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const encounterRoutes = Router();
 
 // 4.1 TIẾP NHẬN & MỞ HỒ SƠ KHÁM BỆNH (Encounter Management)
@@ -77,7 +75,6 @@ encounterRoutes.get(
     '/active',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_VIEW'),
     EncounterController.getActive
 );
 
@@ -129,7 +126,6 @@ encounterRoutes.get(
     '/by-patient/:patientId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_VIEW'),
     EncounterController.getByPatient
 );
 
@@ -195,7 +191,6 @@ encounterRoutes.get(
     '/by-appointment/:appointmentId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_VIEW'),
     EncounterController.getByAppointment
 );
 
@@ -303,7 +298,6 @@ encounterRoutes.post(
     '/from-appointment/:appointmentId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_CREATE'),
     EncounterController.createFromAppointment
 );
 
@@ -392,7 +386,6 @@ encounterRoutes.get(
     '/',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_VIEW'),
     EncounterController.getAll
 );
 
@@ -460,7 +453,6 @@ encounterRoutes.post(
     '/',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_CREATE'),
     EncounterController.create
 );
 
@@ -501,7 +493,6 @@ encounterRoutes.get(
     '/:id',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_VIEW'),
     EncounterController.getById
 );
 
@@ -556,7 +547,6 @@ encounterRoutes.patch(
     '/:id',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_EDIT'),
     EncounterController.update
 );
 
@@ -612,7 +602,6 @@ encounterRoutes.patch(
     '/:id/assign-doctor',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_EDIT'),
     EncounterController.assignDoctor
 );
 
@@ -670,7 +659,6 @@ encounterRoutes.patch(
     '/:id/assign-room',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_EDIT'),
     EncounterController.assignRoom
 );
 
@@ -756,6 +744,5 @@ encounterRoutes.patch(
     '/:id/status',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_ENCOUNTER_EDIT'),
     EncounterController.changeStatus
 );

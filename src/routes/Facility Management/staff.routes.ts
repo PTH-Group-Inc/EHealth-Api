@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { StaffController } from '../../controllers/Facility Management/staff.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { uploadImage as upload } from '../../middleware/upload.middleware';
 
 const staffRoutes = Router();
@@ -58,7 +57,7 @@ const staffRoutes = Router();
  *       200:
  *         description: Thành công
  */
-staffRoutes.get('/', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_VIEW')], StaffController.getStaffs);
+staffRoutes.get('/', [verifyAccessToken, checkSessionStatus], StaffController.getStaffs);
 
 /**
  * @swagger
@@ -88,7 +87,7 @@ staffRoutes.get('/', [verifyAccessToken, checkSessionStatus, authorizePermission
  *       404:
  *         description: Không tìm thấy nhân sự
  */
-staffRoutes.get('/:staffId', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_VIEW')], StaffController.getStaffById);
+staffRoutes.get('/:staffId', [verifyAccessToken, checkSessionStatus], StaffController.getStaffById);
 
 /**
  * @swagger
@@ -165,7 +164,7 @@ staffRoutes.get('/:staffId', [verifyAccessToken, checkSessionStatus, authorizePe
  *       201:
  *         description: Tạo thành công
  */
-staffRoutes.post('/', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_CREATE')], StaffController.createStaff);
+staffRoutes.post('/', [verifyAccessToken, checkSessionStatus], StaffController.createStaff);
 
 /**
  * @swagger
@@ -223,7 +222,7 @@ staffRoutes.post('/', [verifyAccessToken, checkSessionStatus, authorizePermissio
  *       200:
  *         description: Cập nhật thành công
  */
-staffRoutes.put('/:staffId', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.updateStaff);
+staffRoutes.put('/:staffId', [verifyAccessToken, checkSessionStatus], StaffController.updateStaff);
 
 /**
  * @swagger
@@ -254,7 +253,7 @@ staffRoutes.put('/:staffId', [verifyAccessToken, checkSessionStatus, authorizePe
  *       200:
  *         description: Cập nhật chữ ký thành công
  */
-staffRoutes.patch('/:staffId/signature', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE'), upload.single('file')], StaffController.updateSignature);
+staffRoutes.patch('/:staffId/signature', [verifyAccessToken, checkSessionStatus, upload.single('file')], StaffController.updateSignature);
 
 // ==========================================
 // THÔNG TIN CHUYÊN MÔN BÁC SĨ (Dành cho DOCTOR)
@@ -306,7 +305,7 @@ staffRoutes.patch('/:staffId/signature', [verifyAccessToken, checkSessionStatus,
  *       200:
  *         description: Cập nhật thành công
  */
-staffRoutes.put('/:staffId/doctor-info', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.updateDoctorInfo);
+staffRoutes.put('/:staffId/doctor-info', [verifyAccessToken, checkSessionStatus], StaffController.updateDoctorInfo);
 
 // ==========================================
 // QUẢN LÝ BẰNG CẤP / CHỨNG CHỈ (LICENSES)
@@ -336,7 +335,7 @@ staffRoutes.put('/:staffId/doctor-info', [verifyAccessToken, checkSessionStatus,
  *       200:
  *         description: Lấy thành công
  */
-staffRoutes.get('/:staffId/licenses', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_VIEW')], StaffController.getLicensesByUserId);
+staffRoutes.get('/:staffId/licenses', [verifyAccessToken, checkSessionStatus], StaffController.getLicensesByUserId);
 
 /**
  * @swagger
@@ -396,7 +395,7 @@ staffRoutes.get('/:staffId/licenses', [verifyAccessToken, checkSessionStatus, au
  *       201:
  *         description: Thêm thành công
  */
-staffRoutes.post('/:staffId/licenses', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_CREATE', 'STAFF_UPDATE')], StaffController.createLicense);
+staffRoutes.post('/:staffId/licenses', [verifyAccessToken, checkSessionStatus], StaffController.createLicense);
 
 /**
  * @swagger
@@ -455,7 +454,7 @@ staffRoutes.post('/:staffId/licenses', [verifyAccessToken, checkSessionStatus, a
  *       200:
  *         description: Cập nhật thành công
  */
-staffRoutes.put('/:staffId/licenses/:licenseId', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.updateLicense);
+staffRoutes.put('/:staffId/licenses/:licenseId', [verifyAccessToken, checkSessionStatus], StaffController.updateLicense);
 
 /**
  * @swagger
@@ -487,7 +486,7 @@ staffRoutes.put('/:staffId/licenses/:licenseId', [verifyAccessToken, checkSessio
  *       200:
  *         description: Xoá thành công
  */
-staffRoutes.delete('/:staffId/licenses/:licenseId', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE', 'STAFF_DELETE')], StaffController.deleteLicense);
+staffRoutes.delete('/:staffId/licenses/:licenseId', [verifyAccessToken, checkSessionStatus], StaffController.deleteLicense);
 
 // QUẢN LÝ TRẠNG THÁI VÀ VAI TRÒ
 
@@ -529,7 +528,7 @@ staffRoutes.delete('/:staffId/licenses/:licenseId', [verifyAccessToken, checkSes
  *       200:
  *         description: Cập nhật thành công
  */
-staffRoutes.put('/:staffId/status', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.updateStaffStatus);
+staffRoutes.put('/:staffId/status', [verifyAccessToken, checkSessionStatus], StaffController.updateStaffStatus);
 
 /**
  * @swagger
@@ -567,7 +566,7 @@ staffRoutes.put('/:staffId/status', [verifyAccessToken, checkSessionStatus, auth
  *       200:
  *         description: Cấp quyền thành công
  */
-staffRoutes.post('/:staffId/roles', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.assignStaffRole);
+staffRoutes.post('/:staffId/roles', [verifyAccessToken, checkSessionStatus], StaffController.assignStaffRole);
 
 /**
  * @swagger
@@ -599,8 +598,7 @@ staffRoutes.post('/:staffId/roles', [verifyAccessToken, checkSessionStatus, auth
  *       200:
  *         description: Thu hồi thành công
  */
-staffRoutes.delete('/:staffId/roles/:roleId', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.removeStaffRole);
-
+staffRoutes.delete('/:staffId/roles/:roleId', [verifyAccessToken, checkSessionStatus], StaffController.removeStaffRole);
 
 // QUẢN LÝ CHI NHÁNH / KHÁM CHỮA BỆNH
 
@@ -643,7 +641,7 @@ staffRoutes.delete('/:staffId/roles/:roleId', [verifyAccessToken, checkSessionSt
  *       200:
  *         description: Phân công thành công
  */
-staffRoutes.post('/:staffId/branches', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.assignStaffFacility);
+staffRoutes.post('/:staffId/branches', [verifyAccessToken, checkSessionStatus], StaffController.assignStaffFacility);
 
 /**
  * @swagger
@@ -683,6 +681,6 @@ staffRoutes.post('/:staffId/branches', [verifyAccessToken, checkSessionStatus, a
  *       200:
  *         description: Xóa phân công thành công
  */
-staffRoutes.delete('/:staffId/branches/:branchId', [verifyAccessToken, checkSessionStatus, authorizePermissions('STAFF_UPDATE')], StaffController.removeStaffFacility);
+staffRoutes.delete('/:staffId/branches/:branchId', [verifyAccessToken, checkSessionStatus], StaffController.removeStaffFacility);
 
 export default staffRoutes;

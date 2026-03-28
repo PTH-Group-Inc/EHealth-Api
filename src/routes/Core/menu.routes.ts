@@ -1,13 +1,10 @@
 import { Router } from 'express';
 import { MenuController } from '../../controllers/Core/menu.controller';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 
 const menuRoutes = Router();
 
 menuRoutes.use(verifyAccessToken);
-
-
 
 /**
  * @swagger
@@ -24,7 +21,7 @@ menuRoutes.use(verifyAccessToken);
  *       200:
  *         description: Thành công
  */
-menuRoutes.get('/', authorizePermissions('MENU_VIEW'), MenuController.getMenus);
+menuRoutes.get('/', MenuController.getMenus);
 
 /**
  * @swagger
@@ -67,7 +64,7 @@ menuRoutes.get('/', authorizePermissions('MENU_VIEW'), MenuController.getMenus);
  *       201:
  *         description: Trả về Menu vừa tạo
  */
-menuRoutes.post('/', authorizePermissions('MENU_CREATE'), MenuController.createMenu);
+menuRoutes.post('/', MenuController.createMenu);
 
 /**
  * @swagger
@@ -120,7 +117,7 @@ menuRoutes.post('/', authorizePermissions('MENU_CREATE'), MenuController.createM
  *       200:
  *         description: Cập nhật thành công
  */
-menuRoutes.patch('/:menuId', authorizePermissions('MENU_UPDATE'), MenuController.updateMenu);
+menuRoutes.patch('/:menuId', MenuController.updateMenu);
 
 /**
  * @swagger
@@ -144,6 +141,6 @@ menuRoutes.patch('/:menuId', authorizePermissions('MENU_UPDATE'), MenuController
  *       200:
  *         description: Xóa Menu thành công
  */
-menuRoutes.delete('/:menuId', authorizePermissions('MENU_DELETE'), MenuController.deleteMenu);
+menuRoutes.delete('/:menuId', MenuController.deleteMenu);
 
 export default menuRoutes;

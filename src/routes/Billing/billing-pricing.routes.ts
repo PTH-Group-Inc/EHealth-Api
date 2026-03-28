@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { BillingPricingController } from '../../controllers/Billing/billing-pricing.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // GET routes (danh mục, bảng giá) → PUBLIC (bệnh nhân xem giá dịch vụ)
@@ -276,7 +274,7 @@ router.get('/policies/:facilityServiceId', BillingPricingController.getPolicies)
  *       404:
  *         description: Không tìm thấy dịch vụ cơ sở (BPR_005)
  */
-router.post('/policies', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_CREATE'), BillingPricingController.createPolicy);
+router.post('/policies', verifyAccessToken, checkSessionStatus, BillingPricingController.createPolicy);
 
 /**
  * @swagger
@@ -353,7 +351,7 @@ router.post('/policies', verifyAccessToken, checkSessionStatus, authorizePermiss
  *       404:
  *         description: Không tìm thấy dịch vụ cơ sở (BPR_005)
  */
-router.post('/policies/bulk', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_CREATE'), BillingPricingController.bulkCreatePolicies);
+router.post('/policies/bulk', verifyAccessToken, checkSessionStatus, BillingPricingController.bulkCreatePolicies);
 
 /**
  * @swagger
@@ -418,7 +416,7 @@ router.post('/policies/bulk', verifyAccessToken, checkSessionStatus, authorizePe
  *       404:
  *         description: Không tìm thấy chính sách (BPR_001)
  */
-router.put('/policies/:policyId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_UPDATE'), BillingPricingController.updatePolicy);
+router.put('/policies/:policyId', verifyAccessToken, checkSessionStatus, BillingPricingController.updatePolicy);
 
 /**
  * @swagger
@@ -462,7 +460,7 @@ router.put('/policies/:policyId', verifyAccessToken, checkSessionStatus, authori
  *       404:
  *         description: Không tìm thấy chính sách (BPR_001)
  */
-router.delete('/policies/:policyId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_DELETE'), BillingPricingController.deletePolicy);
+router.delete('/policies/:policyId', verifyAccessToken, checkSessionStatus, BillingPricingController.deletePolicy);
 
 /**
  * @swagger
@@ -632,7 +630,7 @@ router.get('/specialty-prices/:facilityServiceId', BillingPricingController.getS
  *       404:
  *         description: Không tìm thấy dịch vụ/chuyên khoa (BPR_005, BPR_006)
  */
-router.post('/specialty-prices', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_CREATE'), BillingPricingController.createSpecialtyPrice);
+router.post('/specialty-prices', verifyAccessToken, checkSessionStatus, BillingPricingController.createSpecialtyPrice);
 
 /**
  * @swagger
@@ -689,7 +687,7 @@ router.post('/specialty-prices', verifyAccessToken, checkSessionStatus, authoriz
  *       404:
  *         description: Không tìm thấy (BPR_007)
  */
-router.put('/specialty-prices/:specialtyPriceId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_UPDATE'), BillingPricingController.updateSpecialtyPrice);
+router.put('/specialty-prices/:specialtyPriceId', verifyAccessToken, checkSessionStatus, BillingPricingController.updateSpecialtyPrice);
 
 /**
  * @swagger
@@ -732,7 +730,7 @@ router.put('/specialty-prices/:specialtyPriceId', verifyAccessToken, checkSessio
  *       404:
  *         description: Không tìm thấy (BPR_007)
  */
-router.delete('/specialty-prices/:specialtyPriceId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_DELETE'), BillingPricingController.deleteSpecialtyPrice);
+router.delete('/specialty-prices/:specialtyPriceId', verifyAccessToken, checkSessionStatus, BillingPricingController.deleteSpecialtyPrice);
 
 // =============================================================================
 //  NHÓM 4: LỊCH SỬ & THỐNG KÊ (HISTORY & STATISTICS)
@@ -809,7 +807,7 @@ router.delete('/specialty-prices/:specialtyPriceId', verifyAccessToken, checkSes
  *       404:
  *         description: Không tìm thấy dịch vụ cơ sở (BPR_005)
  */
-router.get('/history/:facilityServiceId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getHistoryByService);
+router.get('/history/:facilityServiceId', verifyAccessToken, checkSessionStatus, BillingPricingController.getHistoryByService);
 
 /**
  * @swagger
@@ -867,7 +865,7 @@ router.get('/history/:facilityServiceId', verifyAccessToken, checkSessionStatus,
  *       404:
  *         description: Không tìm thấy cơ sở (BPR_011)
  */
-router.get('/history/facility/:facilityId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getHistoryByFacility);
+router.get('/history/facility/:facilityId', verifyAccessToken, checkSessionStatus, BillingPricingController.getHistoryByFacility);
 
 /**
  * @swagger
@@ -904,7 +902,7 @@ router.get('/history/facility/:facilityId', verifyAccessToken, checkSessionStatu
  *       404:
  *         description: Không tìm thấy dịch vụ (BPR_013)
  */
-router.get('/compare', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.comparePrices);
+router.get('/compare', verifyAccessToken, checkSessionStatus, BillingPricingController.comparePrices);
 
 /**
  * @swagger
@@ -935,7 +933,7 @@ router.get('/compare', verifyAccessToken, checkSessionStatus, authorizePermissio
  *       404:
  *         description: Không tìm thấy cơ sở (BPR_011)
  */
-router.get('/summary/:facilityId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getSummary);
+router.get('/summary/:facilityId', verifyAccessToken, checkSessionStatus, BillingPricingController.getSummary);
 
 /**
  * @swagger
@@ -983,6 +981,6 @@ router.get('/summary/:facilityId', verifyAccessToken, checkSessionStatus, author
  *       404:
  *         description: Không tìm thấy cơ sở (BPR_011)
  */
-router.get('/expiring-policies/:facilityId', verifyAccessToken, checkSessionStatus, authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getExpiringPolicies);
+router.get('/expiring-policies/:facilityId', verifyAccessToken, checkSessionStatus, BillingPricingController.getExpiringPolicies);
 
 export default router;

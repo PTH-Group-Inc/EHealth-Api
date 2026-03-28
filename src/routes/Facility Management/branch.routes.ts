@@ -1,9 +1,6 @@
 import { Router } from 'express';
 import { BranchController } from '../../controllers/Facility Management/branch.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizeApi } from '../../middleware/authorizeApi.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const branchRoutes = Router();
 
 /**
@@ -125,8 +122,6 @@ branchRoutes.get('/dropdown', verifyAccessToken, BranchController.getBranchesFor
  */
 branchRoutes.get('/',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('BRANCH_VIEW'),
     BranchController.getBranches
 );
 
@@ -182,8 +177,6 @@ branchRoutes.get('/',
  */
 branchRoutes.get('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('BRANCH_VIEW'),
     BranchController.getBranchById
 );
 
@@ -262,8 +255,6 @@ branchRoutes.get('/:id',
  */
 branchRoutes.post('/',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('BRANCH_CREATE'),
     BranchController.createBranch
 );
 
@@ -328,8 +319,6 @@ branchRoutes.post('/',
  */
 branchRoutes.put('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('BRANCH_UPDATE'),
     BranchController.updateBranch
 );
 
@@ -383,8 +372,6 @@ branchRoutes.put('/:id',
  */
 branchRoutes.patch('/:id/status',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('BRANCH_UPDATE'),
     BranchController.changeBranchStatus
 );
 
@@ -423,8 +410,6 @@ branchRoutes.patch('/:id/status',
  */
 branchRoutes.delete('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('BRANCH_DELETE'),
     BranchController.deleteBranch
 );
 

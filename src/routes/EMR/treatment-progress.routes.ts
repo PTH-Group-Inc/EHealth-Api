@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { TreatmentProgressController } from '../../controllers/EMR/treatment-progress.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const treatmentProgressRoutes = Router();
 
 // =====================================================================
@@ -63,7 +61,6 @@ treatmentProgressRoutes.get(
     '/by-patient/:patientId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_VIEW'),
     TreatmentProgressController.getPatientPlans
 );
 
@@ -140,7 +137,6 @@ treatmentProgressRoutes.post(
     '/',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_CREATE'),
     TreatmentProgressController.createPlan
 );
 
@@ -180,7 +176,6 @@ treatmentProgressRoutes.get(
     '/:planId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_VIEW'),
     TreatmentProgressController.getPlanDetail
 );
 
@@ -243,7 +238,6 @@ treatmentProgressRoutes.patch(
     '/:planId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_EDIT'),
     TreatmentProgressController.updatePlan
 );
 
@@ -305,7 +299,6 @@ treatmentProgressRoutes.patch(
     '/:planId/status',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_EDIT'),
     TreatmentProgressController.changeStatus
 );
 
@@ -382,7 +375,6 @@ treatmentProgressRoutes.post(
     '/:planId/notes',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_NOTE_CREATE'),
     TreatmentProgressController.createNote
 );
 
@@ -460,7 +452,6 @@ treatmentProgressRoutes.get(
     '/:planId/notes',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_VIEW'),
     TreatmentProgressController.getNotes
 );
 
@@ -524,7 +515,6 @@ treatmentProgressRoutes.patch(
     '/:planId/notes/:noteId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_NOTE_EDIT'),
     TreatmentProgressController.updateNote
 );
 
@@ -569,7 +559,6 @@ treatmentProgressRoutes.delete(
     '/:planId/notes/:noteId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_NOTE_EDIT'),
     TreatmentProgressController.deleteNote
 );
 
@@ -642,7 +631,6 @@ treatmentProgressRoutes.post(
     '/:planId/follow-ups',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_EDIT'),
     TreatmentProgressController.createFollowUp
 );
 
@@ -682,7 +670,6 @@ treatmentProgressRoutes.get(
     '/:planId/follow-up-chain',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_VIEW'),
     TreatmentProgressController.getFollowUpChain
 );
 
@@ -726,6 +713,5 @@ treatmentProgressRoutes.get(
     '/:planId/summary',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('TREATMENT_PLAN_VIEW'),
     TreatmentProgressController.getSummary
 );

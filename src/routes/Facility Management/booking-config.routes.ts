@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { BookingConfigController } from '../../controllers/Facility Management/booking-config.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const bookingConfigRoutes = Router();
 
 // CẤU HÌNH QUY TẮC ĐẶT KHÁM (BOOKING CONFIGURATIONS)
@@ -94,7 +92,7 @@ const bookingConfigRoutes = Router();
  */
 bookingConfigRoutes.get(
     '/branch/:branchId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('BOOKING_CONFIG_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     BookingConfigController.getResolvedConfig,
 );
 
@@ -175,7 +173,7 @@ bookingConfigRoutes.get(
  */
 bookingConfigRoutes.get(
     '/branch/:branchId/raw',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('BOOKING_CONFIG_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     BookingConfigController.getRawConfig,
 );
 
@@ -273,7 +271,7 @@ bookingConfigRoutes.get(
  */
 bookingConfigRoutes.put(
     '/branch/:branchId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('BOOKING_CONFIG_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     BookingConfigController.upsertConfig,
 );
 

@@ -1,13 +1,10 @@
 import { Router } from 'express';
 import { ModuleController } from '../../controllers/Core/module.controller';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 
 const moduleRoutes = Router();
 
 moduleRoutes.use(verifyAccessToken);
-
-
 
 /**
  * @swagger
@@ -25,7 +22,7 @@ moduleRoutes.use(verifyAccessToken);
  *       200:
  *         description: Thành công
  */
-moduleRoutes.get('/', authorizePermissions('MODULE_VIEW'), ModuleController.getModules);
+moduleRoutes.get('/', ModuleController.getModules);
 
 /**
  * @swagger
@@ -49,6 +46,6 @@ moduleRoutes.get('/', authorizePermissions('MODULE_VIEW'), ModuleController.getM
  *       200:
  *         description: Thành công
  */
-moduleRoutes.get('/:moduleName/permissions', authorizePermissions('MODULE_VIEW'), ModuleController.getPermissionsByModule);
+moduleRoutes.get('/:moduleName/permissions', ModuleController.getPermissionsByModule);
 
 export default moduleRoutes;

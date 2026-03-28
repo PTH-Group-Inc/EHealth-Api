@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { WarehouseController } from '../../controllers/Medication Management/warehouse.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const warehouseRoutes = Router();
 
 /**
@@ -74,7 +72,6 @@ warehouseRoutes.get(
     '/',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('WAREHOUSE_VIEW'),
     WarehouseController.getAll
 );
 
@@ -136,7 +133,6 @@ warehouseRoutes.post(
     '/',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('WAREHOUSE_MANAGE'),
     WarehouseController.create
 );
 
@@ -173,7 +169,6 @@ warehouseRoutes.get(
     '/:id',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('WAREHOUSE_VIEW'),
     WarehouseController.getById
 );
 
@@ -228,7 +223,6 @@ warehouseRoutes.patch(
     '/:id',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('WAREHOUSE_MANAGE'),
     WarehouseController.update
 );
 
@@ -265,6 +259,5 @@ warehouseRoutes.patch(
     '/:id/toggle',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('WAREHOUSE_MANAGE'),
     WarehouseController.toggle
 );

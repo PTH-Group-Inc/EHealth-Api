@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { StockOutController } from '../../controllers/Medication Management/stock-out.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const stockOutRoutes = Router();
 
 /**
@@ -66,7 +64,7 @@ export const stockOutRoutes = Router();
  *       401:
  *         description: Chưa đăng nhập
  */
-stockOutRoutes.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_OUT_VIEW'), StockOutController.getHistory);
+stockOutRoutes.get('/', verifyAccessToken, checkSessionStatus, StockOutController.getHistory);
 
 /**
  * @swagger
@@ -120,7 +118,7 @@ stockOutRoutes.get('/', verifyAccessToken, checkSessionStatus, authorizePermissi
  *       404:
  *         description: Kho hoặc NCC không tồn tại
  */
-stockOutRoutes.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_OUT_MANAGE'), StockOutController.createOrder);
+stockOutRoutes.post('/', verifyAccessToken, checkSessionStatus, StockOutController.createOrder);
 
 /**
  * @swagger
@@ -171,7 +169,7 @@ stockOutRoutes.post('/', verifyAccessToken, checkSessionStatus, authorizePermiss
  *       404:
  *         description: Phiếu hoặc lô không tồn tại
  */
-stockOutRoutes.post('/:orderId/items', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_OUT_MANAGE'), StockOutController.addItem);
+stockOutRoutes.post('/:orderId/items', verifyAccessToken, checkSessionStatus, StockOutController.addItem);
 
 /**
  * @swagger
@@ -208,7 +206,7 @@ stockOutRoutes.post('/:orderId/items', verifyAccessToken, checkSessionStatus, au
  *       404:
  *         description: Phiếu hoặc dòng thuốc không tồn tại
  */
-stockOutRoutes.delete('/:orderId/items/:detailId', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_OUT_MANAGE'), StockOutController.deleteItem);
+stockOutRoutes.delete('/:orderId/items/:detailId', verifyAccessToken, checkSessionStatus, StockOutController.deleteItem);
 
 /**
  * @swagger
@@ -242,7 +240,7 @@ stockOutRoutes.delete('/:orderId/items/:detailId', verifyAccessToken, checkSessi
  *       404:
  *         description: Phiếu không tồn tại
  */
-stockOutRoutes.patch('/:orderId/confirm', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_OUT_MANAGE'), StockOutController.confirm);
+stockOutRoutes.patch('/:orderId/confirm', verifyAccessToken, checkSessionStatus, StockOutController.confirm);
 
 /**
  * @swagger
@@ -287,7 +285,7 @@ stockOutRoutes.patch('/:orderId/confirm', verifyAccessToken, checkSessionStatus,
  *       404:
  *         description: Phiếu không tồn tại
  */
-stockOutRoutes.patch('/:orderId/cancel', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_OUT_MANAGE'), StockOutController.cancel);
+stockOutRoutes.patch('/:orderId/cancel', verifyAccessToken, checkSessionStatus, StockOutController.cancel);
 
 /**
  * @swagger
@@ -316,4 +314,4 @@ stockOutRoutes.patch('/:orderId/cancel', verifyAccessToken, checkSessionStatus, 
  *       404:
  *         description: Phiếu không tồn tại
  */
-stockOutRoutes.get('/:orderId', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_OUT_VIEW'), StockOutController.getDetail);
+stockOutRoutes.get('/:orderId', verifyAccessToken, checkSessionStatus, StockOutController.getDetail);

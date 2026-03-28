@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { StaffScheduleController } from '../../controllers/Facility Management/staff-schedule.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -45,7 +43,7 @@ const router = Router();
  *       400:
  *         description: Trùng giờ làm việc hoặc sai thông tin
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_CREATE'), StaffScheduleController.createSchedule);
+router.post('/', verifyAccessToken, checkSessionStatus, StaffScheduleController.createSchedule);
 
 /**
  * @swagger
@@ -77,7 +75,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SC
  *       200:
  *         description: Thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_VIEW'), StaffScheduleController.getSchedules);
+router.get('/', verifyAccessToken, checkSessionStatus, StaffScheduleController.getSchedules);
 
 /**
  * @swagger
@@ -93,7 +91,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SCH
  *       200:
  *         description: Thành công
  */
-router.get('/calendar', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_VIEW'), StaffScheduleController.getScheduleCalendar);
+router.get('/calendar', verifyAccessToken, checkSessionStatus, StaffScheduleController.getScheduleCalendar);
 
 /**
  * @swagger
@@ -115,7 +113,7 @@ router.get('/calendar', verifyAccessToken, checkSessionStatus, authorizePermissi
  *       200:
  *         description: Thành công
  */
-router.get('/staff/:staffId', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_VIEW'), StaffScheduleController.getSchedulesByStaff);
+router.get('/staff/:staffId', verifyAccessToken, checkSessionStatus, StaffScheduleController.getSchedulesByStaff);
 
 /**
  * @swagger
@@ -138,7 +136,7 @@ router.get('/staff/:staffId', verifyAccessToken, checkSessionStatus, authorizePe
  *       200:
  *         description: Thành công
  */
-router.get('/date/:date', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_VIEW'), StaffScheduleController.getSchedulesByDate);
+router.get('/date/:date', verifyAccessToken, checkSessionStatus, StaffScheduleController.getSchedulesByDate);
 
 /**
  * @swagger
@@ -160,7 +158,7 @@ router.get('/date/:date', verifyAccessToken, checkSessionStatus, authorizePermis
  *       200:
  *         description: Thành công
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_VIEW'), StaffScheduleController.getScheduleById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, StaffScheduleController.getScheduleById);
 
 /**
  * @swagger
@@ -204,7 +202,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       200:
  *         description: Cập nhật thành công
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_UPDATE'), StaffScheduleController.updateSchedule);
+router.put('/:id', verifyAccessToken, checkSessionStatus, StaffScheduleController.updateSchedule);
 
 /**
  * @swagger
@@ -229,7 +227,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       400:
  *         description: Lịch trong quá khứ không thể xóa
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_DELETE'), StaffScheduleController.deleteSchedule);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, StaffScheduleController.deleteSchedule);
 
 /**
  * @swagger
@@ -254,7 +252,7 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *       400:
  *         description: Lịch đã qua hoặc đã bị ngưng
  */
-router.patch('/:id/suspend', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_SUSPEND'), StaffScheduleController.suspendSchedule);
+router.patch('/:id/suspend', verifyAccessToken, checkSessionStatus, StaffScheduleController.suspendSchedule);
 
 /**
  * @swagger
@@ -279,6 +277,6 @@ router.patch('/:id/suspend', verifyAccessToken, checkSessionStatus, authorizePer
  *       400:
  *         description: Lịch đang active sẵn
  */
-router.patch('/:id/resume', verifyAccessToken, checkSessionStatus, authorizePermissions('SCHEDULE_RESUME'), StaffScheduleController.resumeSchedule);
+router.patch('/:id/resume', verifyAccessToken, checkSessionStatus, StaffScheduleController.resumeSchedule);
 
 export const staffScheduleRoutes = router;

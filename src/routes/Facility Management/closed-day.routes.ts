@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { ClosedDayController } from '../../controllers/Facility Management/closed-day.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -62,7 +60,7 @@ const router = Router();
  *       409:
  *         description: Chồng chéo giờ nghỉ với một ngày nghỉ đã tồn tại
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('CLOSED_DAY_CREATE'), ClosedDayController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, ClosedDayController.create);
 
 /**
  * @swagger
@@ -90,7 +88,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('CL
  *       200:
  *         description: Thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('CLOSED_DAY_VIEW'), ClosedDayController.getAll);
+router.get('/', verifyAccessToken, checkSessionStatus, ClosedDayController.getAll);
 
 /**
  * @swagger
@@ -119,6 +117,6 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('CLO
  *       404:
  *         description: Không tìm thấy hoặc đã bị xóa
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('CLOSED_DAY_DELETE'), ClosedDayController.remove);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, ClosedDayController.remove);
 
 export const closedDayRoutes = router;

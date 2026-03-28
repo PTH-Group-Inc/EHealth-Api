@@ -3,8 +3,6 @@ import { DrugCategoryController } from '../../controllers/Medication Management/
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { uploadExcel } from '../../middleware/upload.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const drugCategoryRoutes = Router();
 
 // Middleware quyền truy cập
@@ -82,7 +80,7 @@ drugCategoryRoutes.use(checkSessionStatus);
  *       403:
  *         description: Không có quyền truy cập
  */
-drugCategoryRoutes.get('/', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugCategoryController.getCategories);
+drugCategoryRoutes.get('/', DrugCategoryController.getCategories);
 
 /**
  * @swagger
@@ -133,7 +131,7 @@ drugCategoryRoutes.get('/', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugCate
  *       409:
  *         description: Mã nhóm thuốc đã tồn tại (PHM_CAT_002)
  */
-drugCategoryRoutes.post('/', authorizePermissions('DRUG_CATEGORY_CREATE'), DrugCategoryController.createCategory);
+drugCategoryRoutes.post('/', DrugCategoryController.createCategory);
 
 /**
  * @swagger
@@ -164,7 +162,7 @@ drugCategoryRoutes.post('/', authorizePermissions('DRUG_CATEGORY_CREATE'), DrugC
  *       403:
  *         description: Không có quyền xuất dữ liệu
  */
-drugCategoryRoutes.get('/export', authorizePermissions('DRUG_CATEGORY_EXPORT'), DrugCategoryController.exportCategories);
+drugCategoryRoutes.get('/export', DrugCategoryController.exportCategories);
 
 /**
  * @swagger
@@ -232,7 +230,7 @@ drugCategoryRoutes.get('/export', authorizePermissions('DRUG_CATEGORY_EXPORT'), 
  *       403:
  *         description: Không có quyền import
  */
-drugCategoryRoutes.post('/import', authorizePermissions('DRUG_CATEGORY_IMPORT'), uploadExcel.single('file'), DrugCategoryController.importCategories);
+drugCategoryRoutes.post('/import', uploadExcel.single('file'), DrugCategoryController.importCategories);
 
 /**
  * @swagger
@@ -267,7 +265,7 @@ drugCategoryRoutes.post('/import', authorizePermissions('DRUG_CATEGORY_IMPORT'),
  *       404:
  *         description: Không tìm thấy nhóm thuốc (PHM_CAT_001)
  */
-drugCategoryRoutes.get('/:id', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugCategoryController.getCategoryById);
+drugCategoryRoutes.get('/:id', DrugCategoryController.getCategoryById);
 
 /**
  * @swagger
@@ -315,7 +313,7 @@ drugCategoryRoutes.get('/:id', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugC
  *       404:
  *         description: Không tìm thấy nhóm thuốc (PHM_CAT_001)
  */
-drugCategoryRoutes.put('/:id', authorizePermissions('DRUG_CATEGORY_UPDATE'), DrugCategoryController.updateCategory);
+drugCategoryRoutes.put('/:id', DrugCategoryController.updateCategory);
 
 /**
  * @swagger
@@ -352,6 +350,6 @@ drugCategoryRoutes.put('/:id', authorizePermissions('DRUG_CATEGORY_UPDATE'), Dru
  *       409:
  *         description: Nhóm đang chứa thuốc, không thể xóa (PHM_CAT_003)
  */
-drugCategoryRoutes.delete('/:id', authorizePermissions('DRUG_CATEGORY_DELETE'), DrugCategoryController.deleteCategory);
+drugCategoryRoutes.delete('/:id', DrugCategoryController.deleteCategory);
 
 export { drugCategoryRoutes };

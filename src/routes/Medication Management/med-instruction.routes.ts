@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { MedInstructionController } from '../../controllers/Medication Management/med-instruction.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const medInstructionRoutes = Router();
 
 // ===================== TEMPLATES =====================
@@ -43,7 +41,7 @@ export const medInstructionRoutes = Router();
  *       401:
  *         description: Chưa đăng nhập
  */
-medInstructionRoutes.get('/templates', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_VIEW'), MedInstructionController.getTemplates);
+medInstructionRoutes.get('/templates', verifyAccessToken, checkSessionStatus, MedInstructionController.getTemplates);
 
 /**
  * @swagger
@@ -89,7 +87,7 @@ medInstructionRoutes.get('/templates', verifyAccessToken, checkSessionStatus, au
  *       409:
  *         description: Giá trị đã tồn tại
  */
-medInstructionRoutes.post('/templates', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_MANAGE'), MedInstructionController.createTemplate);
+medInstructionRoutes.post('/templates', verifyAccessToken, checkSessionStatus, MedInstructionController.createTemplate);
 
 /**
  * @swagger
@@ -134,7 +132,7 @@ medInstructionRoutes.post('/templates', verifyAccessToken, checkSessionStatus, a
  *       404:
  *         description: Mẫu không tồn tại
  */
-medInstructionRoutes.patch('/templates/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_MANAGE'), MedInstructionController.updateTemplate);
+medInstructionRoutes.patch('/templates/:id', verifyAccessToken, checkSessionStatus, MedInstructionController.updateTemplate);
 
 /**
  * @swagger
@@ -163,7 +161,7 @@ medInstructionRoutes.patch('/templates/:id', verifyAccessToken, checkSessionStat
  *       404:
  *         description: Mẫu không tồn tại
  */
-medInstructionRoutes.delete('/templates/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_MANAGE'), MedInstructionController.deleteTemplate);
+medInstructionRoutes.delete('/templates/:id', verifyAccessToken, checkSessionStatus, MedInstructionController.deleteTemplate);
 
 // ===================== DRUG DEFAULTS =====================
 
@@ -192,7 +190,7 @@ medInstructionRoutes.delete('/templates/:id', verifyAccessToken, checkSessionSta
  *       200:
  *         description: Lấy danh sách thành công
  */
-medInstructionRoutes.get('/drugs', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_VIEW'), MedInstructionController.getAllDefaults);
+medInstructionRoutes.get('/drugs', verifyAccessToken, checkSessionStatus, MedInstructionController.getAllDefaults);
 
 /**
  * @swagger
@@ -222,7 +220,7 @@ medInstructionRoutes.get('/drugs', verifyAccessToken, checkSessionStatus, author
  *       404:
  *         description: Thuốc không tồn tại hoặc chưa có hướng dẫn mặc định
  */
-medInstructionRoutes.get('/drugs/:drugId', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_VIEW'), MedInstructionController.getDrugDefault);
+medInstructionRoutes.get('/drugs/:drugId', verifyAccessToken, checkSessionStatus, MedInstructionController.getDrugDefault);
 
 /**
  * @swagger
@@ -279,7 +277,7 @@ medInstructionRoutes.get('/drugs/:drugId', verifyAccessToken, checkSessionStatus
  *       404:
  *         description: Thuốc không tồn tại
  */
-medInstructionRoutes.put('/drugs/:drugId', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_MANAGE'), MedInstructionController.upsertDrugDefault);
+medInstructionRoutes.put('/drugs/:drugId', verifyAccessToken, checkSessionStatus, MedInstructionController.upsertDrugDefault);
 
 /**
  * @swagger
@@ -308,4 +306,4 @@ medInstructionRoutes.put('/drugs/:drugId', verifyAccessToken, checkSessionStatus
  *       404:
  *         description: Chưa có hướng dẫn mặc định
  */
-medInstructionRoutes.delete('/drugs/:drugId', verifyAccessToken, checkSessionStatus, authorizePermissions('MED_INSTRUCTION_MANAGE'), MedInstructionController.deleteDrugDefault);
+medInstructionRoutes.delete('/drugs/:drugId', verifyAccessToken, checkSessionStatus, MedInstructionController.deleteDrugDefault);

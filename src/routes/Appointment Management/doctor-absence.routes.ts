@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { DoctorAbsenceController } from '../../controllers/Appointment Management/doctor-absence.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const doctorAbsenceRoutes = Router();
 
 // 3.3 QUẢN LÝ VẮNG ĐỘT XUẤT BÁC SĨ (Doctor Absence)
@@ -71,7 +69,7 @@ export const doctorAbsenceRoutes = Router();
  */
 doctorAbsenceRoutes.get(
     '/affected-appointments',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAbsenceController.getAffectedAppointments
 );
 
@@ -160,7 +158,7 @@ doctorAbsenceRoutes.get(
  */
 doctorAbsenceRoutes.post(
     '/',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAbsenceController.createAbsence
 );
 
@@ -239,7 +237,7 @@ doctorAbsenceRoutes.post(
  */
 doctorAbsenceRoutes.get(
     '/',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAbsenceController.getAbsences
 );
 
@@ -275,6 +273,6 @@ doctorAbsenceRoutes.get(
  */
 doctorAbsenceRoutes.delete(
     '/:absenceId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     DoctorAbsenceController.deleteAbsence
 );

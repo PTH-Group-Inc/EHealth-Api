@@ -3,8 +3,6 @@ import multer from 'multer';
 import { AiRagController } from '../../controllers/AI/ai-rag.controller';
 import { AI_RAG_UPLOAD_CONFIG, AI_RAG_ERRORS } from '../../constants/ai-rag.constant';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // Cấu hình Multer sử dụng Memory (RAM) thay vì lưu ổ đĩa cứng
@@ -104,7 +102,6 @@ const upload = multer({
 router.post(
     '/upload',
     verifyAccessToken,
-    authorizePermissions('API_AI_RAG_UPLOAD'),
     upload.single('file'),
     AiRagController.uploadDocument as any
 );
@@ -168,7 +165,6 @@ router.post(
 router.get(
     '/documents',
     verifyAccessToken,
-    authorizePermissions('API_AI_RAG_GET_DOCS'),
     AiRagController.getDocuments as any
 );
 
@@ -215,7 +211,6 @@ router.get(
 router.delete(
     '/documents/:id',
     verifyAccessToken,
-    authorizePermissions('API_AI_RAG_DELETE_DOC'),
     AiRagController.deleteDocument as any
 );
 

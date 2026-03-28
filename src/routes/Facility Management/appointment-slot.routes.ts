@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { AppointmentSlotController } from '../../controllers/Facility Management/appointment-slot.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // THÔNG TIN CHUNG SLOT KHÁM BỆNH (APPOINTMENT SLOTS)
@@ -53,7 +51,7 @@ const router = Router();
  *       404:
  *         description: Không tìm thấy ID Ca làm việc
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SLOT_CREATE'), AppointmentSlotController.createSlot);
+router.post('/', verifyAccessToken, checkSessionStatus, AppointmentSlotController.createSlot);
 
 /**
  * @swagger
@@ -81,7 +79,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SL
  *       200:
  *         description: Trả về danh sách Slot thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SLOT_VIEW'), AppointmentSlotController.getSlots);
+router.get('/', verifyAccessToken, checkSessionStatus, AppointmentSlotController.getSlots);
 
 /**
  * @swagger
@@ -107,7 +105,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SLO
  *       404:
  *         description: Không tìm thấy Slot
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SLOT_VIEW'), AppointmentSlotController.getSlotById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, AppointmentSlotController.getSlotById);
 
 /**
  * @swagger
@@ -154,7 +152,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy Slot
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SLOT_UPDATE'), AppointmentSlotController.updateSlot);
+router.put('/:id', verifyAccessToken, checkSessionStatus, AppointmentSlotController.updateSlot);
 
 /**
  * @swagger
@@ -183,6 +181,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy Slot
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SLOT_DELETE'), AppointmentSlotController.disableSlot);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, AppointmentSlotController.disableSlot);
 
 export const slotRoutes = router;

@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { DiagnosisController } from '../../controllers/EMR/diagnosis.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const diagnosisRoutes = Router();
 
 // ─── Static routes PHẢI đặt TRƯỚC dynamic routes ───
@@ -61,10 +59,8 @@ diagnosisRoutes.get(
     '/search-icd',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_VIEW'),
     DiagnosisController.searchICD
 );
-
 
 /**
  * @swagger
@@ -125,10 +121,8 @@ diagnosisRoutes.get(
     '/by-patient/:patientId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_VIEW'),
     DiagnosisController.getByPatient
 );
-
 
 // ─── Sub-path routes (trước dynamic) ───
 
@@ -178,10 +172,8 @@ diagnosisRoutes.put(
     '/:encounterId/conclusion',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_EDIT'),
     DiagnosisController.setConclusion
 );
-
 
 /**
  * @swagger
@@ -211,10 +203,8 @@ diagnosisRoutes.get(
     '/:encounterId/conclusion',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_VIEW'),
     DiagnosisController.getConclusion
 );
-
 
 // ─── diagnosisId sub-routes ───
 
@@ -265,10 +255,8 @@ diagnosisRoutes.patch(
     '/:diagnosisId/type',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_EDIT'),
     DiagnosisController.changeType
 );
-
 
 // ─── Dynamic routes (encounterId hoặc diagnosisId) ───
 
@@ -335,10 +323,8 @@ diagnosisRoutes.post(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_CREATE'),
     DiagnosisController.create
 );
-
 
 /**
  * @swagger
@@ -372,10 +358,8 @@ diagnosisRoutes.get(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_VIEW'),
     DiagnosisController.getByEncounterId
 );
-
 
 /**
  * @swagger
@@ -426,10 +410,8 @@ diagnosisRoutes.patch(
     '/:diagnosisId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_EDIT'),
     DiagnosisController.update
 );
-
 
 /**
  * @swagger
@@ -463,6 +445,5 @@ diagnosisRoutes.delete(
     '/:diagnosisId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_DIAGNOSIS_EDIT'),
     DiagnosisController.delete
 );

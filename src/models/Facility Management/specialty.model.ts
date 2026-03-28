@@ -6,6 +6,7 @@ export interface Specialty {
     code: string;
     name: string;
     description: string | null;
+    logo_url?: string | null;
 }
 
 /**
@@ -15,4 +16,5 @@ export interface SpecialtyPayloadDTO {
     code: string;
     name: string;
     description?: string;
+    logo_url?: string;
 }

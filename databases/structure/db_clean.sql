@@ -618,6 +618,7 @@ CREATE TABLE branches (
     phone VARCHAR(20),
     status VARCHAR(50) DEFAULT 'ACTIVE',
     established_date DATE,
+    logo_url TEXT,
     deleted_at TIMESTAMP,
     FOREIGN KEY (facility_id) REFERENCES facilities(facilities_id) ON DELETE CASCADE
 );
@@ -630,6 +631,7 @@ CREATE TABLE departments (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     group_type VARCHAR(20) DEFAULT 'CLINICAL', -- CLINICAL (Lam sang) | PARACLINICAL (Can lam sang)
+    logo_url TEXT,
     status VARCHAR(50) DEFAULT 'ACTIVE',
     deleted_at TIMESTAMP,
     FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
@@ -713,6 +715,7 @@ CREATE TABLE specialties (
     code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(150) NOT NULL,
     description TEXT,
+    logo_url TEXT,
     deleted_at TIMESTAMP
 );
 

@@ -2,16 +2,11 @@ import { Router } from 'express';
 import { AuditLogController } from '../../controllers/Core/audit-log.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const auditLogRoutes = Router();
 
 // Toàn bộ chức năng Tra cứu Log bị siết chặt, chỉ có Role System Admin hoặc Super Admin mới được vao
 auditLogRoutes.use(verifyAccessToken);
-auditLogRoutes.use(checkSessionStatus);
-auditLogRoutes.use(authorizePermissions('AUDIT_LOG_VIEW', 'AUDIT_LOG_EXPORT'));
-
-/**
+auditLogRoutes.use(checkSessionStatus);/**
  * @swagger
  * tags:
  *   name: 1.8 Quản lý Nhật ký hệ thống (Audit Logs)

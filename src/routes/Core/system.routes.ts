@@ -8,7 +8,6 @@ import { I18nSettingsController } from '../../controllers/Core/i18n-settings.con
 import { UiSettingsController } from '../../controllers/Core/ui-settings.controller';
 import { SystemParamsController } from '../../controllers/Core/system-params.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { CLOUDINARY_CONFIG } from '../../constants/system.constant';
 import { ConfigPermissionsController } from '../../controllers/Core/config-permissions.controller';
@@ -23,7 +22,7 @@ const upload = multer({
     limits: { fileSize: CLOUDINARY_CONFIG.MAX_FILE_SIZE },
 });
 
-const requireAdmin = [verifyAccessToken, checkSessionStatus, authorizePermissions('SYSTEM_CONFIG_VIEW', 'SYSTEM_CONFIG_UPDATE')];
+const requireAdmin = [verifyAccessToken, checkSessionStatus];
 
 // 1.8 QUẢN LÝ NHẬT KÝ HỆ THỐNG (AUDIT LOGS)
 systemRoutes.use('/audit-logs', auditLogRoutes);
@@ -76,7 +75,7 @@ systemRoutes.use('/audit-logs', auditLogRoutes);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.get('/config-permissions', ...requireAdmin, ConfigPermissionsController.getConfigPermissions);
+systemRoutes.get('/config-permissions', ConfigPermissionsController.getConfigPermissions);
 
 /**
  * @swagger
@@ -156,7 +155,7 @@ systemRoutes.get('/config-permissions', ...requireAdmin, ConfigPermissionsContro
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.put('/config-permissions', ...requireAdmin, ConfigPermissionsController.updateConfigPermissions);
+systemRoutes.put('/config-permissions', ConfigPermissionsController.updateConfigPermissions);
 
 // QUẢN LÝ THAM SỐ HỆ THỐNG THEO MODULE
 
@@ -189,7 +188,7 @@ systemRoutes.put('/config-permissions', ...requireAdmin, ConfigPermissionsContro
  *                     type: string
  *                   example: ["APPOINTMENT", "I18N", "SECURITY", "UI"]
  */
-systemRoutes.get('/settings/modules', ...requireAdmin, SystemParamsController.getDistinctModules);
+systemRoutes.get('/settings/modules', SystemParamsController.getDistinctModules);
 
 /**
  * @swagger
@@ -263,7 +262,7 @@ systemRoutes.get('/settings/modules', ...requireAdmin, SystemParamsController.ge
  *                   type: integer
  *                   example: 2
  */
-systemRoutes.get('/settings', ...requireAdmin, SystemParamsController.listSettings);
+systemRoutes.get('/settings', SystemParamsController.listSettings);
 
 /**
  * @swagger
@@ -302,7 +301,7 @@ systemRoutes.get('/settings', ...requireAdmin, SystemParamsController.listSettin
  *       409:
  *         description: SYS_SET_001 – Key đã tồn tại
  */
-systemRoutes.post('/settings', ...requireAdmin, checkConfigPermission(), SystemParamsController.createSetting);
+systemRoutes.post('/settings', checkConfigPermission(), SystemParamsController.createSetting);
 
 /**
  * @swagger
@@ -328,7 +327,7 @@ systemRoutes.post('/settings', ...requireAdmin, checkConfigPermission(), SystemP
  *       404:
  *         description: SYS_SET_002 – Không tìm thấy
  */
-systemRoutes.get('/settings/:key', ...requireAdmin, SystemParamsController.getSettingByKey);
+systemRoutes.get('/settings/:key', SystemParamsController.getSettingByKey);
 
 /**
  * @swagger
@@ -368,7 +367,7 @@ systemRoutes.get('/settings/:key', ...requireAdmin, SystemParamsController.getSe
  *       404:
  *         description: SYS_SET_002 – Không tìm thấy
  */
-systemRoutes.put('/settings/:key', ...requireAdmin, checkConfigPermission(), SystemParamsController.updateSetting);
+systemRoutes.put('/settings/:key', checkConfigPermission(), SystemParamsController.updateSetting);
 
 /**
  * @swagger
@@ -397,7 +396,7 @@ systemRoutes.put('/settings/:key', ...requireAdmin, checkConfigPermission(), Sys
  *       404:
  *         description: SYS_SET_002 – Không tìm thấy
  */
-systemRoutes.delete('/settings/:key', ...requireAdmin, checkConfigPermission(), SystemParamsController.deleteSetting);
+systemRoutes.delete('/settings/:key', checkConfigPermission(), SystemParamsController.deleteSetting);
 
 // CẤU HÌNH HIỂN Thị GIAO DIỆN CHUNG
 
@@ -450,7 +449,7 @@ systemRoutes.delete('/settings/:key', ...requireAdmin, checkConfigPermission(), 
  *       401:
  *         description: Chưa xác thực
  */
-systemRoutes.get('/ui-settings', ...requireAdmin, UiSettingsController.getUiSettings);
+systemRoutes.get('/ui-settings', UiSettingsController.getUiSettings);
 
 /**
  * @swagger
@@ -537,7 +536,7 @@ systemRoutes.get('/ui-settings', ...requireAdmin, UiSettingsController.getUiSett
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/ui-settings', ...requireAdmin, checkConfigPermission('UI'), UiSettingsController.updateUiSettings);
+systemRoutes.put('/ui-settings', checkConfigPermission('UI'), UiSettingsController.updateUiSettings);
 
 // 1.4.5 – CẤU HÌNH ĐA NGÔN NGỮ
 
@@ -584,7 +583,7 @@ systemRoutes.put('/ui-settings', ...requireAdmin, checkConfigPermission('UI'), U
  *       401:
  *         description: Chưa xác thực
  */
-systemRoutes.get('/i18n/supported', ...requireAdmin, I18nSettingsController.getSupportedLanguages);
+systemRoutes.get('/i18n/supported', I18nSettingsController.getSupportedLanguages);
 
 /**
  * @swagger
@@ -623,7 +622,7 @@ systemRoutes.get('/i18n/supported', ...requireAdmin, I18nSettingsController.getS
  *       401:
  *         description: Chưa xác thực
  */
-systemRoutes.get('/i18n', ...requireAdmin, I18nSettingsController.getI18nConfig);
+systemRoutes.get('/i18n', I18nSettingsController.getI18nConfig);
 
 /**
  * @swagger
@@ -687,7 +686,7 @@ systemRoutes.get('/i18n', ...requireAdmin, I18nSettingsController.getI18nConfig)
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/i18n', ...requireAdmin, checkConfigPermission('I18N'), I18nSettingsController.updateI18nConfig);
+systemRoutes.put('/i18n', checkConfigPermission('I18N'), I18nSettingsController.updateI18nConfig);
 
 // 1.4.4 – CẤU HÌNH BẢO MẬT CƠ BẢN
 
@@ -757,7 +756,7 @@ systemRoutes.put('/i18n', ...requireAdmin, checkConfigPermission('I18N'), I18nSe
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.get('/security-settings', ...requireAdmin, SecuritySettingsController.getSecurityConfig);
+systemRoutes.get('/security-settings', SecuritySettingsController.getSecurityConfig);
 
 /**
  * @swagger
@@ -856,7 +855,7 @@ systemRoutes.get('/security-settings', ...requireAdmin, SecuritySettingsControll
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/security-settings', ...requireAdmin, checkConfigPermission('SECURITY'), SecuritySettingsController.updateSecurityConfig);
+systemRoutes.put('/security-settings', checkConfigPermission('SECURITY'), SecuritySettingsController.updateSecurityConfig);
 
 // 1.4.3 – CẤU HÌNH QUY ĐỊNH NGHIỆP VỤ\
 
@@ -922,7 +921,7 @@ systemRoutes.put('/security-settings', ...requireAdmin, checkConfigPermission('S
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.get('/business-rules', ...requireAdmin, BusinessRulesController.getAllBusinessRules);
+systemRoutes.get('/business-rules', BusinessRulesController.getAllBusinessRules);
 
 /**
  * @swagger
@@ -988,7 +987,7 @@ systemRoutes.get('/business-rules', ...requireAdmin, BusinessRulesController.get
  *       403:
  *         description: Không có quyền Admin
  */
-systemRoutes.put('/business-rules/bulk', ...requireAdmin, checkConfigPermission('BUSINESS_RULES'), BusinessRulesController.bulkUpdateBusinessRules);
+systemRoutes.put('/business-rules/bulk', checkConfigPermission('BUSINESS_RULES'), BusinessRulesController.bulkUpdateBusinessRules);
 
 /**
  * @swagger
@@ -1047,7 +1046,7 @@ systemRoutes.put('/business-rules/bulk', ...requireAdmin, checkConfigPermission(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.get('/business-rules/:ruleKey', ...requireAdmin, BusinessRulesController.getBusinessRuleByKey);
+systemRoutes.get('/business-rules/:ruleKey', BusinessRulesController.getBusinessRuleByKey);
 
 /**
  * @swagger
@@ -1105,7 +1104,7 @@ systemRoutes.get('/business-rules/:ruleKey', ...requireAdmin, BusinessRulesContr
  *       404:
  *         description: Không tìm thấy quy định
  */
-systemRoutes.put('/business-rules/:ruleKey', ...requireAdmin, checkConfigPermission('BUSINESS_RULES'), BusinessRulesController.updateBusinessRule);
+systemRoutes.put('/business-rules/:ruleKey', checkConfigPermission('BUSINESS_RULES'), BusinessRulesController.updateBusinessRule);
 
 // =========================================================================
 // 1.4.2 – CẤU HÌNH THỜI GIAN LÀM VIỆC MẶC ĐỊNH
@@ -1168,7 +1167,7 @@ systemRoutes.put('/business-rules/:ruleKey', ...requireAdmin, checkConfigPermiss
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.get('/working-hours', ...requireAdmin, SystemSettingsController.getWorkingHours);
+systemRoutes.get('/working-hours', SystemSettingsController.getWorkingHours);
 
 /**
  * @swagger
@@ -1251,7 +1250,7 @@ systemRoutes.get('/working-hours', ...requireAdmin, SystemSettingsController.get
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.put('/working-hours', ...requireAdmin, checkConfigPermission('WORKING_HOURS'), SystemSettingsController.updateWorkingHours);
+systemRoutes.put('/working-hours', checkConfigPermission('WORKING_HOURS'), SystemSettingsController.updateWorkingHours);
 
 /**
  * @swagger
@@ -1295,7 +1294,7 @@ systemRoutes.put('/working-hours', ...requireAdmin, checkConfigPermission('WORKI
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.get('/working-hours/slot-config', ...requireAdmin, SystemSettingsController.getSlotConfig);
+systemRoutes.get('/working-hours/slot-config', SystemSettingsController.getSlotConfig);
 
 /**
  * @swagger
@@ -1385,9 +1384,7 @@ systemRoutes.get('/working-hours/slot-config', ...requireAdmin, SystemSettingsCo
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.put('/working-hours/slot-config', ...requireAdmin, checkConfigPermission('APPOINTMENT'), SystemSettingsController.updateSlotConfig);
-
-
+systemRoutes.put('/working-hours/slot-config', checkConfigPermission('APPOINTMENT'), SystemSettingsController.updateSlotConfig);
 
 // 1.4.1 – CẤU HÌNH THÔNG TIN CƠ SỞ Y TẾ
 /**
@@ -1463,7 +1460,7 @@ systemRoutes.put('/working-hours/slot-config', ...requireAdmin, checkConfigPermi
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.get('/facility-info', ...requireAdmin, SystemFacilityController.getFacilityInfo);
+systemRoutes.get('/facility-info', SystemFacilityController.getFacilityInfo);
 
 /**
  * @swagger
@@ -1542,7 +1539,7 @@ systemRoutes.get('/facility-info', ...requireAdmin, SystemFacilityController.get
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-systemRoutes.put('/facility-info', ...requireAdmin, SystemFacilityController.updateFacilityInfo);
+systemRoutes.put('/facility-info', SystemFacilityController.updateFacilityInfo);
 
 /**
  * @swagger
@@ -1618,7 +1615,6 @@ systemRoutes.put('/facility-info', ...requireAdmin, SystemFacilityController.upd
  */
 systemRoutes.post(
     '/facility-info/logo',
-    ...requireAdmin,
     upload.single('logo'),
     SystemFacilityController.uploadLogo
 );

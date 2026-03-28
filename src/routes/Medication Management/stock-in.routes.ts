@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { StockInController } from '../../controllers/Medication Management/stock-in.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const stockInRoutes = Router();
 
 /**
@@ -65,7 +63,7 @@ export const stockInRoutes = Router();
  *       401:
  *         description: Chưa đăng nhập
  */
-stockInRoutes.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_VIEW'), StockInController.getHistory);
+stockInRoutes.get('/', verifyAccessToken, checkSessionStatus, StockInController.getHistory);
 
 /**
  * @swagger
@@ -109,7 +107,7 @@ stockInRoutes.get('/', verifyAccessToken, checkSessionStatus, authorizePermissio
  *       404:
  *         description: NCC hoặc kho không tồn tại/không hoạt động
  */
-stockInRoutes.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_MANAGE'), StockInController.createOrder);
+stockInRoutes.post('/', verifyAccessToken, checkSessionStatus, StockInController.createOrder);
 
 /**
  * @swagger
@@ -170,7 +168,7 @@ stockInRoutes.post('/', verifyAccessToken, checkSessionStatus, authorizePermissi
  *       404:
  *         description: Phiếu hoặc thuốc không tồn tại
  */
-stockInRoutes.post('/:orderId/items', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_MANAGE'), StockInController.addItem);
+stockInRoutes.post('/:orderId/items', verifyAccessToken, checkSessionStatus, StockInController.addItem);
 
 /**
  * @swagger
@@ -202,7 +200,7 @@ stockInRoutes.post('/:orderId/items', verifyAccessToken, checkSessionStatus, aut
  *       404:
  *         description: Phiếu không tồn tại
  */
-stockInRoutes.patch('/:orderId/confirm', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_MANAGE'), StockInController.confirm);
+stockInRoutes.patch('/:orderId/confirm', verifyAccessToken, checkSessionStatus, StockInController.confirm);
 
 /**
  * @swagger
@@ -237,7 +235,7 @@ stockInRoutes.patch('/:orderId/confirm', verifyAccessToken, checkSessionStatus, 
  *       404:
  *         description: Phiếu không tồn tại
  */
-stockInRoutes.patch('/:orderId/receive', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_MANAGE'), StockInController.receive);
+stockInRoutes.patch('/:orderId/receive', verifyAccessToken, checkSessionStatus, StockInController.receive);
 
 /**
  * @swagger
@@ -280,7 +278,7 @@ stockInRoutes.patch('/:orderId/receive', verifyAccessToken, checkSessionStatus, 
  *       404:
  *         description: Phiếu không tồn tại
  */
-stockInRoutes.patch('/:orderId/cancel', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_MANAGE'), StockInController.cancel);
+stockInRoutes.patch('/:orderId/cancel', verifyAccessToken, checkSessionStatus, StockInController.cancel);
 
 /**
  * @swagger
@@ -309,4 +307,4 @@ stockInRoutes.patch('/:orderId/cancel', verifyAccessToken, checkSessionStatus, a
  *       404:
  *         description: Phiếu không tồn tại
  */
-stockInRoutes.get('/:orderId', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_VIEW'), StockInController.getDetail);
+stockInRoutes.get('/:orderId', verifyAccessToken, checkSessionStatus, StockInController.getDetail);

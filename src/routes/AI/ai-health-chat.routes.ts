@@ -19,7 +19,6 @@ router.use(optionalVerifyAccessToken);
  *       Liên kết: Module 2 (Chuyên khoa), Module 3 (Bệnh nhân), Module 4 (Lịch khám)
  */
 
-
 /**
  * @swagger
  * /api/ai/health-chat/sessions:

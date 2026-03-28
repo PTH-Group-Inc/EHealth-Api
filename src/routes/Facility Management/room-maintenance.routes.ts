@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { RoomMaintenanceController } from '../../controllers/Facility Management/room-maintenance.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const roomMaintenanceRoutes = Router();
 
 // 3.4 QUẢN LÝ LỊCH BẢO TRÌ PHÒNG
@@ -56,7 +54,7 @@ export const roomMaintenanceRoutes = Router();
  */
 roomMaintenanceRoutes.get(
     '/active',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     RoomMaintenanceController.getActiveMaintenances
 );
 
@@ -90,7 +88,7 @@ roomMaintenanceRoutes.get(
  */
 roomMaintenanceRoutes.delete(
     '/schedule/:maintenanceId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     RoomMaintenanceController.deleteMaintenance
 );
 
@@ -148,7 +146,7 @@ roomMaintenanceRoutes.delete(
  */
 roomMaintenanceRoutes.post(
     '/:roomId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     RoomMaintenanceController.createMaintenance
 );
 
@@ -182,6 +180,6 @@ roomMaintenanceRoutes.post(
  */
 roomMaintenanceRoutes.get(
     '/:roomId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     RoomMaintenanceController.getMaintenanceByRoom
 );
