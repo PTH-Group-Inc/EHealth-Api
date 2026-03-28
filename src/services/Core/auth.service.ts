@@ -317,14 +317,14 @@ export class AuthService {
   }) {
     const hashedPassword = await SecurityUtil.hashPassword(payload.password);
 
-    const userCode = await SecurityUtil.generateUsersId("CUSTOMER");
+    const userCode = await SecurityUtil.generateUsersId("PATIENT");
 
     const newUser: User = {
       users_id: userCode,
       email: payload.email,
       phone: payload.phone,
       password_hash: hashedPassword,
-      roles: ["CUSTOMER"],
+      roles: ["PATIENT"],
       status: payload.status,
       last_login_at: null,
       created_at: new Date(),

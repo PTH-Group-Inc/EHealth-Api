@@ -28,11 +28,11 @@ const router = Router();
  *   get:
  *     summary: Lấy danh sách dịch vụ chuẩn
  *     description: |
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *
  *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -64,7 +64,7 @@ const router = Router();
  *       200:
  *         description: Danh sách dịch vụ chuẩn
  */
-router.get('/master', authorizePermissions('SERVICE_VIEW'), MasterServiceController.getServices);
+router.get('/master', MasterServiceController.getServices);
 
 /**
  * @swagger
@@ -124,11 +124,11 @@ router.post('/master/import', verifyAccessToken, checkSessionStatus, authorizePe
  *   get:
  *     summary: Lấy chi tiết dịch vụ chuẩn
  *     description: |
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *
  *     tags: [2.9.3 Quản lý danh mục dịch vụ chuẩn]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -141,7 +141,7 @@ router.post('/master/import', verifyAccessToken, checkSessionStatus, authorizePe
  *       404:
  *         description: Không tìm thấy (SRV_001)
  */
-router.get('/master/:id', authorizePermissions('SERVICE_VIEW'), MasterServiceController.getServiceById);
+router.get('/master/:id', MasterServiceController.getServiceById);
 
 /**
  * @swagger
@@ -327,11 +327,11 @@ router.delete('/master/:id', verifyAccessToken, checkSessionStatus, authorizePer
  *   get:
  *     summary: Lấy danh sách dịch vụ tại 1 cơ sở
  *     description: |
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *
  *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: facilityId
@@ -367,7 +367,7 @@ router.delete('/master/:id', verifyAccessToken, checkSessionStatus, authorizePer
  *       200:
  *         description: Danh sách dịch vụ kèm giá
  */
-router.get('/facilities/:facilityId/services', authorizePermissions('FACILITY_SERVICE_VIEW'), FacilityServiceController.getFacilityServices);
+router.get('/facilities/:facilityId/services', FacilityServiceController.getFacilityServices);
 
 /**
  * @swagger
@@ -439,11 +439,11 @@ router.post('/facilities/:facilityId/services/import', verifyAccessToken, checkS
  *   get:
  *     summary: API load nhanh dịch vụ đang Hoạt động cho Dropdown Bác sĩ
  *     description: |
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *
  *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: facilityId
@@ -463,7 +463,7 @@ router.post('/facilities/:facilityId/services/import', verifyAccessToken, checkS
  *       200:
  *         description: Danh sách tối đa 50 dịch vụ khớp tiêu chí
  */
-router.get('/facilities/:facilityId/active-services', authorizePermissions('FACILITY_SERVICE_VIEW'), FacilityServiceController.getActiveFacilityServices);
+router.get('/facilities/:facilityId/active-services', FacilityServiceController.getActiveFacilityServices);
 
 /**
  * @swagger
@@ -471,11 +471,11 @@ router.get('/facilities/:facilityId/active-services', authorizePermissions('FACI
  *   get:
  *     summary: Lấy chi tiết cấu hình dịch vụ cơ sở
  *     description: |
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *
  *     tags: [2.9.4 Quản lý dịch vụ cơ sở]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -488,7 +488,7 @@ router.get('/facilities/:facilityId/active-services', authorizePermissions('FACI
  *       404:
  *         description: Không tìm thấy (FSRV_001)
  */
-router.get('/facilities/services/:id', authorizePermissions('FACILITY_SERVICE_VIEW'), FacilityServiceController.getFacilityServiceById);
+router.get('/facilities/services/:id', FacilityServiceController.getFacilityServiceById);
 
 /**
  * @swagger

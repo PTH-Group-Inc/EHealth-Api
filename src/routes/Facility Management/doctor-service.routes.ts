@@ -25,16 +25,14 @@ const router = Router();
  *   get:
  *     summary: Lấy danh sách bác sĩ đang hoạt động (dropdown đặt lịch)
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Truy vấn trực tiếp bảng `doctors` với `is_active = true`.
  *       Trả về `doctors_id`, `full_name`, `specialty_name`, `title`, `consultation_fee`.
  *       **Dùng cho dropdown đặt lịch khám** — giá trị value là `doctors_id`.
- *
- *       **Phân quyền:** Yêu cầu quyền `DOCTOR_SERVICE_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, STAFF
  *     tags: [2.9.2 Gán dịch vụ - Bác sĩ]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Danh sách bác sĩ hoạt động
@@ -66,12 +64,8 @@ const router = Router();
  *                       consultation_fee:
  *                         type: number
  *                         example: 200000
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/active-doctors', authorizePermissions('DOCTOR_SERVICE_VIEW'), DoctorServiceController.getActiveDoctors);
+router.get('/active-doctors', DoctorServiceController.getActiveDoctors);
 
 /**
  * @swagger
@@ -79,15 +73,13 @@ router.get('/active-doctors', authorizePermissions('DOCTOR_SERVICE_VIEW'), Docto
  *   get:
  *     summary: Lấy danh sách dịch vụ được gán cho bác sĩ
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Trả về danh sách tất cả dịch vụ cơ sở (Facility Services) mà bác sĩ được phép thực hiện.
  *       Bao gồm thông tin giá, mã dịch vụ, nhóm dịch vụ.
- *
- *       **Phân quyền:** Yêu cầu quyền `DOCTOR_SERVICE_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, STAFF
  *     tags: [2.9.2 Gán dịch vụ - Bác sĩ]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: doctorId
@@ -132,12 +124,8 @@ router.get('/active-doctors', authorizePermissions('DOCTOR_SERVICE_VIEW'), Docto
  *                         type: string
  *       404:
  *         description: Bác sĩ không tồn tại (DSRV_001)
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/:doctorId/services', authorizePermissions('DOCTOR_SERVICE_VIEW'), DoctorServiceController.getServicesByDoctor);
+router.get('/:doctorId/services', DoctorServiceController.getServicesByDoctor);
 
 /**
  * @swagger
@@ -145,15 +133,13 @@ router.get('/:doctorId/services', authorizePermissions('DOCTOR_SERVICE_VIEW'), D
  *   get:
  *     summary: Lấy danh sách bác sĩ thực hiện 1 dịch vụ cơ sở
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Tra cứu ngược: Xem dịch vụ cơ sở này có bao nhiêu bác sĩ được phép thực hiện.
  *       Hữu ích khi đặt lịch khám hoặc chỉ định dịch vụ.
- *
- *       **Phân quyền:** Yêu cầu quyền `DOCTOR_SERVICE_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, STAFF
  *     tags: [2.9.2 Gán dịch vụ - Bác sĩ]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: facilityServiceId
@@ -188,12 +174,8 @@ router.get('/:doctorId/services', authorizePermissions('DOCTOR_SERVICE_VIEW'), D
  *                         type: string
  *       404:
  *         description: Dịch vụ cơ sở không tồn tại (FSRV_001)
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/by-facility-service/:facilityServiceId', authorizePermissions('DOCTOR_SERVICE_VIEW'), DoctorServiceController.getDoctorsByFacilityService);
+router.get('/by-facility-service/:facilityServiceId', DoctorServiceController.getDoctorsByFacilityService);
 
 /**
  * @swagger

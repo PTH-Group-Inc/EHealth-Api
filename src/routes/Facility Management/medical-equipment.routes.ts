@@ -27,15 +27,13 @@ const router = Router();
  *   get:
  *     summary: Lấy danh sách thiết bị y tế
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Trả về danh sách thiết bị y tế có phân trang, hỗ trợ tìm kiếm theo tên/mã/serial
  *       và lọc theo cơ sở, chi nhánh, phòng, trạng thái.
- *
- *       **Phân quyền:** Yêu cầu quyền `EQUIPMENT_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, MANAGER
  *     tags: [2.10 Quản lý Trang thiết bị Y tế]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: facility_id
@@ -117,12 +115,8 @@ const router = Router();
  *                       type: integer
  *                     totalPages:
  *                       type: integer
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/', authorizePermissions('EQUIPMENT_VIEW'), MedicalEquipmentController.getEquipments);
+router.get('/', MedicalEquipmentController.getEquipments);
 
 /**
  * @swagger
@@ -130,15 +124,13 @@ router.get('/', authorizePermissions('EQUIPMENT_VIEW'), MedicalEquipmentControll
  *   get:
  *     summary: Lấy chi tiết thiết bị
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Trả về toàn bộ thông tin chi tiết của 1 thiết bị y tế, bao gồm
  *       thông tin chi nhánh và phòng hiện tại.
- *
- *       **Phân quyền:** Yêu cầu quyền `EQUIPMENT_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, MANAGER
  *     tags: [2.10 Quản lý Trang thiết bị Y tế]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -152,12 +144,8 @@ router.get('/', authorizePermissions('EQUIPMENT_VIEW'), MedicalEquipmentControll
  *         description: Chi tiết thiết bị
  *       404:
  *         description: Không tìm thấy thiết bị (EQ_001)
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/:id', authorizePermissions('EQUIPMENT_VIEW'), MedicalEquipmentController.getEquipmentById);
+router.get('/:id', MedicalEquipmentController.getEquipmentById);
 
 /**
  * @swagger
@@ -445,15 +433,13 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *   get:
  *     summary: Lấy lịch sử bảo trì / kiểm định của thiết bị
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Trả về danh sách lịch sử bảo trì, sửa chữa, kiểm định của 1 thiết bị cụ thể.
  *       Kết quả sắp xếp theo ngày thực hiện giảm dần (mới nhất trước).
- *
- *       **Phân quyền:** Yêu cầu quyền `EQUIPMENT_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, MANAGER
  *     tags: [2.10 Quản lý Trang thiết bị Y tế]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -477,12 +463,8 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *         description: Danh sách lịch sử bảo trì
  *       404:
  *         description: Không tìm thấy thiết bị (EQ_001)
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/:id/maintenance', authorizePermissions('EQUIPMENT_VIEW'), MedicalEquipmentController.getMaintenanceLogs);
+router.get('/:id/maintenance', MedicalEquipmentController.getMaintenanceLogs);
 
 /**
  * @swagger

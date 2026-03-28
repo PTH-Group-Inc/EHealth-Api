@@ -31,12 +31,10 @@ const router = Router();
  *       Lấy danh sách dịch vụ chuẩn quốc gia từ bảng `services`, kèm thống kê
  *       số cơ sở đang triển khai mỗi dịch vụ. Dùng cho trang quản lý danh mục dịch vụ.
  *
- *       **Phân quyền:** Yêu cầu quyền `BILLING_PRICING_VIEW`
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
  *
- *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE, PHARMACIST
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *     tags: [9.1.1 Danh mục dịch vụ & bảng giá]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: serviceGroup
@@ -76,12 +74,10 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Danh sách dịch vụ kèm thống kê
- *       401:
- *         description: Chưa đăng nhập hoặc token hết hạn
- *       403:
- *         description: Không có quyền truy cập
+ *       500:
+ *         description: Lỗi hệ thống
  */
-router.get('/catalog', authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getServiceCatalog);
+router.get('/catalog', BillingPricingController.getServiceCatalog);
 
 /**
  * @swagger
@@ -92,12 +88,10 @@ router.get('/catalog', authorizePermissions('BILLING_PRICING_VIEW'), BillingPric
  *       Lấy danh sách dịch vụ tại 1 cơ sở kèm **tất cả mức giá** đang hiệu lực
  *       (giá cơ bản, giá BHYT, giá VIP + các chính sách giá theo đối tượng).
  *
- *       **Phân quyền:** Yêu cầu quyền `BILLING_PRICING_VIEW`
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
  *
- *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE, PHARMACIST
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *     tags: [9.1.1 Danh mục dịch vụ & bảng giá]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: facilityId
@@ -142,7 +136,7 @@ router.get('/catalog', authorizePermissions('BILLING_PRICING_VIEW'), BillingPric
  *       404:
  *         description: Không tìm thấy cơ sở (BPR_011)
  */
-router.get('/catalog/:facilityId', authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getFacilityPriceCatalog);
+router.get('/catalog/:facilityId', BillingPricingController.getFacilityPriceCatalog);
 
 // =============================================================================
 //  NHÓM 2: CHÍNH SÁCH GIÁ THEO ĐỐI TƯỢNG (PRICE POLICIES)
@@ -167,12 +161,10 @@ router.get('/catalog/:facilityId', authorizePermissions('BILLING_PRICING_VIEW'),
  *       Lấy tất cả chính sách giá đã cấu hình cho 1 dịch vụ cơ sở,
  *       bao gồm cả chính sách đang hiệu lực và đã hết hạn.
  *
- *       **Phân quyền:** Yêu cầu quyền `BILLING_PRICING_VIEW`
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
  *
- *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE, PHARMACIST
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *     tags: [9.1.2 Chính sách giá theo đối tượng]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: facilityServiceId
@@ -214,7 +206,7 @@ router.get('/catalog/:facilityId', authorizePermissions('BILLING_PRICING_VIEW'),
  *       404:
  *         description: Không tìm thấy dịch vụ cơ sở (BPR_005)
  */
-router.get('/policies/:facilityServiceId', authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getPolicies);
+router.get('/policies/:facilityServiceId', BillingPricingController.getPolicies);
 
 /**
  * @swagger
@@ -484,12 +476,10 @@ router.delete('/policies/:policyId', verifyAccessToken, checkSessionStatus, auth
  *       API này được sử dụng bởi các module khác (EMR, Billing, Appointment) để lấy giá
  *       áp dụng thực tế khi tạo hóa đơn hoặc hiển thị giá cho bệnh nhân.
  *
- *       **Phân quyền:** Yêu cầu quyền `BILLING_PRICING_VIEW`
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
  *
- *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE, PHARMACIST
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *     tags: [9.1.2 Chính sách giá theo đối tượng]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: facilityServiceId
@@ -527,7 +517,7 @@ router.delete('/policies/:policyId', verifyAccessToken, checkSessionStatus, auth
  *       404:
  *         description: Không tìm thấy dịch vụ hoặc chuyên khoa (BPR_005, BPR_006)
  */
-router.get('/resolve', authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.resolvePrice);
+router.get('/resolve', BillingPricingController.resolvePrice);
 
 // =============================================================================
 //  NHÓM 3: GIÁ THEO CHUYÊN KHOA (SPECIALTY PRICING)
@@ -550,12 +540,10 @@ router.get('/resolve', authorizePermissions('BILLING_PRICING_VIEW'), BillingPric
  *     description: |
  *       Lấy tất cả cấu hình giá chuyên khoa cho 1 dịch vụ cơ sở.
  *
- *       **Phân quyền:** Yêu cầu quyền `BILLING_PRICING_VIEW`
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
  *
- *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE, PHARMACIST
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *     tags: [9.1.3 Giá theo chuyên khoa]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: facilityServiceId
@@ -584,7 +572,7 @@ router.get('/resolve', authorizePermissions('BILLING_PRICING_VIEW'), BillingPric
  *       404:
  *         description: Không tìm thấy dịch vụ cơ sở (BPR_005)
  */
-router.get('/specialty-prices/:facilityServiceId', authorizePermissions('BILLING_PRICING_VIEW'), BillingPricingController.getSpecialtyPrices);
+router.get('/specialty-prices/:facilityServiceId', BillingPricingController.getSpecialtyPrices);
 
 /**
  * @swagger
