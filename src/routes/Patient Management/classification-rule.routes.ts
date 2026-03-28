@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { ClassificationRuleController } from '../../controllers/Patient Management/classification-rule.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -70,7 +68,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_MANAGE'), ClassificationRuleController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, ClassificationRuleController.create);
 
 /**
  * @swagger
@@ -110,7 +108,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TA
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_VIEW'), ClassificationRuleController.getAll);
+router.get('/', verifyAccessToken, checkSessionStatus, ClassificationRuleController.getAll);
 
 /**
  * @swagger
@@ -142,7 +140,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_VIEW'), ClassificationRuleController.getById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, ClassificationRuleController.getById);
 
 /**
  * @swagger
@@ -192,7 +190,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_MANAGE'), ClassificationRuleController.update);
+router.put('/:id', verifyAccessToken, checkSessionStatus, ClassificationRuleController.update);
 
 /**
  * @swagger
@@ -225,6 +223,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('TAG_MANAGE'), ClassificationRuleController.delete);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, ClassificationRuleController.delete);
 
 export const classificationRuleRoutes = router;

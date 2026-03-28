@@ -30,7 +30,7 @@ export class DepartmentRepository {
         const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
         const query = `
-            SELECT d.departments_id, d.branch_id, d.code, d.name, d.description, d.status,
+            SELECT d.departments_id, d.branch_id, d.code, d.name, d.description, d.logo_url, d.status,
                    b.name as branch_name, f.name as facility_name
             FROM departments d
             INNER JOIN branches b ON d.branch_id = b.branches_id
@@ -63,7 +63,7 @@ export class DepartmentRepository {
 
     static async getDepartmentsForDropdown(branch_id: string): Promise<DepartmentDropdown[]> {
         const query = `
-            SELECT departments_id, branch_id, code, name
+            SELECT departments_id, branch_id, code, name, logo_url
             FROM departments
             WHERE branch_id = $1 AND status = 'ACTIVE' AND deleted_at IS NULL
             ORDER BY name ASC
@@ -107,10 +107,10 @@ export class DepartmentRepository {
     */
     static async createDepartment(data: CreateDepartmentInput & { departments_id: string }): Promise<void> {
         const query = `
-            INSERT INTO departments (departments_id, branch_id, code, name, description)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO departments (departments_id, branch_id, code, name, description, logo_url)
+            VALUES ($1, $2, $3, $4, $5, $6)
         `;
-        const values = [data.departments_id, data.branch_id, data.code, data.name, data.description || null];
+        const values = [data.departments_id, data.branch_id, data.code, data.name, data.description || null, data.logo_url || null];
         await pool.query(query, values);
     }
 

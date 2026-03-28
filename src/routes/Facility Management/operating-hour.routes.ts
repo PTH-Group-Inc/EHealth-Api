@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { OperatingHourController } from '../../controllers/Facility Management/operating-hour.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -61,7 +59,7 @@ const router = Router();
  *       409:
  *         description: Đã tồn tại cấu hình cho ngày này tại cơ sở
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_CREATE'), OperatingHourController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, OperatingHourController.create);
 
 /**
  * @swagger
@@ -166,7 +164,7 @@ router.get('/:id', OperatingHourController.getById);
  *       404:
  *         description: Không tìm thấy
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_UPDATE'), OperatingHourController.update);
+router.put('/:id', verifyAccessToken, checkSessionStatus, OperatingHourController.update);
 
 /**
  * @swagger
@@ -195,6 +193,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy hoặc đã bị xóa
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('OP_HOURS_DELETE'), OperatingHourController.remove);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, OperatingHourController.remove);
 
 export const operatingHourRoutes = router;

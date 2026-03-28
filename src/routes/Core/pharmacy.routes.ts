@@ -4,8 +4,6 @@ import { DrugController } from '../../controllers/Core/drug.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { uploadExcel } from '../../middleware/upload.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const pharmacyRoutes = Router();
 
 // Middleware quyền truy cập
@@ -47,7 +45,7 @@ pharmacyRoutes.use(checkSessionStatus);
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/categories', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugCategoryController.getCategories);
+pharmacyRoutes.get('/categories', DrugCategoryController.getCategories);
 
 /**
  * @swagger
@@ -83,7 +81,7 @@ pharmacyRoutes.get('/categories', authorizePermissions('DRUG_CATEGORY_VIEW'), Dr
  *       201:
  *         description: Thành công
  */
-pharmacyRoutes.post('/categories', authorizePermissions('DRUG_CATEGORY_CREATE'), DrugCategoryController.createCategory);
+pharmacyRoutes.post('/categories', DrugCategoryController.createCategory);
 
 /**
  * @swagger
@@ -105,7 +103,7 @@ pharmacyRoutes.post('/categories', authorizePermissions('DRUG_CATEGORY_CREATE'),
  *               type: string
  *               format: binary
  */
-pharmacyRoutes.get('/categories/export', authorizePermissions('DRUG_CATEGORY_EXPORT'), DrugCategoryController.exportCategories);
+pharmacyRoutes.get('/categories/export', DrugCategoryController.exportCategories);
 
 /**
  * @swagger
@@ -135,7 +133,7 @@ pharmacyRoutes.get('/categories/export', authorizePermissions('DRUG_CATEGORY_EXP
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-pharmacyRoutes.post('/categories/import', authorizePermissions('DRUG_CATEGORY_IMPORT'), uploadExcel.single('file'), DrugCategoryController.importCategories);
+pharmacyRoutes.post('/categories/import', uploadExcel.single('file'), DrugCategoryController.importCategories);
 
 /**
  * @swagger
@@ -158,7 +156,7 @@ pharmacyRoutes.post('/categories/import', authorizePermissions('DRUG_CATEGORY_IM
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/categories/:id', authorizePermissions('DRUG_CATEGORY_VIEW'), DrugCategoryController.getCategoryById);
+pharmacyRoutes.get('/categories/:id', DrugCategoryController.getCategoryById);
 
 /**
  * @swagger
@@ -193,7 +191,7 @@ pharmacyRoutes.get('/categories/:id', authorizePermissions('DRUG_CATEGORY_VIEW')
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.put('/categories/:id', authorizePermissions('DRUG_CATEGORY_UPDATE'), DrugCategoryController.updateCategory);
+pharmacyRoutes.put('/categories/:id', DrugCategoryController.updateCategory);
 
 /**
  * @swagger
@@ -216,7 +214,7 @@ pharmacyRoutes.put('/categories/:id', authorizePermissions('DRUG_CATEGORY_UPDATE
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.delete('/categories/:id', authorizePermissions('DRUG_CATEGORY_DELETE'), DrugCategoryController.deleteCategory);
+pharmacyRoutes.delete('/categories/:id', DrugCategoryController.deleteCategory);
 
 /**
  * =========================================================================
@@ -246,7 +244,7 @@ pharmacyRoutes.delete('/categories/:id', authorizePermissions('DRUG_CATEGORY_DEL
  *       200:
  *         description: Thành công (Limit 50 theo query)
  */
-pharmacyRoutes.get('/drugs/active', authorizePermissions('DRUG_VIEW'), DrugController.getActiveDrugs);
+pharmacyRoutes.get('/drugs/active', DrugController.getActiveDrugs);
 
 /**
  * @swagger
@@ -268,7 +266,7 @@ pharmacyRoutes.get('/drugs/active', authorizePermissions('DRUG_VIEW'), DrugContr
  *               type: string
  *               format: binary
  */
-pharmacyRoutes.get('/drugs/export', authorizePermissions('DRUG_EXPORT'), DrugController.exportDrugs);
+pharmacyRoutes.get('/drugs/export', DrugController.exportDrugs);
 
 /**
  * @swagger
@@ -298,7 +296,7 @@ pharmacyRoutes.get('/drugs/export', authorizePermissions('DRUG_EXPORT'), DrugCon
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-pharmacyRoutes.post('/drugs/import', authorizePermissions('DRUG_IMPORT'), uploadExcel.single('file'), DrugController.importDrugs);
+pharmacyRoutes.post('/drugs/import', uploadExcel.single('file'), DrugController.importDrugs);
 
 /**
  * @swagger
@@ -340,7 +338,7 @@ pharmacyRoutes.post('/drugs/import', authorizePermissions('DRUG_IMPORT'), upload
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/drugs', authorizePermissions('DRUG_VIEW_ALL'), DrugController.getDrugsAdmin);
+pharmacyRoutes.get('/drugs', DrugController.getDrugsAdmin);
 
 /**
  * @swagger
@@ -397,7 +395,7 @@ pharmacyRoutes.get('/drugs', authorizePermissions('DRUG_VIEW_ALL'), DrugControll
  *       201:
  *         description: Tạo mới thành công
  */
-pharmacyRoutes.post('/drugs', authorizePermissions('DRUG_CREATE'), DrugController.createDrug);
+pharmacyRoutes.post('/drugs', DrugController.createDrug);
 
 /**
  * @swagger
@@ -420,7 +418,7 @@ pharmacyRoutes.post('/drugs', authorizePermissions('DRUG_CREATE'), DrugControlle
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.get('/drugs/:id', authorizePermissions('DRUG_VIEW'), DrugController.getDrugById);
+pharmacyRoutes.get('/drugs/:id', DrugController.getDrugById);
 
 /**
  * @swagger
@@ -471,7 +469,7 @@ pharmacyRoutes.get('/drugs/:id', authorizePermissions('DRUG_VIEW'), DrugControll
  *       200:
  *         description: Thành công
  */
-pharmacyRoutes.put('/drugs/:id', authorizePermissions('DRUG_UPDATE'), DrugController.updateDrug);
+pharmacyRoutes.put('/drugs/:id', DrugController.updateDrug);
 
 /**
  * @swagger
@@ -507,6 +505,6 @@ pharmacyRoutes.put('/drugs/:id', authorizePermissions('DRUG_UPDATE'), DrugContro
  *       200:
  *         description: Vô hiệu hóa thành công
  */
-pharmacyRoutes.patch('/drugs/:id/status', authorizePermissions('DRUG_UPDATE'), DrugController.toggleDrugStatus);
+pharmacyRoutes.patch('/drugs/:id/status', DrugController.toggleDrugStatus);
 
 export default pharmacyRoutes;

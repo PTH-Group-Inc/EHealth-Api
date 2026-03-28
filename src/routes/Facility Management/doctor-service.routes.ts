@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { DoctorServiceController } from '../../controllers/Facility Management/doctor-service.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // GET routes → PUBLIC (bệnh nhân xem bác sĩ & dịch vụ)
@@ -249,7 +247,7 @@ router.get('/by-facility-service/:facilityServiceId', DoctorServiceController.ge
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/:doctorId/services', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCTOR_SERVICE_ASSIGN'), DoctorServiceController.assignServices);
+router.post('/:doctorId/services', verifyAccessToken, checkSessionStatus, DoctorServiceController.assignServices);
 
 /**
  * @swagger
@@ -301,6 +299,6 @@ router.post('/:doctorId/services', verifyAccessToken, checkSessionStatus, author
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/:doctorId/services/:facilityServiceId', verifyAccessToken, checkSessionStatus, authorizePermissions('DOCTOR_SERVICE_ASSIGN'), DoctorServiceController.removeService);
+router.delete('/:doctorId/services/:facilityServiceId', verifyAccessToken, checkSessionStatus, DoctorServiceController.removeService);
 
 export default router;

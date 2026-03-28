@@ -1,13 +1,10 @@
 import { Router } from 'express';
 import { PermissionController } from '../../controllers/Core/permission.controller';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 
 const permissionRoutes = Router();
 
 permissionRoutes.use(verifyAccessToken);
-
-
 
 /**
  * @swagger
@@ -36,7 +33,7 @@ permissionRoutes.use(verifyAccessToken);
  *       200:
  *         description: Thành công
  */
-permissionRoutes.get('/', authorizePermissions('PERMISSION_VIEW'), PermissionController.getPermissions);
+permissionRoutes.get('/', PermissionController.getPermissions);
 
 /**
  * @swagger
@@ -61,7 +58,7 @@ permissionRoutes.get('/', authorizePermissions('PERMISSION_VIEW'), PermissionCon
  *       404:
  *         description: Không tìm thấy quyền
  */
-permissionRoutes.get('/:permissionId', authorizePermissions('PERMISSION_VIEW'), PermissionController.getPermissionById);
+permissionRoutes.get('/:permissionId', PermissionController.getPermissionById);
 
 /**
  * @swagger
@@ -97,7 +94,7 @@ permissionRoutes.get('/:permissionId', authorizePermissions('PERMISSION_VIEW'), 
  *       400:
  *         description: Thiếu dữ liệu hoặc trùng mã Code
  */
-permissionRoutes.post('/', authorizePermissions('PERMISSION_CREATE'), PermissionController.createPermission);
+permissionRoutes.post('/', PermissionController.createPermission);
 
 /**
  * @swagger
@@ -131,7 +128,7 @@ permissionRoutes.post('/', authorizePermissions('PERMISSION_CREATE'), Permission
  *       200:
  *         description: Thành công
  */
-permissionRoutes.patch('/:permissionId', authorizePermissions('PERMISSION_UPDATE'), PermissionController.updatePermission);
+permissionRoutes.patch('/:permissionId', PermissionController.updatePermission);
 
 /**
  * @swagger
@@ -156,6 +153,6 @@ permissionRoutes.patch('/:permissionId', authorizePermissions('PERMISSION_UPDATE
  *       400:
  *         description: Đang có Role sử dụng quyền này, không thể xóa
  */
-permissionRoutes.delete('/:permissionId', authorizePermissions('PERMISSION_DELETE'), PermissionController.deletePermission);
+permissionRoutes.delete('/:permissionId', PermissionController.deletePermission);
 
 export default permissionRoutes;

@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { DispensingController } from '../../controllers/Medication Management/dispensing.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const dispensingRoutes = Router();
 
 // =====================================================================
@@ -92,7 +90,6 @@ dispensingRoutes.get(
     '/history',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('DISPENSING_VIEW'),
     DispensingController.getHistory
 );
 
@@ -158,7 +155,6 @@ dispensingRoutes.get(
     '/inventory/:drugId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('DISPENSING_VIEW'),
     DispensingController.getInventory
 );
 
@@ -226,7 +222,6 @@ dispensingRoutes.get(
     '/inventory/:drugId/check',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('DISPENSING_VIEW'),
     DispensingController.checkStock
 );
 
@@ -288,7 +283,6 @@ dispensingRoutes.get(
     '/by-pharmacist/:pharmacistId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('DISPENSING_VIEW'),
     DispensingController.getByPharmacist
 );
 
@@ -402,7 +396,6 @@ dispensingRoutes.post(
     '/:prescriptionId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('DISPENSING_CREATE'),
     DispensingController.dispense
 );
 
@@ -443,7 +436,6 @@ dispensingRoutes.get(
     '/:prescriptionId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('DISPENSING_VIEW'),
     DispensingController.getByPrescription
 );
 
@@ -505,6 +497,5 @@ dispensingRoutes.post(
     '/:dispenseOrderId/cancel',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('DISPENSING_CREATE'),
     DispensingController.cancel
 );

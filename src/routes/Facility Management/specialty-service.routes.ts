@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { SpecialtyServiceController } from '../../controllers/Facility Management/specialty-service.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // GET routes → PUBLIC (xem dịch vụ theo chuyên khoa)
@@ -188,7 +186,7 @@ router.get('/by-service/:serviceId', SpecialtyServiceController.getSpecialtiesBy
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/:specialtyId/services', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_SERVICE_ASSIGN'), SpecialtyServiceController.assignServices);
+router.post('/:specialtyId/services', verifyAccessToken, checkSessionStatus, SpecialtyServiceController.assignServices);
 
 /**
  * @swagger
@@ -240,6 +238,6 @@ router.post('/:specialtyId/services', verifyAccessToken, checkSessionStatus, aut
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/:specialtyId/services/:serviceId', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_SERVICE_ASSIGN'), SpecialtyServiceController.removeService);
+router.delete('/:specialtyId/services/:serviceId', verifyAccessToken, checkSessionStatus, SpecialtyServiceController.removeService);
 
 export default router;

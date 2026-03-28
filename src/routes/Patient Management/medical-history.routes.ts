@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { MedicalHistoryController } from '../../controllers/Patient Management/medical-history.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -79,7 +77,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getEncounters);
+router.get('/', verifyAccessToken, checkSessionStatus, MedicalHistoryController.getEncounters);
 
 /**
  * @swagger
@@ -108,7 +106,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR
  *       404:
  *         description: Không tìm thấy bệnh nhân hoặc chưa có lượt khám
  */
-router.get('/patient/:patientId/latest', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getLatestEncounter);
+router.get('/patient/:patientId/latest', verifyAccessToken, checkSessionStatus, MedicalHistoryController.getLatestEncounter);
 
 /**
  * @swagger
@@ -159,7 +157,7 @@ router.get('/patient/:patientId/latest', verifyAccessToken, checkSessionStatus, 
  *       404:
  *         description: Không tìm thấy bệnh nhân
  */
-router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getTimeline);
+router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus, MedicalHistoryController.getTimeline);
 
 /**
  * @swagger
@@ -194,7 +192,7 @@ router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus
  *       404:
  *         description: Không tìm thấy bệnh nhân
  */
-router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getPatientSummary);
+router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus, MedicalHistoryController.getPatientSummary);
 
 /**
  * @swagger
@@ -231,6 +229,6 @@ router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus,
  *       404:
  *         description: Không tìm thấy lượt khám
  */
-router.get('/:encounterId', verifyAccessToken, checkSessionStatus, authorizePermissions('EMR_ENCOUNTER_VIEW'), MedicalHistoryController.getEncounterDetail);
+router.get('/:encounterId', verifyAccessToken, checkSessionStatus, MedicalHistoryController.getEncounterDetail);
 
 export const medicalHistoryRoutes = router;

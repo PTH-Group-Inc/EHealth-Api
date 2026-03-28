@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { RelationTypeController } from '../../controllers/Patient Management/relation-type.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -57,7 +55,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền truy cập
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), RelationTypeController.getAll);
+router.get('/', verifyAccessToken, checkSessionStatus, RelationTypeController.getAll);
 
 /**
  * @swagger
@@ -121,7 +119,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PAT
  *       403:
  *         description: Không có quyền
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), RelationTypeController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, RelationTypeController.create);
 
 /**
  * @swagger
@@ -173,7 +171,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PA
  *       404:
  *         description: Không tìm thấy loại quan hệ
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), RelationTypeController.update);
+router.put('/:id', verifyAccessToken, checkSessionStatus, RelationTypeController.update);
 
 /**
  * @swagger
@@ -206,6 +204,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy loại quan hệ
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), RelationTypeController.delete);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, RelationTypeController.delete);
 
 export const relationTypeRoutes = router;

@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { ShiftSwapController } from '../../controllers/Facility Management/shift-swap.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -54,7 +52,7 @@ const router = Router();
  *       409:
  *         description: Lịch trực đã có yêu cầu Swap PENDING khác
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SWAP_CREATE'), ShiftSwapController.createSwap);
+router.post('/', verifyAccessToken, checkSessionStatus, ShiftSwapController.createSwap);
 
 /**
  * @swagger
@@ -81,7 +79,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SW
  *       200:
  *         description: Thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SWAP_VIEW'), ShiftSwapController.getSwaps);
+router.get('/', verifyAccessToken, checkSessionStatus, ShiftSwapController.getSwaps);
 
 /**
  * @swagger
@@ -109,7 +107,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SWA
  *       404:
  *         description: Yêu cầu không tồn tại
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SWAP_VIEW'), ShiftSwapController.getSwapById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, ShiftSwapController.getSwapById);
 
 /**
  * @swagger
@@ -149,7 +147,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       400:
  *         description: Yêu cầu đã được xử lý trước đó
  */
-router.patch('/:id/approve', verifyAccessToken, checkSessionStatus, authorizePermissions('SWAP_APPROVE'), ShiftSwapController.approveSwap);
+router.patch('/:id/approve', verifyAccessToken, checkSessionStatus, ShiftSwapController.approveSwap);
 
 /**
  * @swagger
@@ -188,6 +186,6 @@ router.patch('/:id/approve', verifyAccessToken, checkSessionStatus, authorizePer
  *       400:
  *         description: Thiếu lý do hoặc đơn đã xử lý
  */
-router.patch('/:id/reject', verifyAccessToken, checkSessionStatus, authorizePermissions('SWAP_APPROVE'), ShiftSwapController.rejectSwap);
+router.patch('/:id/reject', verifyAccessToken, checkSessionStatus, ShiftSwapController.rejectSwap);
 
 export const shiftSwapRoutes = router;

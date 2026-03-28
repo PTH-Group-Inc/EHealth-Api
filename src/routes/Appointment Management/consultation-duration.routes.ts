@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { ConsultationDurationController } from '../../controllers/Appointment Management/consultation-duration.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const consultationDurationRoutes = Router();
 
 // 3.2.4. QUẢN LÝ THỜI LƯỢNG MỖI LƯỢT KHÁM (Consultation Duration)
@@ -87,7 +85,7 @@ export const consultationDurationRoutes = Router();
  */
 consultationDurationRoutes.get(
     '/:facilityId/service-durations',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     ConsultationDurationController.getServiceDurations
 );
 
@@ -169,7 +167,7 @@ consultationDurationRoutes.get(
  */
 consultationDurationRoutes.patch(
     '/:facilityId/service-durations',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     ConsultationDurationController.batchUpdateDurations
 );
 
@@ -247,6 +245,6 @@ consultationDurationRoutes.patch(
  */
 consultationDurationRoutes.patch(
     '/:facilityId/service-durations/:serviceId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     ConsultationDurationController.updateSingleDuration
 );

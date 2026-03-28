@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { AppointmentStatusController } from '../../controllers/Appointment Management/appointment-status.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const appointmentStatusRoutes = Router();
 
 // =====================================================================
@@ -94,7 +92,6 @@ appointmentStatusRoutes.get(
     '/dashboard/today',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_QUEUE_VIEW'),
     AppointmentStatusController.getDashboard
 );
 
@@ -194,7 +191,6 @@ appointmentStatusRoutes.get(
     '/dashboard/:date',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_QUEUE_VIEW'),
     AppointmentStatusController.getDashboardByDate
 );
 
@@ -244,7 +240,6 @@ appointmentStatusRoutes.get(
     '/queue/today',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_QUEUE_VIEW'),
     AppointmentStatusController.getQueue
 );
 
@@ -281,7 +276,6 @@ appointmentStatusRoutes.get(
     '/room-status',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_QUEUE_VIEW'),
     AppointmentStatusController.getRoomStatus
 );
 
@@ -335,7 +329,6 @@ appointmentStatusRoutes.get(
     '/settings',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_STATUS_CONFIG'),
     AppointmentStatusController.getSettings
 );
 
@@ -389,7 +382,6 @@ appointmentStatusRoutes.put(
     '/settings',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_STATUS_CONFIG'),
     AppointmentStatusController.updateSettings
 );
 
@@ -435,7 +427,6 @@ appointmentStatusRoutes.post(
     '/check-in-qr',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CHECKIN'),
     AppointmentStatusController.checkInQr
 );
 
@@ -495,7 +486,6 @@ appointmentStatusRoutes.post(
     '/generate-qr/:id',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CHECKIN'),
     AppointmentStatusController.generateQr
 );
 
@@ -563,7 +553,6 @@ appointmentStatusRoutes.post(
     '/:id/check-in',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CHECKIN'),
     AppointmentStatusController.checkIn
 );
 
@@ -622,7 +611,6 @@ appointmentStatusRoutes.post(
     '/:id/check-in-test',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CHECKIN'),
     AppointmentStatusController.checkInTest
 );
 
@@ -665,7 +653,6 @@ appointmentStatusRoutes.patch(
     '/:id/start-exam',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
     AppointmentStatusController.startExam
 );
 
@@ -708,7 +695,6 @@ appointmentStatusRoutes.patch(
     '/:id/complete-exam',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
     AppointmentStatusController.completeExam
 );
 
@@ -759,7 +745,6 @@ appointmentStatusRoutes.patch(
     '/:id/no-show',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
     AppointmentStatusController.markNoShow
 );
 
@@ -818,7 +803,6 @@ appointmentStatusRoutes.patch(
     '/:id/skip',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
     AppointmentStatusController.skipPatient
 );
 
@@ -874,6 +858,5 @@ appointmentStatusRoutes.patch(
     '/:id/recall',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_STATUS_MANAGE'),
     AppointmentStatusController.recallPatient
 );

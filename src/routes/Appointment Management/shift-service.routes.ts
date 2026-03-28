@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { ShiftServiceController } from '../../controllers/Appointment Management/shift-service.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const shiftServiceRoutes = Router();
 
 // =====================================================================
@@ -78,7 +76,7 @@ export const shiftServiceRoutes = Router();
  */
 shiftServiceRoutes.post(
     '/',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     ShiftServiceController.create
 );
 
@@ -148,7 +146,7 @@ shiftServiceRoutes.post(
  */
 shiftServiceRoutes.get(
     '/',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     ShiftServiceController.getAll
 );
 
@@ -183,7 +181,7 @@ shiftServiceRoutes.get(
  */
 shiftServiceRoutes.get(
     '/by-shift/:shiftId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     ShiftServiceController.getByShift
 );
 
@@ -218,7 +216,7 @@ shiftServiceRoutes.get(
  */
 shiftServiceRoutes.get(
     '/by-service/:facilityServiceId',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     ShiftServiceController.getByService
 );
 
@@ -253,7 +251,7 @@ shiftServiceRoutes.get(
  */
 shiftServiceRoutes.delete(
     '/:id',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     ShiftServiceController.delete
 );
 
@@ -300,6 +298,6 @@ shiftServiceRoutes.delete(
  */
 shiftServiceRoutes.patch(
     '/:id/toggle',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('FACILITY_EDIT')],
+    [verifyAccessToken, checkSessionStatus],
     ShiftServiceController.toggle
 );

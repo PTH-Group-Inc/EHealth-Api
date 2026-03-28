@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { InsuranceProviderController } from '../../controllers/Patient Management/insurance-provider.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 
 const router = Router();
@@ -96,7 +95,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_VIEW'), InsuranceProviderController.getProviders);
+router.get('/', verifyAccessToken, checkSessionStatus, InsuranceProviderController.getProviders);
 
 /**
  * @swagger
@@ -125,7 +124,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('INS
  *       404:
  *         description: Không tìm thấy đơn vị bảo hiểm
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_VIEW'), InsuranceProviderController.getProviderById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, InsuranceProviderController.getProviderById);
 
 /**
  * @swagger
@@ -184,7 +183,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       400:
  *         description: Mã đơn vị đã tồn tại hoặc dữ liệu không hợp lệ
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_CREATE'), InsuranceProviderController.createProvider);
+router.post('/', verifyAccessToken, checkSessionStatus, InsuranceProviderController.createProvider);
 
 /**
  * @swagger
@@ -231,7 +230,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('IN
  *       404:
  *         description: Không tìm thấy đơn vị bảo hiểm
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_UPDATE'), InsuranceProviderController.updateProvider);
+router.put('/:id', verifyAccessToken, checkSessionStatus, InsuranceProviderController.updateProvider);
 
 /**
  * @swagger
@@ -261,6 +260,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy đơn vị bảo hiểm
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('INSURANCE_DELETE'), InsuranceProviderController.disableProvider);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, InsuranceProviderController.disableProvider);
 
 export default router;

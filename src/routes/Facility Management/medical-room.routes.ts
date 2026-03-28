@@ -2,9 +2,6 @@ import { Router } from 'express';
 import { MedicalRoomController } from '../../controllers/Facility Management/medical-room.controller';
 import { RoomServiceController } from '../../controllers/Facility Management/room-service.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizeApi } from '../../middleware/authorizeApi.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const medicalRoomRoutes = Router();
 
 /**
@@ -132,8 +129,6 @@ medicalRoomRoutes.get('/dropdown', verifyAccessToken, MedicalRoomController.getD
  */
 medicalRoomRoutes.get('/',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_VIEW'),
     MedicalRoomController.getMedicalRooms
 );
 
@@ -183,8 +178,6 @@ medicalRoomRoutes.get('/',
  */
 medicalRoomRoutes.post('/:roomId/services',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_UPDATE'),
     RoomServiceController.assignServices
 );
 
@@ -217,8 +210,6 @@ medicalRoomRoutes.post('/:roomId/services',
  */
 medicalRoomRoutes.get('/:roomId/services',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_VIEW'),
     RoomServiceController.getServicesByRoom
 );
 
@@ -257,8 +248,6 @@ medicalRoomRoutes.get('/:roomId/services',
  */
 medicalRoomRoutes.delete('/:roomId/services/:facilityServiceId',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_UPDATE'),
     RoomServiceController.removeService
 );
 
@@ -289,8 +278,6 @@ medicalRoomRoutes.delete('/:roomId/services/:facilityServiceId',
  */
 medicalRoomRoutes.get('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_VIEW'),
     MedicalRoomController.getMedicalRoomById
 );
 
@@ -360,8 +347,6 @@ medicalRoomRoutes.get('/:id',
  */
 medicalRoomRoutes.post('/',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_CREATE'),
     MedicalRoomController.createMedicalRoom
 );
 
@@ -411,8 +396,6 @@ medicalRoomRoutes.post('/',
  */
 medicalRoomRoutes.put('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_UPDATE'),
     MedicalRoomController.updateMedicalRoom
 );
 
@@ -454,8 +437,6 @@ medicalRoomRoutes.put('/:id',
  */
 medicalRoomRoutes.patch('/:id/status',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_UPDATE'),
     MedicalRoomController.changeMedicalRoomStatus
 );
 
@@ -484,8 +465,6 @@ medicalRoomRoutes.patch('/:id/status',
  */
 medicalRoomRoutes.delete('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('ROOM_DELETE'),
     MedicalRoomController.deleteMedicalRoom
 );
 

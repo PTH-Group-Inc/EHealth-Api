@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { AppointmentChangeController } from '../../controllers/Appointment Management/appointment-change.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const appointmentChangeRoutes = Router();
 
 // =====================================================================
@@ -99,7 +97,6 @@ appointmentChangeRoutes.get(
     '/stats',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CHANGE_VIEW'),
     AppointmentChangeController.getStats
 );
 
@@ -194,7 +191,6 @@ appointmentChangeRoutes.get(
     '/recent',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CHANGE_VIEW'),
     AppointmentChangeController.getRecentChanges
 );
 
@@ -281,7 +277,6 @@ appointmentChangeRoutes.get(
     '/:appointmentId/history',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CHANGE_VIEW'),
     AppointmentChangeController.getHistory
 );
 
@@ -361,7 +356,6 @@ appointmentChangeRoutes.post(
     '/:appointmentId/check-cancel-policy',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_CANCEL'),
     AppointmentChangeController.checkCancelPolicy
 );
 
@@ -429,7 +423,6 @@ appointmentChangeRoutes.get(
     '/:appointmentId/can-reschedule',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_EDIT'),
     AppointmentChangeController.canReschedule
 );
 

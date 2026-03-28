@@ -7,6 +7,7 @@ export interface DepartmentDropdown {
 
 export interface DepartmentInfo extends DepartmentDropdown {
     description?: string;
+    logo_url?: string | null;
     status: string;
     branch_name?: string;
     facility_name?: string;
@@ -17,11 +18,13 @@ export interface CreateDepartmentInput {
     code: string;
     name: string;
     description?: string;
+    logo_url?: string;
 }
 
 export interface UpdateDepartmentInput {
     name?: string;
     description?: string;
+    logo_url?: string;
 }
 
 export interface DepartmentQuery {

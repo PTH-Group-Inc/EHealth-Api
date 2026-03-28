@@ -1,13 +1,10 @@
 import { Router } from 'express';
 import { ApiPermissionController } from '../../controllers/Core/api-permission.controller';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 
 const apiPermissionRoutes = Router();
 
 apiPermissionRoutes.use(verifyAccessToken);
-
-
 
 /**
  * @swagger
@@ -46,7 +43,7 @@ apiPermissionRoutes.use(verifyAccessToken);
  *       200:
  *         description: Danh sách API trả về.
  */
-apiPermissionRoutes.get('/', authorizePermissions('API_PERMISSION_VIEW'), ApiPermissionController.getApiPermissions);
+apiPermissionRoutes.get('/', ApiPermissionController.getApiPermissions);
 
 /**
  * @swagger
@@ -83,7 +80,7 @@ apiPermissionRoutes.get('/', authorizePermissions('API_PERMISSION_VIEW'), ApiPer
  *       201:
  *         description: Trả về API vừa khai báo
  */
-apiPermissionRoutes.post('/', authorizePermissions('API_PERMISSION_CREATE'), ApiPermissionController.createApiPermission);
+apiPermissionRoutes.post('/', ApiPermissionController.createApiPermission);
 
 /**
  * @swagger
@@ -126,7 +123,7 @@ apiPermissionRoutes.post('/', authorizePermissions('API_PERMISSION_CREATE'), Api
  *       200:
  *         description: Cập nhật thành công
  */
-apiPermissionRoutes.patch('/:apiId', authorizePermissions('API_PERMISSION_UPDATE'), ApiPermissionController.updateApiPermission);
+apiPermissionRoutes.patch('/:apiId', ApiPermissionController.updateApiPermission);
 
 /**
  * @swagger
@@ -150,6 +147,6 @@ apiPermissionRoutes.patch('/:apiId', authorizePermissions('API_PERMISSION_UPDATE
  *       200:
  *         description: Xóa API thành công
  */
-apiPermissionRoutes.delete('/:apiId', authorizePermissions('API_PERMISSION_DELETE'), ApiPermissionController.deleteApiPermission);
+apiPermissionRoutes.delete('/:apiId', ApiPermissionController.deleteApiPermission);
 
 export default apiPermissionRoutes;

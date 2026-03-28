@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { MedicalEquipmentController } from '../../controllers/Facility Management/medical-equipment.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // GET routes → PUBLIC (xem thiết bị y tế)
@@ -227,7 +225,7 @@ router.get('/:id', MedicalEquipmentController.getEquipmentById);
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_CREATE'), MedicalEquipmentController.createEquipment);
+router.post('/', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.createEquipment);
 
 /**
  * @swagger
@@ -290,7 +288,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('EQ
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateEquipment);
+router.put('/:id', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.updateEquipment);
 
 /**
  * @swagger
@@ -341,7 +339,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/:id/status', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateStatus);
+router.put('/:id/status', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.updateStatus);
 
 /**
  * @swagger
@@ -389,7 +387,7 @@ router.put('/:id/status', verifyAccessToken, checkSessionStatus, authorizePermis
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/:id/assign-room', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.assignRoom);
+router.put('/:id/assign-room', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.assignRoom);
 
 /**
  * @swagger
@@ -423,7 +421,7 @@ router.put('/:id/assign-room', verifyAccessToken, checkSessionStatus, authorizeP
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_DELETE'), MedicalEquipmentController.deleteEquipment);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.deleteEquipment);
 
 // ==================== MAINTENANCE LOGS ====================
 
@@ -541,7 +539,7 @@ router.get('/:id/maintenance', MedicalEquipmentController.getMaintenanceLogs);
  *       403:
  *         description: Không có quyền truy cập
  */
-router.post('/:id/maintenance', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.createMaintenanceLog);
+router.post('/:id/maintenance', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.createMaintenanceLog);
 
 /**
  * @swagger
@@ -605,7 +603,7 @@ router.post('/:id/maintenance', verifyAccessToken, checkSessionStatus, authorize
  *       403:
  *         description: Không có quyền truy cập
  */
-router.put('/maintenance/:logId', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_UPDATE'), MedicalEquipmentController.updateMaintenanceLog);
+router.put('/maintenance/:logId', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.updateMaintenanceLog);
 
 /**
  * @swagger
@@ -639,6 +637,6 @@ router.put('/maintenance/:logId', verifyAccessToken, checkSessionStatus, authori
  *       403:
  *         description: Không có quyền truy cập
  */
-router.delete('/maintenance/:logId', verifyAccessToken, checkSessionStatus, authorizePermissions('EQUIPMENT_DELETE'), MedicalEquipmentController.deleteMaintenanceLog);
+router.delete('/maintenance/:logId', verifyAccessToken, checkSessionStatus, MedicalEquipmentController.deleteMaintenanceLog);
 
 export default router;

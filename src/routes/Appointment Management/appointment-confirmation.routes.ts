@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { AppointmentConfirmationController } from '../../controllers/Appointment Management/appointment-confirmation.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const appointmentConfirmationRoutes = Router();
 
 // =====================================================================
@@ -78,7 +76,7 @@ export const appointmentConfirmationRoutes = Router();
  */
 appointmentConfirmationRoutes.patch(
     '/:id/confirm',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CONFIRM')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.confirm
 );
 
@@ -156,7 +154,7 @@ appointmentConfirmationRoutes.patch(
  */
 appointmentConfirmationRoutes.patch(
     '/batch-confirm',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CONFIRM')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.batchConfirm
 );
 
@@ -220,10 +218,9 @@ appointmentConfirmationRoutes.patch(
  */
 appointmentConfirmationRoutes.patch(
     '/:id/check-in',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CONFIRM')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.checkIn
 );
-
 
 // =====================================================================
 // 3.6.3. NHẮC LỊCH KHÁM (Appointment Reminder)
@@ -289,7 +286,7 @@ appointmentConfirmationRoutes.patch(
  */
 appointmentConfirmationRoutes.post(
     '/:id/send-reminder',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_REMINDER_SEND')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.sendReminder
 );
 
@@ -350,7 +347,7 @@ appointmentConfirmationRoutes.post(
  */
 appointmentConfirmationRoutes.post(
     '/batch-send-reminder',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_REMINDER_SEND')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.batchSendReminder
 );
 
@@ -415,7 +412,7 @@ appointmentConfirmationRoutes.post(
  */
 appointmentConfirmationRoutes.get(
     '/:id/reminders',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.getReminderHistory
 );
 
@@ -468,7 +465,7 @@ appointmentConfirmationRoutes.get(
  */
 appointmentConfirmationRoutes.get(
     '/reminder-settings',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.getReminderSettings
 );
 
@@ -531,6 +528,6 @@ appointmentConfirmationRoutes.get(
  */
 appointmentConfirmationRoutes.put(
     '/reminder-settings',
-    [verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_REMINDER_CONFIG')],
+    [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.updateReminderSettings
 );

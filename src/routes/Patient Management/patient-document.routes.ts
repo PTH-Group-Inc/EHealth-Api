@@ -4,8 +4,6 @@ import multer from 'multer';
 import { PatientDocumentController } from '../../controllers/Patient Management/patient-document.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
@@ -72,7 +70,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
  *       500:
  *         description: Lỗi upload lên Cloudinary (DOC_008)
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_MANAGE'), upload.single('file'), PatientDocumentController.upload);
+router.post('/', verifyAccessToken, checkSessionStatus, upload.single('file'), PatientDocumentController.upload);
 
 /**
  * @swagger
@@ -146,7 +144,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PA
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_VIEW'), PatientDocumentController.getList);
+router.get('/', verifyAccessToken, checkSessionStatus, PatientDocumentController.getList);
 
 /**
  * @swagger
@@ -180,7 +178,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PAT
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_VIEW'), PatientDocumentController.getById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, PatientDocumentController.getById);
 
 /**
  * @swagger
@@ -235,7 +233,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_MANAGE'), PatientDocumentController.updateMetadata);
+router.put('/:id', verifyAccessToken, checkSessionStatus, PatientDocumentController.updateMetadata);
 
 /**
  * @swagger
@@ -270,7 +268,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_MANAGE'), PatientDocumentController.delete);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, PatientDocumentController.delete);
 
 // 2.5.4 QUẢN LÝ PHIÊN BẢN TÀI LIỆU 
 
@@ -325,7 +323,7 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *       500:
  *         description: Lỗi upload Cloudinary (DOC_008)
  */
-router.post('/:id/versions', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_MANAGE'), upload.single('file'), PatientDocumentController.uploadVersion);
+router.post('/:id/versions', verifyAccessToken, checkSessionStatus, upload.single('file'), PatientDocumentController.uploadVersion);
 
 /**
  * @swagger
@@ -359,7 +357,7 @@ router.post('/:id/versions', verifyAccessToken, checkSessionStatus, authorizePer
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id/versions', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_VIEW'), PatientDocumentController.listVersions);
+router.get('/:id/versions', verifyAccessToken, checkSessionStatus, PatientDocumentController.listVersions);
 
 /**
  * @swagger
@@ -400,7 +398,7 @@ router.get('/:id/versions', verifyAccessToken, checkSessionStatus, authorizePerm
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id/versions/:versionId', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_VIEW'), PatientDocumentController.getVersion);
+router.get('/:id/versions/:versionId', verifyAccessToken, checkSessionStatus, PatientDocumentController.getVersion);
 
 // 2.5.5 XEM / TẢI TÀI LIỆU (Proxy View / Download)
 
@@ -439,7 +437,7 @@ router.get('/:id/versions/:versionId', verifyAccessToken, checkSessionStatus, au
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id/view', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_VIEW'), PatientDocumentController.viewFile);
+router.get('/:id/view', verifyAccessToken, checkSessionStatus, PatientDocumentController.viewFile);
 
 /**
  * @swagger
@@ -474,7 +472,7 @@ router.get('/:id/view', verifyAccessToken, checkSessionStatus, authorizePermissi
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id/download', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_VIEW'), PatientDocumentController.downloadFile);
+router.get('/:id/download', verifyAccessToken, checkSessionStatus, PatientDocumentController.downloadFile);
 
 export const patientDocumentRoutes = router;
 

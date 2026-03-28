@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { MedicalRecordController } from '../../controllers/EMR/medical-record.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const medicalRecordRoutes = Router();
 
 // =====================================================================
@@ -92,7 +90,6 @@ medicalRecordRoutes.get(
     '/search',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     MedicalRecordController.searchRecords
 );
 
@@ -173,7 +170,6 @@ medicalRecordRoutes.get(
     '/by-patient/:patientId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     MedicalRecordController.getPatientRecords
 );
 
@@ -238,7 +234,6 @@ medicalRecordRoutes.get(
     '/by-patient/:patientId/timeline',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     MedicalRecordController.getTimeline
 );
 
@@ -327,7 +322,6 @@ medicalRecordRoutes.get(
     '/by-patient/:patientId/statistics',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     MedicalRecordController.getStatistics
 );
 
@@ -372,7 +366,6 @@ medicalRecordRoutes.get(
     '/snapshot/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     MedicalRecordController.getSnapshot
 );
 
@@ -414,7 +407,6 @@ medicalRecordRoutes.get(
     '/export/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_EXPORT'),
     MedicalRecordController.exportRecord
 );
 
@@ -511,7 +503,6 @@ medicalRecordRoutes.get(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     MedicalRecordController.getFullRecord
 );
 
@@ -594,7 +585,6 @@ medicalRecordRoutes.get(
     '/:encounterId/completeness',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_VIEW'),
     MedicalRecordController.getCompleteness
 );
 
@@ -657,7 +647,6 @@ medicalRecordRoutes.post(
     '/:encounterId/finalize',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_FINALIZE'),
     MedicalRecordController.finalize
 );
 
@@ -720,6 +709,5 @@ medicalRecordRoutes.post(
     '/:encounterId/sign',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_RECORD_SIGN'),
     MedicalRecordController.sign
 );

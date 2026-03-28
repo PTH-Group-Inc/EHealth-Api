@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import { FacilityController } from '../../controllers/Facility Management/facility.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizeApi } from '../../middleware/authorizeApi.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
 import multer from 'multer';
 
 // Multer lưu trữ buffer lên RAM xử lý đẩy qua Cloudinary
@@ -253,8 +251,6 @@ facilityRoutes.get('/:id',
  */
 facilityRoutes.post('/',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('FACILITY_CREATE'),
     upload.single('logo'),
     FacilityController.createFacility
 );
@@ -330,8 +326,6 @@ facilityRoutes.post('/',
  */
 facilityRoutes.put('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('FACILITY_UPDATE'),
     upload.single('logo'),
     FacilityController.updateFacility
 );
@@ -382,8 +376,6 @@ facilityRoutes.put('/:id',
  */
 facilityRoutes.patch('/:id/status',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('FACILITY_UPDATE'),
     FacilityController.changeFacilityStatus
 );
 
@@ -421,8 +413,6 @@ facilityRoutes.patch('/:id/status',
  */
 facilityRoutes.delete('/:id',
     verifyAccessToken,
-    authorizeApi,
-    authorizePermissions('FACILITY_DELETE'),
     FacilityController.deleteFacility
 );
 

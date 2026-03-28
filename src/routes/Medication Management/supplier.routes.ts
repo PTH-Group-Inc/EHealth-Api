@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { SupplierController } from '../../controllers/Medication Management/supplier.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const supplierRoutes = Router();
 
 /**
@@ -40,7 +38,7 @@ export const supplierRoutes = Router();
  *       401:
  *         description: Chưa đăng nhập
  */
-supplierRoutes.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_VIEW'), SupplierController.getAll);
+supplierRoutes.get('/', verifyAccessToken, checkSessionStatus, SupplierController.getAll);
 
 /**
  * @swagger
@@ -93,7 +91,7 @@ supplierRoutes.get('/', verifyAccessToken, checkSessionStatus, authorizePermissi
  *       409:
  *         description: Mã NCC đã tồn tại
  */
-supplierRoutes.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_MANAGE'), SupplierController.create);
+supplierRoutes.post('/', verifyAccessToken, checkSessionStatus, SupplierController.create);
 
 /**
  * @swagger
@@ -122,7 +120,7 @@ supplierRoutes.post('/', verifyAccessToken, checkSessionStatus, authorizePermiss
  *       404:
  *         description: NCC không tồn tại
  */
-supplierRoutes.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_VIEW'), SupplierController.getById);
+supplierRoutes.get('/:id', verifyAccessToken, checkSessionStatus, SupplierController.getById);
 
 /**
  * @swagger
@@ -174,4 +172,4 @@ supplierRoutes.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermi
  *       404:
  *         description: NCC không tồn tại
  */
-supplierRoutes.patch('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('STOCK_IN_MANAGE'), SupplierController.update);
+supplierRoutes.patch('/:id', verifyAccessToken, checkSessionStatus, SupplierController.update);

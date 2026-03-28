@@ -43,7 +43,7 @@ export class BranchRepository {
 
         const dataQuery = `
             SELECT b.branches_id, b.facility_id, b.code, b.name, b.address, 
-                   b.phone, b.status, b.established_date, b.deleted_at, f.name as facility_name
+                   b.phone, b.status, b.established_date, b.logo_url, b.deleted_at, f.name as facility_name
             FROM branches b
             LEFT JOIN facilities f ON b.facility_id = f.facilities_id
             ${whereClause}
@@ -60,7 +60,7 @@ export class BranchRepository {
      */
     static async getBranchesForDropdown(): Promise<BranchDropdown[]> {
         const query = `
-            SELECT branches_id, facility_id, code, name
+            SELECT branches_id, facility_id, code, name, logo_url
             FROM branches
             WHERE status = 'ACTIVE' AND deleted_at IS NULL
             ORDER BY name ASC
@@ -75,7 +75,7 @@ export class BranchRepository {
     static async findBranchById(id: string): Promise<BranchInfo | null> {
         const query = `
             SELECT b.branches_id, b.facility_id, b.code, b.name, b.address, 
-                   b.phone, b.status, b.established_date, b.deleted_at, f.name as facility_name
+                   b.phone, b.status, b.established_date, b.logo_url, b.deleted_at, f.name as facility_name
             FROM branches b
             LEFT JOIN facilities f ON b.facility_id = f.facilities_id
             WHERE b.branches_id = $1 AND b.deleted_at IS NULL
@@ -98,16 +98,16 @@ export class BranchRepository {
      */
     static async createBranch(data: {
         id: string; facility_id: string; code: string; name: string;
-        address: string; phone?: string; established_date?: string; status: string;
+        address: string; phone?: string; established_date?: string; logo_url?: string; status: string;
     }): Promise<void> {
         const query = `
             INSERT INTO branches 
-            (branches_id, facility_id, code, name, address, phone, established_date, status)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            (branches_id, facility_id, code, name, address, phone, established_date, logo_url, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `;
         await pool.query(query, [
             data.id, data.facility_id, data.code, data.name, data.address,
-            data.phone || null, data.established_date || null, data.status
+            data.phone || null, data.established_date || null, data.logo_url || null, data.status
         ]);
     }
 
@@ -129,7 +129,7 @@ export class BranchRepository {
             UPDATE branches
             SET ${setClauses.join(', ')}
             WHERE branches_id = $1 AND deleted_at IS NULL
-            RETURNING branches_id, facility_id, code, name, address, phone, status, established_date
+            RETURNING branches_id, facility_id, code, name, address, phone, status, established_date, logo_url
         `;
 
         const result = await pool.query(query, [id, ...values]);

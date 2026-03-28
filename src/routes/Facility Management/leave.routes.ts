@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { LeaveController } from '../../controllers/Facility Management/leave.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -47,7 +45,7 @@ const router = Router();
  *       400:
  *         description: Thiếu thông tin hoặc ngày không hợp lệ
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LEAVE_CREATE'), LeaveController.createLeave);
+router.post('/', verifyAccessToken, checkSessionStatus, LeaveController.createLeave);
 
 /**
  * @swagger
@@ -78,7 +76,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LE
  *       200:
  *         description: Thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LEAVE_VIEW'), LeaveController.getLeaves);
+router.get('/', verifyAccessToken, checkSessionStatus, LeaveController.getLeaves);
 
 /**
  * @swagger
@@ -103,7 +101,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('LEA
  *       404:
  *         description: Đơn không tồn tại
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('LEAVE_VIEW'), LeaveController.getLeaveById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, LeaveController.getLeaveById);
 
 /**
  * @swagger
@@ -144,7 +142,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       400:
  *         description: Đơn không ở trạng thái PENDING
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('LEAVE_UPDATE'), LeaveController.updateLeave);
+router.put('/:id', verifyAccessToken, checkSessionStatus, LeaveController.updateLeave);
 
 /**
  * @swagger
@@ -169,7 +167,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       400:
  *         description: Đơn không ở trạng thái PENDING
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('LEAVE_DELETE'), LeaveController.deleteLeave);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, LeaveController.deleteLeave);
 
 /**
  * @swagger
@@ -209,7 +207,7 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *       400:
  *         description: Đơn đã được xử lý trước đó
  */
-router.patch('/:id/approve', verifyAccessToken, checkSessionStatus, authorizePermissions('LEAVE_APPROVE'), LeaveController.approveLeave);
+router.patch('/:id/approve', verifyAccessToken, checkSessionStatus, LeaveController.approveLeave);
 
 /**
  * @swagger
@@ -248,6 +246,6 @@ router.patch('/:id/approve', verifyAccessToken, checkSessionStatus, authorizePer
  *       400:
  *         description: Thiếu lý do từ chối hoặc đơn đã xử lý
  */
-router.patch('/:id/reject', verifyAccessToken, checkSessionStatus, authorizePermissions('LEAVE_APPROVE'), LeaveController.rejectLeave);
+router.patch('/:id/reject', verifyAccessToken, checkSessionStatus, LeaveController.rejectLeave);
 
 export const leaveRoutes = router;

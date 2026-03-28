@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { AppointmentCoordinationController } from '../../controllers/Appointment Management/appointment-coordination.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const appointmentCoordinationRoutes = Router();
 
 // =====================================================================
@@ -62,7 +60,6 @@ appointmentCoordinationRoutes.get(
     '/doctor-load',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_COORDINATION'),
     AppointmentCoordinationController.getDoctorLoad
 );
 
@@ -120,7 +117,6 @@ appointmentCoordinationRoutes.get(
     '/suggest-slots',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_COORDINATION'),
     AppointmentCoordinationController.suggestSlots
 );
 
@@ -168,7 +164,6 @@ appointmentCoordinationRoutes.get(
     '/balance-overview',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_COORDINATION'),
     AppointmentCoordinationController.getBalanceOverview
 );
 
@@ -246,7 +241,6 @@ appointmentCoordinationRoutes.post(
     '/auto-assign',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_COORDINATION'),
     AppointmentCoordinationController.autoAssign
 );
 
@@ -299,7 +293,6 @@ appointmentCoordinationRoutes.get(
     '/ai-dataset',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_COORDINATION'),
     AppointmentCoordinationController.getAIDataset
 );
 
@@ -359,7 +352,6 @@ appointmentCoordinationRoutes.patch(
     '/:appointmentId/priority',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_COORDINATION'),
     AppointmentCoordinationController.setPriority
 );
 
@@ -420,7 +412,6 @@ appointmentCoordinationRoutes.patch(
     '/:appointmentId/reassign-doctor',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('APPOINTMENT_COORDINATION'),
     AppointmentCoordinationController.reassignDoctor
 );
 

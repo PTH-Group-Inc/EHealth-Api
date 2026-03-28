@@ -3,8 +3,6 @@ import { DrugController } from '../../controllers/Medication Management/drug.con
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { uploadExcel } from '../../middleware/upload.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const drugRoutes = Router();
 
 // Middleware quyền truy cập
@@ -68,7 +66,7 @@ drugRoutes.use(checkSessionStatus);
  *       403:
  *         description: Không có quyền truy cập
  */
-drugRoutes.get('/active', authorizePermissions('DRUG_VIEW'), DrugController.getActiveDrugs);
+drugRoutes.get('/active', DrugController.getActiveDrugs);
 
 /**
  * @swagger
@@ -99,7 +97,7 @@ drugRoutes.get('/active', authorizePermissions('DRUG_VIEW'), DrugController.getA
  *       403:
  *         description: Không có quyền xuất dữ liệu
  */
-drugRoutes.get('/export', authorizePermissions('DRUG_EXPORT'), DrugController.exportDrugs);
+drugRoutes.get('/export', DrugController.exportDrugs);
 
 /**
  * @swagger
@@ -168,7 +166,7 @@ drugRoutes.get('/export', authorizePermissions('DRUG_EXPORT'), DrugController.ex
  *       403:
  *         description: Không có quyền import
  */
-drugRoutes.post('/import', authorizePermissions('DRUG_IMPORT'), uploadExcel.single('file'), DrugController.importDrugs);
+drugRoutes.post('/import', uploadExcel.single('file'), DrugController.importDrugs);
 
 /**
  * @swagger
@@ -230,7 +228,7 @@ drugRoutes.post('/import', authorizePermissions('DRUG_IMPORT'), uploadExcel.sing
  *       403:
  *         description: Không có quyền truy cập
  */
-drugRoutes.get('/', authorizePermissions('DRUG_VIEW_ALL'), DrugController.getDrugsAdmin);
+drugRoutes.get('/', DrugController.getDrugsAdmin);
 
 /**
  * @swagger
@@ -311,7 +309,7 @@ drugRoutes.get('/', authorizePermissions('DRUG_VIEW_ALL'), DrugController.getDru
  *       409:
  *         description: Mã thuốc đã tồn tại (DRG_002) hoặc mã quốc gia đã tồn tại (DRG_003)
  */
-drugRoutes.post('/', authorizePermissions('DRUG_CREATE'), DrugController.createDrug);
+drugRoutes.post('/', DrugController.createDrug);
 
 /**
  * @swagger
@@ -346,7 +344,7 @@ drugRoutes.post('/', authorizePermissions('DRUG_CREATE'), DrugController.createD
  *       404:
  *         description: Không tìm thấy thuốc (DRG_001)
  */
-drugRoutes.get('/:id', authorizePermissions('DRUG_VIEW'), DrugController.getDrugById);
+drugRoutes.get('/:id', DrugController.getDrugById);
 
 /**
  * @swagger
@@ -412,7 +410,7 @@ drugRoutes.get('/:id', authorizePermissions('DRUG_VIEW'), DrugController.getDrug
  *       409:
  *         description: Mã quốc gia đã tồn tại (DRG_003)
  */
-drugRoutes.put('/:id', authorizePermissions('DRUG_UPDATE'), DrugController.updateDrug);
+drugRoutes.put('/:id', DrugController.updateDrug);
 
 /**
  * @swagger
@@ -475,6 +473,6 @@ drugRoutes.put('/:id', authorizePermissions('DRUG_UPDATE'), DrugController.updat
  *       404:
  *         description: Không tìm thấy thuốc (DRG_001)
  */
-drugRoutes.patch('/:id/status', authorizePermissions('DRUG_UPDATE'), DrugController.toggleDrugStatus);
+drugRoutes.patch('/:id/status', DrugController.toggleDrugStatus);
 
 export { drugRoutes };

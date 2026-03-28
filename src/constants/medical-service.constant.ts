@@ -93,6 +93,37 @@ export const DOCTOR_SERVICE_ERRORS = {
 };
 
 /**
+ * Mã lỗi cho Gán Chuyên khoa - Phòng ban
+ */
+export const DEPARTMENT_SPECIALTY_ERRORS = {
+    DEPARTMENT_NOT_FOUND: {
+        success: false,
+        code: 'DSP_001',
+        message: 'Không tìm thấy khoa/phòng ban này.',
+    },
+    SPECIALTY_NOT_FOUND: {
+        success: false,
+        code: 'DSP_002',
+        message: 'Không tìm thấy chuyên khoa này.',
+    },
+    NOT_FOUND: {
+        success: false,
+        code: 'DSP_003',
+        message: 'Không tìm thấy liên kết chuyên khoa - phòng ban này.',
+    },
+    SPECIALTY_IDS_REQUIRED: {
+        success: false,
+        code: 'DSP_004',
+        message: 'Danh sách specialty_ids không được để trống.',
+    },
+    ALREADY_ASSIGNED: {
+        success: false,
+        code: 'DSP_005',
+        message: 'Chuyên khoa đã được gán cho phòng ban này.',
+    },
+};
+
+/**
  * Phân loại dịch vụ y tế
  */
 export const SERVICE_TYPE = {

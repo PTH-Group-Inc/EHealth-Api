@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { SpecialtyController } from '../../controllers/Facility Management/specialty.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const specialtyRouter = Router();
 
 // GET routes (danh sách, chi tiết) → PUBLIC — không yêu cầu đăng nhập
@@ -234,7 +232,7 @@ specialtyRouter.get('/:id', SpecialtyController.getSpecialtyById);
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_CREATE'), SpecialtyController.createSpecialty);
+specialtyRouter.post('/', verifyAccessToken, checkSessionStatus, SpecialtyController.createSpecialty);
 
 /**
  * @swagger
@@ -322,7 +320,7 @@ specialtyRouter.post('/', verifyAccessToken, checkSessionStatus, authorizePermis
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_UPDATE'), SpecialtyController.updateSpecialty);
+specialtyRouter.put('/:id', verifyAccessToken, checkSessionStatus, SpecialtyController.updateSpecialty);
 
 /**
  * @swagger
@@ -374,6 +372,6 @@ specialtyRouter.put('/:id', verifyAccessToken, checkSessionStatus, authorizePerm
  *     security:
  *       - bearerAuth: []
  */
-specialtyRouter.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('SPECIALTY_DELETE'), SpecialtyController.deleteSpecialty);
+specialtyRouter.delete('/:id', verifyAccessToken, checkSessionStatus, SpecialtyController.deleteSpecialty);
 
 export default specialtyRouter;

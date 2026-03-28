@@ -6,8 +6,6 @@ import { PatientDocumentController } from '../../controllers/Patient Management/
 import { PatientTagController } from '../../controllers/Patient Management/patient-tag.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 const uploadDoc = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
@@ -66,7 +64,7 @@ const uploadDoc = multer({ storage: multer.memoryStorage(), limits: { fileSize: 
  *       403:
  *         description: Không có quyền
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.getPatients);
+router.get('/', verifyAccessToken, checkSessionStatus, PatientController.getPatients);
 
 /**
  * @swagger
@@ -96,7 +94,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PAT
  *       200:
  *         description: Danh sách bệnh nhân có bảo hiểm
  */
-router.get('/with-insurance', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.getPatientsWithInsurance);
+router.get('/with-insurance', verifyAccessToken, checkSessionStatus, PatientController.getPatientsWithInsurance);
 
 /**
  * @swagger
@@ -126,7 +124,7 @@ router.get('/with-insurance', verifyAccessToken, checkSessionStatus, authorizePe
  *       200:
  *         description: Danh sách bệnh nhân không có bảo hiểm
  */
-router.get('/without-insurance', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.getPatientsWithoutInsurance);
+router.get('/without-insurance', verifyAccessToken, checkSessionStatus, PatientController.getPatientsWithoutInsurance);
 // 2.6.4: Lọc bệnh nhân theo Tag
 
 /**
@@ -181,7 +179,7 @@ router.get('/without-insurance', verifyAccessToken, checkSessionStatus, authoriz
  *       403:
  *         description: Không có quyền
  */
-router.get('/filter-by-tags', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.filterByTags);
+router.get('/filter-by-tags', verifyAccessToken, checkSessionStatus, PatientController.filterByTags);
 
 // 2.7 TÌM KIẾM & TRA CỨU BỆNH NHÂN
 
@@ -251,7 +249,7 @@ router.get('/filter-by-tags', verifyAccessToken, checkSessionStatus, authorizePe
  *       403:
  *         description: Không có quyền
  */
-router.get('/search', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.advancedSearch);
+router.get('/search', verifyAccessToken, checkSessionStatus, PatientController.advancedSearch);
 
 /**
  * @swagger
@@ -286,7 +284,7 @@ router.get('/search', verifyAccessToken, checkSessionStatus, authorizePermission
  *       403:
  *         description: Không có quyền
  */
-router.get('/quick-search', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.quickSearch);
+router.get('/quick-search', verifyAccessToken, checkSessionStatus, PatientController.quickSearch);
 
 /**
  * @swagger
@@ -326,7 +324,7 @@ router.get('/quick-search', verifyAccessToken, checkSessionStatus, authorizePerm
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id/summary', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.getPatientSummary);
+router.get('/:id/summary', verifyAccessToken, checkSessionStatus, PatientController.getPatientSummary);
 
 // 2.4.3: Liên hệ khẩn cấp 
 
@@ -391,7 +389,7 @@ router.get('/:id/summary', verifyAccessToken, checkSessionStatus, authorizePermi
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/emergency-contacts', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientController.getEmergencyContacts);
+router.get('/:patientId/emergency-contacts', verifyAccessToken, checkSessionStatus, PatientController.getEmergencyContacts);
 
 // 2.4.4: Người đại diện pháp lý
 
@@ -459,7 +457,7 @@ router.get('/:patientId/emergency-contacts', verifyAccessToken, checkSessionStat
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/legal-representative', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientController.getLegalRepresentative);
+router.get('/:patientId/legal-representative', verifyAccessToken, checkSessionStatus, PatientController.getLegalRepresentative);
 
 // 2.4.6: Phân biệt người thân – liên hệ khẩn cấp
 
@@ -496,7 +494,7 @@ router.get('/:patientId/legal-representative', verifyAccessToken, checkSessionSt
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/relations', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientController.getAllRelations);
+router.get('/:patientId/relations', verifyAccessToken, checkSessionStatus, PatientController.getAllRelations);
 
 /**
  * @swagger
@@ -534,7 +532,7 @@ router.get('/:patientId/relations', verifyAccessToken, checkSessionStatus, autho
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/relatives', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientController.getNormalRelatives);
+router.get('/:patientId/relatives', verifyAccessToken, checkSessionStatus, PatientController.getNormalRelatives);
 
 /**
  * @swagger
@@ -570,7 +568,7 @@ router.get('/:patientId/relatives', verifyAccessToken, checkSessionStatus, autho
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/guardians', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientController.getGuardians);
+router.get('/:patientId/guardians', verifyAccessToken, checkSessionStatus, PatientController.getGuardians);
 
 /**
  * @swagger
@@ -699,7 +697,7 @@ router.get('/:patientId/guardians', verifyAccessToken, checkSessionStatus, autho
  *       404:
  *         description: Không tìm thấy hồ sơ bệnh nhân
  */
-router.get('/:id/audit-logs', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.getPatientAuditTrail);
+router.get('/:id/audit-logs', verifyAccessToken, checkSessionStatus, PatientController.getPatientAuditTrail);
 
 /**
  * @swagger
@@ -738,7 +736,7 @@ router.get('/:id/audit-logs', verifyAccessToken, checkSessionStatus, authorizePe
  *       404:
  *         description: Không tìm thấy bệnh nhân
  */
-router.get('/:patientId/insurances', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.getPatientInsurances);
+router.get('/:patientId/insurances', verifyAccessToken, checkSessionStatus, PatientController.getPatientInsurances);
 
 /**
  * @swagger
@@ -802,7 +800,7 @@ router.get('/:patientId/insurances', verifyAccessToken, checkSessionStatus, auth
  *       404:
  *         description: Không tìm thấy bệnh nhân hoặc đơn vị bảo hiểm
  */
-router.post('/:patientId/insurances', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientController.addPatientInsurance);
+router.post('/:patientId/insurances', verifyAccessToken, checkSessionStatus, PatientController.addPatientInsurance);
 
 /**
  * @swagger
@@ -831,7 +829,7 @@ router.post('/:patientId/insurances', verifyAccessToken, checkSessionStatus, aut
  *       404:
  *         description: Không tìm thấy hồ sơ bệnh nhân
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_VIEW'), PatientController.getPatientById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, PatientController.getPatientById);
 
 /**
  * @swagger
@@ -909,7 +907,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_CREATE'), PatientController.createPatient);
+router.post('/', verifyAccessToken, checkSessionStatus, PatientController.createPatient);
 
 /**
  * @swagger
@@ -988,7 +986,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PA
  *       404:
  *         description: Không tìm thấy hồ sơ bệnh nhân
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientController.updatePatient);
+router.put('/:id', verifyAccessToken, checkSessionStatus, PatientController.updatePatient);
 
 /**
  * @swagger
@@ -1034,7 +1032,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy hồ sơ bệnh nhân
  */
-router.patch('/:id/status', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientController.updateStatus);
+router.patch('/:id/status', verifyAccessToken, checkSessionStatus, PatientController.updateStatus);
 
 /**
  * @swagger
@@ -1080,7 +1078,7 @@ router.patch('/:id/status', verifyAccessToken, checkSessionStatus, authorizePerm
  *       404:
  *         description: Không tìm thấy hồ sơ hoặc tài khoản
  */
-router.patch('/:id/link-account', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientController.linkAccount);
+router.patch('/:id/link-account', verifyAccessToken, checkSessionStatus, PatientController.linkAccount);
 
 /**
  * @swagger
@@ -1111,7 +1109,7 @@ router.patch('/:id/link-account', verifyAccessToken, checkSessionStatus, authori
  *       404:
  *         description: Không tìm thấy hồ sơ bệnh nhân
  */
-router.patch('/:id/unlink-account', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientController.unlinkAccount);
+router.patch('/:id/unlink-account', verifyAccessToken, checkSessionStatus, PatientController.unlinkAccount);
 
 /**
  * @swagger
@@ -1152,7 +1150,7 @@ router.patch('/:id/unlink-account', verifyAccessToken, checkSessionStatus, autho
  *       404:
  *         description: Không tìm thấy bệnh nhân
  */
-router.patch('/:id/insurance-status', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_UPDATE'), PatientController.updateInsuranceStatus);
+router.patch('/:id/insurance-status', verifyAccessToken, checkSessionStatus, PatientController.updateInsuranceStatus);
 
 /**
  * @swagger
@@ -1183,7 +1181,7 @@ router.patch('/:id/insurance-status', verifyAccessToken, checkSessionStatus, aut
  *       404:
  *         description: Không tìm thấy hồ sơ bệnh nhân
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DELETE'), PatientController.deletePatient);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, PatientController.deletePatient);
 
 // =========================================================================
 // 2.5.3 GẮN TÀI LIỆU TRỰC TIẾP VÀO HỒ SƠ BỆNH NHÂN (Patient-centric)
@@ -1238,7 +1236,7 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/documents', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_VIEW'), (req, res, next) => {
+router.get('/:patientId/documents', verifyAccessToken, checkSessionStatus, (req, res, next) => {
     // Inject patientId từ path vào query để tái dùng service logic
     req.query.patient_id = req.params.patientId;
     return PatientDocumentController.getList(req, res, next);
@@ -1299,7 +1297,7 @@ router.get('/:patientId/documents', verifyAccessToken, checkSessionStatus, autho
  *       403:
  *         description: Không có quyền
  */
-router.post('/:patientId/documents', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_DOC_MANAGE'), uploadDoc.single('file'), (req, res, next) => {
+router.post('/:patientId/documents', verifyAccessToken, checkSessionStatus, uploadDoc.single('file'), (req, res, next) => {
     // Inject patientId từ path vào body để tái dùng upload logic
     req.body.patient_id = req.params.patientId;
     return PatientDocumentController.upload(req, res, next);
@@ -1357,7 +1355,7 @@ router.post('/:patientId/documents', verifyAccessToken, checkSessionStatus, auth
  *       403:
  *         description: Không có quyền
  */
-router.post('/:patientId/tags', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_TAG_MANAGE'), PatientTagController.assignTag);
+router.post('/:patientId/tags', verifyAccessToken, checkSessionStatus, PatientTagController.assignTag);
 
 /**
  * @swagger
@@ -1391,7 +1389,7 @@ router.post('/:patientId/tags', verifyAccessToken, checkSessionStatus, authorize
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/tags', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_TAG_VIEW'), PatientTagController.getPatientTags);
+router.get('/:patientId/tags', verifyAccessToken, checkSessionStatus, PatientTagController.getPatientTags);
 
 /**
  * @swagger
@@ -1432,7 +1430,7 @@ router.get('/:patientId/tags', verifyAccessToken, checkSessionStatus, authorizeP
  *       403:
  *         description: Không có quyền
  */
-router.delete('/:patientId/tags/:tagId', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_TAG_MANAGE'), PatientTagController.removeTag);
+router.delete('/:patientId/tags/:tagId', verifyAccessToken, checkSessionStatus, PatientTagController.removeTag);
 
 // =====================================================================
 // 3.1.7. GẮN LỊCH KHÁM VỚI HỒ SƠ BỆNH NHÂN
@@ -1503,7 +1501,7 @@ import { AppointmentController } from '../../controllers/Appointment Management/
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/appointments', verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_VIEW'), AppointmentController.getByPatient);
+router.get('/:patientId/appointments', verifyAccessToken, checkSessionStatus, AppointmentController.getByPatient);
 
 /**
  * @swagger
@@ -1569,6 +1567,6 @@ router.get('/:patientId/appointments', verifyAccessToken, checkSessionStatus, au
  *       404:
  *         description: Bệnh nhân / Bác sĩ / Slot không tồn tại
  */
-router.post('/:patientId/appointments', verifyAccessToken, checkSessionStatus, authorizePermissions('APPOINTMENT_CREATE'), AppointmentController.createByPatient);
+router.post('/:patientId/appointments', verifyAccessToken, checkSessionStatus, AppointmentController.createByPatient);
 
 export const patientRoutes = router;

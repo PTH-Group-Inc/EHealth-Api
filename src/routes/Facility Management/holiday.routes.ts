@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { HolidayController } from '../../controllers/Facility Management/holiday.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -76,7 +74,7 @@ const router = Router();
  *       409:
  *         description: Đã tồn tại ngày lễ cho ngày này tại cơ sở
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('HOLIDAY_CREATE'), HolidayController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, HolidayController.create);
 
 /**
  * @swagger
@@ -123,7 +121,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('HO
  *       200:
  *         description: Thành công
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('HOLIDAY_VIEW'), HolidayController.getAll);
+router.get('/', verifyAccessToken, checkSessionStatus, HolidayController.getAll);
 
 /**
  * @swagger
@@ -149,7 +147,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('HOL
  *       404:
  *         description: Không tìm thấy
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('HOLIDAY_VIEW'), HolidayController.getById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, HolidayController.getById);
 
 /**
  * @swagger
@@ -206,7 +204,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('HOLIDAY_UPDATE'), HolidayController.update);
+router.put('/:id', verifyAccessToken, checkSessionStatus, HolidayController.update);
 
 /**
  * @swagger
@@ -234,6 +232,6 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy hoặc đã bị xóa
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('HOLIDAY_DELETE'), HolidayController.remove);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, HolidayController.remove);
 
 export const holidayRoutes = router;

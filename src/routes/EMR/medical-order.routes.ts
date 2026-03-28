@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import { MedicalOrderController } from '../../controllers/EMR/medical-order.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 // ============================================================
@@ -57,10 +55,8 @@ const router = Router();
 router.get(
     '/search-services',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_CREATE'),
     MedicalOrderController.searchServices
 );
-
 
 // ============================================================
 // API 10: Dashboard chỉ định chờ thực hiện
@@ -113,10 +109,8 @@ router.get(
 router.get(
     '/pending',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_VIEW'),
     MedicalOrderController.getPending
 );
-
 
 // ============================================================
 // API 9: Lịch sử chỉ định theo bệnh nhân
@@ -175,10 +169,8 @@ router.get(
 router.get(
     '/by-patient/:patientId',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_HISTORY'),
     MedicalOrderController.getByPatient
 );
-
 
 // ============================================================
 // API 3: Chi tiết 1 chỉ định + kết quả
@@ -211,10 +203,8 @@ router.get(
 router.get(
     '/detail/:orderId',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_VIEW'),
     MedicalOrderController.getDetail
 );
-
 
 // ============================================================
 // API 1: Tạo chỉ định CLS
@@ -277,10 +267,8 @@ router.get(
 router.post(
     '/:encounterId',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_CREATE'),
     MedicalOrderController.create
 );
-
 
 // ============================================================
 // API 2: Danh sách chỉ định theo encounter
@@ -313,10 +301,8 @@ router.post(
 router.get(
     '/:encounterId',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_VIEW'),
     MedicalOrderController.getByEncounterId
 );
-
 
 // ============================================================
 // API 12: Tóm tắt chỉ định + kết quả
@@ -349,10 +335,8 @@ router.get(
 router.get(
     '/:encounterId/summary',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_VIEW'),
     MedicalOrderController.getSummary
 );
-
 
 // ============================================================
 // API 4: Cập nhật chỉ định
@@ -404,10 +388,8 @@ router.get(
 router.patch(
     '/:orderId',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_UPDATE'),
     MedicalOrderController.update
 );
-
 
 // ============================================================
 // API 5: Hủy chỉ định
@@ -452,10 +434,8 @@ router.patch(
 router.patch(
     '/:orderId/cancel',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_CANCEL'),
     MedicalOrderController.cancel
 );
-
 
 // ============================================================
 // API 6: Bắt đầu thực hiện chỉ định
@@ -488,10 +468,8 @@ router.patch(
 router.patch(
     '/:orderId/start',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_START'),
     MedicalOrderController.start
 );
-
 
 // ============================================================
 // API 7: Ghi kết quả CLS
@@ -547,10 +525,8 @@ router.patch(
 router.post(
     '/:orderId/result',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_RESULT'),
     MedicalOrderController.createResult
 );
-
 
 // ============================================================
 // API 8: Cập nhật kết quả CLS
@@ -598,9 +574,7 @@ router.post(
 router.patch(
     '/:orderId/result',
     verifyAccessToken,
-    authorizePermissions('EMR_ORDER_RESULT'),
     MedicalOrderController.updateResult
 );
-
 
 export default router;

@@ -18,7 +18,7 @@ export class SpecialtyRepository {
 
         const countQuery = `SELECT COUNT(*) as total FROM specialties ${whereClause}`;
         const dataQuery = `
-            SELECT specialties_id, code, name, description 
+            SELECT specialties_id, code, name, description, logo_url 
             FROM specialties 
             ${whereClause} 
             ORDER BY code ASC 
@@ -39,7 +39,7 @@ export class SpecialtyRepository {
      */
     static async getSpecialtyById(id: string): Promise<Specialty | null> {
         const query = `
-            SELECT specialties_id, code, name, description 
+            SELECT specialties_id, code, name, description, logo_url 
             FROM specialties 
             WHERE specialties_id = $1 AND deleted_at IS NULL
         `;
@@ -52,7 +52,7 @@ export class SpecialtyRepository {
      */
     static async getSpecialtyByCode(code: string): Promise<Specialty | null> {
         const query = `
-            SELECT specialties_id, code, name, description 
+            SELECT specialties_id, code, name, description, logo_url 
             FROM specialties 
             WHERE code = $1 AND deleted_at IS NULL
         `;
@@ -65,11 +65,11 @@ export class SpecialtyRepository {
      */
     static async createSpecialty(specialty: Specialty): Promise<Specialty> {
         const query = `
-            INSERT INTO specialties (specialties_id, code, name, description)
-            VALUES ($1, $2, $3, $4)
-            RETURNING specialties_id, code, name, description;
+            INSERT INTO specialties (specialties_id, code, name, description, logo_url)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING specialties_id, code, name, description, logo_url;
         `;
-        const values = [specialty.specialties_id, specialty.code, specialty.name, specialty.description];
+        const values = [specialty.specialties_id, specialty.code, specialty.name, specialty.description, specialty.logo_url || null];
         const result = await pool.query(query, values);
         return result.rows[0];
     }
@@ -89,7 +89,7 @@ export class SpecialtyRepository {
             UPDATE specialties 
             SET ${setClauses}
             WHERE specialties_id = $1 
-            RETURNING specialties_id, code, name, description;
+            RETURNING specialties_id, code, name, description, logo_url;
         `;
         const result = await pool.query(query, [id, ...values]);
         return result.rows[0] ?? null;

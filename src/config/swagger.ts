@@ -219,6 +219,7 @@ const options = {
       { name: '2.1 Quản lý Cơ sở Y tế', description: 'API Tạo và Cập nhật Cơ sở Y tế đa chi nhánh, upload logo' },
       { name: '2.2 Quản lý Chi nhánh', description: 'API Tạo và cấu hình Chi nhánh trực thuộc, phân tuyến cơ sở' },
       { name: '2.3 Quản lý Khoa/Phòng ban', description: 'API Quản lý chuyên khoa trực thuộc chi nhánh' },
+      { name: '2.3.1 Gán chuyên khoa - Phòng ban', description: 'Quản lý liên kết N-N giữa Khoa/Phòng ban và Chuyên khoa. Tra cứu chuyên khoa theo phòng ban, chi nhánh hoặc cơ sở y tế' },
       { name: '2.4 Quản lý Không gian/Phòng khám', description: 'API Quản lý không gian chức năng, buồng khám' },
       { name: '2.5 Quản lý Nhân sự y tế', description: 'API Quản lý Nhân sự y tế' },
       { name: '2.6.1 Quản lý Lịch làm việc & Ca trực', description: 'API Quản lý Ca làm việc' },

@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { PrescriptionController } from '../../controllers/EMR/prescription.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 export const prescriptionRoutes = Router();
 
 // =====================================================================
@@ -83,7 +81,6 @@ prescriptionRoutes.get(
     '/search-drugs',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_CREATE'),
     PrescriptionController.searchDrugs
 );
 
@@ -168,7 +165,6 @@ prescriptionRoutes.get(
     '/search',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.search
 );
 
@@ -219,7 +215,6 @@ prescriptionRoutes.get(
     '/search/stats',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.getStats
 );
 
@@ -255,7 +250,6 @@ prescriptionRoutes.get(
     '/search/by-code/:code',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.searchByCode
 );
 
@@ -324,7 +318,6 @@ prescriptionRoutes.get(
     '/by-patient/:patientId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.getByPatient
 );
 
@@ -420,7 +413,6 @@ prescriptionRoutes.get(
     '/by-doctor/:doctorId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.getByDoctor
 );
 
@@ -492,7 +484,6 @@ prescriptionRoutes.patch(
     '/details/:detailId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_EDIT'),
     PrescriptionController.updateDetail
 );
 
@@ -535,7 +526,6 @@ prescriptionRoutes.delete(
     '/details/:detailId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_EDIT'),
     PrescriptionController.deleteDetail
 );
 
@@ -618,7 +608,6 @@ prescriptionRoutes.post(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_CREATE'),
     PrescriptionController.create
 );
 
@@ -677,7 +666,6 @@ prescriptionRoutes.get(
     '/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.getByEncounterId
 );
 
@@ -719,7 +707,6 @@ prescriptionRoutes.get(
     '/:encounterId/summary',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.getSummary
 );
 
@@ -783,7 +770,6 @@ prescriptionRoutes.patch(
     '/:prescriptionId/update',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_EDIT'),
     PrescriptionController.update
 );
 
@@ -833,7 +819,6 @@ prescriptionRoutes.patch(
     '/:prescriptionId/confirm',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_EDIT'),
     PrescriptionController.confirm
 );
 
@@ -890,7 +875,6 @@ prescriptionRoutes.patch(
     '/:prescriptionId/cancel',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_EDIT'),
     PrescriptionController.cancel
 );
 
@@ -982,7 +966,6 @@ prescriptionRoutes.post(
     '/:prescriptionId/details',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_EDIT'),
     PrescriptionController.addDetail
 );
 
@@ -1023,6 +1006,5 @@ prescriptionRoutes.get(
     '/:prescriptionId/details',
     verifyAccessToken,
     checkSessionStatus,
-    authorizePermissions('EMR_PRESCRIPTION_VIEW'),
     PrescriptionController.getDetails
 );

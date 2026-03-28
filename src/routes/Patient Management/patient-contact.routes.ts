@@ -3,8 +3,6 @@ import { Router } from 'express';
 import { PatientContactController } from '../../controllers/Patient Management/patient-contact.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { authorizePermissions } from '../../middleware/authorizePermissions.middleware';
-
 const router = Router();
 
 /**
@@ -111,7 +109,7 @@ const router = Router();
  *       403:
  *         description: Không có quyền truy cập
  */
-router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientContactController.getContacts);
+router.get('/', verifyAccessToken, checkSessionStatus, PatientContactController.getContacts);
 
 /**
  * @swagger
@@ -141,7 +139,7 @@ router.get('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PAT
  *       404:
  *         description: Không tìm thấy thông tin người thân
  */
-router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientContactController.getById);
+router.get('/:id', verifyAccessToken, checkSessionStatus, PatientContactController.getById);
 
 /**
  * @swagger
@@ -222,7 +220,7 @@ router.get('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       403:
  *         description: Không có quyền
  */
-router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), PatientContactController.create);
+router.post('/', verifyAccessToken, checkSessionStatus, PatientContactController.create);
 
 /**
  * @swagger
@@ -278,7 +276,7 @@ router.post('/', verifyAccessToken, checkSessionStatus, authorizePermissions('PA
  *       404:
  *         description: Không tìm thấy thông tin người thân
  */
-router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), PatientContactController.update);
+router.put('/:id', verifyAccessToken, checkSessionStatus, PatientContactController.update);
 
 /**
  * @swagger
@@ -308,7 +306,7 @@ router.put('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('
  *       404:
  *         description: Không tìm thấy thông tin người thân
  */
-router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), PatientContactController.delete);
+router.delete('/:id', verifyAccessToken, checkSessionStatus, PatientContactController.delete);
 
 // 2.4.3: Liên hệ khẩn cấp
 
@@ -358,7 +356,7 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, authorizePermission
  *       403:
  *         description: Không có quyền
  */
-router.patch('/:id/set-emergency', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), PatientContactController.setEmergencyContact);
+router.patch('/:id/set-emergency', verifyAccessToken, checkSessionStatus, PatientContactController.setEmergencyContact);
 
 // 2.4.4: Người đại diện pháp lý 
 
@@ -413,7 +411,7 @@ router.patch('/:id/set-emergency', verifyAccessToken, checkSessionStatus, author
  *       403:
  *         description: Không có quyền
  */
-router.patch('/:id/set-legal-representative', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), PatientContactController.setLegalRepresentative);
+router.patch('/:id/set-legal-representative', verifyAccessToken, checkSessionStatus, PatientContactController.setLegalRepresentative);
 
 // 2.4.5: Ghi chú quyền quyết định y tế 
 
@@ -464,7 +462,7 @@ router.patch('/:id/set-legal-representative', verifyAccessToken, checkSessionSta
  *       403:
  *         description: Không có quyền
  */
-router.patch('/:id/medical-decision-note', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_MANAGE'), PatientContactController.updateMedicalDecisionNote);
+router.patch('/:id/medical-decision-note', verifyAccessToken, checkSessionStatus, PatientContactController.updateMedicalDecisionNote);
 
 /**
  * @swagger
@@ -513,7 +511,7 @@ router.patch('/:id/medical-decision-note', verifyAccessToken, checkSessionStatus
  *       403:
  *         description: Không có quyền
  */
-router.get('/:id/medical-decision-note', verifyAccessToken, checkSessionStatus, authorizePermissions('PATIENT_RELATION_VIEW'), PatientContactController.getMedicalDecisionNote);
+router.get('/:id/medical-decision-note', verifyAccessToken, checkSessionStatus, PatientContactController.getMedicalDecisionNote);
 
 export const patientContactRoutes = router;
 
