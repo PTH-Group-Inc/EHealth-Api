@@ -24,14 +24,12 @@ const router = Router();
  *   get:
  *     summary: Lấy danh sách dịch vụ đã gán cho chuyên khoa
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Trả về danh sách tất cả dịch vụ y tế chuẩn (Master Service) đã được gán cho chuyên khoa chỉ định.
- *
- *       **Phân quyền:** Yêu cầu quyền `SPECIALTY_SERVICE_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, STAFF
  *     tags: [2.9.1 Gán dịch vụ - Chuyên khoa]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: specialtyId
@@ -70,12 +68,8 @@ const router = Router();
  *                         type: string
  *       404:
  *         description: Chuyên khoa không tồn tại (SSRV_001)
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/:specialtyId/services', authorizePermissions('SPECIALTY_SERVICE_VIEW'), SpecialtyServiceController.getServicesBySpecialty);
+router.get('/:specialtyId/services', SpecialtyServiceController.getServicesBySpecialty);
 
 /**
  * @swagger
@@ -83,14 +77,12 @@ router.get('/:specialtyId/services', authorizePermissions('SPECIALTY_SERVICE_VIE
  *   get:
  *     summary: Lấy danh sách chuyên khoa đã gán cho 1 dịch vụ
  *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
+ *
  *       Tra cứu ngược: Xem dịch vụ này thuộc những chuyên khoa nào.
- *
- *       **Phân quyền:** Yêu cầu quyền `SPECIALTY_SERVICE_VIEW`
- *
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, STAFF
  *     tags: [2.9.1 Gán dịch vụ - Chuyên khoa]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: serviceId
@@ -125,12 +117,8 @@ router.get('/:specialtyId/services', authorizePermissions('SPECIALTY_SERVICE_VIE
  *                         type: string
  *       404:
  *         description: Dịch vụ không tồn tại (SRV_001)
- *       401:
- *         description: Chưa đăng nhập
- *       403:
- *         description: Không có quyền truy cập
  */
-router.get('/by-service/:serviceId', authorizePermissions('SPECIALTY_SERVICE_VIEW'), SpecialtyServiceController.getSpecialtiesByService);
+router.get('/by-service/:serviceId', SpecialtyServiceController.getSpecialtiesByService);
 
 /**
  * @swagger

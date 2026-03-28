@@ -15,12 +15,11 @@ const specialtyRouter = Router();
  *   get:
  *     summary: Lấy danh sách chuyên khoa
  *     description: |
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *
  *       Trả về danh sách chuyên khoa với hỗ trợ phân trang và tìm kiếm.
- *       **Yêu cầu:**
- *       - Access Token hợp lệ (Bearer Token)
- *       - Quyền: ADMIN hoặc SYSTEM
  *       - Hỗ trợ tìm kiếm theo mã (code) hoặc tên (name)
  *     operationId: getSpecialties
  *     tags: [1.5.1 Quản lý danh mục chuyên khoa]
@@ -96,16 +95,10 @@ const specialtyRouter = Router();
  *                       example: 3
  *       400:
  *         description: Dữ liệu tìm kiếm không hợp lệ
- *       401:
- *         description: Không được phép - Token không hợp lệ hoặc hết hạn hoặc không được cung cấp
- *       403:
- *         description: Cấm truy cập - Không có quyền ADMIN hoặc SYSTEM
  *       500:
  *         description: Lỗi hệ thống
- *     security:
- *       - bearerAuth: []
  */
-specialtyRouter.get('/', authorizePermissions('SPECIALTY_VIEW', 'SPECIALTY_VIEW_ALL'), SpecialtyController.getSpecialties);
+specialtyRouter.get('/', SpecialtyController.getSpecialties);
 
 /**
  * @swagger
@@ -113,12 +106,11 @@ specialtyRouter.get('/', authorizePermissions('SPECIALTY_VIEW', 'SPECIALTY_VIEW_
  *   get:
  *     summary: Lấy thông tin chi tiết một chuyên khoa
  *     description: |
- *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, PHARMACIST, STAFF
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       **Vai trò được phép:** Tất cả (bao gồm khách vãng lai)
  *
  *       Trả về thông tin chi tiết của chuyên khoa theo ID.
- *       **Yêu cầu:**
- *       - Access Token hợp lệ (Bearer Token)
- *       - Quyền: ADMIN hoặc SYSTEM
  *     operationId: getSpecialtyById
  *     tags: [1.5.1 Quản lý danh mục chuyên khoa]
  *     parameters:
@@ -158,18 +150,12 @@ specialtyRouter.get('/', authorizePermissions('SPECIALTY_VIEW', 'SPECIALTY_VIEW_
  *                     description:
  *                       type: string
  *                       example: Chuyên điều trị các bệnh lý về tim mạch
- *       401:
- *         description: Không được phép - Token không hợp lệ hoặc hết hạn hoặc không được cung cấp
- *       403:
- *         description: Cấm truy cập - Không có quyền ADMIN hoặc SYSTEM
  *       404:
  *         description: Không tìm thấy chuyên khoa với ID được chỉ định
  *       500:
  *         description: Lỗi hệ thống
- *     security:
- *       - bearerAuth: []
  */
-specialtyRouter.get('/:id', authorizePermissions('SPECIALTY_VIEW'), SpecialtyController.getSpecialtyById);
+specialtyRouter.get('/:id', SpecialtyController.getSpecialtyById);
 
 /**
  * @swagger
