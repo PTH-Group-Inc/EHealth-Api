@@ -181,6 +181,37 @@ router.get('/without-insurance', verifyAccessToken, checkSessionStatus, PatientC
  */
 router.get('/filter-by-tags', verifyAccessToken, checkSessionStatus, PatientController.filterByTags);
 
+/**
+ * @swagger
+ * /api/patients/account/{accountId}:
+ *   get:
+ *     summary: Lấy danh sách hồ sơ bệnh nhân theo User ID
+ *     description: |
+ *       **Chức năng:** Trả về tất cả các hồ sơ bệnh nhân đã được liên kết với một `account_id` (User ID) cụ thể.
+ *       Dùng khi user vừa đăng nhập vào App/Web để check xem user này đã tạo hồ sơ bệnh nhân chưa.
+ *       Nếu kết quả mảng rỗng `[]`, Frontend lập tức hiển thị luồng "Tạo thiết lập hồ sơ bệnh nhân mới" để lấy nội dung.
+ *
+ *       **Phân quyền:** Yêu cầu xác thực token (đăng nhập).
+ *       **Vai trò được phép:** Tất cả các Role (bao gồm Customer/Patient).
+ *     tags: [2.1 Quản lý Hồ sơ Bệnh nhân]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: accountId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tài khoản người dùng (User ID)
+ *         example: "cf5abd71-7d05-44df-9a50-903e93a9a20b"
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách hồ sơ bệnh nhân (mảng rỗng nếu chưa có)
+ *       401:
+ *         description: Chưa xác thực
+ */
+router.get('/account/:accountId', verifyAccessToken, checkSessionStatus, PatientController.getPatientsByAccountId);
+
 // 2.7 TÌM KIẾM & TRA CỨU BỆNH NHÂN
 
 /**
