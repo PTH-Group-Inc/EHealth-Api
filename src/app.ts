@@ -6,6 +6,7 @@ import { initRoutes } from './routes/index.route'
 import { SessionCleanup } from './jobs/SessionCleanup.jobs'
 import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs'
 import { startPaymentOrderExpiryJob } from './jobs/PaymentOrderExpiry.jobs'
+import { startAiSessionExpiryJob } from './jobs/AiSessionExpiry.jobs'
 
 const app = express()
 
@@ -23,6 +24,7 @@ initRoutes(app);
 SessionCleanup.startSessionCleanupJob();
 AppointmentReminderJob.startReminderJob();
 startPaymentOrderExpiryJob();
+startAiSessionExpiryJob();
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({

@@ -58,10 +58,10 @@ export class AiRagRepository {
             await client.query('BEGIN');
 
             // Build bulk INSERT: 1 câu query cho toàn bộ chunks (giảm N round trips → 1)
-            const FIELDS_PER_ROW = 5;
+            const FIELDS_PER_ROW = 6;
             const placeholders = chunks
                 .map((_, i) =>
-                    `($${i * FIELDS_PER_ROW + 1}, $${i * FIELDS_PER_ROW + 2}, $${i * FIELDS_PER_ROW + 3}, $${i * FIELDS_PER_ROW + 4}, $${i * FIELDS_PER_ROW + 5})`
+                    `($${i * FIELDS_PER_ROW + 1}, $${i * FIELDS_PER_ROW + 2}, $${i * FIELDS_PER_ROW + 3}, $${i * FIELDS_PER_ROW + 4}, $${i * FIELDS_PER_ROW + 5}, $${i * FIELDS_PER_ROW + 6})`
                 )
                 .join(', ');
 
@@ -71,11 +71,12 @@ export class AiRagRepository {
                 chunk.chunk_index,
                 chunk.content,
                 chunk.embedding,
+                JSON.stringify(chunk.metadata || {}),
             ]);
 
             const bulkQuery = `
                 INSERT INTO ai_document_chunks (
-                    chunk_id, document_id, chunk_index, content, embedding
+                    chunk_id, document_id, chunk_index, content, embedding, metadata
                 ) VALUES ${placeholders}
             `;
 
@@ -90,12 +91,14 @@ export class AiRagRepository {
     }
 
     /**
-     * Tìm kiếm Top K tài liệu (chunks) gần nghĩa với câu hỏi nhất.
-     * Hỗ trợ filter theo document_category để tăng độ chính xác.
+     * Tìm kiếm Hybrid: kết hợp vector similarity (cosine) + keyword matching (tsvector).
      */
-    static async searchSimilarChunks(
+    static async hybridSearch(
         queryEmbedding: string,
-        limit: number = 3,
+        queryText: string,
+        limit: number = 5,
+        vectorWeight: number = 0.7,
+        keywordWeight: number = 0.3,
         categories?: string[]
     ): Promise<RAGSearchResult[]> {
         let query: string;
@@ -106,30 +109,36 @@ export class AiRagRepository {
                 SELECT 
                     c.content,
                     c.document_id,
+                    c.metadata,
                     d.file_name,
-                    (c.embedding <=> $1) AS cosine_distance
+                    (1 - (c.embedding <=> $1)) AS vector_score,
+                    ts_rank(c.tsv, plainto_tsquery('simple', $3)) AS keyword_score,
+                    (1 - (c.embedding <=> $1)) * $4 + ts_rank(c.tsv, plainto_tsquery('simple', $3)) * $5 AS hybrid_score
                 FROM ai_document_chunks c
                 JOIN ai_documents d ON c.document_id = d.document_id
                 WHERE d.status = 'COMPLETED'
-                  AND d.document_category = ANY($3)
-                ORDER BY cosine_distance ASC
+                  AND d.document_category = ANY($6)
+                ORDER BY hybrid_score DESC
                 LIMIT $2;
             `;
-            values = [queryEmbedding, limit, categories];
+            values = [queryEmbedding, limit, queryText, vectorWeight, keywordWeight, categories];
         } else {
             query = `
                 SELECT 
                     c.content,
                     c.document_id,
+                    c.metadata,
                     d.file_name,
-                    (c.embedding <=> $1) AS cosine_distance
+                    (1 - (c.embedding <=> $1)) AS vector_score,
+                    ts_rank(c.tsv, plainto_tsquery('simple', $3)) AS keyword_score,
+                    (1 - (c.embedding <=> $1)) * $4 + ts_rank(c.tsv, plainto_tsquery('simple', $3)) * $5 AS hybrid_score
                 FROM ai_document_chunks c
                 JOIN ai_documents d ON c.document_id = d.document_id
                 WHERE d.status = 'COMPLETED'
-                ORDER BY cosine_distance ASC
+                ORDER BY hybrid_score DESC
                 LIMIT $2;
             `;
-            values = [queryEmbedding, limit];
+            values = [queryEmbedding, limit, queryText, vectorWeight, keywordWeight];
         }
 
         const result = await db.query(query, values);
@@ -138,7 +147,10 @@ export class AiRagRepository {
             content: row.content,
             document_id: row.document_id,
             file_name: row.file_name,
-            similarity: 1 - parseFloat(row.cosine_distance)
+            metadata: row.metadata || {},
+            similarity: parseFloat(row.vector_score),
+            hybrid_score: parseFloat(row.hybrid_score),
+            keyword_score: parseFloat(row.keyword_score),
         }));
     }
 

@@ -572,6 +572,7 @@
         #toast.show { opacity: 1; }
         #toast.success { border-color: var(--accent); color: var(--accent); }
         #toast.error   { border-color: var(--danger); color: #fca5a5; }
+
     </style>
 </head>
 <body>
@@ -626,6 +627,7 @@
         <button class="btn-login-small" onclick="showLoginOverlay()">Đăng nhập</button>
     </div>
 
+
     <button class="btn-new-chat" onclick="doNewChat()">＋ Phiên tư vấn mới</button>
 
     <div class="session-list" id="sessionList">
@@ -644,7 +646,7 @@
             <p id="chatSubtitle">AI Tư Vấn Sức Khỏe</p>
         </div>
         <div class="chat-header-actions">
-            <button class="btn-end-session" id="btnEndSession" onclick="doEndSession()">Kết thúc ✓</button>
+            <!-- Đã loại bỏ nút Kết thúc theo yêu cầu thiết kế phiên vô hạn -->
             <button class="btn-delete-session" id="btnDeleteSession" onclick="doDeleteCurrentSession()">Xóa 🗑</button>
         </div>
     </div>
@@ -684,6 +686,7 @@
     </div>
 </div>
 
+
 <!-- Toast notification -->
 <div id="toast"></div>
 
@@ -701,7 +704,7 @@
     window.showLoginOverlay = showLoginOverlay;
     window.doNewChat      = doNewChat;
     window.doSendMessage  = doSendMessage;
-    window.doEndSession   = doEndSession;
+    // window.doEndSession   = doEndSession; // Removed
     window.doDeleteCurrentSession = doDeleteCurrentSession;
     window.doDeleteSession = doDeleteSession;
     window.quickStart     = quickStart;
@@ -862,7 +865,7 @@
         document.getElementById('messagesContainer').style.display = 'block';
         document.getElementById('chatHeader').style.display = 'flex';
         document.getElementById('chatTitle').textContent = title || 'Phiên tư vấn';
-        document.getElementById('btnEndSession').style.display = showEnd ? 'inline-block' : 'none';
+        // document.getElementById('btnEndSession').style.display = showEnd ? 'inline-block' : 'none'; // Nút Kết thúc đã được loại bỏ
         document.getElementById('btnDeleteSession').style.display = 'inline-block';
     }
 
@@ -887,12 +890,7 @@
         setBtnLoading(false);
     }
 
-    async function doEndSession() {
-        if (!confirm('Kết thúc phiên tư vấn này?')) return;
-        await endSession();
-        document.getElementById('btnEndSession').style.display = 'none';
-        showToast('Phiên đã kết thúc.');
-    }
+    // async function doEndSession() { ... } // Nút kết thúc đã bị loại bỏ
 
     /** Xóa phiên theo sessionId (từ sidebar) */
     async function doDeleteSession(sessionId) {
@@ -1156,6 +1154,7 @@
         textarea.style.height = 'auto';
         textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     });
+
 
     // ─── INIT ─────────────────────────────────────────────────
     (async function init() {
