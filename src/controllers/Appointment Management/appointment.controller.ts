@@ -451,4 +451,35 @@ export class AppointmentController {
             }
         }
     }
+
+    /**
+     * GET /api/appointments/available-slots-by-department — Slot trống theo khoa
+     */
+    static async getAvailableSlotsByDepartment(req: Request, res: Response) {
+        try {
+            const department_id = req.query.department_id?.toString();
+            const facility_id = req.query.facility_id?.toString();
+            if (!department_id || !facility_id) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DEPARTMENT_FILTER',
+                    APPOINTMENT_ERRORS.MISSING_DEPARTMENT_FILTER);
+            }
+            const start_date = req.query.start_date?.toString();
+            const days = req.query.days ? parseInt(req.query.days.toString()) : undefined;
+
+            const data = await AppointmentService.getAvailableSlotsByDepartment({
+                department_id, facility_id, start_date, days
+            });
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: APPOINTMENT_SUCCESS.DEPARTMENT_SLOTS_FETCHED,
+                data
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy slot theo khoa' });
+            }
+        }
+    }
 }

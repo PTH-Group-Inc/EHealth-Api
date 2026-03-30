@@ -1053,5 +1053,92 @@ export class AppointmentRepository {
         );
         return (result.rowCount ?? 0) > 0;
     }
+
+    /**
+     * Kiểm tra department tồn tại và đang ACTIVE
+     */
+    static async departmentExists(departmentId: string): Promise<boolean> {
+        const result = await pool.query(
+            `SELECT departments_id FROM departments
+             WHERE departments_id = $1 AND status = 'ACTIVE' AND deleted_at IS NULL`,
+            [departmentId]
+        );
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /**
+     * Lấy facility_id từ department_id thông qua branch
+     */
+    static async getFacilityIdByDepartment(departmentId: string): Promise<string | null> {
+        const result = await pool.query(
+            `SELECT b.facility_id
+             FROM departments d
+             JOIN branches b ON d.branch_id = b.branches_id
+             WHERE d.departments_id = $1`,
+            [departmentId]
+        );
+        return result.rows[0]?.facility_id ?? null;
+    }
+
+    /**
+     * Lấy danh sách slot trống theo khoa (department) cho một ngày cụ thể.
+     * Trả về slot kèm booked_count (chỉ đếm lịch gán vào phòng thuộc department).
+     */
+    static async findAvailableSlotsByDepartmentForDate(
+        departmentId: string,
+        date: string,
+        maxPatientsPerSlot: number
+    ): Promise<any[]> {
+        const statusPlaceholders = ACTIVE_APPOINTMENT_STATUSES.map((_, i) => `$${i + 3}`).join(', ');
+        const values: any[] = [departmentId, date, ...ACTIVE_APPOINTMENT_STATUSES];
+
+        const query = `
+            SELECT
+                sl.slot_id,
+                sl.start_time,
+                sl.end_time,
+                s.shifts_id AS shift_id,
+                s.code AS shift_code,
+                s.name AS shift_name,
+                COALESCE(booked.cnt, 0)::int AS booked_count
+            FROM appointment_slots sl
+            JOIN shifts s ON sl.shift_id = s.shifts_id
+            LEFT JOIN (
+                SELECT a.slot_id, COUNT(*)::int AS cnt
+                FROM appointments a
+                JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
+                WHERE a.appointment_date = $2::date
+                  AND a.status IN (${statusPlaceholders})
+                  AND mr.department_id = $1
+                GROUP BY a.slot_id
+            ) booked ON booked.slot_id = sl.slot_id
+            LEFT JOIN locked_slots ls
+                ON ls.slot_id = sl.slot_id
+                AND ls.locked_date = $2::date
+                AND ls.deleted_at IS NULL
+            WHERE sl.is_active = true
+              AND s.status = 'ACTIVE'
+              AND s.deleted_at IS NULL
+              AND ls.locked_slot_id IS NULL
+            ORDER BY sl.start_time ASC;
+        `;
+
+        const result = await pool.query(query, values);
+        return result.rows;
+    }
+
+    /**
+     * Lấy danh sách phòng khám thuộc một department (dùng cho response available-slots-by-department)
+     */
+    static async findRoomsByDepartment(departmentId: string): Promise<Array<{ room_id: string; room_name: string; room_code: string }>> {
+        const result = await pool.query(
+            `SELECT medical_rooms_id AS room_id, name AS room_name, code AS room_code
+             FROM medical_rooms
+             WHERE department_id = $1 AND status = 'ACTIVE' AND room_type = 'CONSULTATION' AND deleted_at IS NULL
+             ORDER BY name ASC`,
+            [departmentId]
+        );
+        return result.rows;
+    }
 }
 

@@ -424,6 +424,23 @@ export class PatientRepository {
     }
 
     /**
+     * Lấy danh sách hồ sơ bệnh nhân được liên kết với một ID tài khoản (account_id / userId)
+     */
+    static async getPatientsByAccountId(accountId: string): Promise<Patient[]> {
+        const query = `
+            SELECT p.*,
+                   a.email AS account_email,
+                   a.phone_number AS account_phone
+            FROM patients p
+            LEFT JOIN users a ON a.users_id = p.account_id
+            WHERE p.account_id = $1 AND p.deleted_at IS NULL
+            ORDER BY p.created_at DESC
+        `;
+        const result = await pool.query(query, [accountId]);
+        return result.rows;
+    }
+
+    /**
      * Tìm kiếm nhanh (Autocomplete) — tối thiểu dữ liệu, tối đa tốc độ.
      */
     static async quickSearch(keyword: string): Promise<PatientQuickResult[]> {

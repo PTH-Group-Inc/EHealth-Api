@@ -34,6 +34,12 @@ export const BOOKING_CHANNEL = {
 /** Giá trị mặc định cho số bệnh nhân tối đa mỗi slot (nếu chưa cấu hình) */
 export const DEFAULT_MAX_PATIENTS_PER_SLOT = 1;
 
+/** Số ngày mặc định khi quét slot trống theo khoa (nếu không truyền tham số days) */
+export const DEFAULT_DEPARTMENT_SLOT_DAYS = 7;
+
+/** Giới hạn tối đa số ngày quét slot (tránh query quá nặng) */
+export const MAX_DEPARTMENT_SLOT_DAYS = 30;
+
 /** Prefix cho mã lịch khám tự động */
 export const APPOINTMENT_CODE_PREFIX = 'APP';
 
@@ -99,6 +105,8 @@ export const APPOINTMENT_ERRORS = {
     SHIFT_NOT_FOUND: 'Ca khám không tồn tại hoặc không hoạt động',
     SHIFT_FULL: 'Tất cả khung giờ trong ca này đã đầy, vui lòng chọn ca khác',
     NO_DOCTOR_AVAILABLE: 'Không có bác sĩ nào trực ca này tại chi nhánh đã chọn',
+    DEPARTMENT_NOT_FOUND: 'Khoa/Phòng ban không tồn tại hoặc đã ngừng hoạt động',
+    MISSING_DEPARTMENT_FILTER: 'Thiếu thông tin bắt buộc: department_id và facility_id',
 } as const;
 
 /** Cảnh báo (warning) — lịch vẫn tạo được nhưng cần staff xử lý */
@@ -123,4 +131,5 @@ export const APPOINTMENT_SUCCESS = {
     VISIT_REASON_FETCHED: 'Lấy thông tin mục đích khám thành công',
     BOOKED_BY_STAFF: 'Lễ tân đặt lịch khám hộ thành công',
     PATIENT_APPOINTMENTS_FETCHED: 'Lấy danh sách lịch khám của bệnh nhân thành công',
+    DEPARTMENT_SLOTS_FETCHED: 'Lấy danh sách slot trống theo khoa thành công',
 } as const;

@@ -287,6 +287,16 @@ export class PatientService {
     }
 
     /**
+     * Lấy danh sách hồ sơ bệnh nhân được liên kết với một ID tài khoản
+     */
+    static async getPatientsByAccountId(accountId: string): Promise<Patient[]> {
+        if (!accountId) {
+            throw { success: false, code: 'PAT_006', message: 'ID Tài khoản không hợp lệ.' };
+        }
+        return await PatientRepository.getPatientsByAccountId(accountId);
+    }
+
+    /**
      * Tìm kiếm nhanh (autocomplete) — trả về tối đa 10 kết quả
      */
     static async quickSearch(keyword: string): Promise<PatientQuickResult[]> {

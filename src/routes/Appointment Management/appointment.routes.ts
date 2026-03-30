@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { AppointmentController } from '../../controllers/Appointment Management/appointment.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
@@ -683,6 +683,123 @@ appointmentRoutes.get(
     [verifyAccessToken, checkSessionStatus],
     AppointmentController.getAvailableSlots
 );
+
+/**
+ * @swagger
+ * /api/appointments/available-slots-by-department:
+ *   get:
+ *     summary: Lấy danh sách slot trống theo Khoa (Department)
+ *     description: |
+ *       **Chức năng:** Trả về lịch khám trống nhóm theo ngày cho một Khoa (Department) cụ thể.
+ *       Người dùng chọn Khoa → hệ thống quét slot trống từ ngày bắt đầu (mặc định hôm nay)
+ *       trong khoảng N ngày (mặc định 7), kèm danh sách phòng khám thuộc khoa và trạng thái
+ *       còn chỗ (`is_available`) để Frontend vẽ lưới đặt lịch.
+ *
+ *       **Phân quyền:** Yêu cầu xác thực token (đăng nhập).
+ *       **Vai trò được phép:** Tất cả (ADMIN, STAFF, DOCTOR, NURSE, PATIENT).
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: department_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của Khoa/Phòng ban cần xem lịch trống
+ *         example: "DEPT_NOI_001"
+ *       - in: query
+ *         name: facility_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID cơ sở y tế (để kiểm tra ngày lễ / giờ mở cửa)
+ *         example: "FAC_001"
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Ngày bắt đầu quét (mặc định = hôm nay)
+ *         example: "2026-03-31"
+ *       - in: query
+ *         name: days
+ *         schema:
+ *           type: integer
+ *           default: 7
+ *           minimum: 1
+ *           maximum: 30
+ *         description: Số ngày muốn quét lịch (mặc định 7, tối đa 30)
+ *         example: 7
+ *     responses:
+ *       200:
+ *         description: Trả về mảng lịch nhóm theo ngày, mỗi ngày chứa danh sách slot
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         example: "2026-03-31"
+ *                       is_facility_open:
+ *                         type: boolean
+ *                         example: true
+ *                       slots:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             slot_id:
+ *                               type: string
+ *                             start_time:
+ *                               type: string
+ *                               example: "08:00:00"
+ *                             end_time:
+ *                               type: string
+ *                               example: "08:30:00"
+ *                             shift_name:
+ *                               type: string
+ *                               example: "Ca sáng"
+ *                             rooms:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   room_id:
+ *                                     type: string
+ *                                   room_name:
+ *                                     type: string
+ *                             booked_count:
+ *                               type: integer
+ *                               example: 2
+ *                             max_capacity:
+ *                               type: integer
+ *                               example: 5
+ *                             is_available:
+ *                               type: boolean
+ *                               example: true
+ *       400:
+ *         description: Thiếu department_id hoặc facility_id
+ *       404:
+ *         description: Khoa không tồn tại hoặc ngừng hoạt động
+ *       401:
+ *         description: Chưa đăng nhập
+ */
+appointmentRoutes.get(
+    '/available-slots-by-department',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentController.getAvailableSlotsByDepartment
+);
+
 
 /**
  * @swagger

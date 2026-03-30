@@ -15,7 +15,8 @@ import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import {
     APPOINTMENT_STATUS, APPOINTMENT_ERRORS, DEFAULT_MAX_PATIENTS_PER_SLOT,
     RESCHEDULABLE_STATUSES, UPDATABLE_STATUSES, AUTO_CONFIRM_CHANNELS,
-    CONFLICT_TYPE, APPOINTMENT_SUCCESS, BOOKING_CHANNEL, APPOINTMENT_WARNINGS
+    CONFLICT_TYPE, APPOINTMENT_SUCCESS, BOOKING_CHANNEL, APPOINTMENT_WARNINGS,
+    DEFAULT_DEPARTMENT_SLOT_DAYS, MAX_DEPARTMENT_SLOT_DAYS
 } from '../../constants/appointment.constant';
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
 import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS } from '../../constants/appointment-change.constant';
@@ -751,5 +752,95 @@ export class AppointmentService {
         }
 
         return { warning };
+    }
+
+    /**
+     * Lấy danh sách slot trống theo khoa (department) trong khoảng n ngày.
+     * Dùng cho màn hình "Đặt lịch theo Khoa" trên App/Web.
+     */
+    static async getAvailableSlotsByDepartment(filters: {
+        department_id: string;
+        facility_id: string;
+        start_date?: string;
+        days?: number;
+    }): Promise<any[]> {
+        const { department_id, facility_id } = filters;
+
+        // Validate bắt buộc
+        if (!department_id || !facility_id) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DEPARTMENT_FILTER',
+                APPOINTMENT_ERRORS.MISSING_DEPARTMENT_FILTER);
+        }
+
+        // Validate department tồn tại
+        const deptOk = await AppointmentRepository.departmentExists(department_id);
+        if (!deptOk) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'DEPARTMENT_NOT_FOUND',
+                APPOINTMENT_ERRORS.DEPARTMENT_NOT_FOUND);
+        }
+
+        // Xác định ngày bắt đầu (default = hôm nay, timezone VN)
+        const now = new Date();
+        const startDate = filters.start_date
+            ? new Date(filters.start_date)
+            : now;
+        startDate.setHours(0, 0, 0, 0);
+
+        // Clamp số ngày trong giới hạn cho phép
+        const days = Math.min(
+            Math.max(filters.days || DEFAULT_DEPARTMENT_SLOT_DAYS, 1),
+            MAX_DEPARTMENT_SLOT_DAYS
+        );
+
+        // Lấy max_patients_per_slot từ cấu hình
+        const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+        const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+
+        // Lấy danh sách phòng thuộc department (cố định cho mọi ngày)
+        const rooms = await AppointmentRepository.findRoomsByDepartment(department_id);
+
+        // Lặp qua từng ngày
+        const result: any[] = [];
+        for (let i = 0; i < days; i++) {
+            const targetDate = new Date(startDate);
+            targetDate.setDate(targetDate.getDate() + i);
+            const dateStr = targetDate.toISOString().slice(0, 10);
+
+            // Kiểm tra cơ sở có mở cửa không
+            let isFacilityOpen = true;
+            try {
+                const facilityStatus = await FacilityStatusService.determineFacilityStatus(facility_id, dateStr);
+                isFacilityOpen = facilityStatus.is_open;
+            } catch {
+                isFacilityOpen = true; // Fallback: coi như mở
+            }
+
+            if (!isFacilityOpen) {
+                result.push({ date: dateStr, is_facility_open: false, slots: [] });
+                continue;
+            }
+
+            // Query slot kèm booked_count
+            const rawSlots = await AppointmentRepository.findAvailableSlotsByDepartmentForDate(
+                department_id, dateStr, maxPatients
+            );
+
+            const slots = rawSlots.map(slot => ({
+                slot_id: slot.slot_id,
+                start_time: slot.start_time,
+                end_time: slot.end_time,
+                shift_id: slot.shift_id,
+                shift_code: slot.shift_code,
+                shift_name: slot.shift_name,
+                rooms,
+                booked_count: slot.booked_count,
+                max_capacity: maxPatients,
+                is_available: slot.booked_count < maxPatients,
+            }));
+
+            result.push({ date: dateStr, is_facility_open: true, slots });
+        }
+
+        return result;
     }
 }

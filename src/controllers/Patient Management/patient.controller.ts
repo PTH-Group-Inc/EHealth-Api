@@ -419,6 +419,17 @@ export class PatientController {
         }
     }
 
+    /** Lấy danh sách hồ sơ bệnh nhân qua ID tài khoản (User ID) */
+    static async getPatientsByAccountId(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { accountId } = req.params as { accountId: string };
+            const data = await PatientService.getPatientsByAccountId(accountId);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     /** Tìm kiếm nhanh (Autocomplete) */
     static async quickSearch(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
