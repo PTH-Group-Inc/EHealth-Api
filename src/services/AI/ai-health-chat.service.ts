@@ -22,6 +22,7 @@ import {
     AI_CHAT_ROLES,
     AI_CHAT_ERRORS,
     AI_CORE_PROMPT,
+    AI_COMPACT_PROMPT,
     AI_DISEASE_KNOWLEDGE_BASE,
     AI_CONVERSATION_PHASES,
     AI_CONVERSATION_CONFIG,
@@ -29,6 +30,8 @@ import {
     AI_CHAT_FEEDBACK_VALUES,
     AI_CHAT_FEEDBACK_CONFIG,
     AI_FEEDBACK_INSIGHT_CONFIG,
+    AI_PHASE_RULES,
+    AI_USER_QUOTA_CONFIG,
 } from '../../constants/ai-health-chat.constant';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -107,6 +110,9 @@ export class AiHealthChatService {
             if (activeCount >= AI_CHAT_CONFIG.MAX_ACTIVE_SESSIONS) {
                 throw new AppError(HTTP_STATUS.TOO_MANY_REQUESTS, 'TOO_MANY_SESSIONS', AI_CHAT_ERRORS.MAX_SESSIONS_REACHED);
             }
+
+            // Kiểm tra user quota (cross-session) — giới hạn tổng số tin nhắn trong window
+            await this.checkUserQuota(userId);
         }
 
         // Tạo session mới với conversation_state mặc định
@@ -130,9 +136,9 @@ export class AiHealthChatService {
             this.getFeedbackInsights(),
         ]);
 
-        // Build system prompt — lượt đầu chỉ dùng AI_CORE_PROMPT (tiết kiệm token)
+        // Build system prompt — lượt đầu gửi FULL prompt (Gemini cần nắm đầy đủ rules)
         const conversationState: ConversationState = session.conversation_state;
-        const systemPrompt = this.buildSystemPrompt(specialties, ragContext, conversationState, feedbackInsights);
+        const systemPrompt = this.buildSystemPrompt(specialties, ragContext, conversationState, feedbackInsights, true);
 
         // Gọi Gemini với Structured Output
         const startTime = Date.now();
@@ -201,9 +207,14 @@ export class AiHealthChatService {
 
         const session = await this.validateAndGetSession(sessionId, userId);
 
-        // Kiểm tra giới hạn tin nhắn
+        // Kiểm tra giới hạn tin nhắn per session
         if (session.message_count >= AI_CHAT_CONFIG.MAX_MESSAGES_PER_SESSION) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MAX_MESSAGES', AI_CHAT_ERRORS.MAX_MESSAGES_REACHED);
+        }
+
+        // Kiểm tra user quota (cross-session)
+        if (userId) {
+            await this.checkUserQuota(userId);
         }
 
         const conversationState: ConversationState = session.conversation_state;
@@ -223,9 +234,9 @@ export class AiHealthChatService {
             this.getFeedbackInsights(),
         ]);
 
-        // Từ lượt 2: inject bảng kiến thức bệnh lý
+        // Prompt tiered: lượt đầu (message_count <= 2) → full prompt, lượt sau → compact
         const isFirstTurn = session.message_count <= 2;
-        const systemPrompt = this.buildSystemPrompt(specialties, ragContext, conversationState, feedbackInsights);
+        const systemPrompt = this.buildSystemPrompt(specialties, ragContext, conversationState, feedbackInsights, isFirstTurn);
 
         // Convert history sang format Gemini
         const geminiHistory = this.convertHistoryToGemini(existingMessages);
@@ -320,6 +331,11 @@ export class AiHealthChatService {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MAX_MESSAGES', AI_CHAT_ERRORS.MAX_MESSAGES_REACHED);
         }
 
+        // Kiểm tra user quota (cross-session)
+        if (userId) {
+            await this.checkUserQuota(userId);
+        }
+
         // Setup SSE headers
         res.writeHead(200, {
             'Content-Type': 'text/event-stream',
@@ -333,20 +349,26 @@ export class AiHealthChatService {
             const useSummary = session.message_count >= AI_CONVERSATION_CONFIG.SUMMARY_TRIGGER_MESSAGE_COUNT;
 
             const ragCategories = this.mapIntentToCategories(conversationState);
+            
+            // Tối ưu tốc độ phản hồi: Bỏ qua RAG cho những câu chào hỏi siêu ngắn
+            const isSimpleGreeting = message.trim().length <= 15 && /^(hi|hello|chào|chao|alo|xin chào|hey)/i.test(message.trim());
+
             const [existingMessages, specialties, ragContext, feedbackInsights] = await Promise.all([
                 useSummary
                     ? AiHealthChatRepository.getRecentMessages(sessionId, AI_CONVERSATION_CONFIG.RECENT_MESSAGES_TO_KEEP)
                     : AiHealthChatRepository.getMessagesBySession(sessionId),
                 AiHealthChatRepository.getActiveSpecialties(),
-                this.safeRetrieveContext(
-                    this.buildEnrichedQuery(message, conversationState),
-                    ragCategories
-                ),
+                isSimpleGreeting
+                    ? Promise.resolve('')
+                    : this.safeRetrieveContext(
+                        this.buildEnrichedQuery(message, conversationState),
+                        ragCategories
+                    ),
                 this.getFeedbackInsights(),
             ]);
 
             const isFirstTurn = session.message_count <= 2;
-            const systemPrompt = this.buildSystemPrompt(specialties, ragContext, conversationState, feedbackInsights);
+            const systemPrompt = this.buildSystemPrompt(specialties, ragContext, conversationState, feedbackInsights, isFirstTurn);
             const geminiHistory = this.convertHistoryToGemini(existingMessages);
 
             const startTime = Date.now();
@@ -356,13 +378,31 @@ export class AiHealthChatService {
 
             let fullText = '';
             let totalTokens = 0;
+            let streamBlocked = false;
+            let lastSentLength = 0;
 
             // Stream từng chunk text tới client
             for await (const chunk of stream) {
                 const chunkText = chunk.text();
                 if (chunkText) {
                     fullText += chunkText;
-                    res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunkText })}\n\n`);
+                    
+                    // Cơ chế "Block Stream thông minh": Ẩn phần JSON khỏi Frontend khi SSE
+                    if (!streamBlocked) {
+                        const jsonIndex = fullText.indexOf('```json');
+                        if (jsonIndex !== -1) {
+                            streamBlocked = true;
+                            // Gửi nốt đoạn text sạch còn dư lại trước khi block
+                            const safeText = fullText.substring(0, jsonIndex);
+                            const remainingUnsent = safeText.substring(lastSentLength);
+                            if (remainingUnsent.length > 0) {
+                                res.write(`data: ${JSON.stringify({ type: 'chunk', content: remainingUnsent })}\n\n`);
+                            }
+                        } else {
+                            res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunkText })}\n\n`);
+                            lastSentLength = fullText.length;
+                        }
+                    }
                 }
                 if (chunk.usageMetadata?.totalTokenCount) {
                     totalTokens = chunk.usageMetadata.totalTokenCount;
@@ -475,14 +515,24 @@ export class AiHealthChatService {
 
     /**
      * Lấy lịch sử chat của 1 phiên (session + messages).
+     * Cho phép xem mọi status trừ DELETED (persistent chat).
      */
     static async getSessionHistory(
         sessionId: string,
         userId: string | null
     ): Promise<AiChatSessionDetail> {
-        const session = await this.validateAndGetSession(sessionId, userId);
-        const messages = await AiHealthChatRepository.getMessagesBySession(sessionId);
+        const session = await AiHealthChatRepository.getSessionById(sessionId);
 
+        if (!session || session.status === AI_CHAT_STATUS.DELETED) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'SESSION_NOT_FOUND', AI_CHAT_ERRORS.SESSION_NOT_FOUND);
+        }
+
+        // Kiểm tra quyền sở hữu
+        if (userId && session.user_id && session.user_id !== userId) {
+            throw new AppError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED_SESSION', AI_CHAT_ERRORS.UNAUTHORIZED_SESSION);
+        }
+
+        const messages = await AiHealthChatRepository.getMessagesBySession(sessionId);
         return { session, messages };
     }
 
@@ -607,7 +657,9 @@ export class AiHealthChatService {
     }
 
     /**
-     * Validate phiên tồn tại, thuộc sở hữu user, và đang ACTIVE.
+     * Validate phiên tồn tại, thuộc sở hữu user.
+     * EXPIRED/COMPLETED → tự động reopen (chuyển lại ACTIVE) nếu còn slot.
+     * DELETED → không cho mở lại.
      */
     private static async validateAndGetSession(
         sessionId: string,
@@ -624,11 +676,46 @@ export class AiHealthChatService {
             throw new AppError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED_SESSION', AI_CHAT_ERRORS.UNAUTHORIZED_SESSION);
         }
 
-        if (session.status !== AI_CHAT_STATUS.ACTIVE) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SESSION_ENDED', AI_CHAT_ERRORS.SESSION_ENDED);
+        // DELETED → không cho mở lại
+        if (session.status === AI_CHAT_STATUS.DELETED) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SESSION_DELETED', AI_CHAT_ERRORS.SESSION_DELETED_CANNOT_REOPEN);
+        }
+
+        // EXPIRED hoặc COMPLETED → tự động reopen (giống ChatGPT)
+        if (session.status === AI_CHAT_STATUS.EXPIRED || session.status === AI_CHAT_STATUS.COMPLETED) {
+            // Kiểm tra giới hạn 3 phiên ACTIVE trước khi reopen
+            if (userId) {
+                const activeCount = await AiHealthChatRepository.countActiveSessionsByUser(userId);
+                if (activeCount >= AI_CHAT_CONFIG.MAX_ACTIVE_SESSIONS) {
+                    throw new AppError(HTTP_STATUS.TOO_MANY_REQUESTS, 'TOO_MANY_SESSIONS', AI_CHAT_ERRORS.MAX_SESSIONS_REACHED);
+                }
+            }
+            await AiHealthChatRepository.updateSession(sessionId, { status: AI_CHAT_STATUS.ACTIVE } as any);
+            session.status = AI_CHAT_STATUS.ACTIVE;
+            console.log(`♻️ [AI Chat] Session ${sessionId} reopened (was ${session.status}).`);
         }
 
         return session;
+    }
+
+    /**
+     * Kiểm tra user quota cross-session.
+     * Giới hạn tổng số tin nhắn USER được gửi trong khoảng thời gian window.
+     * Nếu hết quota → ném lỗi kèm thông báo chờ.
+     */
+    private static async checkUserQuota(userId: string): Promise<void> {
+        const messagesInWindow = await AiHealthChatRepository.countUserMessagesInWindow(
+            userId,
+            AI_USER_QUOTA_CONFIG.WINDOW_HOURS
+        );
+
+        if (messagesInWindow >= AI_USER_QUOTA_CONFIG.MAX_MESSAGES_PER_WINDOW) {
+            throw new AppError(
+                HTTP_STATUS.TOO_MANY_REQUESTS,
+                'USER_QUOTA_EXHAUSTED',
+                AI_CHAT_ERRORS.USER_QUOTA_EXHAUSTED
+            );
+        }
     }
 
     //  STATE MACHINE — Chống lạc đề
@@ -820,14 +907,17 @@ export class AiHealthChatService {
     //  PROMPT BUILDING
 
     /**
-     * Build system prompt hoàn chỉnh.
-     * Inject: specialties list, RAG context, conversation state, rolling summary, disease knowledge.
+     * Build system prompt theo chiến lược Tiered Prompt.
+     * - Lượt 1 (isFirstTurn=true): Full prompt + Disease KB — Gemini nắm đầy đủ instructions.
+     * - Lượt 2+ (isFirstTurn=false): Compact prompt — chỉ state reminder + RAG + phase-specific rules.
+     *   Gemini đã nhớ core prompt từ lượt 1 qua conversation history → giảm 30-50% tokens.
      */
     private static buildSystemPrompt(
         specialties: SpecialtyForPrompt[],
         ragContext: string,
         conversationState: ConversationState,
-        feedbackInsights: string = ''
+        feedbackInsights: string = '',
+        isFirstTurn: boolean = true
     ): string {
         // Format danh sách chuyên khoa
         const specialtiesList = specialties.length > 0
@@ -840,18 +930,41 @@ export class AiHealthChatService {
         // Build conversation summary block
         const summaryBlock = conversationState.conversation_summary || 'Chưa có (phiên mới bắt đầu).';
 
-        // Inject vào template prompt
-        let prompt = AI_CORE_PROMPT
+        if (isFirstTurn) {
+            // === FULL PROMPT — Lượt đầu tiên ===
+            let prompt = AI_CORE_PROMPT
+                .replace('{{SPECIALTIES_LIST}}', specialtiesList)
+                .replace('{{RAG_CONTEXT}}', ragContext || 'Không có tài liệu tham khảo bổ sung.')
+                .replace('{{CONVERSATION_STATE}}', stateBlock)
+                .replace('{{CONVERSATION_SUMMARY}}', summaryBlock)
+                .replace('{{FEEDBACK_INSIGHTS}}', feedbackInsights || 'Chưa có phản hồi cần lưu ý.');
+
+            // Inject bảng kiến thức bệnh lý để mapping triệu chứng → chuyên khoa chính xác
+            prompt += '\n\n' + AI_DISEASE_KNOWLEDGE_BASE;
+
+            return prompt;
+        }
+
+        // === COMPACT PROMPT — Từ lượt 2 trở đi ===
+        const phaseRules = this.getPhaseSpecificRules(conversationState.phase);
+
+        const prompt = AI_COMPACT_PROMPT
             .replace('{{SPECIALTIES_LIST}}', specialtiesList)
             .replace('{{RAG_CONTEXT}}', ragContext || 'Không có tài liệu tham khảo bổ sung.')
             .replace('{{CONVERSATION_STATE}}', stateBlock)
             .replace('{{CONVERSATION_SUMMARY}}', summaryBlock)
-            .replace('{{FEEDBACK_INSIGHTS}}', feedbackInsights || 'Chưa có phản hồi cần lưu ý.');
-
-        // Luôn inject bảng kiến thức bệnh lý để mapping triệu chứng → chuyên khoa chính xác
-        prompt += '\n\n' + AI_DISEASE_KNOWLEDGE_BASE;
+            .replace('{{FEEDBACK_INSIGHTS}}', feedbackInsights || 'Chưa có phản hồi cần lưu ý.')
+            .replace('{{PHASE_RULES}}', phaseRules);
 
         return prompt;
+    }
+
+    /**
+     * Lấy rules cụ thể cho giai đoạn hiện tại — inject vào compact prompt.
+     * Chỉ gửi rules của phase đang diễn ra, giảm token dư thừa.
+     */
+    private static getPhaseSpecificRules(phase: string): string {
+        return AI_PHASE_RULES[phase] || AI_PHASE_RULES[AI_CONVERSATION_PHASES.DISCOVERY];
     }
 
     /**

@@ -382,5 +382,37 @@ export class AiHealthChatRepository {
             },
         };
     }
+    /**
+     * Expire các phiên ACTIVE đã inactive quá thời gian quy định.
+     * Dùng bởi cron job để giải phóng slot cho user.
+     */
+    static async expireInactiveSessions(inactiveHours: number): Promise<number> {
+        const query = `
+            UPDATE ai_chat_sessions
+            SET status = 'EXPIRED', updated_at = CURRENT_TIMESTAMP
+            WHERE status = 'ACTIVE'
+              AND updated_at < NOW() - INTERVAL '1 hour' * $1
+            RETURNING session_id
+        `;
+        const result = await pool.query(query, [inactiveHours]);
+        return result.rowCount || 0;
+    }
+
+    /**
+     * Đếm tổng tin nhắn USER đã gửi trong khoảng thời gian (cross-session).
+     * Dùng để kiểm tra user quota trước khi cho phép gửi tin mới.
+     */
+    static async countUserMessagesInWindow(userId: string, windowHours: number): Promise<number> {
+        const query = `
+            SELECT COUNT(*) AS total
+            FROM ai_chat_messages m
+            JOIN ai_chat_sessions s ON m.session_id = s.session_id
+            WHERE s.user_id = $1
+              AND m.role = 'USER'
+              AND m.created_at > NOW() - INTERVAL '1 hour' * $2
+        `;
+        const result = await pool.query(query, [userId, windowHours]);
+        return parseInt(result.rows[0].total, 10);
+    }
 }
 

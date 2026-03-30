@@ -25,15 +25,40 @@ export const AI_RAG_CONFIG = {
 
     EMBEDDING_OUTPUT_DIMENSIONS: 1536,
 
+    /** Giới hạn max chars per chunk — semantic chunking sẽ ưu tiên paragraph boundary */
     CHUNK_SIZE: 1200,
-
-    CHUNK_OVERLAP: 150,
 
     TOP_K_RESULTS: 5,
 
     EMBEDDING_BATCH_SIZE: 100,
 
     EMBEDDING_MAX_RETRIES: 5,
+
+    /** Trọng số vector similarity trong Hybrid Score (0.0 – 1.0) */
+    HYBRID_VECTOR_WEIGHT: 0.7,
+    /** Trọng số keyword match trong Hybrid Score (= 1 - VECTOR_WEIGHT) */
+    HYBRID_KEYWORD_WEIGHT: 0.3,
+} as const;
+
+
+export const AI_RAG_THRESHOLD_CONFIG = {
+    /** Ngưỡng mặc định (strict) — ưu tiên chất lượng */
+    DEFAULT_THRESHOLD: 0.55,
+    /** Ngưỡng fallback (relaxed) — dùng khi ít kết quả */
+    FALLBACK_THRESHOLD: 0.35,
+    /** Số kết quả tối thiểu trước khi hạ ngưỡng */
+    MIN_RESULTS_BEFORE_FALLBACK: 2,
+} as const;
+
+/**
+ * Cấu hình phát hiện section heading trong nội dung PDF.
+ * Dùng heuristic: dòng ngắn + viết hoa hoặc đánh số → coi là heading.
+ */
+export const AI_RAG_SECTION_DETECTION = {
+    /** Độ dài tối đa (ký tự) để dòng được coi là heading */
+    MAX_HEADING_LENGTH: 80,
+    /** Regex pattern cho heading có đánh số (1., 1.1, I., Chương...) */
+    NUMBERED_HEADING_PATTERN: /^(?:\d+\.?\d*\.?\s|[IVXLC]+\.\s|Chương\s|Phần\s|Mục\s)/i,
 } as const;
 
 /** Cấu hình file upload cho Admin */
