@@ -130,6 +130,24 @@ export class AppointmentService {
     }
 
     /**
+     * Lấy lịch khám của chính người dùng đang đăng nhập (theo account_id liên kết với patients)
+     */
+    static async getMyAppointments(userId: string, filters: {
+        status?: string; fromDate?: string; toDate?: string;
+        page?: number; limit?: number;
+    }): Promise<{ data: Appointment[]; total: number; patient_id: string }> {
+        const result = await AppointmentRepository.findByAccountId(userId, filters);
+        if (result.patient_id === null) {
+            throw new AppError(
+                HTTP_STATUS.NOT_FOUND,
+                'PATIENT_PROFILE_NOT_FOUND',
+                APPOINTMENT_ERRORS.PATIENT_PROFILE_NOT_FOUND
+            );
+        }
+        return { data: result.data, total: result.total, patient_id: result.patient_id };
+    }
+
+    /**
      * Lấy chi tiết 1 lịch khám (kèm audit logs)
      */
     static async getAppointmentById(id: string): Promise<{ appointment: Appointment; auditLogs: any[] }> {

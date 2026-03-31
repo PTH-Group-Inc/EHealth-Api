@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { AppointmentController } from '../../controllers/Appointment Management/appointment.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
@@ -800,6 +800,145 @@ appointmentRoutes.get(
     AppointmentController.getAvailableSlotsByDepartment
 );
 
+
+// =====================================================================
+// 3.1.3.5. LỊCH KHÁM CỦA TÔI (My Appointments - By Logged-in User)
+// =====================================================================
+
+/**
+ * @swagger
+ * /api/appointments/my-appointments:
+ *   get:
+ *     summary: Lấy danh sách lịch khám của tôi (theo tài khoản đang đăng nhập)
+ *     description: |
+ *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token).
+ *       **Vai trò được phép:** PATIENT, ADMIN, STAFF, DOCTOR, NURSE.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Tự động lấy `user_id` từ JWT Access Token.
+ *       - Hệ thống tra cứu bảng `patients.account_id` để tìm hồ sơ bệnh nhân liên kết với tài khoản đang đăng nhập.
+ *       - Trả về toàn bộ lịch khám của bệnh nhân đó, kèm phân trang & filter cơ bản.
+ *       - **Không cần truyền `patient_id`** — hệ thống tự xác định từ token.
+ *       - Nếu tài khoản chưa liên kết với hồ sơ bệnh nhân nào → trả lỗi `PATIENT_PROFILE_NOT_FOUND`.
+ *       - Dữ liệu JOIN thêm: Tên bệnh nhân, Tên bác sĩ, Tên phòng, Tên chi nhánh, Tên dịch vụ, Thời gian slot.
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, CONFIRMED, CHECKED_IN, IN_PROGRESS, CANCELLED, NO_SHOW, COMPLETED]
+ *         description: Lọc theo trạng thái lịch khám
+ *         example: "PENDING"
+ *       - in: query
+ *         name: fromDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Lọc từ ngày (YYYY-MM-DD)
+ *         example: "2026-03-01"
+ *       - in: query
+ *         name: toDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Lọc đến ngày (YYYY-MM-DD)
+ *         example: "2026-03-31"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Số bản ghi mỗi trang
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách lịch khám của tôi thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy danh sách lịch khám của tôi thành công"
+ *                 patient_id:
+ *                   type: string
+ *                   description: ID hồ sơ bệnh nhân được liên kết với tài khoản
+ *                   example: "550e8400-e29b-41d4-a716-446655440000"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       appointments_id:
+ *                         type: string
+ *                         example: "APT_abc123def45"
+ *                       appointment_code:
+ *                         type: string
+ *                         example: "APP-20260320-A1B2"
+ *                       appointment_date:
+ *                         type: string
+ *                         example: "2026-03-20"
+ *                       status:
+ *                         type: string
+ *                         example: "CONFIRMED"
+ *                       doctor_name:
+ *                         type: string
+ *                         example: "BS. Nguyễn Văn A"
+ *                       room_name:
+ *                         type: string
+ *                         example: "Phòng Khám Nội 1"
+ *                       branch_name:
+ *                         type: string
+ *                         example: "Chi nhánh HCM"
+ *                       service_name:
+ *                         type: string
+ *                         example: "Khám Tổng Quát"
+ *                       slot_start_time:
+ *                         type: string
+ *                         example: "08:00:00"
+ *                       slot_end_time:
+ *                         type: string
+ *                         example: "08:30:00"
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 20
+ *                     total:
+ *                       type: integer
+ *                       example: 5
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 1
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       404:
+ *         description: |
+ *           - `PATIENT_PROFILE_NOT_FOUND`: Tài khoản chưa liên kết với hồ sơ bệnh nhân
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+appointmentRoutes.get(
+    '/my-appointments',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentController.getMyAppointments
+);
 
 /**
  * @swagger
