@@ -1,3 +1,9 @@
+export interface AvatarImage {
+    url: string;
+    public_id: string;
+    uploaded_at: string;
+}
+
 export interface UserProfileResponse {
     users_id: string;
     email: string;
@@ -8,7 +14,7 @@ export interface UserProfileResponse {
     dob: Date | null;
     gender: string | null;
     identity_card_number: string | null;
-    avatar_url: string | null;
+    avatar_url: AvatarImage[];
     address: string | null;
     preferences: any;
     roles: string[];
@@ -19,7 +25,6 @@ export interface UpdateProfileInput {
     dob?: Date;
     gender?: string;
     address?: string;
-    avatar_url?: string;
     identity_card_number?: string;
 }
 

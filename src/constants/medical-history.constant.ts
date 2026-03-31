@@ -43,6 +43,16 @@ export const MEDICAL_HISTORY_ERRORS = {
         code: 'MH_003',
         message: 'Khoảng thời gian không hợp lệ (from phải trước to).',
     },
+    PATIENT_PROFILE_NOT_LINKED: {
+        success: false,
+        code: 'MH_004',
+        message: 'Tài khoản chưa được liên kết với hồ sơ bệnh nhân nào.',
+    },
+};
+
+/** Thông báo thành công */
+export const MEDICAL_HISTORY_SUCCESS = {
+    MY_HISTORY_FETCHED: 'Lấy lịch sử khám bệnh của tôi thành công.',
 };
 
 /** Cấu hình phân trang */

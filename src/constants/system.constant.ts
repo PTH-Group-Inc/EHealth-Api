@@ -53,6 +53,31 @@ export const LICENSE_CONFIG = {
     MAX_FILE_SIZE: 10 * 1024 * 1024,
 } as const;
 
+/** Cấu hình upload ảnh đại diện (Avatar) */
+export const AVATAR_CONFIG = {
+    ALLOWED_MIME_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as string[],
+    CLOUDINARY_FOLDER: 'ehealth/avatars',
+    /** Số ảnh đại diện tối đa mỗi user */
+    MAX_IMAGES: 20,
+} as const;
+
+/** Thông báo lỗi liên quan đến avatar */
+export const AVATAR_ERRORS = {
+    FILE_MISSING: { httpCode: 400, code: 'AVT_001', message: 'Không tìm thấy file ảnh tải lên.' },
+    INVALID_FORMAT: { httpCode: 400, code: 'AVT_002', message: 'Chỉ chấp nhận hình ảnh JPG, PNG, WebP.' },
+    FILE_TOO_LARGE: { httpCode: 400, code: 'AVT_003', message: `File ảnh vượt quá giới hạn ${CLOUDINARY_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB.` },
+    UPLOAD_FAILED: { httpCode: 500, code: 'AVT_004', message: 'Không thể tải ảnh lên hệ thống.' },
+    MAX_IMAGES_REACHED: { httpCode: 400, code: 'AVT_005', message: `Đã đạt giới hạn tối đa ${5} ảnh đại diện.` },
+    IMAGE_NOT_FOUND: { httpCode: 404, code: 'AVT_006', message: 'Ảnh không tồn tại hoặc đã bị xóa.' },
+    DELETE_FAILED: { httpCode: 500, code: 'AVT_007', message: 'Không thể xóa ảnh khỏi hệ thống.' },
+} as const;
+
+/** Thông báo thành công liên quan đến avatar */
+export const AVATAR_SUCCESS = {
+    UPLOADED: 'Tải ảnh đại diện lên thành công.',
+    DELETED: 'Xóa ảnh đại diện thành công.',
+} as const;
+
 export const LICENSE_UPLOAD_ERRORS = {
     FILE_MISSING: {
         httpCode: 400, code: 'LIC_FILE_001',

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ProfileController } from '../../controllers/Core/profile.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
+import { uploadImage } from '../../middleware/upload.middleware';
 
 const profileRoutes = Router();
 
@@ -23,7 +24,8 @@ profileRoutes.use(verifyAccessToken, checkSessionStatus);
  *     description: |
  *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
  *
- *       Lấy thông tin tài khoản và cấu hình hồ sơ cá nhân của người dùng hiện tại
+ *       Lấy thông tin tài khoản và cấu hình hồ sơ cá nhân của người dùng hiện tại.
+ *       Trường `avatar_url` trả về dạng mảng JSON chứa danh sách ảnh đại diện.
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -59,6 +61,21 @@ profileRoutes.use(verifyAccessToken, checkSessionStatus);
  *                     gender:
  *                       type: string
  *                       example: MALE
+ *                     avatar_url:
+ *                       type: array
+ *                       description: Danh sách ảnh đại diện (tối đa 5 ảnh)
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           url:
+ *                             type: string
+ *                             example: "https://res.cloudinary.com/demo/image/upload/ehealth/avatars/avatar_USR_12345_1.png"
+ *                           public_id:
+ *                             type: string
+ *                             example: "ehealth/avatars/avatar_USR_12345_1"
+ *                           uploaded_at:
+ *                             type: string
+ *                             example: "2026-03-31T12:00:00.000Z"
  *                     preferences:
  *                       type: object
  *                       example: {"theme": "dark", "language": "vi"}
@@ -75,7 +92,8 @@ profileRoutes.get('/me', ProfileController.getMyProfile);
  *     description: |
  *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
  *
- *       Cho phép người dùng cập nhật các thông tin cơ bản. (Lưu ý, gender phải khớp với mã trong Master Data)
+ *       Cho phép người dùng cập nhật các thông tin cơ bản. (Lưu ý, gender phải khớp với mã trong Master Data).
+ *       **Lưu ý:** Không cập nhật avatar qua API này — sử dụng `POST /api/profile/avatar` để upload ảnh.
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
  *     security:
  *       - bearerAuth: []
@@ -102,9 +120,6 @@ profileRoutes.get('/me', ProfileController.getMyProfile);
  *               identity_card_number:
  *                 type: string
  *                 example: 083485098765
- *               avatar_url:
- *                 type: string
- *                 example: https://example.com/avatar.jpg
  *     responses:
  *       200:
  *         description: Hoàn thành cập nhật
@@ -269,5 +284,138 @@ profileRoutes.delete('/sessions/:sessionId', ProfileController.revokeSession);
  *         description: Cập nhật thành công
  */
 profileRoutes.put('/settings', ProfileController.updateMySettings);
+
+// =====================================================================
+// AVATAR MANAGEMENT — Upload & Xóa ảnh đại diện
+// =====================================================================
+
+/**
+ * @swagger
+ * /api/profile/avatar:
+ *   post:
+ *     summary: Upload ảnh đại diện
+ *     description: |
+ *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token).
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Upload 1 ảnh đại diện lên Cloudinary.
+ *       - Gửi dữ liệu dạng `multipart/form-data` với field name là `avatar`.
+ *       - Chỉ chấp nhận file ảnh JPG, PNG, WebP. Dung lượng tối đa 5MB.
+ *       - Mỗi user được tối đa **5 ảnh đại diện**. Ảnh mới nhất (cuối mảng) được coi là ảnh chính.
+ *       - Nếu đã đạt giới hạn → cần xóa ảnh cũ trước khi upload mới.
+ *       - Response trả về metadata ảnh vừa upload (URL, public_id, uploaded_at).
+ *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - avatar
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: File ảnh đại diện (JPG, PNG, WebP — tối đa 5MB)
+ *     responses:
+ *       200:
+ *         description: Upload ảnh thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Tải ảnh đại diện lên thành công."
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     url:
+ *                       type: string
+ *                       example: "https://res.cloudinary.com/demo/image/upload/ehealth/avatars/avatar_USR_12345_1711878000000.png"
+ *                     public_id:
+ *                       type: string
+ *                       example: "ehealth/avatars/avatar_USR_12345_1711878000000"
+ *                     uploaded_at:
+ *                       type: string
+ *                       example: "2026-03-31T12:00:00.000Z"
+ *       400:
+ *         description: |
+ *           - `AVT_001`: Không tìm thấy file ảnh tải lên
+ *           - `AVT_002`: Định dạng file không hợp lệ
+ *           - `AVT_003`: File vượt quá giới hạn 5MB
+ *           - `AVT_005`: Đã đạt giới hạn tối đa 5 ảnh
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       500:
+ *         description: |
+ *           - `AVT_004`: Lỗi upload lên Cloudinary
+ */
+profileRoutes.post('/avatar', uploadImage.single('avatar'), ProfileController.uploadAvatar);
+
+/**
+ * @swagger
+ * /api/profile/avatar:
+ *   delete:
+ *     summary: Xóa ảnh đại diện
+ *     description: |
+ *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token).
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Xóa 1 ảnh đại diện theo `public_id`.
+ *       - Ảnh sẽ bị xóa đồng thời trên Cloudinary và trong metadata DB.
+ *       - Lấy `public_id` từ response của API `GET /api/profile/me` (trường `avatar_url[].public_id`).
+ *       - Nếu ảnh không tồn tại → trả lỗi `AVT_006`.
+ *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - public_id
+ *             properties:
+ *               public_id:
+ *                 type: string
+ *                 description: Public ID của ảnh trên Cloudinary (lấy từ GET /api/profile/me)
+ *                 example: "ehealth/avatars/avatar_USR_12345_1711878000000"
+ *     responses:
+ *       200:
+ *         description: Xóa ảnh thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Xóa ảnh đại diện thành công."
+ *       400:
+ *         description: Thiếu public_id trong request body
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       404:
+ *         description: |
+ *           - `AVT_006`: Ảnh không tồn tại hoặc đã bị xóa
+ *       500:
+ *         description: |
+ *           - `AVT_007`: Lỗi xóa ảnh khỏi hệ thống
+ */
+profileRoutes.delete('/avatar', ProfileController.deleteAvatar);
 
 export default profileRoutes;
