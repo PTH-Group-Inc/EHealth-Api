@@ -81,6 +81,44 @@ export class AppointmentController {
     }
 
     /**
+     * GET /api/appointments/my-appointments — Lịch khám của tôi (theo user đang đăng nhập)
+     */
+    static async getMyAppointments(req: Request, res: Response) {
+        try {
+            const userId = (req as any).auth?.user_id;
+            if (!userId) {
+                throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'UNAUTHORIZED', 'Không xác định được người dùng');
+            }
+            const filters = {
+                status: req.query.status?.toString(),
+                fromDate: req.query.fromDate?.toString(),
+                toDate: req.query.toDate?.toString(),
+                page: req.query.page ? parseInt(req.query.page.toString()) : 1,
+                limit: req.query.limit ? parseInt(req.query.limit.toString()) : 20,
+            };
+            const result = await AppointmentService.getMyAppointments(userId, filters);
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: APPOINTMENT_SUCCESS.MY_APPOINTMENTS_FETCHED,
+                data: result.data,
+                patient_id: result.patient_id,
+                pagination: {
+                    page: filters.page,
+                    limit: filters.limit,
+                    total: result.total,
+                    totalPages: Math.ceil(result.total / (filters.limit || 20))
+                }
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy lịch khám của tôi' });
+            }
+        }
+    }
+
+    /**
      * GET /api/appointments/:id — Chi tiết lịch khám
      */
     static async getById(req: Request, res: Response) {

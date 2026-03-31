@@ -294,6 +294,81 @@ export class AppointmentRepository {
     }
 
     /**
+     * Tìm lịch khám theo account_id (user_id) — dùng cho API "Lịch khám của tôi".
+     * Tra cứu qua bảng patients.account_id để tìm patient_id tương ứng.
+     */
+    static async findByAccountId(accountId: string, filters: {
+        status?: string; fromDate?: string; toDate?: string;
+        page?: number; limit?: number;
+    }): Promise<{ data: Appointment[]; total: number; patient_id: string | null }> {
+        // Bước 1: Tìm patient_id từ account_id
+        const patientResult = await pool.query(
+            `SELECT id FROM patients WHERE account_id = $1 AND deleted_at IS NULL LIMIT 1`,
+            [accountId]
+        );
+
+        if (!patientResult.rows[0]) {
+            return { data: [], total: 0, patient_id: null };
+        }
+
+        const patientId = patientResult.rows[0].id;
+
+        // Bước 2: Query lịch khám với các filter cơ bản
+        const page = filters.page || 1;
+        const limit = filters.limit || 20;
+        const offset = (page - 1) * limit;
+
+        let whereClause = ` WHERE a.patient_id = $1 `;
+        const values: any[] = [patientId];
+        let idx = 2;
+
+        if (filters.status) {
+            whereClause += ` AND a.status = $${idx++}`;
+            values.push(filters.status);
+        }
+        if (filters.fromDate) {
+            whereClause += ` AND a.appointment_date >= $${idx++}::date`;
+            values.push(filters.fromDate);
+        }
+        if (filters.toDate) {
+            whereClause += ` AND a.appointment_date <= $${idx++}::date`;
+            values.push(filters.toDate);
+        }
+
+        const countQuery = `SELECT COUNT(*)::int AS total FROM appointments a ${whereClause}`;
+        const countResult = await pool.query(countQuery, values);
+        const total = countResult.rows[0].total;
+
+        const dataQuery = `
+            SELECT a.*,
+                   TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
+                   p.full_name AS patient_name,
+                   up.full_name AS doctor_name,
+                   mr.name AS room_name,
+                   br.name AS branch_name,
+                   fs_svc.name AS service_name,
+                   sl.start_time AS slot_start_time,
+                   sl.end_time AS slot_end_time
+            FROM appointments a
+            LEFT JOIN patients p ON a.patient_id = p.id::varchar
+            LEFT JOIN doctors d ON a.doctor_id = d.doctors_id
+            LEFT JOIN user_profiles up ON d.user_id = up.user_id
+            LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
+            LEFT JOIN branches br ON a.branch_id = br.branches_id
+            LEFT JOIN facility_services fs ON a.facility_service_id = fs.facility_services_id
+            LEFT JOIN services fs_svc ON fs.service_id = fs_svc.services_id
+            LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
+            ${whereClause}
+            ORDER BY a.appointment_date DESC, a.created_at DESC
+            LIMIT $${idx++} OFFSET $${idx++};
+        `;
+        values.push(limit, offset);
+        const dataResult = await pool.query(dataQuery, values);
+
+        return { data: dataResult.rows, total, patient_id: patientId };
+    }
+
+    /**
      * Lấy chi tiết 1 lịch khám theo ID (kèm JOIN thông tin)
      */
     static async findById(id: string): Promise<Appointment | null> {

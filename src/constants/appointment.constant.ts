@@ -107,6 +107,7 @@ export const APPOINTMENT_ERRORS = {
     NO_DOCTOR_AVAILABLE: 'Không có bác sĩ nào trực ca này tại chi nhánh đã chọn',
     DEPARTMENT_NOT_FOUND: 'Khoa/Phòng ban không tồn tại hoặc đã ngừng hoạt động',
     MISSING_DEPARTMENT_FILTER: 'Thiếu thông tin bắt buộc: department_id và facility_id',
+    PATIENT_PROFILE_NOT_FOUND: 'Tài khoản của bạn chưa được liên kết với hồ sơ bệnh nhân nào trong hệ thống',
 } as const;
 
 /** Cảnh báo (warning) — lịch vẫn tạo được nhưng cần staff xử lý */
@@ -132,4 +133,5 @@ export const APPOINTMENT_SUCCESS = {
     BOOKED_BY_STAFF: 'Lễ tân đặt lịch khám hộ thành công',
     PATIENT_APPOINTMENTS_FETCHED: 'Lấy danh sách lịch khám của bệnh nhân thành công',
     DEPARTMENT_SLOTS_FETCHED: 'Lấy danh sách slot trống theo khoa thành công',
+    MY_APPOINTMENTS_FETCHED: 'Lấy danh sách lịch khám của tôi thành công',
 } as const;
