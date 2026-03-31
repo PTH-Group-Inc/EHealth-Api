@@ -8,7 +8,8 @@ import {
 } from '../../models/Patient Management/medical-history.model';
 import {
     MEDICAL_HISTORY_ERRORS,
-    MEDICAL_HISTORY_CONFIG
+    MEDICAL_HISTORY_CONFIG,
+    MEDICAL_HISTORY_SUCCESS
 } from '../../constants/medical-history.constant';
 
 export class MedicalHistoryService {
@@ -106,5 +107,35 @@ export class MedicalHistoryService {
             throw MEDICAL_HISTORY_ERRORS.PATIENT_NOT_FOUND;
         }
         return await MedicalHistoryRepository.getPatientSummary(patientId);
+    }
+
+    /**
+     * Lấy lịch sử khám bệnh của user đang đăng nhập.
+     * Tra cứu patient_id từ account_id (JWT user_id) → lọc encounters.
+     */
+    static async getMyHistory(
+        userId: string,
+        encounterType?: string,
+        status?: string,
+        from?: string,
+        to?: string,
+        page: number = MEDICAL_HISTORY_CONFIG.DEFAULT_PAGE,
+        limit: number = MEDICAL_HISTORY_CONFIG.DEFAULT_LIMIT
+    ): Promise<{ patientId: string; result: PaginatedEncounters }> {
+        if (from && to && new Date(from) > new Date(to)) {
+            throw MEDICAL_HISTORY_ERRORS.INVALID_DATE_RANGE;
+        }
+
+        const safeLimit = Math.min(limit, MEDICAL_HISTORY_CONFIG.MAX_LIMIT);
+
+        const { patientId, result } = await MedicalHistoryRepository.getEncountersByAccountId(
+            userId, encounterType, status, from, to, page, safeLimit
+        );
+
+        if (!patientId) {
+            throw MEDICAL_HISTORY_ERRORS.PATIENT_PROFILE_NOT_LINKED;
+        }
+
+        return { patientId, result };
     }
 }

@@ -1,5 +1,5 @@
 import { pool } from '../../config/postgresdb';
-import { UserProfileResponse, UpdateProfileInput, UpdateSettingsInput } from '../../models/Core/profile.model';
+import { UserProfileResponse, UpdateProfileInput, UpdateSettingsInput, AvatarImage } from '../../models/Core/profile.model';
 
 export class ProfileRepository {
     /**
@@ -17,7 +17,7 @@ export class ProfileRepository {
                 up.dob,
                 up.gender,
                 up.identity_card_number,
-                up.avatar_url,
+                COALESCE(up.avatar_url, '[]'::jsonb) AS avatar_url,
                 up.address,
                 COALESCE(up.preferences, '{}'::jsonb) AS preferences,
                 COALESCE(array_agg(r.code) FILTER (WHERE r.code IS NOT NULL), '{}') AS roles
@@ -36,7 +36,7 @@ export class ProfileRepository {
     }
 
     /**
-     * Cập nhật thông tin hồ sơ cơ bản
+     * Cập nhật thông tin hồ sơ cơ bản (không bao gồm avatar — dùng API upload riêng)
      */
     static async updateProfile(userId: string, data: UpdateProfileInput): Promise<boolean> {
         const fields: string[] = [];
@@ -58,10 +58,6 @@ export class ProfileRepository {
         if (data.address !== undefined) {
             fields.push(`address = $${paramIdx++}`);
             values.push(data.address);
-        }
-        if (data.avatar_url !== undefined) {
-            fields.push(`avatar_url = $${paramIdx++}`);
-            values.push(data.avatar_url);
         }
         if (data.identity_card_number !== undefined) {
             fields.push(`identity_card_number = $${paramIdx++}`);
@@ -91,6 +87,51 @@ export class ProfileRepository {
             WHERE user_id = $2
         `;
         const result = await pool.query(query, [data.preferences, userId]);
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    // ======================= AVATAR MANAGEMENT =======================
+
+    /**
+     * Lấy danh sách ảnh avatar hiện tại (mảng JSONB)
+     */
+    static async getAvatarImages(userId: string): Promise<AvatarImage[]> {
+        const result = await pool.query(
+            `SELECT COALESCE(avatar_url, '[]'::jsonb) AS avatar_url FROM user_profiles WHERE user_id = $1`,
+            [userId]
+        );
+        if (result.rowCount === 0) return [];
+        return result.rows[0].avatar_url as AvatarImage[];
+    }
+
+    /**
+     * Thêm 1 ảnh mới vào mảng avatar_url (append vào cuối mảng JSONB)
+     */
+    static async addAvatarImage(userId: string, image: AvatarImage): Promise<boolean> {
+        const query = `
+            UPDATE user_profiles
+            SET avatar_url = COALESCE(avatar_url, '[]'::jsonb) || $1::jsonb
+            WHERE user_id = $2
+        `;
+        const result = await pool.query(query, [JSON.stringify(image), userId]);
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /**
+     * Xóa 1 ảnh khỏi mảng avatar_url theo public_id
+     * Sử dụng jsonb_array_elements để filter phần tử không khớp public_id
+     */
+    static async removeAvatarImage(userId: string, publicId: string): Promise<boolean> {
+        const query = `
+            UPDATE user_profiles
+            SET avatar_url = (
+                SELECT COALESCE(jsonb_agg(elem), '[]'::jsonb)
+                FROM jsonb_array_elements(COALESCE(avatar_url, '[]'::jsonb)) AS elem
+                WHERE elem->>'public_id' != $1
+            )
+            WHERE user_id = $2
+        `;
+        const result = await pool.query(query, [publicId, userId]);
         return (result.rowCount ?? 0) > 0;
     }
 }

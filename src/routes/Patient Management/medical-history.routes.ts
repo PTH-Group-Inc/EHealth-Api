@@ -194,6 +194,144 @@ router.get('/patient/:patientId/timeline', verifyAccessToken, checkSessionStatus
  */
 router.get('/patient/:patientId/summary', verifyAccessToken, checkSessionStatus, MedicalHistoryController.getPatientSummary);
 
+// =====================================================================
+// LỊCH SỬ KHÁM CỦA TÔI (My History - By Logged-in User)
+// =====================================================================
+
+/**
+ * @swagger
+ * /api/medical-history/my-history:
+ *   get:
+ *     summary: Lấy lịch sử khám bệnh của tôi (theo tài khoản đang đăng nhập)
+ *     description: |
+ *       **Phân quyền:** Yêu cầu đăng nhập (Bearer Token).
+ *       **Vai trò được phép:** PATIENT, ADMIN, STAFF, DOCTOR, NURSE.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Tự động lấy `user_id` từ JWT Access Token.
+ *       - Hệ thống tra cứu `patients.account_id` để tìm hồ sơ bệnh nhân liên kết.
+ *       - Trả về danh sách lượt khám (encounters) của bệnh nhân đó, kèm phân trang & filter.
+ *       - **Không cần truyền `patient_id`** — hệ thống tự xác định từ token.
+ *       - Nếu tài khoản chưa liên kết với hồ sơ bệnh nhân → trả lỗi `MH_004`.
+ *       - Dữ liệu bao gồm: bác sĩ, chuyên khoa, phòng khám, triệu chứng, chẩn đoán chính.
+ *     tags: [2.2 Lịch sử Khám & Điều trị]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [OUTPATIENT, INPATIENT, EMERGENCY, TELEMED]
+ *         description: Lọc theo loại lượt khám
+ *         example: "OUTPATIENT"
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [IN_PROGRESS, WAITING_FOR_RESULTS, COMPLETED, CLOSED]
+ *         description: Lọc theo trạng thái
+ *         example: "COMPLETED"
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Ngày bắt đầu lọc (YYYY-MM-DD)
+ *         example: "2026-01-01"
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Ngày kết thúc lọc (YYYY-MM-DD)
+ *         example: "2026-12-31"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Số bản ghi mỗi trang
+ *     responses:
+ *       200:
+ *         description: Lấy lịch sử khám bệnh thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy lịch sử khám bệnh của tôi thành công."
+ *                 patient_id:
+ *                   type: string
+ *                   example: "PAT_001"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       encounters_id:
+ *                         type: string
+ *                         example: "ENC_260310_abc12345"
+ *                       encounter_type:
+ *                         type: string
+ *                         example: "OUTPATIENT"
+ *                       start_time:
+ *                         type: string
+ *                         example: "2026-03-10T08:30:00Z"
+ *                       status:
+ *                         type: string
+ *                         example: "COMPLETED"
+ *                       doctor_name:
+ *                         type: string
+ *                         example: "BS. Nguyễn Văn A"
+ *                       specialty_name:
+ *                         type: string
+ *                         example: "Nội Tổng Quát"
+ *                       room_name:
+ *                         type: string
+ *                         example: "Phòng Khám Nội 1"
+ *                       chief_complaint:
+ *                         type: string
+ *                         example: "Đau đầu, sốt nhẹ 2 ngày"
+ *                       primary_diagnosis:
+ *                         type: string
+ *                         example: "Cảm cúm thông thường"
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 20
+ *                     total:
+ *                       type: integer
+ *                       example: 8
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 1
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       404:
+ *         description: |
+ *           - `MH_004`: Tài khoản chưa liên kết với hồ sơ bệnh nhân
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get('/my-history', verifyAccessToken, checkSessionStatus, MedicalHistoryController.getMyHistory);
+
 /**
  * @swagger
  * /api/medical-history/{encounterId}:

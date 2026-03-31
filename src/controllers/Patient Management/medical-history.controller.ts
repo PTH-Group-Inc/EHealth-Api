@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { MedicalHistoryService } from '../../services/Patient Management/medical-history.service';
-import { MEDICAL_HISTORY_CONFIG } from '../../constants/medical-history.constant';
+import { MEDICAL_HISTORY_CONFIG, MEDICAL_HISTORY_SUCCESS } from '../../constants/medical-history.constant';
 
 export class MedicalHistoryController {
     /**
@@ -87,4 +87,40 @@ export class MedicalHistoryController {
             next(error);
         }
     }
+
+    /**
+     * GET /api/medical-history/my-history — Lịch sử khám bệnh của tôi
+     */
+    static async getMyHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const userId = (req as any).auth?.user_id;
+            const { type, status, from, to, page, limit } = req.query as Record<string, string>;
+
+            const { patientId, result } = await MedicalHistoryService.getMyHistory(
+                userId!,
+                type,
+                status,
+                from,
+                to,
+                page ? parseInt(page) : MEDICAL_HISTORY_CONFIG.DEFAULT_PAGE,
+                limit ? parseInt(limit) : MEDICAL_HISTORY_CONFIG.DEFAULT_LIMIT
+            );
+
+            res.status(200).json({
+                success: true,
+                message: MEDICAL_HISTORY_SUCCESS.MY_HISTORY_FETCHED,
+                patient_id: patientId,
+                data: result.data,
+                pagination: {
+                    page: result.page,
+                    limit: result.limit,
+                    total: result.total,
+                    totalPages: result.totalPages,
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
+

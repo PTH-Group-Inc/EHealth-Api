@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProfileService } from '../../services/Core/profile.service';
 import { UpdateProfileInput, ChangePasswordInput, UpdateSettingsInput } from '../../models/Core/profile.model';
+import { AVATAR_ERRORS, AVATAR_SUCCESS } from '../../constants/system.constant';
 
 export class ProfileController {
     /**
@@ -133,6 +134,65 @@ export class ProfileController {
                 success: true,
                 message: 'Cập nhật cài đặt cá nhân thành công.',
                 data: profile
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // ======================= AVATAR MANAGEMENT =======================
+
+    /**
+     * POST /api/profile/avatar — Upload 1 ảnh đại diện lên Cloudinary
+     */
+    static async uploadAvatar(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = (req as any).auth?.user_id;
+            const file = req.file;
+
+            if (!file) {
+                res.status(AVATAR_ERRORS.FILE_MISSING.httpCode).json({
+                    success: false,
+                    code: AVATAR_ERRORS.FILE_MISSING.code,
+                    message: AVATAR_ERRORS.FILE_MISSING.message,
+                });
+                return;
+            }
+
+            const image = await ProfileService.uploadAvatar(userId!, file);
+
+            res.status(200).json({
+                success: true,
+                message: AVATAR_SUCCESS.UPLOADED,
+                data: image,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * DELETE /api/profile/avatar — Xóa 1 ảnh đại diện theo public_id
+     */
+    static async deleteAvatar(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = (req as any).auth?.user_id;
+            const { public_id } = req.body;
+
+            if (!public_id) {
+                res.status(400).json({
+                    success: false,
+                    code: 'AVT_MISSING_ID',
+                    message: 'Vui lòng cung cấp public_id của ảnh cần xóa.',
+                });
+                return;
+            }
+
+            await ProfileService.deleteAvatar(userId!, public_id);
+
+            res.status(200).json({
+                success: true,
+                message: AVATAR_SUCCESS.DELETED,
             });
         } catch (error) {
             next(error);

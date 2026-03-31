@@ -259,11 +259,11 @@ export class MedicalHistoryRepository {
         let paramIndex = 2;
 
         if (from) {
-            whereClause += ` AND hte.event_date >= $${paramIndex++}`;
+            whereClause += ` AND hte.event_time >= $${paramIndex++}`;
             params.push(from);
         }
         if (to) {
-            whereClause += ` AND hte.event_date <= $${paramIndex++}`;
+            whereClause += ` AND hte.event_time <= $${paramIndex++}`;
             params.push(to);
         }
 
@@ -271,7 +271,7 @@ export class MedicalHistoryRepository {
             SELECT hte.*
             FROM health_timeline_events hte
             ${whereClause}
-            ORDER BY hte.event_date DESC
+            ORDER BY hte.event_time DESC
             LIMIT $${paramIndex}
         `;
         params.push(limit);
@@ -318,7 +318,108 @@ export class MedicalHistoryRepository {
     }
 
     /**
-     * Kiểm tra bệnh nhân tồn tại trong bảng patients gốc (patients_id VARCHAR)
+     * Tra cứu patient_id từ account_id (user_id trong JWT)
+     * Dùng cho API "lịch sử khám của tôi"
+     */
+    static async findPatientIdByAccountId(accountId: string): Promise<string | null> {
+        const result = await pool.query(
+            `SELECT id FROM patients WHERE account_id = $1 LIMIT 1`,
+            [accountId]
+        );
+        return result.rows.length > 0 ? result.rows[0].id : null;
+    }
+
+    /**
+     * Lấy danh sách lượt khám theo account_id (tài khoản đang đăng nhập).
+     * Tự động tra cứu patient_id từ bảng patients.account_id.
+     */
+    static async getEncountersByAccountId(
+        accountId: string,
+        encounterType?: string,
+        status?: string,
+        from?: string,
+        to?: string,
+        page: number = 1,
+        limit: number = 20
+    ): Promise<{ patientId: string | null; result: PaginatedEncounters }> {
+        // Bước 1: Tìm patient_id từ account_id
+        const patientId = await this.findPatientIdByAccountId(accountId);
+        if (!patientId) {
+            return { patientId: null, result: { data: [], total: 0, page, limit, totalPages: 0 } };
+        }
+
+        // Bước 2: Xây dựng WHERE clause
+        let whereClause = `WHERE e.patient_id = $1`;
+        const params: any[] = [patientId];
+        let paramIndex = 2;
+
+        if (encounterType) {
+            whereClause += ` AND e.encounter_type = $${paramIndex++}`;
+            params.push(encounterType);
+        }
+        if (status) {
+            whereClause += ` AND e.status = $${paramIndex++}`;
+            params.push(status);
+        }
+        if (from) {
+            whereClause += ` AND e.start_time >= $${paramIndex++}`;
+            params.push(from);
+        }
+        if (to) {
+            whereClause += ` AND e.start_time <= $${paramIndex++}`;
+            params.push(to);
+        }
+
+        // Count
+        const countQuery = `SELECT COUNT(*) FROM encounters e ${whereClause}`;
+        const countResult = await pool.query(countQuery, params);
+        const total = parseInt(countResult.rows[0].count);
+
+        // Data
+        const offset = (page - 1) * limit;
+        const dataQuery = `
+            SELECT
+                e.encounters_id, e.appointment_id, e.patient_id, e.doctor_id,
+                e.room_id, e.encounter_type, e.start_time, e.end_time,
+                e.status, e.created_at,
+                up.full_name AS doctor_name,
+                d.title AS doctor_title,
+                s.name AS specialty_name,
+                mr.name AS room_name, mr.code AS room_code,
+                p.patient_code,
+                p.full_name AS patient_name,
+                ce.chief_complaint,
+                (SELECT ed.diagnosis_name FROM encounter_diagnoses ed
+                 WHERE ed.encounter_id = e.encounters_id AND ed.diagnosis_type = 'PRIMARY'
+                 LIMIT 1) AS primary_diagnosis
+            FROM encounters e
+            LEFT JOIN doctors d ON d.doctors_id = e.doctor_id
+            LEFT JOIN user_profiles up ON up.user_id = d.user_id
+            LEFT JOIN specialties s ON s.specialties_id = d.specialty_id
+            LEFT JOIN medical_rooms mr ON mr.medical_rooms_id = e.room_id
+            LEFT JOIN patients p ON p.id::VARCHAR = e.patient_id
+            LEFT JOIN clinical_examinations ce ON ce.encounter_id = e.encounters_id
+            ${whereClause}
+            ORDER BY e.start_time DESC
+            LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+        `;
+        params.push(limit, offset);
+        const dataResult = await pool.query(dataQuery, params);
+
+        return {
+            patientId,
+            result: {
+                data: dataResult.rows as EncounterListItem[],
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            }
+        };
+    }
+
+    /**
+     * Kiểm tra bệnh nhân tồn tại trong bảng patients gốc
      */
     static async checkPatientExists(patientId: string): Promise<boolean> {
         const result = await pool.query(

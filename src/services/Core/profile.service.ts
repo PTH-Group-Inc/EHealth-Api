@@ -1,10 +1,19 @@
 import bcrypt from 'bcrypt';
+import { v2 as cloudinary } from 'cloudinary';
 import { ProfileRepository } from '../../repository/Core/profile.repository';
 import { UserRepository } from '../../repository/Core/user.repository';
 import { UserSessionRepository } from '../../repository/Core/auth_user-session.repository';
 import { MasterDataItemRepository } from '../../repository/Core/master-data-item.repository';
 import { AppError } from '../../utils/app-error.util';
-import { UserProfileResponse, UpdateProfileInput, ChangePasswordInput, UpdateSettingsInput, SessionResponse } from '../../models/Core/profile.model';
+import { UserProfileResponse, UpdateProfileInput, ChangePasswordInput, UpdateSettingsInput, SessionResponse, AvatarImage } from '../../models/Core/profile.model';
+import { CLOUDINARY_CONFIG, AVATAR_CONFIG, AVATAR_ERRORS } from '../../constants/system.constant';
+
+// Khởi tạo Cloudinary
+cloudinary.config({
+    cloud_name: CLOUDINARY_CONFIG.CLOUD_NAME,
+    api_key: CLOUDINARY_CONFIG.API_KEY,
+    api_secret: CLOUDINARY_CONFIG.API_SECRET,
+});
 
 export class ProfileService {
     /**
@@ -120,5 +129,123 @@ export class ProfileService {
         }
 
         return this.getMyProfile(userId);
+    }
+
+    // ======================= AVATAR MANAGEMENT =======================
+
+    /**
+     * Upload 1 ảnh avatar lên Cloudinary và lưu metadata vào DB.
+     * Kiểm tra giới hạn số ảnh trước khi upload.
+     */
+    static async uploadAvatar(userId: string, file: Express.Multer.File): Promise<AvatarImage> {
+        // Validate MIME type
+        if (!AVATAR_CONFIG.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+            throw new AppError(
+                AVATAR_ERRORS.INVALID_FORMAT.httpCode,
+                AVATAR_ERRORS.INVALID_FORMAT.code,
+                AVATAR_ERRORS.INVALID_FORMAT.message
+            );
+        }
+
+        // Validate file size
+        if (file.size > CLOUDINARY_CONFIG.MAX_FILE_SIZE) {
+            throw new AppError(
+                AVATAR_ERRORS.FILE_TOO_LARGE.httpCode,
+                AVATAR_ERRORS.FILE_TOO_LARGE.code,
+                AVATAR_ERRORS.FILE_TOO_LARGE.message
+            );
+        }
+
+        // Kiểm tra giới hạn số ảnh hiện tại
+        const currentImages = await ProfileRepository.getAvatarImages(userId);
+        if (currentImages.length >= AVATAR_CONFIG.MAX_IMAGES) {
+            throw new AppError(
+                AVATAR_ERRORS.MAX_IMAGES_REACHED.httpCode,
+                AVATAR_ERRORS.MAX_IMAGES_REACHED.code,
+                AVATAR_ERRORS.MAX_IMAGES_REACHED.message
+            );
+        }
+
+        // Sinh public_id duy nhất: ehealth/avatars/avatar_{userId}_{timestamp}
+        const timestamp = Date.now();
+        const publicId = `avatar_${userId}_${timestamp}`;
+
+        // Upload lên Cloudinary bằng stream từ buffer
+        const uploadResult = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder: AVATAR_CONFIG.CLOUDINARY_FOLDER,
+                    public_id: publicId,
+                    overwrite: true,
+                    resource_type: 'image',
+                },
+                (error, result) => {
+                    if (error || !result) {
+                        reject(new AppError(
+                            AVATAR_ERRORS.UPLOAD_FAILED.httpCode,
+                            AVATAR_ERRORS.UPLOAD_FAILED.code,
+                            AVATAR_ERRORS.UPLOAD_FAILED.message
+                        ));
+                    } else {
+                        resolve(result);
+                    }
+                }
+            );
+            uploadStream.end(file.buffer);
+        });
+
+        // Tạo object ảnh mới
+        const newImage: AvatarImage = {
+            url: uploadResult.secure_url,
+            public_id: uploadResult.public_id,
+            uploaded_at: new Date().toISOString(),
+        };
+
+        // Lưu vào DB (append vào mảng JSONB)
+        const saved = await ProfileRepository.addAvatarImage(userId, newImage);
+        if (!saved) {
+            throw new AppError(
+                AVATAR_ERRORS.UPLOAD_FAILED.httpCode,
+                AVATAR_ERRORS.UPLOAD_FAILED.code,
+                'Upload thành công nhưng không thể lưu metadata vào DB.'
+            );
+        }
+
+        return newImage;
+    }
+
+    /**
+     * Xóa 1 ảnh avatar theo public_id.
+     * Xóa trên Cloudinary trước, sau đó xóa metadata khỏi DB.
+     */
+    static async deleteAvatar(userId: string, publicId: string): Promise<void> {
+        // Kiểm tra ảnh có tồn tại trong DB không
+        const currentImages = await ProfileRepository.getAvatarImages(userId);
+        const imageExists = currentImages.some(img => img.public_id === publicId);
+        if (!imageExists) {
+            throw new AppError(
+                AVATAR_ERRORS.IMAGE_NOT_FOUND.httpCode,
+                AVATAR_ERRORS.IMAGE_NOT_FOUND.code,
+                AVATAR_ERRORS.IMAGE_NOT_FOUND.message
+            );
+        }
+
+        // Xóa trên Cloudinary (fire-and-forget nếu lỗi thì chỉ log warning)
+        try {
+            await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
+        } catch (error: any) {
+            console.error(`[AVATAR] Lỗi xóa ảnh trên Cloudinary (${publicId}):`, error.message);
+            // Vẫn tiếp tục xóa trong DB dù Cloudinary lỗi
+        }
+
+        // Xóa metadata khỏi DB
+        const removed = await ProfileRepository.removeAvatarImage(userId, publicId);
+        if (!removed) {
+            throw new AppError(
+                AVATAR_ERRORS.DELETE_FAILED.httpCode,
+                AVATAR_ERRORS.DELETE_FAILED.code,
+                AVATAR_ERRORS.DELETE_FAILED.message
+            );
+        }
     }
 }
