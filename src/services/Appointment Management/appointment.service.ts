@@ -130,21 +130,29 @@ export class AppointmentService {
     }
 
     /**
-     * Lấy lịch khám của chính người dùng đang đăng nhập (theo account_id liên kết với patients)
+     * Lấy lịch khám của chính người dùng đang đăng nhập.
+     * Hỗ trợ 1 user liên kết nhiều hồ sơ BN — gộp tất cả lịch khám.
+     * Có thể lọc theo patient_id cụ thể nếu cần.
      */
     static async getMyAppointments(userId: string, filters: {
         status?: string; fromDate?: string; toDate?: string;
+        patient_id?: string;
         page?: number; limit?: number;
-    }): Promise<{ data: Appointment[]; total: number; patient_id: string }> {
+    }): Promise<{ data: Appointment[]; total: number; patient_ids: string[]; patient_id: string }> {
         const result = await AppointmentRepository.findByAccountId(userId, filters);
-        if (result.patient_id === null) {
+        if (result.patient_ids.length === 0) {
             throw new AppError(
                 HTTP_STATUS.NOT_FOUND,
                 'PATIENT_PROFILE_NOT_FOUND',
                 APPOINTMENT_ERRORS.PATIENT_PROFILE_NOT_FOUND
             );
         }
-        return { data: result.data, total: result.total, patient_id: result.patient_id };
+        return {
+            data: result.data,
+            total: result.total,
+            patient_ids: result.patient_ids,
+            patient_id: result.patient_ids[0]
+        };
     }
 
     /**

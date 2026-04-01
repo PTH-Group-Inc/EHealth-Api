@@ -816,15 +816,26 @@ appointmentRoutes.get(
  *
  *       **Mô tả chi tiết:**
  *       - Tự động lấy `user_id` từ JWT Access Token.
- *       - Hệ thống tra cứu bảng `patients.account_id` để tìm hồ sơ bệnh nhân liên kết với tài khoản đang đăng nhập.
- *       - Trả về toàn bộ lịch khám của bệnh nhân đó, kèm phân trang & filter cơ bản.
- *       - **Không cần truyền `patient_id`** — hệ thống tự xác định từ token.
+ *       - Hệ thống tra cứu **TẤT CẢ** hồ sơ bệnh nhân (`patients.account_id`) liên kết với tài khoản đang đăng nhập.
+ *       - **Hỗ trợ 1 user có nhiều hồ sơ BN** (VD: cha đặt lịch cho con, người thân đặt cho người già).
+ *       - Trả về **gộp lịch khám từ mọi hồ sơ BN**, kèm phân trang & filter cơ bản.
+ *       - Có thể lọc lịch theo 1 hồ sơ BN cụ thể bằng query param `patient_id`.
+ *       - **Không cần truyền `patient_id`** nếu muốn xem tất cả — hệ thống tự xác định từ token.
  *       - Nếu tài khoản chưa liên kết với hồ sơ bệnh nhân nào → trả lỗi `PATIENT_PROFILE_NOT_FOUND`.
- *       - Dữ liệu JOIN thêm: Tên bệnh nhân, Tên bác sĩ, Tên phòng, Tên chi nhánh, Tên dịch vụ, Thời gian slot.
+ *       - Dữ liệu JOIN thêm: Tên bệnh nhân, Mã bệnh nhân, Tên bác sĩ, Tên phòng, Tên chi nhánh, Tên dịch vụ, Thời gian slot.
  *     tags: [3.1 Quản lý Lịch khám]
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: query
+ *         name: patient_id
+ *         schema:
+ *           type: string
+ *         description: |
+ *           Lọc lịch khám theo 1 hồ sơ bệnh nhân cụ thể.
+ *           Chỉ chấp nhận ID thuộc quyền sở hữu của tài khoản đang đăng nhập.
+ *           Bỏ trống để xem lịch của tất cả hồ sơ BN.
+ *         example: "550e8400-e29b-41d4-a716-446655440000"
  *       - in: query
  *         name: status
  *         schema:
@@ -874,8 +885,14 @@ appointmentRoutes.get(
  *                   example: "Lấy danh sách lịch khám của tôi thành công"
  *                 patient_id:
  *                   type: string
- *                   description: ID hồ sơ bệnh nhân được liên kết với tài khoản
+ *                   description: ID hồ sơ bệnh nhân đầu tiên (backward compatible)
  *                   example: "550e8400-e29b-41d4-a716-446655440000"
+ *                 patient_ids:
+ *                   type: array
+ *                   description: Danh sách TẤT CẢ các ID hồ sơ bệnh nhân liên kết với tài khoản
+ *                   items:
+ *                     type: string
+ *                   example: ["550e8400-e29b-41d4-a716-446655440000", "660f9500-f39c-52e5-b827-557766550111"]
  *                 data:
  *                   type: array
  *                   items:
@@ -887,6 +904,16 @@ appointmentRoutes.get(
  *                       appointment_code:
  *                         type: string
  *                         example: "APP-20260320-A1B2"
+ *                       patient_id:
+ *                         type: string
+ *                         description: ID hồ sơ bệnh nhân mà lịch này thuộc về
+ *                         example: "550e8400-e29b-41d4-a716-446655440000"
+ *                       patient_name:
+ *                         type: string
+ *                         example: "Nguyễn Văn A"
+ *                       patient_code:
+ *                         type: string
+ *                         example: "BN-20260101-0001"
  *                       appointment_date:
  *                         type: string
  *                         example: "2026-03-20"

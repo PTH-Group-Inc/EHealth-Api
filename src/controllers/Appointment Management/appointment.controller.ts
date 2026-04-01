@@ -82,6 +82,7 @@ export class AppointmentController {
 
     /**
      * GET /api/appointments/my-appointments — Lịch khám của tôi (theo user đang đăng nhập)
+     * Hỗ trợ lấy lịch từ tất cả hồ sơ BN liên kết với tài khoản.
      */
     static async getMyAppointments(req: Request, res: Response) {
         try {
@@ -93,6 +94,7 @@ export class AppointmentController {
                 status: req.query.status?.toString(),
                 fromDate: req.query.fromDate?.toString(),
                 toDate: req.query.toDate?.toString(),
+                patient_id: req.query.patient_id?.toString(),
                 page: req.query.page ? parseInt(req.query.page.toString()) : 1,
                 limit: req.query.limit ? parseInt(req.query.limit.toString()) : 20,
             };
@@ -102,6 +104,7 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.MY_APPOINTMENTS_FETCHED,
                 data: result.data,
                 patient_id: result.patient_id,
+                patient_ids: result.patient_ids,
                 pagination: {
                     page: filters.page,
                     limit: filters.limit,
