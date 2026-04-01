@@ -295,31 +295,42 @@ export class AppointmentRepository {
 
     /**
      * Tìm lịch khám theo account_id (user_id) — dùng cho API "Lịch khám của tôi".
-     * Tra cứu qua bảng patients.account_id để tìm patient_id tương ứng.
+     * Hỗ trợ 1 user liên kết nhiều hồ sơ bệnh nhân (VD: cha đặt cho con).
+     * Tra cứu TẤT CẢ patients.account_id rồi gộp lịch khám từ mọi hồ sơ.
      */
     static async findByAccountId(accountId: string, filters: {
         status?: string; fromDate?: string; toDate?: string;
+        patient_id?: string;
         page?: number; limit?: number;
-    }): Promise<{ data: Appointment[]; total: number; patient_id: string | null }> {
-        // Bước 1: Tìm patient_id từ account_id
+    }): Promise<{ data: Appointment[]; total: number; patient_ids: string[] }> {
+        // Bước 1: Tìm TẤT CẢ patient_ids liên kết với account_id (không LIMIT 1)
         const patientResult = await pool.query(
-            `SELECT id FROM patients WHERE account_id = $1 AND deleted_at IS NULL LIMIT 1`,
+            `SELECT id FROM patients WHERE account_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC`,
             [accountId]
         );
 
-        if (!patientResult.rows[0]) {
-            return { data: [], total: 0, patient_id: null };
+        if (patientResult.rows.length === 0) {
+            return { data: [], total: 0, patient_ids: [] };
         }
 
-        const patientId = patientResult.rows[0].id;
+        const patientIds: string[] = patientResult.rows.map((r: { id: string }) => r.id);
 
-        // Bước 2: Query lịch khám với các filter cơ bản
+        // Bước 2: Nếu có filter patient_id cụ thể → validate thuộc quyền sở hữu
+        let targetPatientIds = patientIds;
+        if (filters.patient_id) {
+            if (!patientIds.includes(filters.patient_id)) {
+                return { data: [], total: 0, patient_ids: patientIds };
+            }
+            targetPatientIds = [filters.patient_id];
+        }
+
+        // Bước 3: Query lịch khám với WHERE patient_id = ANY(...)
         const page = filters.page || 1;
         const limit = filters.limit || 20;
         const offset = (page - 1) * limit;
 
-        let whereClause = ` WHERE a.patient_id = $1 `;
-        const values: any[] = [patientId];
+        let whereClause = ` WHERE a.patient_id = ANY($1::varchar[]) `;
+        const values: any[] = [targetPatientIds];
         let idx = 2;
 
         if (filters.status) {
@@ -343,6 +354,7 @@ export class AppointmentRepository {
             SELECT a.*,
                    TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
                    p.full_name AS patient_name,
+                   p.patient_code AS patient_code,
                    up.full_name AS doctor_name,
                    mr.name AS room_name,
                    br.name AS branch_name,
@@ -365,7 +377,7 @@ export class AppointmentRepository {
         values.push(limit, offset);
         const dataResult = await pool.query(dataQuery, values);
 
-        return { data: dataResult.rows, total, patient_id: patientId };
+        return { data: dataResult.rows, total, patient_ids: patientIds };
     }
 
     /**
