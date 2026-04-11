@@ -9,7 +9,8 @@ export class SpecialtyServiceController {
     static async getServicesBySpecialty(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { specialtyId } = req.params as { specialtyId: string };
-            const data = await SpecialtyServiceLogic.getServicesBySpecialtyId(specialtyId);
+            const { facilityId } = req.query as { facilityId?: string };
+            const data = await SpecialtyServiceLogic.getServicesBySpecialtyId(specialtyId, facilityId);
 
             res.status(200).json({
                 success: true,

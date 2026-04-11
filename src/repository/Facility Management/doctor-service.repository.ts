@@ -16,6 +16,7 @@ export class DoctorServiceRepository {
                 s.code AS service_code,
                 s.name AS service_name,
                 s.service_group,
+                fs.service_id,
                 fs.base_price,
                 fs.insurance_price,
                 fs.vip_price,

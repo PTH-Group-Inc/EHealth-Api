@@ -10,12 +10,12 @@ export class SpecialtyServiceLogic {
     /**
      * Lấy danh sách dịch vụ đã gán cho chuyên khoa
      */
-    static async getServicesBySpecialtyId(specialtyId: string): Promise<SpecialtyService[]> {
+    static async getServicesBySpecialtyId(specialtyId: string, facilityId?: string): Promise<any[]> {
         const specialtyExists = await SpecialtyServiceRepository.specialtyExists(specialtyId);
         if (!specialtyExists) {
             throw SPECIALTY_SERVICE_ERRORS.SPECIALTY_NOT_FOUND;
         }
-        return await SpecialtyServiceRepository.getServicesBySpecialtyId(specialtyId);
+        return await SpecialtyServiceRepository.getServicesBySpecialtyId(specialtyId, facilityId);
     }
 
     /**

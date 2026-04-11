@@ -40,7 +40,7 @@ const branchRoutes = Router();
  *                 message: "Unauthorized: Token đã hết hạn."
  *                 error_code: "TOKEN_EXPIRED"
  */
-branchRoutes.get('/dropdown', verifyAccessToken, BranchController.getBranchesForDropdown);
+branchRoutes.get('/dropdown', BranchController.getBranchesForDropdown);
 
 /**
  * @swagger
@@ -121,7 +121,6 @@ branchRoutes.get('/dropdown', verifyAccessToken, BranchController.getBranchesFor
  *                 message: "Bạn không có quyền thực hiện thao tác này. Yêu cầu một trong các quyền: BRANCH_VIEW"
  */
 branchRoutes.get('/',
-    verifyAccessToken,
     BranchController.getBranches
 );
 
@@ -176,7 +175,6 @@ branchRoutes.get('/',
  *                 error_code: "BRANCH_NOT_FOUND"
  */
 branchRoutes.get('/:id',
-    verifyAccessToken,
     BranchController.getBranchById
 );
 

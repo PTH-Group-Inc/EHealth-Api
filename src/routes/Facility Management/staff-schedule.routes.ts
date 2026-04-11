@@ -113,7 +113,7 @@ router.get('/calendar', verifyAccessToken, checkSessionStatus, StaffScheduleCont
  *       200:
  *         description: Thành công
  */
-router.get('/staff/:staffId', verifyAccessToken, checkSessionStatus, StaffScheduleController.getSchedulesByStaff);
+router.get('/staff/:staffId', StaffScheduleController.getSchedulesByStaff);
 
 /**
  * @swagger

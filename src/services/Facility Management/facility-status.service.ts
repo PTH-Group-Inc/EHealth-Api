@@ -64,8 +64,8 @@ export class FacilityStatusService {
         if (!opHour) {
             return {
                 date: dateStr, day_of_week: dayOfWeek, day_name: dayName,
-                is_open: false, open_time: null, close_time: null,
-                reason: 'NO_CONFIG', note: 'Chưa thiết lập giờ hoạt động cho ngày này',
+                is_open: true, open_time: '07:00:00', close_time: '17:00:00',
+                reason: 'NO_CONFIG', note: 'Chưa thiết lập giờ hoạt động cho ngày này (Dùng giờ mặc định)',
             };
         }
 

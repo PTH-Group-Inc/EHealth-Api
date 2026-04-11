@@ -146,7 +146,7 @@ export const appointmentRoutes = Router();
  */
 appointmentRoutes.post(
     '/',
-    [verifyAccessToken, checkSessionStatus],
+    [verifyAccessToken],
     AppointmentController.create
 );
 
@@ -276,7 +276,7 @@ appointmentRoutes.post(
  */
 appointmentRoutes.get(
     '/',
-    [verifyAccessToken, checkSessionStatus],
+    [verifyAccessToken],
     AppointmentController.getAll
 );
 
@@ -338,7 +338,7 @@ appointmentRoutes.get(
  */
 appointmentRoutes.put(
     '/:id',
-    [verifyAccessToken, checkSessionStatus],
+    [verifyAccessToken],
     AppointmentController.update
 );
 
@@ -390,7 +390,7 @@ appointmentRoutes.put(
  */
 appointmentRoutes.delete(
     '/:id',
-    [verifyAccessToken, checkSessionStatus],
+    [verifyAccessToken],
     AppointmentController.cancel
 );
 
@@ -680,7 +680,6 @@ appointmentRoutes.patch(
  */
 appointmentRoutes.get(
     '/available-slots',
-    [verifyAccessToken, checkSessionStatus],
     AppointmentController.getAvailableSlots
 );
 
@@ -796,7 +795,6 @@ appointmentRoutes.get(
  */
 appointmentRoutes.get(
     '/available-slots-by-department',
-    [verifyAccessToken, checkSessionStatus],
     AppointmentController.getAvailableSlotsByDepartment
 );
 

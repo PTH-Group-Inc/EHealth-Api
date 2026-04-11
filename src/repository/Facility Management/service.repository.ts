@@ -17,7 +17,10 @@ export class ServiceRepository {
         page: number,
         limit: number
     ): Promise<PaginatedServices> {
-        const conditions: string[] = ['deleted_at IS NULL'];
+        const conditions: string[] = [
+            'deleted_at IS NULL',
+            'EXISTS (SELECT 1 FROM facility_services fs WHERE fs.service_id = services.services_id)'
+        ];
         const params: any[] = [];
         let paramIdx = 1;
 
@@ -47,7 +50,8 @@ export class ServiceRepository {
         const total = parseInt(countResult.rows[0].count, 10);
 
         const dataQuery = `
-            SELECT *
+            SELECT services.*,
+                   (SELECT MIN(fs.base_price) FROM facility_services fs WHERE fs.service_id = services.services_id) as base_price
             FROM services
             ${whereClause}
             ORDER BY name ASC
@@ -93,9 +97,10 @@ export class ServiceRepository {
      */
     static async getAllServices(): Promise<MasterService[]> {
         const query = `
-            SELECT *
+            SELECT services.*,
+                   (SELECT MIN(fs.base_price) FROM facility_services fs WHERE fs.service_id = services.services_id) as base_price
             FROM services
-            WHERE deleted_at IS NULL
+            WHERE deleted_at IS NULL AND EXISTS (SELECT 1 FROM facility_services fs WHERE fs.service_id = services.services_id)
             ORDER BY name ASC
         `;
         const result = await pool.query(query);
