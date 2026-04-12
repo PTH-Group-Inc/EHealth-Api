@@ -3,6 +3,24 @@ import { MedicalRecordService } from '../../services/EMR/medical-record.service'
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { MEDICAL_RECORD_SUCCESS } from '../../constants/medical-record.constant';
+import { pool } from '../../config/postgresdb';
+
+/**
+ * Helper: Nếu patientId là user_id (VD: USR_PAT_004), tự động resolve sang patients_id
+ * từ bảng patient_profiles. Nếu đã là patients_id thì trả về nguyên.
+ */
+async function resolvePatientId(patientId: string): Promise<string> {
+    if (patientId.startsWith('USR_')) {
+        const result = await pool.query(
+            `SELECT id FROM patients WHERE account_id = $1 LIMIT 1`,
+            [patientId]
+        );
+        if (result.rows.length > 0) {
+            return result.rows[0].id;
+        }
+    }
+    return patientId;
+}
 
 
 export class MedicalRecordController {
@@ -73,7 +91,8 @@ export class MedicalRecordController {
     /** API 5: GET /api/medical-records/by-patient/:patientId — DS bệnh án theo BN */
     static async getPatientRecords(req: Request, res: Response) {
         try {
-            const patientId = req.params.patientId as string;
+            const rawId = req.params.patientId as string;
+            const patientId = await resolvePatientId(rawId);
             const { page, limit, record_type, is_finalized, from_date, to_date } = req.query;
             const data = await MedicalRecordService.getPatientRecords(
                 patientId,
@@ -97,7 +116,8 @@ export class MedicalRecordController {
     /** API 6: GET /api/medical-records/by-patient/:patientId/timeline — Dòng thời gian */
     static async getTimeline(req: Request, res: Response) {
         try {
-            const patientId = req.params.patientId as string;
+            const rawId = req.params.patientId as string;
+            const patientId = await resolvePatientId(rawId);
             const { from, to, event_type, limit } = req.query;
             const data = await MedicalRecordService.getTimeline(
                 patientId, from as string, to as string,
@@ -116,7 +136,8 @@ export class MedicalRecordController {
     /** API 7: GET /api/medical-records/by-patient/:patientId/statistics — Thống kê */
     static async getStatistics(req: Request, res: Response) {
         try {
-            const patientId = req.params.patientId as string;
+            const rawId = req.params.patientId as string;
+            const patientId = await resolvePatientId(rawId);
             const data = await MedicalRecordService.getStatistics(patientId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.STATISTICS_FETCHED, data });
         } catch (error: any) {

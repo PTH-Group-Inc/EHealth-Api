@@ -210,7 +210,7 @@ router.get('/filter-by-tags', verifyAccessToken, checkSessionStatus, PatientCont
  *       401:
  *         description: Chưa xác thực
  */
-router.get('/account/:accountId', verifyAccessToken, checkSessionStatus, PatientController.getPatientsByAccountId);
+router.get('/account/:accountId', verifyAccessToken, PatientController.getPatientsByAccountId);
 
 // 2.7 TÌM KIẾM & TRA CỨU BỆNH NHÂN
 

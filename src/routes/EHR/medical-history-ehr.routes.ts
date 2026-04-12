@@ -4,6 +4,7 @@ import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
 
+
 export const medicalHistoryEhrRoutes = Router();
 
 // ══════════════════════════════════════════════════════════════════════
@@ -46,7 +47,7 @@ export const medicalHistoryEhrRoutes = Router();
 medicalHistoryEhrRoutes.get(
     '/patients/:patientId/medical-histories',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
+
     MedicalHistoryEhrController.getHistories
 );
 
@@ -78,7 +79,7 @@ medicalHistoryEhrRoutes.get(
 medicalHistoryEhrRoutes.get(
     '/patients/:patientId/medical-histories/:historyId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
+
     MedicalHistoryEhrController.getHistoryById
 );
 
@@ -124,7 +125,7 @@ medicalHistoryEhrRoutes.get(
 medicalHistoryEhrRoutes.post(
     '/patients/:patientId/medical-histories',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.createHistory
 );
 
@@ -168,7 +169,7 @@ medicalHistoryEhrRoutes.post(
 medicalHistoryEhrRoutes.put(
     '/patients/:patientId/medical-histories/:historyId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.updateHistory
 );
 
@@ -210,7 +211,7 @@ medicalHistoryEhrRoutes.put(
 medicalHistoryEhrRoutes.patch(
     '/patients/:patientId/medical-histories/:historyId/status',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.updateHistoryStatus
 );
 
@@ -242,7 +243,7 @@ medicalHistoryEhrRoutes.patch(
 medicalHistoryEhrRoutes.delete(
     '/patients/:patientId/medical-histories/:historyId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
+
     MedicalHistoryEhrController.deleteHistory
 );
 
@@ -280,7 +281,7 @@ medicalHistoryEhrRoutes.delete(
 medicalHistoryEhrRoutes.get(
     '/patients/:patientId/allergies',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
+
     MedicalHistoryEhrController.getAllergies
 );
 
@@ -312,7 +313,7 @@ medicalHistoryEhrRoutes.get(
 medicalHistoryEhrRoutes.get(
     '/patients/:patientId/allergies/:allergyId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
+
     MedicalHistoryEhrController.getAllergyById
 );
 
@@ -357,7 +358,7 @@ medicalHistoryEhrRoutes.get(
 medicalHistoryEhrRoutes.post(
     '/patients/:patientId/allergies',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.createAllergy
 );
 
@@ -401,7 +402,7 @@ medicalHistoryEhrRoutes.post(
 medicalHistoryEhrRoutes.put(
     '/patients/:patientId/allergies/:allergyId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.updateAllergy
 );
 
@@ -433,7 +434,7 @@ medicalHistoryEhrRoutes.put(
 medicalHistoryEhrRoutes.delete(
     '/patients/:patientId/allergies/:allergyId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
+
     MedicalHistoryEhrController.deleteAllergy
 );
 
@@ -466,7 +467,7 @@ medicalHistoryEhrRoutes.delete(
 medicalHistoryEhrRoutes.get(
     '/patients/:patientId/risk-factors',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     MedicalHistoryEhrController.getRiskFactors
 );
 
@@ -510,7 +511,7 @@ medicalHistoryEhrRoutes.get(
 medicalHistoryEhrRoutes.post(
     '/patients/:patientId/risk-factors',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.createRiskFactor
 );
 
@@ -553,7 +554,7 @@ medicalHistoryEhrRoutes.post(
 medicalHistoryEhrRoutes.put(
     '/patients/:patientId/risk-factors/:factorId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.updateRiskFactor
 );
 
@@ -585,7 +586,7 @@ medicalHistoryEhrRoutes.put(
 medicalHistoryEhrRoutes.delete(
     '/patients/:patientId/risk-factors/:factorId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
+
     MedicalHistoryEhrController.deleteRiskFactor
 );
 
@@ -618,7 +619,7 @@ medicalHistoryEhrRoutes.delete(
 medicalHistoryEhrRoutes.get(
     '/patients/:patientId/special-conditions',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     MedicalHistoryEhrController.getSpecialConditions
 );
 
@@ -661,7 +662,7 @@ medicalHistoryEhrRoutes.get(
 medicalHistoryEhrRoutes.post(
     '/patients/:patientId/special-conditions',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicalHistoryEhrController.createSpecialCondition
 );
 
@@ -693,6 +694,7 @@ medicalHistoryEhrRoutes.post(
 medicalHistoryEhrRoutes.delete(
     '/patients/:patientId/special-conditions/:conditionId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
+
     MedicalHistoryEhrController.deleteSpecialCondition
 );
+

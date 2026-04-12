@@ -78,14 +78,12 @@ export const dataIntegrationRoutes = Router();
 dataIntegrationRoutes.get(
     '/patients/:patientId/data-sources',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     DataIntegrationController.getDataSources
 );
 
 dataIntegrationRoutes.post(
     '/patients/:patientId/data-sources',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
     DataIntegrationController.createDataSource
 );
 
@@ -133,7 +131,6 @@ dataIntegrationRoutes.post(
 dataIntegrationRoutes.patch(
     '/patients/:patientId/data-sources/:sourceId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
     DataIntegrationController.updateDataSource
 );
 
@@ -227,14 +224,12 @@ dataIntegrationRoutes.patch(
 dataIntegrationRoutes.get(
     '/patients/:patientId/external-records',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     DataIntegrationController.getExternalRecords
 );
 
 dataIntegrationRoutes.post(
     '/patients/:patientId/external-records',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     DataIntegrationController.createExternalRecord
 );
 
@@ -267,7 +262,6 @@ dataIntegrationRoutes.post(
 dataIntegrationRoutes.get(
     '/patients/:patientId/external-records/:recordId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     DataIntegrationController.getExternalRecordDetail
 );
 
@@ -317,7 +311,6 @@ dataIntegrationRoutes.get(
 dataIntegrationRoutes.patch(
     '/patients/:patientId/external-records/:recordId/status',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
     DataIntegrationController.updateSyncStatus
 );
 
@@ -393,14 +386,12 @@ dataIntegrationRoutes.patch(
 dataIntegrationRoutes.post(
     '/patients/:patientId/device-sync',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     DataIntegrationController.createDeviceSyncLog
 );
 
 dataIntegrationRoutes.get(
     '/patients/:patientId/device-sync',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     DataIntegrationController.getDeviceSyncLogs
 );
 
@@ -431,6 +422,6 @@ dataIntegrationRoutes.get(
 dataIntegrationRoutes.get(
     '/patients/:patientId/integration-summary',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     DataIntegrationController.getIntegrationSummary
 );
+

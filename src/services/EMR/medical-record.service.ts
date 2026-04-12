@@ -230,7 +230,9 @@ export class MedicalRecordService {
     ): Promise<{ data: PatientRecordItem[]; total: number; page: number; limit: number; totalPages: number }> {
         const exists = await MedicalRecordRepository.patientExists(patientId);
         if (!exists) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', MEDICAL_RECORD_ERRORS.PATIENT_NOT_FOUND);
+            // Bệnh nhân chưa có hồ sơ — trả data rỗng thay vì 404
+            const safeLimit = Math.min(limit || MEDICAL_RECORD_CONFIG.DEFAULT_LIMIT, MEDICAL_RECORD_CONFIG.MAX_LIMIT);
+            return { data: [], total: 0, page: page || 1, limit: safeLimit, totalPages: 0 };
         }
 
         const safeLimit = Math.min(limit || MEDICAL_RECORD_CONFIG.DEFAULT_LIMIT, MEDICAL_RECORD_CONFIG.MAX_LIMIT);
@@ -253,7 +255,7 @@ export class MedicalRecordService {
     ): Promise<TimelineEvent[]> {
         const exists = await MedicalRecordRepository.patientExists(patientId);
         if (!exists) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', MEDICAL_RECORD_ERRORS.PATIENT_NOT_FOUND);
+            return []; // Bệnh nhân chưa có hồ sơ — trả mảng rỗng
         }
 
         return MedicalRecordRepository.getTimeline(
@@ -266,7 +268,13 @@ export class MedicalRecordService {
     static async getStatistics(patientId: string): Promise<PatientStatistics> {
         const exists = await MedicalRecordRepository.patientExists(patientId);
         if (!exists) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', MEDICAL_RECORD_ERRORS.PATIENT_NOT_FOUND);
+            return {
+                total_encounters: 0, finalized_encounters: 0, unfinalized_encounters: 0,
+                total_finalized: 0,
+                encounters_by_type: [], encounters_by_year: [],
+                top_diagnoses: [], top_drugs: [],
+                last_encounter: null, vitals_trend: [], vital_signs_trend: [],
+            } as unknown as PatientStatistics;
         }
 
         const [counts, byType, byYear, topDiagnoses, topDrugs, lastEnc, vitalsTrend] = await Promise.all([
