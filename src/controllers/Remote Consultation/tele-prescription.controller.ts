@@ -18,7 +18,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.createPrescription(String(req.params.consultationId), userId, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_RX_SUCCESS.PRESCRIPTION_CREATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -28,7 +28,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.addItem(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_RX_SUCCESS.ITEM_ADDED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -38,7 +38,7 @@ export class TelePrescriptionController {
             await TelePrescriptionService.removeItem(String(req.params.consultationId), String(req.params.detailId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RX_SUCCESS.ITEM_REMOVED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -48,7 +48,7 @@ export class TelePrescriptionController {
             await TelePrescriptionService.prescribe(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RX_SUCCESS.PRESCRIBED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -58,7 +58,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.getDetail(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -70,7 +70,7 @@ export class TelePrescriptionController {
             await TelePrescriptionService.sendToPatient(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RX_SUCCESS.SENT_TO_PATIENT });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -80,7 +80,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.checkStock(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RX_SUCCESS.STOCK_CHECKED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -90,7 +90,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.getDrugRestrictions();
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -103,7 +103,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.createLabOrder(String(req.params.consultationId), req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_RX_SUCCESS.LAB_ORDER_CREATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -113,7 +113,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.getLabOrders(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -123,7 +123,7 @@ export class TelePrescriptionController {
             await TelePrescriptionService.updateReferral(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RX_SUCCESS.REFERRAL_UPDATED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -144,7 +144,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.listPrescriptions(filters);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -156,7 +156,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.getPatientPrescriptions(String(req.params.patientId), page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -166,7 +166,7 @@ export class TelePrescriptionController {
             const result = await TelePrescriptionService.getSummary(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 }

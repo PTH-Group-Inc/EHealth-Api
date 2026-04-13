@@ -93,20 +93,32 @@ export class TeleBookingService {
         this.validateBookingDate(input.booking_date);
 
         // Validate FK
-        const [patientOk, specialtyOk, facilityOk, typeOk] = await Promise.all([
-            TeleBookingRepository.patientExists(input.patient_id),
-            TeleBookingRepository.specialtyExists(input.specialty_id),
-            TeleBookingRepository.facilityExists(input.facility_id),
-            TeleBookingRepository.typeExists(input.type_id),
-        ]);
+        const patientOk = await TeleBookingRepository.patientExists(input.patient_id);
+        const specialtyOk = input.specialty_id ? await TeleBookingRepository.specialtyExists(input.specialty_id) : true;
+        const facilityOk = input.facility_id ? await TeleBookingRepository.facilityExists(input.facility_id) : true;
+        const typeOk = await TeleBookingRepository.typeExists(input.type_id);
+
         if (!patientOk) throw new AppError(HTTP_STATUS.NOT_FOUND, TELE_BOOKING_ERRORS.PATIENT_NOT_FOUND.code, TELE_BOOKING_ERRORS.PATIENT_NOT_FOUND.message);
-        if (!specialtyOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'SPECIALTY_NOT_FOUND', 'Chuyên khoa không tồn tại.');
+        // Replace with resolved patient id
+        input.patient_id = patientOk;
+
+        if (input.specialty_id && !specialtyOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'SPEC_NOT_FOUND', 'Chuyên khoa không tồn tại.');
         if (!facilityOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'FACILITY_NOT_FOUND', 'Cơ sở không tồn tại.');
         if (!typeOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'TYPE_NOT_FOUND', 'Loại hình khám không tồn tại.');
 
         // Lấy config (giá, thời lượng, platform)
-        const config = await TeleBookingRepository.getConfig(input.type_id, input.specialty_id, input.facility_id);
-        if (!config) throw new AppError(HTTP_STATUS.NOT_FOUND, TELE_BOOKING_ERRORS.NO_CONFIG_AVAILABLE.code, TELE_BOOKING_ERRORS.NO_CONFIG_AVAILABLE.message);
+        let config = await TeleBookingRepository.getConfig(input.type_id, input.specialty_id, input.facility_id);
+        if (!config) {
+            console.warn(`[TeleBookingService] No config found for type=${input.type_id}, specialty=${input.specialty_id}, facility=${input.facility_id}. Using fallback.`);
+            config = {
+                config_id: null,
+                base_price: 300000,
+                insurance_price: 150000,
+                vip_price: 500000,
+                default_duration_minutes: 30,
+                allowed_platforms: ['AGORA']
+            };
+        }
 
         // Validate BS (nếu chọn)
         if (input.doctor_id) {

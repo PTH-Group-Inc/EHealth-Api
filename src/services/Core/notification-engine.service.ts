@@ -163,7 +163,8 @@ export class NotificationEngineService {
         // Lấy Template
         const template = await NotificationTemplateRepository.getTemplateByCode(input.template_code);
         if (!template || !template.is_active) {
-            throw new AppError(404, 'TEMPLATE_NOT_FOUND', `Không tìm thấy template đang kích hoạt: ${input.template_code}`);
+            console.warn(`[NOTIFICATION] Template không tìm thấy hoặc không active: ${input.template_code} — bỏ qua gửi thông báo.`);
+            return;
         }
 
         // Lấy cấu hình Role Matrix

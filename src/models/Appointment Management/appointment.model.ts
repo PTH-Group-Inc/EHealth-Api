@@ -52,6 +52,9 @@ export interface Appointment {
     cancelled_by?: string | null;
 
     priority?: string;
+    
+    rating?: number | null;
+    feedback?: string | null;
 }
 
 export interface CreateAppointmentInput {
@@ -63,6 +66,7 @@ export interface CreateAppointmentInput {
     reason_for_visit?: string;
     symptoms_notes?: string;
     facility_service_id?: string;
+    specialty_id?: string;     // Chuyên khoa do BN chọn trực tiếp
 
     slot_id?: string;
     doctor_id?: string;

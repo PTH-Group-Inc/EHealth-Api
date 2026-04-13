@@ -436,9 +436,10 @@ export class TeleBookingRepository {
     // VALIDATION HELPERS
     // ═══════════════════════════════════════════════════
 
-    static async patientExists(patientId: string): Promise<boolean> {
-        const r = await pool.query('SELECT id FROM patients WHERE id::varchar = $1 AND deleted_at IS NULL', [patientId]);
-        return (r.rowCount ?? 0) > 0;
+    static async patientExists(patientId: string): Promise<string | null> {
+        // Find by direct patient id or account id
+        const r = await pool.query('SELECT id FROM patients WHERE (id::varchar = $1 OR account_id::varchar = $1) AND deleted_at IS NULL LIMIT 1', [patientId]);
+        return r.rowCount ? r.rows[0].id : null;
     }
 
     static async specialtyExists(specialtyId: string): Promise<boolean> {

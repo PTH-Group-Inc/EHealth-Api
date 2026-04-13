@@ -30,9 +30,9 @@ export class AppointmentService {
      */
     static async createAppointment(data: CreateAppointmentInput, userId?: string): Promise<Appointment & { warning?: string | null }> {
         // VALIDATE CÁC TRƯỜNG BẮT BUỘC
-        if (!data.patient_id || !data.branch_id || !data.slot_id || !data.appointment_date || !data.booking_channel) {
+        if (!data.patient_id || !data.branch_id || (!data.slot_id && !data.shift_id) || !data.appointment_date || !data.booking_channel) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
-                'Thiếu thông tin bắt buộc: patient_id, branch_id, slot_id, appointment_date, booking_channel');
+                'Thiếu thông tin bắt buộc: patient_id, branch_id, (slot_id hoặc shift_id), appointment_date, booking_channel');
         }
 
         // Validate ngày khám >= hôm nay
@@ -62,20 +62,27 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', APPOINTMENT_ERRORS.BRANCH_NOT_FOUND);
         }
 
-        // Validate slot và lấy shift_id
-        if (!data.slot_id) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SLOT', 'Thiếu thông tin slot_id');
-        const shiftId = await AppointmentRepository.getShiftIdBySlot(data.slot_id);
-        if (!shiftId) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', 'Slot không tồn tại hoặc đã bị xoá');
+        // Validate slot và lấy shift_id, hoặc ngược lại
+        if (data.slot_id) {
+            const shiftId = await AppointmentRepository.getShiftIdBySlot(data.slot_id);
+            if (!shiftId) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', 'Slot không tồn tại hoặc đã bị xoá');
+            }
+            data.shift_id = shiftId;
+        } else if (data.shift_id) {
+            const shiftOk = await AppointmentRepository.shiftExists(data.shift_id);
+            if (!shiftOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SHIFT_NOT_FOUND', 'Ca khám không tồn tại hoặc đã bị xoá');
+            }
         }
-        data.shift_id = shiftId;
 
         // Validate dịch vụ (nếu có)
         if (data.facility_service_id) {
-            const svcOk = await AppointmentRepository.facilityServiceIsActive(data.facility_service_id);
-            if (!svcOk) {
+            const realFacilityServiceId = await AppointmentRepository.resolveFacilityService(data.facility_service_id, data.branch_id);
+            if (!realFacilityServiceId) {
                 throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
             }
+            data.facility_service_id = realFacilityServiceId;
         }
 
         // === SMART ALLOCATE + INSERT TRONG TRANSACTION (tránh race condition) ===
@@ -431,10 +438,11 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
 
-        const svcOk = await AppointmentRepository.facilityServiceIsActive(facilityServiceId);
-        if (!svcOk) {
+        const realFacilityServiceId = await AppointmentRepository.resolveFacilityService(facilityServiceId, existing.branch_id);
+        if (!realFacilityServiceId) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
         }
+        facilityServiceId = realFacilityServiceId;
 
         const updated = await AppointmentRepository.assignService(id, facilityServiceId, {
             appointment_id: id,
@@ -794,22 +802,36 @@ export class AppointmentService {
     private static async smartAllocate(
         data: CreateAppointmentInput, client?: import('pg').PoolClient
     ): Promise<{ warning?: string }> {
-        // 1. Kiểm tra sức chứa của slot được chọn
+        // 1. Kiểm tra sức chứa
         const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
         const maxPerSlot = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
 
-        if (!data.slot_id) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SLOT', 'Thiếu thông tin slot_id');
-
-        const currentCount = await AppointmentRepository.countActiveBySlotAndDate(
-            data.slot_id, data.appointment_date, client
-        );
-        if (currentCount >= maxPerSlot) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', 'Khung giờ này đã hết chỗ, vui lòng chọn khung giờ khác.');
+        if (!data.slot_id) {
+            if (!data.shift_id) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SLOT_AND_SHIFT', 'Thiếu thông tin slot_id và shift_id');
+            // Tự động gán slot nếu chỉ truyền shift_id
+            const availableSlot = await AppointmentRepository.findNextAvailableSlot(data.shift_id, data.appointment_date, maxPerSlot, client);
+            if (!availableSlot) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SHIFT_FULL', 'Ca khám đã hết khung giờ trống, vui lòng chọn ca khác.');
+            }
+            data.slot_id = availableSlot.slot_id;
+        } else {
+            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(
+                data.slot_id, data.appointment_date, client
+            );
+            if (currentCount >= maxPerSlot) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', 'Khung giờ này đã hết chỗ, vui lòng chọn khung giờ khác.');
+            }
         }
 
-        // 2. Tra chuyên khoa từ dịch vụ BN chọn (nếu có)
+        // 2. Xác định chuyên khoa: ưu tiên specialty_id trực tiếp, fallback tra từ dịch vụ
         let specialtyId: string | undefined;
-        if (data.facility_service_id) {
+
+        // Ưu tiên 1: specialty_id do frontend gửi trực tiếp (đặt theo chuyên khoa)
+        if (data.specialty_id) {
+            specialtyId = data.specialty_id;
+        }
+        // Ưu tiên 2: tra chuyên khoa từ dịch vụ (facility_service_id → specialty_services)
+        if (!specialtyId && data.facility_service_id) {
             specialtyId = await AppointmentRepository.getSpecialtyByFacilityService(
                 data.facility_service_id
             ) ?? undefined;
@@ -966,7 +988,25 @@ export class AppointmentService {
 
             result.push({ date: dateStr, is_facility_open: true, slots });
         }
+        return result;
+    }
 
+    /**
+     * Submit user review for a completed appointment
+     */
+    static async submitReview(id: string, rating: number, feedback: string): Promise<Appointment> {
+        const appointment = await AppointmentRepository.findById(id);
+        if (!appointment) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        if (appointment.status !== 'COMPLETED') {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'APPOINTMENT_NOT_COMPLETED', 'Cuộc hẹn phải hoàn thành mới được đánh giá.');
+        }
+
+        const result = await AppointmentRepository.submitReview(id, rating, feedback);
+        if (!result) {
+            throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Không thể lưu đánh giá');
+        }
         return result;
     }
 }

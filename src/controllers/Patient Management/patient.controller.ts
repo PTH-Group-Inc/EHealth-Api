@@ -8,6 +8,7 @@ import {
 } from '../../models/Patient Management/patient.model';
 import { PATIENT_CONFIG } from '../../constants/patient.constant';
 import { AuditLogRepository } from '../../repository/Core/audit-log.repository';
+import { AppointmentAuditLogRepository } from '../../repository/Appointment Management/appointment-audit-log.repository';
 
 export class PatientController {
     /**
@@ -194,7 +195,7 @@ export class PatientController {
             const startDate = req.query.start_date as string | undefined;
             const endDate = req.query.end_date as string | undefined;
 
-            const data = await AuditLogRepository.getLogs({
+            const generalData = await AuditLogRepository.getLogs({
                 module_name: 'PATIENTS',
                 target_id: id,
                 action_type: actionType,
@@ -204,15 +205,38 @@ export class PatientController {
                 limit
             });
 
+            // Lấy thêm audit của đặt lịch bổ trợ vào timeline
+            const appointmentLogs = await AppointmentAuditLogRepository.findByPatientId(id);
+
+            const allEvents = [...generalData.logs];
+            appointmentLogs.forEach(log => {
+                allEvents.push({
+                    log_id: log.appointment_audit_logs_id || log.id,
+                    action_type: log.new_status ? `UPDATE_STATUS_${log.new_status}` : 'UPDATE',
+                    created_at: log.created_at,
+                    module_name: 'APPOINTMENTS',
+                    description: `Lịch khám ${log.appointment_code || log.appointment_id}: ${log.old_status || ''} -> ${log.new_status || ''} ${log.action_note ? '(' + log.action_note + ')' : ''}`,
+                    user_id: log.changed_by,
+                    user_email: log.changed_by_name || 'Hệ thống'
+                });
+            });
+
+            // Sắp xếp lại theo created_at DESC (mới nhất trước)
+            allEvents.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+            // Vì đã merge thêm dữ liệu, việc phân trang có thể không còn chính xác tuyệt đối như query,
+            // nhưng client timeline cần xử lý mảng này. Ta tính lại tổng fake.
+            const mergedTotal = generalData.total + appointmentLogs.length;
+
             res.status(200).json({
                 success: true,
                 message: 'Lấy lịch sử thay đổi hồ sơ bệnh nhân thành công.',
-                data: data.logs,
+                data: allEvents,
                 pagination: {
-                    total: data.total,
+                    total: mergedTotal,
                     page,
                     limit,
-                    total_pages: Math.ceil(data.total / limit)
+                    total_pages: Math.ceil(mergedTotal / limit)
                 }
             });
         } catch (error) {

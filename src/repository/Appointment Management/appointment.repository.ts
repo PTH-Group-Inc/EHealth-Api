@@ -57,12 +57,31 @@ export class AppointmentRepository {
         return (result.rowCount ?? 0) > 0;
     }
 
-    /** Kiểm tra dịch vụ cơ sở có tồn tại và đang hoạt động không */
-    static async facilityServiceIsActive(facilityServiceId: string): Promise<boolean> {
-        const result = await pool.query(
-            'SELECT facility_services_id FROM facility_services WHERE facility_services_id = $1 AND is_active = true', [facilityServiceId]
+    /** Kiểm tra dịch vụ cơ sở có tồn tại và đang hoạt động không, fallback từ service_id gốc nếu cần */
+    static async resolveFacilityService(serviceRefId: string, branchId?: string): Promise<string | null> {
+        // 1. Thử tìm theo cấu trúc facility_services_id
+        let result = await pool.query(
+            'SELECT facility_services_id FROM facility_services WHERE facility_services_id = $1 AND is_active = true', [serviceRefId]
         );
-        return (result.rowCount ?? 0) > 0;
+        if ((result.rowCount ?? 0) > 0) {
+            return result.rows[0].facility_services_id;
+        }
+
+        // 2. Thử tìm xem có phải frontend gửi service_id từ master table không (cần branchId)
+        if (branchId) {
+            result = await pool.query(
+                `SELECT fs.facility_services_id 
+                 FROM facility_services fs
+                 JOIN branches b ON b.facility_id = fs.facility_id
+                 WHERE b.branches_id = $1 AND fs.service_id = $2 AND fs.is_active = true`,
+                [branchId, serviceRefId]
+            );
+            if ((result.rowCount ?? 0) > 0) {
+                return result.rows[0].facility_services_id;
+            }
+        }
+        
+        return null;
     }
 
     /** Kiểm tra chi nhánh có tồn tại và đang hoạt động không */
@@ -217,8 +236,14 @@ export class AppointmentRepository {
         let idx = 1;
 
         if (filters.status) {
-            whereClause += ` AND a.status = $${idx++}`;
-            values.push(filters.status);
+            const statuses = filters.status.split(',').map(s => s.trim());
+            if (statuses.length === 1) {
+                whereClause += ` AND a.status = $${idx++}`;
+                values.push(statuses[0]);
+            } else {
+                whereClause += ` AND a.status = ANY($${idx++}::varchar[])`;
+                values.push(statuses);
+            }
         }
         if (filters.patient_id) {
             whereClause += ` AND a.patient_id = $${idx++}`;
@@ -334,8 +359,14 @@ export class AppointmentRepository {
         let idx = 2;
 
         if (filters.status) {
-            whereClause += ` AND a.status = $${idx++}`;
-            values.push(filters.status);
+            const statuses = filters.status.split(',').map(s => s.trim());
+            if (statuses.length === 1) {
+                whereClause += ` AND a.status = $${idx++}`;
+                values.push(statuses[0]);
+            } else {
+                whereClause += ` AND a.status = ANY($${idx++}::varchar[])`;
+                values.push(statuses);
+            }
         }
         if (filters.fromDate) {
             whereClause += ` AND a.appointment_date >= $${idx++}::date`;
@@ -564,6 +595,19 @@ export class AppointmentRepository {
         } finally {
             client.release();
         }
+    }
+    /**
+     * Gửi đánh giá cho lịch khám
+     */
+    static async submitReview(id: string, rating: number, feedback: string): Promise<Appointment | null> {
+        const result = await pool.query(
+            `UPDATE appointments
+             SET rating = $1, feedback = $2, updated_at = CURRENT_TIMESTAMP
+             WHERE appointments_id = $3
+             RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date`,
+            [rating, feedback, id]
+        );
+        return result.rows[0] || null;
     }
 
     /**

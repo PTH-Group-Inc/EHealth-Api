@@ -28,6 +28,7 @@ export const PATIENT_ERRORS = {
         success: false,
         code: 'PAT_001',
         message: 'Không tìm thấy hồ sơ bệnh nhân này.',
+        status: 404
     },
     ID_CARD_ALREADY_EXISTS: {
         success: false,

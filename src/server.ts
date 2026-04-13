@@ -7,6 +7,7 @@ import { Server } from 'http';
 import { ApiPermissionCacheService } from './services/Core/api-permission-cache.service';
 import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs';
 import { NoShowDetectionJob } from './jobs/NoShowDetection.jobs';
+import { AutoApproveAppointmentJob } from './jobs/AutoApproveAppointment.jobs';
 
 const PORT = process.env.PORT || 3000;
 let server: Server;
@@ -22,6 +23,7 @@ const startServer = async () => {
         // Khởi động Cron Jobs
         AppointmentReminderJob.startReminderJob();
         NoShowDetectionJob.startJob();
+        AutoApproveAppointmentJob.startJob();
     });
 };
 

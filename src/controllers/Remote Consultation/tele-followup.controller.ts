@@ -18,7 +18,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.createPlan(String(req.params.consultationId), userId, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_FU_SUCCESS.PLAN_CREATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -28,7 +28,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.updatePlan(String(req.params.planId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_FU_SUCCESS.PLAN_UPDATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -38,7 +38,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.getPlanDetail(String(req.params.planId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -48,7 +48,7 @@ export class TeleFollowUpController {
             await TeleFollowUpService.completePlan(String(req.params.planId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_FU_SUCCESS.PLAN_COMPLETED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -58,7 +58,7 @@ export class TeleFollowUpController {
             await TeleFollowUpService.convertToPerson(String(req.params.planId), req.body.converted_reason || '');
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_FU_SUCCESS.PLAN_CONVERTED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -72,7 +72,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.addHealthUpdate(String(req.params.planId), userId, role, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_FU_SUCCESS.UPDATE_ADDED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -84,7 +84,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.getHealthUpdates(String(req.params.planId), page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -94,7 +94,7 @@ export class TeleFollowUpController {
             await TeleFollowUpService.respondToUpdate(String(req.params.updateId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_FU_SUCCESS.UPDATE_RESPONDED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -107,7 +107,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.getAttentionUpdates(userId, page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -119,7 +119,7 @@ export class TeleFollowUpController {
             await TeleFollowUpService.sendReminder(String(req.params.planId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_FU_SUCCESS.REMINDER_SENT });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -130,7 +130,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.getUpcomingPlans(userId);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -152,7 +152,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.listPlans(filters);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -164,7 +164,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.getPatientPlans(String(req.params.patientId), page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -174,7 +174,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.getReport(String(req.params.planId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -185,7 +185,7 @@ export class TeleFollowUpController {
             const result = await TeleFollowUpService.getStats(doctorId);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 }

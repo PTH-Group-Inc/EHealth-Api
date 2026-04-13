@@ -1375,3 +1375,18 @@ appointmentRoutes.get(
     [verifyAccessToken, checkSessionStatus],
     AppointmentController.getById
 );
+
+/**
+ * @swagger
+ * /api/appointments/{id}/review:
+ *   post:
+ *     summary: Patient reviews a completed appointment
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ */
+appointmentRoutes.post(
+    '/:id/review',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentController.submitReview
+);
