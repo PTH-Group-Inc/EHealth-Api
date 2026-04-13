@@ -91,7 +91,7 @@ export class DepartmentRepository {
 
     static async findDepartmentById(id: string): Promise<DepartmentInfo | null> {
         const query = `
-            SELECT d.*, b.name as branch_name, f.name as facility_name
+            SELECT d.*, b.name as branch_name, b.facility_id, f.name as facility_name
             FROM departments d
             INNER JOIN branches b ON d.branch_id = b.branches_id
             INNER JOIN facilities f ON b.facility_id = f.facilities_id
