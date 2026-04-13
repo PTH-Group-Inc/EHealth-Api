@@ -533,7 +533,7 @@ export class AppointmentController {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_RATING', 'Điểm đánh giá phải từ 1 đến 5');
             }
 
-            const data = await AppointmentService.submitReview(id, rating, feedback || '');
+            const data = await AppointmentService.submitReview(id as string, rating, (feedback as string) || '');
 
             res.status(HTTP_STATUS.OK).json({
                 success: true,
