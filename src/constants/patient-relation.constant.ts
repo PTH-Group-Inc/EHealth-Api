@@ -32,41 +32,49 @@ export const RELATION_TYPE_ERRORS = {
 export const PATIENT_CONTACT_ERRORS = {
     NOT_FOUND: {
         success: false,
+        status: 404,
         code: 'PTC_001',
         message: 'Không tìm thấy thông tin người thân.',
     },
     MISSING_REQUIRED_FIELDS: {
         success: false,
+        status: 400,
         code: 'PTC_002',
         message: 'Vui lòng cung cấp đầy đủ các trường bắt buộc: patient_id, relation_type_id, contact_name, phone_number.',
     },
     PATIENT_NOT_FOUND: {
         success: false,
+        status: 404,
         code: 'PTC_003',
         message: 'Không tìm thấy hồ sơ bệnh nhân được chỉ định.',
     },
     RELATION_TYPE_INVALID: {
         success: false,
+        status: 400,
         code: 'PTC_004',
         message: 'Loại quan hệ không tồn tại hoặc đã bị vô hiệu hóa.',
     },
     MISSING_EMERGENCY_FLAG: {
         success: false,
+        status: 400,
         code: 'PTC_005',
         message: 'Vui lòng cung cấp giá trị is_emergency_contact (true/false).',
     },
     MISSING_LEGAL_REP_FLAG: {
         success: false,
+        status: 400,
         code: 'PTC_006',
         message: 'Vui lòng cung cấp giá trị is_legal_representative (true/false).',
     },
     MISSING_MEDICAL_NOTE: {
         success: false,
+        status: 400,
         code: 'PTC_007',
         message: 'Vui lòng cung cấp nội dung ghi chú quyền quyết định y tế (medical_decision_note).',
     },
     NO_LEGAL_REPRESENTATIVE: {
         success: false,
+        status: 404,
         code: 'PTC_008',
         message: 'Bệnh nhân chưa được chỉ định người đại diện pháp lý.',
     },

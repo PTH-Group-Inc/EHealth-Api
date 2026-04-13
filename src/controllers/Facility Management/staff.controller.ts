@@ -20,6 +20,12 @@ export class StaffController {
                 status: req.query.status as string,
                 role: req.query.role as string,
                 branch_id: req.query.branch_id as string,
+                facility_id: req.query.facility_id as string,
+                specialty_id: req.query.specialty_id as string,
+                service_id: req.query.service_id as string,
+                gender: req.query.gender as string,
+                min_price: req.query.min_price ? parseFloat(req.query.min_price as string) : undefined,
+                max_price: req.query.max_price ? parseFloat(req.query.max_price as string) : undefined,
             };
 
             const data = await StaffService.getStaffs(filter);

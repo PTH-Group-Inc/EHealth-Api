@@ -54,7 +54,6 @@ export const clinicalResultsRoutes = Router();
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     ClinicalResultsController.getResults
 );
 
@@ -90,7 +89,6 @@ clinicalResultsRoutes.get(
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/trends',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     ClinicalResultsController.getTrends
 );
 
@@ -118,7 +116,6 @@ clinicalResultsRoutes.get(
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/summary',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     ClinicalResultsController.getSummary
 );
 
@@ -147,7 +144,6 @@ clinicalResultsRoutes.get(
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/attachments',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     ClinicalResultsController.getAttachments
 );
 
@@ -176,7 +172,6 @@ clinicalResultsRoutes.get(
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/abnormal',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     ClinicalResultsController.getAbnormalResults
 );
 
@@ -209,7 +204,6 @@ clinicalResultsRoutes.get(
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/by-encounter/:encounterId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     ClinicalResultsController.getResultsByEncounter
 );
 
@@ -243,6 +237,6 @@ clinicalResultsRoutes.get(
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/:orderId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     ClinicalResultsController.getResultDetail
 );
+

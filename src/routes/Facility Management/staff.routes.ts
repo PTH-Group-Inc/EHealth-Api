@@ -57,7 +57,7 @@ const staffRoutes = Router();
  *       200:
  *         description: Thành công
  */
-staffRoutes.get('/', [verifyAccessToken, checkSessionStatus], StaffController.getStaffs);
+staffRoutes.get('/', StaffController.getStaffs);
 
 /**
  * @swagger
@@ -87,7 +87,7 @@ staffRoutes.get('/', [verifyAccessToken, checkSessionStatus], StaffController.ge
  *       404:
  *         description: Không tìm thấy nhân sự
  */
-staffRoutes.get('/:staffId', [verifyAccessToken, checkSessionStatus], StaffController.getStaffById);
+staffRoutes.get('/:staffId', StaffController.getStaffById);
 
 /**
  * @swagger
@@ -335,7 +335,7 @@ staffRoutes.put('/:staffId/doctor-info', [verifyAccessToken, checkSessionStatus]
  *       200:
  *         description: Lấy thành công
  */
-staffRoutes.get('/:staffId/licenses', [verifyAccessToken, checkSessionStatus], StaffController.getLicensesByUserId);
+staffRoutes.get('/:staffId/licenses', StaffController.getLicensesByUserId);
 
 /**
  * @swagger

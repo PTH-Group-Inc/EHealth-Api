@@ -51,6 +51,42 @@ export class StaffRepository {
             whereClauses.push(`ubd.branch_id = $${queryParams.length}`);
         }
 
+        if (filter.specialty_id) {
+            queryParams.push(filter.specialty_id);
+            whereClauses.push(`d.specialty_id = $${queryParams.length}`);
+        }
+
+        if (filter.gender) {
+            queryParams.push(filter.gender);
+            whereClauses.push(`up.gender = $${queryParams.length}`);
+        }
+
+        if (filter.min_price) {
+            queryParams.push(filter.min_price);
+            whereClauses.push(`d.consultation_fee >= $${queryParams.length}`);
+        }
+
+        if (filter.max_price) {
+            queryParams.push(filter.max_price);
+            whereClauses.push(`d.consultation_fee <= $${queryParams.length}`);
+        }
+
+        if (filter.service_id) {
+            queryParams.push(filter.service_id);
+            whereClauses.push(`
+                EXISTS (
+                    SELECT 1 FROM doctor_services ds
+                    JOIN facility_services fs ON ds.facility_service_id = fs.facility_services_id
+                    WHERE ds.doctor_id = d.doctors_id AND fs.service_id = $${queryParams.length}
+                )
+            `);
+        }
+
+        if (filter.facility_id) {
+            queryParams.push(filter.facility_id);
+            whereClauses.push(`b.facility_id = $${queryParams.length}`);
+        }
+
         const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
         // Đếm tổng số lượng
@@ -59,6 +95,8 @@ export class StaffRepository {
             FROM users u
             LEFT JOIN user_profiles up ON u.users_id = up.user_id
             LEFT JOIN user_branch_dept ubd ON u.users_id = ubd.user_id
+            LEFT JOIN branches b ON ubd.branch_id = b.branches_id
+            LEFT JOIN doctors d ON u.users_id = d.user_id
             ${whereString}
         `;
         const countResult = await pool.query(countQuery, queryParams);
@@ -84,7 +122,10 @@ export class StaffRepository {
                 up.dob,
                 up.gender,
                 up.avatar_url,
+                d.doctors_id,
                 d.title as doctor_title,
+                d.consultation_fee,
+                d.specialty_id,
                 sp.name as specialty_name,
                 f.name as facility_name
             FROM users u
@@ -97,7 +138,7 @@ export class StaffRepository {
             LEFT JOIN branches b ON ubd.branch_id = b.branches_id
             LEFT JOIN facilities f ON b.facility_id = f.facilities_id
             ${whereString}
-            GROUP BY u.users_id, up.user_profiles_id, d.title, sp.name, f.name
+            GROUP BY u.users_id, up.user_profiles_id, d.doctors_id, d.title, d.consultation_fee, d.specialty_id, sp.name, f.name
             ORDER BY u.created_at DESC
             LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}
         `;
@@ -159,7 +200,7 @@ export class StaffRepository {
         const facilityQuery = `
             SELECT ubd.user_branch_dept_id, ubd.branch_id, b.name as branch_name, 
                    ubd.department_id, dp.name as department_name, 
-                   ubd.role_title, f.name as facility_name
+                   ubd.role_title, f.facilities_id as facility_id, f.name as facility_name
             FROM user_branch_dept ubd
             JOIN branches b ON ubd.branch_id = b.branches_id
             JOIN facilities f ON b.facility_id = f.facilities_id

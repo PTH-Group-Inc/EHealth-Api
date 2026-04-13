@@ -42,8 +42,8 @@ export class PatientDocumentRepository {
             INSERT INTO patient_documents
                 (patient_documents_id, patient_id, document_type_id, document_type, title, file_url, file_format, file_size_bytes, notes, uploaded_by)
             VALUES (
-                $1, $2, $3,
-                (SELECT code FROM document_types WHERE document_type_id = $3),
+                $1, $2, $3::VARCHAR,
+                (SELECT code FROM document_types WHERE document_type_id = $3::VARCHAR),
                 $4, $5, $6, $7, $8, $9
             )
             RETURNING *

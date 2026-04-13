@@ -18,7 +18,7 @@ export class TeleResultController {
             const result = await TeleResultService.createResult(String(req.params.consultationId), req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_RESULT_SUCCESS.RESULT_CREATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -28,7 +28,7 @@ export class TeleResultController {
             const result = await TeleResultService.updateResult(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RESULT_SUCCESS.RESULT_UPDATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -38,7 +38,7 @@ export class TeleResultController {
             const result = await TeleResultService.getResult(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -48,7 +48,7 @@ export class TeleResultController {
             await TeleResultService.completeResult(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RESULT_SUCCESS.RESULT_COMPLETED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -59,7 +59,7 @@ export class TeleResultController {
             await TeleResultService.signResult(String(req.params.consultationId), userId, req.body?.signature_notes);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RESULT_SUCCESS.RESULT_SIGNED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -71,7 +71,7 @@ export class TeleResultController {
             await TeleResultService.updateSymptoms(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RESULT_SUCCESS.SYMPTOMS_UPDATED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -81,7 +81,7 @@ export class TeleResultController {
             await TeleResultService.updateVitals(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RESULT_SUCCESS.VITALS_UPDATED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -93,7 +93,7 @@ export class TeleResultController {
             await TeleResultService.updateReferral(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RESULT_SUCCESS.REFERRAL_UPDATED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -103,7 +103,7 @@ export class TeleResultController {
             await TeleResultService.updateFollowUp(String(req.params.consultationId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_RESULT_SUCCESS.FOLLOW_UP_UPDATED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -124,7 +124,7 @@ export class TeleResultController {
             const result = await TeleResultService.listResults(filters);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -136,7 +136,7 @@ export class TeleResultController {
             const result = await TeleResultService.getPatientResults(String(req.params.patientId), page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -149,7 +149,7 @@ export class TeleResultController {
             const result = await TeleResultService.getUnsigned(userId, page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -162,7 +162,7 @@ export class TeleResultController {
             const result = await TeleResultService.getFollowUps(userId, page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -172,7 +172,7 @@ export class TeleResultController {
             const result = await TeleResultService.getSummary(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 }

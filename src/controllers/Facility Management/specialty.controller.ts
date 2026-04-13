@@ -1,10 +1,44 @@
 import { Request, Response, NextFunction } from 'express';
 import { SpecialtyService } from '../../services/Facility Management/specialty.service';
+import { DepartmentSpecialtyRepository } from '../../repository/Facility Management/department-specialty.repository';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../constants/message.constant';
 import { SpecialtyPayloadDTO } from '../../models/Facility Management/specialty.model';
 
 export class SpecialtyController {
+    /**
+     * GET /api/specialties/by-facility/:facilityId
+     * Lấy danh sách chuyên khoa kèm department_id theo cơ sở y tế (PUBLIC).
+     */
+    static async getSpecialtiesByFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { facilityId } = req.params as { facilityId: string };
+            if (!facilityId) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Thiếu facilityId'
+                });
+                return;
+            }
+
+            const data = await DepartmentSpecialtyRepository.getSpecialtiesByFacilityId(facilityId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: SUCCESS_MESSAGES.SPECIALTY_FETCHED,
+                data
+            });
+        } catch (error: any) {
+            const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+            const message = error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR;
+
+            res.status(statusCode).json({
+                success: false,
+                message: message
+            });
+        }
+    }
+
     /**
      * Lấy danh sách chuyên khoa có hỗ trợ phân trang và tìm kiếm.
      */

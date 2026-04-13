@@ -101,7 +101,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/profile',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     HealthProfileController.getFullProfile
 );
 
@@ -142,7 +141,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/health-summary',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
     HealthProfileController.getHealthSummary
 );
 
@@ -202,7 +200,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/latest-vitals',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     HealthProfileController.getLatestVitals
 );
 
@@ -242,7 +239,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/active-conditions',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     HealthProfileController.getActiveConditions
 );
 
@@ -304,7 +300,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/allergy-list',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
     HealthProfileController.getAllergies
 );
 
@@ -345,7 +340,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/current-medications',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'PHARMACIST'),
     HealthProfileController.getCurrentMedications
 );
 
@@ -408,7 +402,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/diagnosis-history',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
     HealthProfileController.getDiagnosisHistory
 );
 
@@ -449,7 +442,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/insurance-status',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     HealthProfileController.getInsuranceStatus
 );
 
@@ -502,7 +494,6 @@ healthProfileRoutes.get(
     '/patients/:patientId/alerts',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
     HealthProfileController.getAlerts
 );
 
@@ -570,7 +561,6 @@ healthProfileRoutes.post(
     '/patients/:patientId/alerts',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
     HealthProfileController.createAlert
 );
 
@@ -639,7 +629,6 @@ healthProfileRoutes.put(
     '/patients/:patientId/alerts/:alertId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
     HealthProfileController.updateAlert
 );
 
@@ -685,7 +674,6 @@ healthProfileRoutes.delete(
     '/patients/:patientId/alerts/:alertId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
     HealthProfileController.deleteAlert
 );
 
@@ -749,6 +737,6 @@ healthProfileRoutes.put(
     '/patients/:patientId/notes',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
     HealthProfileController.updateNotes
 );
+

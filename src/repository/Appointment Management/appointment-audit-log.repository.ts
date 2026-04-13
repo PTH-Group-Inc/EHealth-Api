@@ -43,4 +43,20 @@ export class AppointmentAuditLogRepository {
         const result = await pool.query(query, [appointmentId]);
         return result.rows;
     }
+
+    /**
+     * Lấy toàn bộ lịch sử thay đổi của các lịch khám của 1 bệnh nhân (sắp theo thời gian mới nhất)
+     */
+    static async findByPatientId(patientId: string): Promise<any[]> {
+        const query = `
+            SELECT aal.*, up.full_name AS changed_by_name, a.appointment_code
+            FROM appointment_audit_logs aal
+            JOIN appointments a ON aal.appointment_id = a.appointments_id
+            LEFT JOIN user_profiles up ON aal.changed_by = up.user_id
+            WHERE a.patient_id = $1
+            ORDER BY aal.created_at DESC;
+        `;
+        const result = await pool.query(query, [patientId]);
+        return result.rows;
+    }
 }

@@ -18,10 +18,10 @@ export class AppointmentController {
      */
     static async create(req: Request, res: Response) {
         try {
-            const { patient_id, branch_id, shift_id, appointment_date, booking_channel } = req.body;
-            if (!patient_id || !branch_id || !shift_id || !appointment_date || !booking_channel) {
+            const { patient_id, branch_id, shift_id, slot_id, appointment_date, booking_channel } = req.body;
+            if (!patient_id || !branch_id || (!slot_id && !shift_id) || !appointment_date || !booking_channel) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
-                    'Thiếu thông tin bắt buộc: patient_id, branch_id, shift_id, appointment_date, booking_channel');
+                    'Thiếu thông tin bắt buộc: patient_id, branch_id, slot_id, appointment_date, booking_channel');
             }
             const userId = (req as any).auth?.user_id;
             const appointment = await AppointmentService.createAppointment(req.body, userId);
@@ -294,8 +294,9 @@ export class AppointmentController {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DATE', 'Thiếu tham số date');
             }
             const doctorId = req.query.doctor_id?.toString();
+            const branchId = req.query.branch_id?.toString();
             const facilityId = req.query.facility_id?.toString();
-            const slots = await AppointmentService.getAvailableSlots(date, doctorId, facilityId);
+            const slots = await AppointmentService.getAvailableSlots(date, doctorId, branchId, facilityId);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: APPOINTMENT_SUCCESS.SLOTS_FETCHED,
@@ -520,6 +521,30 @@ export class AppointmentController {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy slot theo khoa' });
+            }
+        }
+    }
+    static async submitReview(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const { rating, feedback } = req.body;
+
+            if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_RATING', 'Điểm đánh giá phải từ 1 đến 5');
+            }
+
+            const data = await AppointmentService.submitReview(id, rating, feedback || '');
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: 'Đánh giá lịch khám thành công',
+                data
+            });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
+            } else {
+                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi khi gửi đánh giá' });
             }
         }
     }

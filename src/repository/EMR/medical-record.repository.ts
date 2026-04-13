@@ -232,9 +232,9 @@ export class MedicalRecordRepository {
     ): Promise<void> {
         const id = generateTimelineId();
         await client.query(
-            `INSERT INTO health_timeline_events (health_timeline_events_id, patient_id, event_date, event_type, title, summary, reference_id, reference_table, source_system)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'INTERNAL_HIS')`,
-            [id, patientId, eventDate, eventType, title, summary, referenceId, referenceTable]
+            `INSERT INTO health_timeline_events (event_id, patient_id, event_time, event_type, title, description, metadata, created_by)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 'SYSTEM')`,
+            [id, patientId, eventDate, eventType, title, summary, JSON.stringify({ reference_id: referenceId, reference_table: referenceTable })]
         );
     }
 
@@ -278,13 +278,13 @@ export class MedicalRecordRepository {
             SELECT * FROM (
                 -- 1. Events đã ghi trong bảng health_timeline_events
                 SELECT
-                    hte.health_timeline_events_id AS event_id,
-                    hte.event_date,
+                    hte.event_id AS event_id,
+                    hte.event_time AS event_date,
                     hte.event_type,
                     hte.title,
-                    hte.summary,
-                    hte.reference_id,
-                    hte.reference_table
+                    hte.description AS summary,
+                    (hte.metadata->>'reference_id')::varchar AS reference_id,
+                    (hte.metadata->>'reference_table')::varchar AS reference_table
                 FROM health_timeline_events hte
                 WHERE hte.patient_id = $1
 

@@ -100,6 +100,35 @@ specialtyRouter.get('/', SpecialtyController.getSpecialties);
 
 /**
  * @swagger
+ * /api/specialties/by-facility/{facilityId}:
+ *   get:
+ *     summary: Lấy danh sách chuyên khoa kèm department_id theo cơ sở y tế
+ *     description: |
+ *       **Phân quyền:** Không yêu cầu (PUBLIC)
+ *
+ *       Trả về danh sách chuyên khoa kèm department_id đã gán cho cơ sở.
+ *     operationId: getSpecialtiesByFacility
+ *     tags: [1.5.1 Quản lý danh mục chuyên khoa]
+ *     parameters:
+ *       - name: facilityId
+ *         in: path
+ *         required: true
+ *         description: ID cơ sở y tế
+ *         schema:
+ *           type: string
+ *           example: FAC_EHEALTH
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách thành công
+ *       400:
+ *         description: Thiếu facilityId
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+specialtyRouter.get('/by-facility/:facilityId', SpecialtyController.getSpecialtiesByFacility);
+
+/**
+ * @swagger
  * /api/specialties/{id}:
  *   get:
  *     summary: Lấy thông tin chi tiết một chuyên khoa

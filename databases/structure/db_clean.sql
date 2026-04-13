@@ -1740,6 +1740,7 @@ CREATE TABLE IF NOT EXISTS warehouses (
     updated_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (branch_id) REFERENCES branches(branches_id) ON DELETE CASCADE,
     UNIQUE(branch_id, code)
+    pharmacy_inventory
 );
 
 -- 2. Gắn pharmacy_inventory vào kho

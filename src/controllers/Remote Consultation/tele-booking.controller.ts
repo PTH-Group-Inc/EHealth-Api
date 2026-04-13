@@ -24,7 +24,7 @@ export class TeleBookingController {
             });
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.DOCTORS_FETCHED, data: doctors });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -37,7 +37,7 @@ export class TeleBookingController {
             );
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SLOTS_FETCHED, data: slots });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -45,10 +45,14 @@ export class TeleBookingController {
     static async checkDoctorAvailability(req: Request, res: Response): Promise<void> {
         try {
             const { doctor_id, date } = req.query;
-            const result = await TeleBookingService.checkDoctorAvailability(doctor_id as string, date as string);
-            res.status(HTTP_STATUS.OK).json({ success: true, message: 'Kiểm tra availability BS thành công.', data: result });
+            const data = await TeleBookingService.checkDoctorAvailability(doctor_id as string, date as string);
+            if (!data) {
+                res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: TELE_BOOKING_ERRORS.DOCTOR_NOT_FOUND.message });
+                return;
+            }
+            res.status(HTTP_STATUS.OK).json({ success: true, data });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -61,7 +65,7 @@ export class TeleBookingController {
             const session = await TeleBookingService.createBooking(req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CREATED, data: session });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -71,7 +75,7 @@ export class TeleBookingController {
             const session = await TeleBookingService.updateBooking(String(req.params.sessionId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_UPDATED, data: session });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -82,7 +86,7 @@ export class TeleBookingController {
             const session = await TeleBookingService.confirmBooking(String(req.params.sessionId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CONFIRMED, data: session });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -94,7 +98,7 @@ export class TeleBookingController {
             const session = await TeleBookingService.cancelBooking(String(req.params.sessionId), cancellation_reason || 'Không rõ lý do', userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CANCELLED, data: session });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -107,7 +111,7 @@ export class TeleBookingController {
             const result = await TeleBookingService.initiatePayment(String(req.params.sessionId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.PAYMENT_INITIATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -117,7 +121,7 @@ export class TeleBookingController {
             const session = await TeleBookingService.paymentCallback(String(req.params.sessionId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.PAYMENT_CONFIRMED, data: session });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -129,7 +133,7 @@ export class TeleBookingController {
             const session = await TeleBookingService.getBookingById(String(req.params.sessionId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: session });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -153,7 +157,7 @@ export class TeleBookingController {
             const result = await TeleBookingService.listBookings(filters);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page: result.page, limit: result.limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -161,12 +165,18 @@ export class TeleBookingController {
     static async getMyBookings(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user?.userId;
-            // Lấy patient_id từ user_id
-            const { pool } = require('../../config/postgresdb');
-            const patientResult = await pool.query(`SELECT id::varchar AS patient_id FROM patients WHERE account_id = $1 LIMIT 1`, [userId]);
-            const patientId = patientResult.rows[0]?.patient_id;
+            // Lấy patientId từ query, nếu không có thì lấy profile mặc định
+            let patientId = req.query.patientId as string | undefined;
+            if (!patientId && req.query.patient_id) {
+                patientId = req.query.patient_id as string;
+            }
             if (!patientId) {
-                res.status(HTTP_STATUS.NOT_FOUND).json({ success: false, message: 'Không tìm thấy hồ sơ bệnh nhân.' });
+                const { pool } = require('../../config/postgresdb');
+                const patientResult = await pool.query(`SELECT id::varchar AS patient_id FROM patients WHERE account_id = $1 LIMIT 1`, [userId]);
+                patientId = patientResult.rows[0]?.patient_id;
+            }
+            if (!patientId) {
+                res.status(HTTP_STATUS.OK).json({ success: true, data: [], pagination: { total: 0, page: 1, limit: 20 } });
                 return;
             }
 
@@ -180,7 +190,7 @@ export class TeleBookingController {
             const result = await TeleBookingService.getMyBookings(patientId, filters as any);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page: result.page, limit: result.limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 }

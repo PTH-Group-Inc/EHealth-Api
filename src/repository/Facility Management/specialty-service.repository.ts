@@ -5,8 +5,11 @@ export class SpecialtyServiceRepository {
     /**
      * Lấy danh sách dịch vụ đã gán cho 1 chuyên khoa
      */
-    static async getServicesBySpecialtyId(specialtyId: string): Promise<SpecialtyService[]> {
-        const query = `
+    static async getServicesBySpecialtyId(specialtyId: string, facilityId?: string): Promise<any[]> {
+        // Always LEFT JOIN facility_services to get pricing
+        // If facilityId is provided, filter to that facility; otherwise get any available price
+        const query = facilityId
+            ? `
             SELECT 
                 ss.specialty_id,
                 ss.service_id,
@@ -14,13 +17,38 @@ export class SpecialtyServiceRepository {
                 s.code AS service_code,
                 s.name AS service_name,
                 s.service_group,
-                s.service_type
+                s.service_type,
+                fs.base_price,
+                fs.insurance_price,
+                fs.vip_price
             FROM specialty_services ss
             JOIN services s ON ss.service_id = s.services_id
+            LEFT JOIN facility_services fs ON fs.service_id = s.services_id AND fs.facility_id = $2
             WHERE ss.specialty_id = $1 AND s.deleted_at IS NULL
             ORDER BY s.name ASC
-        `;
-        const result = await pool.query(query, [specialtyId]);
+            `
+            : `
+            SELECT DISTINCT ON (ss.service_id)
+                ss.specialty_id,
+                ss.service_id,
+                ss.created_at,
+                s.code AS service_code,
+                s.name AS service_name,
+                s.service_group,
+                s.service_type,
+                fs.base_price,
+                fs.insurance_price,
+                fs.vip_price
+            FROM specialty_services ss
+            JOIN services s ON ss.service_id = s.services_id
+            LEFT JOIN facility_services fs ON fs.service_id = s.services_id
+            WHERE ss.specialty_id = $1 AND s.deleted_at IS NULL
+            ORDER BY ss.service_id, s.name ASC
+            `;
+        const params: any[] = [specialtyId];
+        if (facilityId) params.push(facilityId);
+
+        const result = await pool.query(query, params);
         return result.rows;
     }
 

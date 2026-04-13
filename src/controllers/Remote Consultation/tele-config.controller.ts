@@ -18,7 +18,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.getAllConfigs(category);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -31,7 +31,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.getAuditLog(page, limit, configKey);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -41,7 +41,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.getConfig(String(req.params.configKey));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -52,7 +52,7 @@ export class TeleConfigController {
             await TeleConfigService.updateConfig(String(req.params.configKey), userId, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_CFG_SUCCESS.CONFIG_UPDATED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -63,7 +63,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.batchUpdate(userId, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_CFG_SUCCESS.CONFIG_BATCH_UPDATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -74,7 +74,7 @@ export class TeleConfigController {
             await TeleConfigService.resetDefaults(userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_CFG_SUCCESS.CONFIG_RESET });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -87,7 +87,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.createPricing(userId, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_CFG_SUCCESS.PRICING_CREATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -98,7 +98,7 @@ export class TeleConfigController {
             await TeleConfigService.updatePricing(String(req.params.pricingId), userId, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_CFG_SUCCESS.PRICING_UPDATED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -108,7 +108,7 @@ export class TeleConfigController {
             await TeleConfigService.deletePricing(String(req.params.pricingId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_CFG_SUCCESS.PRICING_DELETED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -127,7 +127,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.listPricing(filters);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -141,7 +141,7 @@ export class TeleConfigController {
             );
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -153,7 +153,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.getSlaDashboard();
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -165,7 +165,7 @@ export class TeleConfigController {
             const result = await TeleConfigService.getSlaBreaches(page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 }

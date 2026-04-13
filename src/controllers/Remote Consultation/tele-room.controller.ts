@@ -18,7 +18,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.openRoom(String(req.params.consultationId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.ROOM_OPENED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -29,7 +29,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.joinRoom(String(req.params.consultationId), userId, req.body.device_info);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.ROOM_JOINED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -40,7 +40,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.leaveRoom(String(req.params.consultationId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.ROOM_LEFT, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -51,7 +51,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.closeRoom(String(req.params.consultationId), userId, req.body.ended_reason);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.ROOM_CLOSED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -61,7 +61,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.getRoomDetail(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -75,7 +75,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.sendMessage(String(req.params.consultationId), userId, req.body, userRoles);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_ROOM_SUCCESS.MESSAGE_SENT, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -87,7 +87,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.getMessages(String(req.params.consultationId), page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -98,7 +98,7 @@ export class TeleRoomController {
             const count = await TeleRoomService.markRead(String(req.params.consultationId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.MESSAGES_READ, data: { marked_count: count } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -111,7 +111,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.uploadFile(String(req.params.consultationId), userId, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_ROOM_SUCCESS.FILE_UPLOADED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -121,7 +121,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.getFiles(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -133,7 +133,7 @@ export class TeleRoomController {
             await TeleRoomService.deleteFile(String(req.params.consultationId), String(req.params.fileId), userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.FILE_DELETED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -146,7 +146,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.updateMedia(String(req.params.consultationId), userId, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.MEDIA_UPDATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -156,7 +156,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.getParticipants(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -167,7 +167,7 @@ export class TeleRoomController {
             await TeleRoomService.kickUser(String(req.params.consultationId), String(req.params.userId), kickedBy);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.PARTICIPANT_KICKED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -181,7 +181,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.getEvents(String(req.params.consultationId), page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -192,7 +192,7 @@ export class TeleRoomController {
             await TeleRoomService.reportNetwork(String(req.params.consultationId), userId, req.body.quality, req.body.details);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_ROOM_SUCCESS.NETWORK_REPORTED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -202,7 +202,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.getRoomSummary(String(req.params.consultationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -212,7 +212,7 @@ export class TeleRoomController {
             const result = await TeleRoomService.getActiveRooms();
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 }

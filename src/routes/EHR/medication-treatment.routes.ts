@@ -47,7 +47,7 @@ export const medicationTreatmentRoutes = Router();
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'PHARMACIST'),
+
     MedicationTreatmentController.getMedicationRecords
 );
 
@@ -77,7 +77,7 @@ medicationTreatmentRoutes.get(
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/current',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'PHARMACIST'),
+
     MedicationTreatmentController.getCurrentMedications
 );
 
@@ -106,7 +106,7 @@ medicationTreatmentRoutes.get(
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/interaction-check',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'PHARMACIST'),
+
     MedicationTreatmentController.checkInteractions
 );
 
@@ -135,7 +135,7 @@ medicationTreatmentRoutes.get(
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/timeline',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     MedicationTreatmentController.getTimeline
 );
 
@@ -169,7 +169,7 @@ medicationTreatmentRoutes.get(
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/:prescriptionId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'PHARMACIST'),
+
     MedicationTreatmentController.getMedicationDetail
 );
 
@@ -207,7 +207,7 @@ medicationTreatmentRoutes.get(
 medicationTreatmentRoutes.get(
     '/patients/:patientId/treatment-records',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     MedicationTreatmentController.getTreatmentRecords
 );
 
@@ -240,7 +240,7 @@ medicationTreatmentRoutes.get(
 medicationTreatmentRoutes.get(
     '/patients/:patientId/treatment-records/:planId',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicationTreatmentController.getTreatmentDetail
 );
 
@@ -291,7 +291,7 @@ medicationTreatmentRoutes.get(
 medicationTreatmentRoutes.post(
     '/patients/:patientId/medication-adherence',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicationTreatmentController.createAdherence
 );
 
@@ -326,6 +326,7 @@ medicationTreatmentRoutes.post(
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-adherence',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     MedicationTreatmentController.getAdherenceRecords
 );
+

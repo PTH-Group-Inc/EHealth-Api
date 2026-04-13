@@ -20,7 +20,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.createConversation(req.body, userId, isPatient);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: MED_CHAT_SUCCESS.CONVERSATION_CREATED, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -41,7 +41,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.listConversations(filters, userId, roles);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -53,7 +53,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.getConversation(String(req.params.conversationId), userId, roles);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -64,7 +64,7 @@ export class MedicalChatController {
             await MedicalChatService.closeConversation(String(req.params.conversationId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MED_CHAT_SUCCESS.CONVERSATION_CLOSED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -74,7 +74,7 @@ export class MedicalChatController {
             await MedicalChatService.reopenConversation(String(req.params.conversationId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: MED_CHAT_SUCCESS.CONVERSATION_REOPENED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -88,7 +88,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.sendMessage(String(req.params.conversationId), userId, roles, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: MED_CHAT_SUCCESS.MESSAGE_SENT, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -102,7 +102,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.getMessages(String(req.params.conversationId), userId, roles, page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -114,7 +114,7 @@ export class MedicalChatController {
             const count = await MedicalChatService.markRead(String(req.params.conversationId), userId, roles);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MED_CHAT_SUCCESS.MESSAGES_READ, data: { marked_count: count } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -127,7 +127,7 @@ export class MedicalChatController {
             const msg = isPinned ? MED_CHAT_SUCCESS.MESSAGE_PINNED : MED_CHAT_SUCCESS.MESSAGE_UNPINNED;
             res.status(HTTP_STATUS.OK).json({ success: true, message: msg, data: { is_pinned: isPinned } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -139,7 +139,7 @@ export class MedicalChatController {
             await MedicalChatService.deleteMessage(String(req.params.conversationId), String(req.params.messageId), userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MED_CHAT_SUCCESS.MESSAGE_DELETED });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -151,7 +151,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.getPinnedMessages(String(req.params.conversationId), userId, roles);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -165,7 +165,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.getAttachments(String(req.params.conversationId), userId, roles);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -175,7 +175,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.getMedicalAttachments(String(req.params.conversationId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -189,7 +189,7 @@ export class MedicalChatController {
             const count = await MedicalChatService.getUnreadCount(userId, roles);
             res.status(HTTP_STATUS.OK).json({ success: true, data: { unread_count: count } });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 
@@ -200,7 +200,7 @@ export class MedicalChatController {
             const result = await MedicalChatService.getMyPatients(userId);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
         } catch (error: any) {
-            res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
+            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
         }
     }
 }

@@ -202,7 +202,7 @@ router.post('/offline/transactions/:transactionId/void', verifyAccessToken, auth
  *       200:
  *         description: Danh sách giao dịch tại quầy + phân trang
  */
-router.get('/offline/transactions', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingOfflinePaymentController.getTransactions);
+router.get('/offline/transactions', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'PATIENT'), BillingOfflinePaymentController.getTransactions);
 
 // ═══════════════════════════════════════════════════════════════
 // NHÓM 2: POS TERMINALS

@@ -173,7 +173,7 @@ router.get('/invoices/by-encounter/:encounterId', verifyAccessToken, authorizeRo
  *       200:
  *         description: Danh sách HĐ của bệnh nhân
  */
-router.get('/invoices/by-patient/:patientId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'DOCTOR', 'NURSE'), BillingInvoiceController.getByPatient);
+router.get('/invoices/by-patient/:patientId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'DOCTOR', 'NURSE', 'PATIENT'), BillingInvoiceController.getByPatient);
 
 /**
  * @swagger

@@ -50,7 +50,7 @@ const router = Router();
  *       400:
  *         description: Lỗi nghiệp vụ
  */
-router.post('/qr-generate', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), ctrl.generateQR);
+router.post('/qr-generate', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'PATIENT'), ctrl.generateQR);
 
 /**
  * @swagger
@@ -78,7 +78,7 @@ router.post('/qr-generate', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'),
  *       404:
  *         description: Không tìm thấy
  */
-router.get('/orders/:orderId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), ctrl.getOrderDetail);
+router.get('/orders/:orderId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'PATIENT'), ctrl.getOrderDetail);
 
 /**
  * @swagger
@@ -106,7 +106,7 @@ router.get('/orders/:orderId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF
  *       200:
  *         description: Trạng thái hiện tại
  */
-router.get('/orders/:orderId/status', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), ctrl.getOrderStatus);
+router.get('/orders/:orderId/status', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'PATIENT'), ctrl.getOrderStatus);
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ router.get('/orders/:orderId/status', verifyAccessToken, authorizeRoles('ADMIN',
  *       400:
  *         description: Không thể hủy
  */
-router.post('/orders/:orderId/cancel', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), ctrl.cancelOrder);
+router.post('/orders/:orderId/cancel', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'PATIENT'), ctrl.cancelOrder);
 
 /**
  * @swagger
@@ -160,7 +160,7 @@ router.post('/orders/:orderId/cancel', verifyAccessToken, authorizeRoles('ADMIN'
  *       200:
  *         description: Danh sách lệnh thanh toán
  */
-router.get('/invoice/:invoiceId/orders', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), ctrl.getOrdersByInvoice);
+router.get('/invoice/:invoiceId/orders', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'PATIENT'), ctrl.getOrdersByInvoice);
 
 // =============================================
 // NHÓM 2: WEBHOOK & CALLBACK

@@ -169,7 +169,6 @@ medicalRecordRoutes.get(
 medicalRecordRoutes.get(
     '/by-patient/:patientId',
     verifyAccessToken,
-    checkSessionStatus,
     MedicalRecordController.getPatientRecords
 );
 
@@ -233,7 +232,6 @@ medicalRecordRoutes.get(
 medicalRecordRoutes.get(
     '/by-patient/:patientId/timeline',
     verifyAccessToken,
-    checkSessionStatus,
     MedicalRecordController.getTimeline
 );
 
@@ -321,7 +319,6 @@ medicalRecordRoutes.get(
 medicalRecordRoutes.get(
     '/by-patient/:patientId/statistics',
     verifyAccessToken,
-    checkSessionStatus,
     MedicalRecordController.getStatistics
 );
 

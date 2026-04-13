@@ -100,7 +100,6 @@ healthTimelineRoutes.get(
     '/patients/:patientId/timeline',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
     HealthTimelineController.getTimeline
 );
 
@@ -159,7 +158,7 @@ healthTimelineRoutes.get(
     '/patients/:patientId/timeline/summary',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     HealthTimelineController.getTimelineSummary
 );
 
@@ -205,7 +204,7 @@ healthTimelineRoutes.get(
     '/patients/:patientId/timeline/by-encounter/:encounterId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     HealthTimelineController.getByEncounter
 );
 
@@ -287,7 +286,7 @@ healthTimelineRoutes.get(
     '/patients/:patientId/timeline/track-condition',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     HealthTimelineController.trackCondition
 );
 
@@ -357,7 +356,7 @@ healthTimelineRoutes.post(
     '/patients/:patientId/timeline/events',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
+
     HealthTimelineController.createManualEvent
 );
 
@@ -404,6 +403,7 @@ healthTimelineRoutes.delete(
     '/patients/:patientId/timeline/events/:eventId',
     verifyAccessToken,
     checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR'),
+
     HealthTimelineController.deleteManualEvent
 );
+

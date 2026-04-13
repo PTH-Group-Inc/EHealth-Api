@@ -57,12 +57,31 @@ export class AppointmentRepository {
         return (result.rowCount ?? 0) > 0;
     }
 
-    /** Kiểm tra dịch vụ cơ sở có tồn tại và đang hoạt động không */
-    static async facilityServiceIsActive(facilityServiceId: string): Promise<boolean> {
-        const result = await pool.query(
-            'SELECT facility_services_id FROM facility_services WHERE facility_services_id = $1 AND is_active = true', [facilityServiceId]
+    /** Kiểm tra dịch vụ cơ sở có tồn tại và đang hoạt động không, fallback từ service_id gốc nếu cần */
+    static async resolveFacilityService(serviceRefId: string, branchId?: string): Promise<string | null> {
+        // 1. Thử tìm theo cấu trúc facility_services_id
+        let result = await pool.query(
+            'SELECT facility_services_id FROM facility_services WHERE facility_services_id = $1 AND is_active = true', [serviceRefId]
         );
-        return (result.rowCount ?? 0) > 0;
+        if ((result.rowCount ?? 0) > 0) {
+            return result.rows[0].facility_services_id;
+        }
+
+        // 2. Thử tìm xem có phải frontend gửi service_id từ master table không (cần branchId)
+        if (branchId) {
+            result = await pool.query(
+                `SELECT fs.facility_services_id 
+                 FROM facility_services fs
+                 JOIN branches b ON b.facility_id = fs.facility_id
+                 WHERE b.branches_id = $1 AND fs.service_id = $2 AND fs.is_active = true`,
+                [branchId, serviceRefId]
+            );
+            if ((result.rowCount ?? 0) > 0) {
+                return result.rows[0].facility_services_id;
+            }
+        }
+        
+        return null;
     }
 
     /** Kiểm tra chi nhánh có tồn tại và đang hoạt động không */
@@ -175,7 +194,7 @@ export class AppointmentRepository {
     /**
      * Đếm số lịch khám đang hoạt động trên 1 slot trong 1 ngày cụ thể
      */
-    static async countActiveBySlotAndDate(slotId: string, appointmentDate: string): Promise<number> {
+    static async countActiveBySlotAndDate(slotId: string, appointmentDate: string, client?: import('pg').PoolClient): Promise<number> {
         const placeholders = ACTIVE_APPOINTMENT_STATUSES.map((_, i) => `$${i + 3}`).join(', ');
         const query = `
             SELECT COUNT(*)::int AS cnt
@@ -185,7 +204,7 @@ export class AppointmentRepository {
               AND status IN (${placeholders});
         `;
         const values = [slotId, appointmentDate, ...ACTIVE_APPOINTMENT_STATUSES];
-        const result = await pool.query(query, values);
+        const result = client ? await client.query(query, values) : await pool.query(query, values);
         return result.rows[0].cnt;
     }
 
@@ -217,8 +236,14 @@ export class AppointmentRepository {
         let idx = 1;
 
         if (filters.status) {
-            whereClause += ` AND a.status = $${idx++}`;
-            values.push(filters.status);
+            const statuses = filters.status.split(',').map(s => s.trim());
+            if (statuses.length === 1) {
+                whereClause += ` AND a.status = $${idx++}`;
+                values.push(statuses[0]);
+            } else {
+                whereClause += ` AND a.status = ANY($${idx++}::varchar[])`;
+                values.push(statuses);
+            }
         }
         if (filters.patient_id) {
             whereClause += ` AND a.patient_id = $${idx++}`;
@@ -334,8 +359,14 @@ export class AppointmentRepository {
         let idx = 2;
 
         if (filters.status) {
-            whereClause += ` AND a.status = $${idx++}`;
-            values.push(filters.status);
+            const statuses = filters.status.split(',').map(s => s.trim());
+            if (statuses.length === 1) {
+                whereClause += ` AND a.status = $${idx++}`;
+                values.push(statuses[0]);
+            } else {
+                whereClause += ` AND a.status = ANY($${idx++}::varchar[])`;
+                values.push(statuses);
+            }
         }
         if (filters.fromDate) {
             whereClause += ` AND a.appointment_date >= $${idx++}::date`;
@@ -565,6 +596,19 @@ export class AppointmentRepository {
             client.release();
         }
     }
+    /**
+     * Gửi đánh giá cho lịch khám
+     */
+    static async submitReview(id: string, rating: number, feedback: string): Promise<Appointment | null> {
+        const result = await pool.query(
+            `UPDATE appointments
+             SET rating = $1, feedback = $2, updated_at = CURRENT_TIMESTAMP
+             WHERE appointments_id = $3
+             RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date`,
+            [rating, feedback, id]
+        );
+        return result.rows[0] || null;
+    }
 
     /**
      * Gán bác sĩ kèm ghi audit log — chạy trong Transaction
@@ -701,18 +745,28 @@ export class AppointmentRepository {
         let idx = baseValues.length + 1;
 
         let doctorFilter = '';
+        let doctorIdIdx = 0;
         if (doctorId) {
+            doctorIdIdx = idx;
             doctorFilter = `
                 AND s.shifts_id IN (
                     SELECT ss.shift_id FROM staff_schedules ss
                     JOIN doctors d ON ss.user_id = d.user_id
-                    WHERE d.doctors_id = $${idx++}
+                    WHERE (d.doctors_id = $${idx} OR d.user_id = $${idx})
                       AND ss.working_date = $1::date
                       AND ss.is_leave = false
                       AND ss.status = 'ACTIVE'
                 )
             `;
             baseValues.push(doctorId);
+            idx++;
+        }
+
+        let facilityFilter = '';
+        if (facilityId) {
+            facilityFilter = `AND s.facility_id = $${idx}`;
+            baseValues.push(facilityId);
+            idx++;
         }
 
         const query = `
@@ -742,6 +796,7 @@ export class AppointmentRepository {
               AND s.deleted_at IS NULL
               AND ls.locked_slot_id IS NULL
               ${doctorFilter}
+              ${facilityFilter}
             ORDER BY sl.start_time ASC;
         `;
 
@@ -1173,11 +1228,12 @@ export class AppointmentRepository {
      */
     static async findAvailableSlotsByDepartmentForDate(
         departmentId: string,
+        facilityId: string,
         date: string,
         maxPatientsPerSlot: number
     ): Promise<any[]> {
         const statusPlaceholders = ACTIVE_APPOINTMENT_STATUSES.map((_, i) => `$${i + 3}`).join(', ');
-        const values: any[] = [departmentId, date, ...ACTIVE_APPOINTMENT_STATUSES];
+        const values: any[] = [facilityId, date, ...ACTIVE_APPOINTMENT_STATUSES];
 
         const query = `
             SELECT
@@ -1191,13 +1247,11 @@ export class AppointmentRepository {
             FROM appointment_slots sl
             JOIN shifts s ON sl.shift_id = s.shifts_id
             LEFT JOIN (
-                SELECT a.slot_id, COUNT(*)::int AS cnt
-                FROM appointments a
-                JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
-                WHERE a.appointment_date = $2::date
-                  AND a.status IN (${statusPlaceholders})
-                  AND mr.department_id = $1
-                GROUP BY a.slot_id
+                SELECT slot_id, COUNT(*)::int AS cnt
+                FROM appointments
+                WHERE appointment_date = $2::date
+                  AND status IN (${statusPlaceholders})
+                GROUP BY slot_id
             ) booked ON booked.slot_id = sl.slot_id
             LEFT JOIN locked_slots ls
                 ON ls.slot_id = sl.slot_id
@@ -1205,6 +1259,7 @@ export class AppointmentRepository {
                 AND ls.deleted_at IS NULL
             WHERE sl.is_active = true
               AND s.status = 'ACTIVE'
+              AND s.facility_id = $1
               AND s.deleted_at IS NULL
               AND ls.locked_slot_id IS NULL
             ORDER BY sl.start_time ASC;

@@ -8,6 +8,7 @@ import { FacilityStatusService } from '../Facility Management/facility-status.se
 import { BookingConfigService } from '../Facility Management/booking-config.service';
 import { NotificationEngineService } from '../Core/notification-engine.service';
 import { AppointmentCoordinationService } from './appointment-coordination.service';
+import { BranchRepository } from '../../repository/Facility Management/branch.repository';
 import { pool } from '../../config/postgresdb';
 import { CreateAppointmentInput, UpdateAppointmentInput, Appointment } from '../../models/Appointment Management/appointment.model';
 import { AppError } from '../../utils/app-error.util';
@@ -29,9 +30,9 @@ export class AppointmentService {
      */
     static async createAppointment(data: CreateAppointmentInput, userId?: string): Promise<Appointment & { warning?: string | null }> {
         // VALIDATE CÁC TRƯỜNG BẮT BUỘC
-        if (!data.patient_id || !data.branch_id || !data.shift_id || !data.appointment_date || !data.booking_channel) {
+        if (!data.patient_id || !data.branch_id || (!data.slot_id && !data.shift_id) || !data.appointment_date || !data.booking_channel) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
-                'Thiếu thông tin bắt buộc: patient_id, branch_id, shift_id, appointment_date, booking_channel');
+                'Thiếu thông tin bắt buộc: patient_id, branch_id, (slot_id hoặc shift_id), appointment_date, booking_channel');
         }
 
         // Validate ngày khám >= hôm nay
@@ -61,18 +62,27 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', APPOINTMENT_ERRORS.BRANCH_NOT_FOUND);
         }
 
-        // Validate ca khám
-        const shiftOk = await AppointmentRepository.shiftExists(data.shift_id);
-        if (!shiftOk) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'SHIFT_NOT_FOUND', APPOINTMENT_ERRORS.SHIFT_NOT_FOUND);
+        // Validate slot và lấy shift_id, hoặc ngược lại
+        if (data.slot_id) {
+            const shiftId = await AppointmentRepository.getShiftIdBySlot(data.slot_id);
+            if (!shiftId) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', 'Slot không tồn tại hoặc đã bị xoá');
+            }
+            data.shift_id = shiftId;
+        } else if (data.shift_id) {
+            const shiftOk = await AppointmentRepository.shiftExists(data.shift_id);
+            if (!shiftOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SHIFT_NOT_FOUND', 'Ca khám không tồn tại hoặc đã bị xoá');
+            }
         }
 
         // Validate dịch vụ (nếu có)
         if (data.facility_service_id) {
-            const svcOk = await AppointmentRepository.facilityServiceIsActive(data.facility_service_id);
-            if (!svcOk) {
+            const realFacilityServiceId = await AppointmentRepository.resolveFacilityService(data.facility_service_id, data.branch_id);
+            if (!realFacilityServiceId) {
                 throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
             }
+            data.facility_service_id = realFacilityServiceId;
         }
 
         // === SMART ALLOCATE + INSERT TRONG TRANSACTION (tránh race condition) ===
@@ -428,10 +438,11 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
 
-        const svcOk = await AppointmentRepository.facilityServiceIsActive(facilityServiceId);
-        if (!svcOk) {
+        const realFacilityServiceId = await AppointmentRepository.resolveFacilityService(facilityServiceId, existing.branch_id);
+        if (!realFacilityServiceId) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
         }
+        facilityServiceId = realFacilityServiceId;
 
         const updated = await AppointmentRepository.assignService(id, facilityServiceId, {
             appointment_id: id,
@@ -468,13 +479,45 @@ export class AppointmentService {
     }
 
     /**
-     * Lấy danh sách slot trống theo ngày — bắt buộc truyền facility_id để lọc theo giờ hoạt động
+     * Lấy danh sách slot trống theo ngày — chấp nhận branch_id hoặc facility_id
+     * Nếu chỉ có facility_id, tự tìm branch mặc định.
      */
-    static async getAvailableSlots(date: string, doctorId?: string, facilityId?: string): Promise<any[]> {
+    static async getAvailableSlots(date: string, doctorId?: string, branchId?: string, facilityId?: string): Promise<any[]> {
 
-        if (!facilityId) {
+        // Fix #1: Auto-resolve facility_id → branch_id nếu branchId không phải branch thực
+        if (branchId) {
+            // Thử tìm branch trước
+            let branch = await BranchRepository.findBranchById(branchId);
+            if (!branch) {
+                // branchId có thể là facility_id (FE gửi nhầm) → thử resolve
+                const branches = await BranchRepository.findAllBranches(undefined, branchId, 'ACTIVE', 0, 1);
+                if (branches.branches.length > 0) {
+                    branch = branches.branches[0];
+                    branchId = branch.branches_id;
+                } else if (facilityId) {
+                    // Fallback: dùng facilityId nếu có
+                    const branchesByFac = await BranchRepository.findAllBranches(undefined, facilityId, 'ACTIVE', 0, 1);
+                    if (branchesByFac.branches.length > 0) {
+                        branch = branchesByFac.branches[0];
+                        branchId = branch.branches_id;
+                    }
+                }
+                if (!branch) {
+                    throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', 'Chi nhánh không tồn tại');
+                }
+            }
+            facilityId = branch.facility_id;
+        } else if (facilityId) {
+            // Chỉ có facility_id → tìm branch mặc định
+            const branches = await BranchRepository.findAllBranches(undefined, facilityId, 'ACTIVE', 0, 1);
+            if (branches.branches.length > 0) {
+                branchId = branches.branches[0].branches_id;
+            } else {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', 'Không tìm thấy chi nhánh thuộc cơ sở này');
+            }
+        } else {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
-                'Vui lòng truyền facility_id để xác định giờ hoạt động cơ sở');
+                'Vui lòng truyền branch_id hoặc facility_id để xác định cơ sở');
         }
 
         // Validate ngày >= hôm nay
@@ -491,9 +534,7 @@ export class AppointmentService {
         if (facilityId) {
             const facilityStatus = await FacilityStatusService.determineFacilityStatus(facilityId, date);
             if (!facilityStatus.is_open) {
-                const reason = facilityStatus.note || facilityStatus.reason;
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'FACILITY_CLOSED',
-                    `${APPOINTMENT_ERRORS.FACILITY_CLOSED}. Lý do: ${reason}`);
+                return [{ is_facility_open: false, _facilityClosedFlag: true }];
             }
             openTime = facilityStatus.open_time || null;
             closeTime = facilityStatus.close_time || null;
@@ -505,6 +546,12 @@ export class AppointmentService {
         const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
 
         // Lọc slot theo giờ hoạt động cơ sở (chỉ trả slot nằm trong open_time–close_time)
+        const now = new Date();
+        const isToday = targetDate.toDateString() === now.toDateString();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+
         if (openTime && closeTime) {
             slots = slots.filter(slot => {
                 const slotStart = slot.start_time?.substring(0, 5);
@@ -513,7 +560,24 @@ export class AppointmentService {
                 if (slotEnd <= slotStart) slotEnd = '24:00';
                 const facilityOpen = openTime!.substring(0, 5);
                 const facilityClose = closeTime!.substring(0, 5);
-                return slotStart >= facilityOpen && slotEnd <= facilityClose;
+
+                // Lọc theo giờ mở cửa
+                if (slotStart < facilityOpen || slotEnd > facilityClose) {
+                    return false;
+                }
+
+                // Nếu là hôm nay, lọc bỏ các slot quá khứ
+                if (isToday && slotStart <= currentTimeStr) {
+                    return false;
+                }
+
+                return true;
+            });
+        } else if (isToday) {
+            // Nếu không có facilityId, vẫn phải lọc bỏ slot quá khứ nếu là hôm nay
+            slots = slots.filter(slot => {
+                const slotStart = slot.start_time?.substring(0, 5);
+                return slotStart > currentTimeStr;
             });
         }
 
@@ -738,21 +802,36 @@ export class AppointmentService {
     private static async smartAllocate(
         data: CreateAppointmentInput, client?: import('pg').PoolClient
     ): Promise<{ warning?: string }> {
-        // 1. Tìm slot tiếp theo còn chỗ trong ca (FIFO queue)
+        // 1. Kiểm tra sức chứa
         const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
         const maxPerSlot = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
 
-        const nextSlot = await AppointmentRepository.findNextAvailableSlot(
-            data.shift_id, data.appointment_date, maxPerSlot, client
-        );
-        if (!nextSlot) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SHIFT_FULL', APPOINTMENT_ERRORS.SHIFT_FULL);
+        if (!data.slot_id) {
+            if (!data.shift_id) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SLOT_AND_SHIFT', 'Thiếu thông tin slot_id và shift_id');
+            // Tự động gán slot nếu chỉ truyền shift_id
+            const availableSlot = await AppointmentRepository.findNextAvailableSlot(data.shift_id, data.appointment_date, maxPerSlot, client);
+            if (!availableSlot) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SHIFT_FULL', 'Ca khám đã hết khung giờ trống, vui lòng chọn ca khác.');
+            }
+            data.slot_id = availableSlot.slot_id;
+        } else {
+            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(
+                data.slot_id, data.appointment_date, client
+            );
+            if (currentCount >= maxPerSlot) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', 'Khung giờ này đã hết chỗ, vui lòng chọn khung giờ khác.');
+            }
         }
-        data.slot_id = nextSlot.slot_id;
 
-        // 2. Tra chuyên khoa từ dịch vụ BN chọn (nếu có)
+        // 2. Xác định chuyên khoa: ưu tiên specialty_id trực tiếp, fallback tra từ dịch vụ
         let specialtyId: string | undefined;
-        if (data.facility_service_id) {
+
+        // Ưu tiên 1: specialty_id do frontend gửi trực tiếp (đặt theo chuyên khoa)
+        if (data.specialty_id) {
+            specialtyId = data.specialty_id;
+        }
+        // Ưu tiên 2: tra chuyên khoa từ dịch vụ (facility_service_id → specialty_services)
+        if (!specialtyId && data.facility_service_id) {
             specialtyId = await AppointmentRepository.getSpecialtyByFacilityService(
                 data.facility_service_id
             ) ?? undefined;
@@ -830,13 +909,21 @@ export class AppointmentService {
         for (let i = 0; i < days; i++) {
             const targetDate = new Date(startDate);
             targetDate.setDate(targetDate.getDate() + i);
-            const dateStr = targetDate.toISOString().slice(0, 10);
+            const year = targetDate.getFullYear();
+            const month = (targetDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = targetDate.getDate().toString().padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
 
             // Kiểm tra cơ sở có mở cửa không
             let isFacilityOpen = true;
+            let openTime: string | null = null;
+            let closeTime: string | null = null;
+
             try {
                 const facilityStatus = await FacilityStatusService.determineFacilityStatus(facility_id, dateStr);
                 isFacilityOpen = facilityStatus.is_open;
+                openTime = facilityStatus.open_time || null;
+                closeTime = facilityStatus.close_time || null;
             } catch {
                 isFacilityOpen = true; // Fallback: coi như mở
             }
@@ -848,10 +935,16 @@ export class AppointmentService {
 
             // Query slot kèm booked_count
             const rawSlots = await AppointmentRepository.findAvailableSlotsByDepartmentForDate(
-                department_id, dateStr, maxPatients
+                department_id, facility_id, dateStr, maxPatients
             );
 
-            const slots = rawSlots.map(slot => ({
+            // Xác định xem ngày đang xét có phải hôm nay không
+            const isToday = targetDate.toDateString() === now.toDateString();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+
+            let slots = rawSlots.map(slot => ({
                 slot_id: slot.slot_id,
                 start_time: slot.start_time,
                 end_time: slot.end_time,
@@ -864,9 +957,56 @@ export class AppointmentService {
                 is_available: slot.booked_count < maxPatients,
             }));
 
+            if (openTime && closeTime) {
+                slots = slots.filter(slot => {
+                    const slotStart = slot.start_time?.substring(0, 5);
+                    let slotEnd = slot.end_time?.substring(0, 5);
+
+                    if (slotEnd <= slotStart) slotEnd = '24:00';
+                    const facilityOpen = openTime!.substring(0, 5);
+                    const facilityClose = closeTime!.substring(0, 5);
+
+                    // Lọc theo giờ mở cửa
+                    if (slotStart < facilityOpen || slotEnd > facilityClose) {
+                        return false;
+                    }
+
+                    // Nếu là hôm nay, lọc bỏ các slot quá khứ
+                    if (isToday && slotStart <= currentTimeStr) {
+                        return false;
+                    }
+
+                    return true;
+                });
+            } else if (isToday) {
+                // Nếu không có facilityId hoặc thiếu openTime/closeTime, vẫn lọc bỏ slot quá khứ nếu là hôm nay
+                slots = slots.filter(slot => {
+                    const slotStart = slot.start_time?.substring(0, 5);
+                    return slotStart > currentTimeStr;
+                });
+            }
+
             result.push({ date: dateStr, is_facility_open: true, slots });
         }
+        return result;
+    }
 
+    /**
+     * Submit user review for a completed appointment
+     */
+    static async submitReview(id: string, rating: number, feedback: string): Promise<Appointment> {
+        const appointment = await AppointmentRepository.findById(id);
+        if (!appointment) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
+        if (appointment.status !== 'COMPLETED') {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'APPOINTMENT_NOT_COMPLETED', 'Cuộc hẹn phải hoàn thành mới được đánh giá.');
+        }
+
+        const result = await AppointmentRepository.submitReview(id, rating, feedback);
+        if (!result) {
+            throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Không thể lưu đánh giá');
+        }
         return result;
     }
 }

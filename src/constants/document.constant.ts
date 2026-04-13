@@ -19,21 +19,25 @@ export const DOCUMENT_TYPE_ERRORS = {
         success: false,
         code: 'DCT_001',
         message: 'Không tìm thấy loại tài liệu.',
+        status: 404,
     },
     CODE_ALREADY_EXISTS: {
         success: false,
         code: 'DCT_002',
         message: 'Mã loại tài liệu (code) đã tồn tại trong hệ thống.',
+        status: 400,
     },
     IN_USE: {
         success: false,
         code: 'DCT_003',
         message: 'Loại tài liệu đang được sử dụng bởi hồ sơ tài liệu bệnh nhân, không thể xóa.',
+        status: 400,
     },
     MISSING_REQUIRED_FIELDS: {
         success: false,
         code: 'DCT_004',
         message: 'Vui lòng cung cấp đầy đủ các trường bắt buộc: code, name.',
+        status: 400,
     },
 };
 
@@ -43,41 +47,49 @@ export const PATIENT_DOCUMENT_ERRORS = {
         success: false,
         code: 'DOC_001',
         message: 'Không tìm thấy tài liệu.',
+        status: 404,
     },
     MISSING_REQUIRED_FIELDS: {
         success: false,
         code: 'DOC_002',
         message: 'Vui lòng cung cấp đầy đủ: patient_id, document_type_id, document_name.',
+        status: 400,
     },
     PATIENT_NOT_FOUND: {
         success: false,
         code: 'DOC_003',
         message: 'Không tìm thấy hồ sơ bệnh nhân được chỉ định.',
+        status: 404,
     },
     DOCUMENT_TYPE_INVALID: {
         success: false,
         code: 'DOC_004',
         message: 'Loại tài liệu không tồn tại hoặc đã bị vô hiệu hóa.',
+        status: 400,
     },
     FILE_REQUIRED: {
         success: false,
         code: 'DOC_005',
         message: 'Vui lòng chọn file để upload.',
+        status: 400,
     },
     FILE_TOO_LARGE: {
         success: false,
         code: 'DOC_006',
         message: 'Kích thước file vượt quá giới hạn cho phép (5MB).',
+        status: 400,
     },
     FILE_FORMAT_NOT_ALLOWED: {
         success: false,
         code: 'DOC_007',
         message: 'Định dạng file không được hỗ trợ. Chấp nhận: JPG, PNG, WEBP, PDF.',
+        status: 400,
     },
     UPLOAD_FAILED: {
         success: false,
         code: 'DOC_008',
         message: 'Lỗi khi upload file lên hệ thống lưu trữ.',
+        status: 500,
     },
 };
 
@@ -107,16 +119,19 @@ export const DOCUMENT_VERSION_ERRORS = {
         success: false,
         code: 'DOCV_001',
         message: 'Không tìm thấy tài liệu gốc.',
+        status: 404,
     },
     VERSION_NOT_FOUND: {
         success: false,
         code: 'DOCV_002',
         message: 'Không tìm thấy phiên bản tài liệu.',
+        status: 404,
     },
     NO_FILE_URL: {
         success: false,
         code: 'DOCV_003',
         message: 'Tài liệu này chưa có file đính kèm.',
+        status: 400,
     },
 };
 

@@ -43,7 +43,7 @@ export const vitalSignsRoutes = Router();
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     VitalSignsController.getVitals
 );
 
@@ -72,7 +72,7 @@ vitalSignsRoutes.get(
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/latest',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     VitalSignsController.getLatestVitals
 );
 
@@ -111,7 +111,7 @@ vitalSignsRoutes.get(
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/trends',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     VitalSignsController.getTrends
 );
 
@@ -140,7 +140,7 @@ vitalSignsRoutes.get(
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/abnormal',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     VitalSignsController.getAbnormalVitals
 );
 
@@ -169,7 +169,7 @@ vitalSignsRoutes.get(
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/summary',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     VitalSignsController.getSummary
 );
 
@@ -266,14 +266,14 @@ vitalSignsRoutes.get(
 vitalSignsRoutes.get(
     '/patients/:patientId/health-metrics',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE', 'STAFF'),
+
     VitalSignsController.getHealthMetrics
 );
 
 vitalSignsRoutes.post(
     '/patients/:patientId/health-metrics',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     VitalSignsController.createHealthMetric
 );
 
@@ -302,6 +302,7 @@ vitalSignsRoutes.post(
 vitalSignsRoutes.get(
     '/patients/:patientId/health-metrics/timeline',
     verifyAccessToken, checkSessionStatus,
-    authorizeRoles('ADMIN', 'DOCTOR', 'NURSE'),
+
     VitalSignsController.getTimeline
 );
+
