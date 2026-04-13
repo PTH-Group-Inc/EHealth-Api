@@ -153,6 +153,7 @@ departmentRoutes.get('/',
  *                   description: "Chuyên điều trị bệnh nhi"
  *                   status: "ACTIVE"
  *                   branch_name: "Chi nhánh Quận 1"
+ *                   facility_id: "FAC_001"
  *                   facility_name: "Bệnh viện Đa khoa Medlatec"
  *       404:
  *         description: Không tìm thấy Khoa/Phòng bạn.

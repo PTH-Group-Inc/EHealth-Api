@@ -10,6 +10,7 @@ export interface DepartmentInfo extends DepartmentDropdown {
     logo_url?: string | null;
     status: string;
     branch_name?: string;
+    facility_id?: string;
     facility_name?: string;
 }
 
