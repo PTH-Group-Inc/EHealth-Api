@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TeleBookingService } from '../../services/Remote Consultation/tele-booking.service';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
-import { TELE_BOOKING_SUCCESS, REMOTE_CONSULTATION_CONFIG } from '../../constants/remote-consultation.constant';
+import { TELE_BOOKING_SUCCESS, TELE_BOOKING_ERRORS, REMOTE_CONSULTATION_CONFIG } from '../../constants/remote-consultation.constant';
 
 /**
  * Controller cho Module 8.2 — Đặt lịch tư vấn & khám từ xa
