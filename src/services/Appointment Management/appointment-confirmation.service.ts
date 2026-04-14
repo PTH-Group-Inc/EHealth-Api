@@ -182,4 +182,50 @@ export class AppointmentConfirmationService {
             console.error(`[NOTIFICATION] Lỗi gửi thông báo ${templateCode}:`, error.message);
         }
     }
+
+    /**
+     * Gửi lại email thông báo cho 1 appointment theo template code
+     * Manual trigger từ FE button "Gửi lại email xác nhận"
+     */
+    static async resendNotification(
+        appointmentId: string,
+        templateCode?: string
+    ): Promise<{ success: boolean; templateCode: string; targetEmail: string | null }> {
+        const appointment = await AppointmentRepository.findWithPatientAccount(appointmentId);
+        if (!appointment) {
+            throw new AppError(404, 'APPOINTMENT_NOT_FOUND', 'Không tìm thấy lịch hẹn');
+        }
+        if (!appointment.account_id) {
+            throw new AppError(400, 'NO_ACCOUNT', 'Bệnh nhân chưa có tài khoản — không thể gửi email');
+        }
+
+        // Auto-detect template theo status nếu không truyền
+        const finalTemplate = templateCode || (() => {
+            switch (appointment.status) {
+                case APPOINTMENT_STATUS.PENDING: return APPOINTMENT_TEMPLATE_CODES.CREATED;
+                case APPOINTMENT_STATUS.CONFIRMED: return APPOINTMENT_TEMPLATE_CODES.CONFIRMED;
+                case APPOINTMENT_STATUS.COMPLETED: return APPOINTMENT_TEMPLATE_CODES.COMPLETED;
+                case APPOINTMENT_STATUS.CANCELLED: return APPOINTMENT_TEMPLATE_CODES.CANCELLED;
+                default: return APPOINTMENT_TEMPLATE_CODES.REMINDER;
+            }
+        })();
+
+        await NotificationEngineService.triggerEvent({
+            template_code: finalTemplate,
+            target_user_id: appointment.account_id,
+            variables: {
+                patient_name: appointment.patient_name || 'Bệnh nhân',
+                appointment_code: appointment.appointment_code,
+                appointment_date: appointment.appointment_date,
+                slot_time: (appointment as any).slot_time || '',
+                doctor_name: appointment.doctor_name || 'Chưa chỉ định',
+            },
+        });
+
+        return {
+            success: true,
+            templateCode: finalTemplate,
+            targetEmail: (appointment as any).account_email || null,
+        };
+    }
 }

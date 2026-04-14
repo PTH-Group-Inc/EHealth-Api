@@ -82,6 +82,49 @@ appointmentConfirmationRoutes.patch(
 
 /**
  * @swagger
+ * /api/appointment-confirmations/{id}/resend:
+ *   post:
+ *     summary: Gửi lại email/notification cho 1 lịch khám (manual trigger)
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF, PATIENT (chính chủ).
+ *
+ *       Gửi lại notification (in-app + email + push) cho 1 appointment.
+ *       Auto-detect template theo status hiện tại nếu không truyền `template_code`.
+ *     tags: [3.6 Xác nhận & Nhắc lịch]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               template_code:
+ *                 type: string
+ *                 enum: [APPOINTMENT_CREATED, APPOINTMENT_CONFIRMED, APPOINTMENT_REMINDER, APPOINTMENT_COMPLETED, APPOINTMENT_CANCELLED, APPOINTMENT_RESCHEDULED]
+ *                 description: Optional. Nếu không truyền, BE auto-detect theo status.
+ *     responses:
+ *       200:
+ *         description: Đã gửi lại thành công
+ *       400:
+ *         description: Bệnh nhân chưa có tài khoản
+ *       404:
+ *         description: Lịch hẹn không tồn tại
+ */
+appointmentConfirmationRoutes.post(
+    '/:id/resend',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentConfirmationController.resendNotification
+);
+
+/**
+ * @swagger
  * /api/appointment-confirmations/batch-confirm:
  *   patch:
  *     summary: Xác nhận hàng loạt nhiều lịch khám

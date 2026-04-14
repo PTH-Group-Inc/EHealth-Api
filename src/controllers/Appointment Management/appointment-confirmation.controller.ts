@@ -12,6 +12,31 @@ export class AppointmentConfirmationController {
 
     // ======================= XÁC NHẬN LỊCH KHÁM =======================
 
+    /**
+     * Gửi lại email/notification cho appointment
+     * POST /api/appointment-confirmations/:id/resend
+     * Body (optional): { template_code: 'APPOINTMENT_CREATED' | 'APPOINTMENT_CONFIRMED' | ... }
+     * Nếu không truyền template_code, BE auto-detect theo status
+     */
+    static async resendNotification(req: Request, res: Response): Promise<void> {
+        try {
+            const id = req.params.id as string;
+            const { template_code } = req.body || {};
+            const result = await AppointmentConfirmationService.resendNotification(id, template_code);
+            res.status(200).json({
+                success: true,
+                message: 'Đã gửi lại email/notification thành công',
+                data: result,
+            });
+        } catch (error: any) {
+            res.status(error.httpCode || 500).json({
+                success: false,
+                code: error.code || 'INTERNAL_ERROR',
+                message: error.message || 'Gửi lại email thất bại',
+            });
+        }
+    }
+
     /** Xác nhận 1 lịch khám (PENDING → CONFIRMED) */
     static async confirm(req: Request, res: Response): Promise<void> {
         try {
