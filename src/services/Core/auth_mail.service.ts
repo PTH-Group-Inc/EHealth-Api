@@ -1,8 +1,6 @@
 // services/mail.service.ts
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-
-dotenv.config(); 
+import { env } from '../../config/env';
 
 export interface SendMailOptions {
   to: string;
@@ -12,19 +10,19 @@ export interface SendMailOptions {
 
 export class MailService {
   private static transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST as string,
-    port: Number(process.env.EMAIL_PORT),
+    host: env.email.host,
+    port: env.email.port,
     secure: false, 
     auth: {
-      user: process.env.EMAIL_USER as string,
-      pass: process.env.EMAIL_PASS as string,
+      user: env.email.user,
+      pass: env.email.pass,
     },
   });
 
   static async send(options: SendMailOptions): Promise<void> {
     try {
       const info = await this.transporter.sendMail({
-        from: process.env.EMAIL_FROM as string, 
+        from: env.email.from, 
         to: options.to, 
         subject: options.subject,
         html: options.html,

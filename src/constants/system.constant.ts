@@ -1,8 +1,10 @@
+import { env } from '../config/env';
+
 // CLOUDINARY CONFIG
 export const CLOUDINARY_CONFIG = {
-    CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
-    API_KEY: process.env.CLOUDINARY_API_KEY || '',
-    API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
+    CLOUD_NAME: env.cloudinary.cloudName,
+    API_KEY: env.cloudinary.apiKey,
+    API_SECRET: env.cloudinary.apiSecret,
     /** Tên thư mục mặc định lưu ảnh trên Cloudinary */
     DEFAULT_FOLDER: 'project_uploads',
     /** Giới hạn dung lượng file (5MB) */

@@ -1,5 +1,9 @@
 node_modules
 .env
+.env.development
+.env.production
+.env.local
+!.env.example
 .agents
 dist
 env

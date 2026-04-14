@@ -1,4 +1,5 @@
 import { MailService } from '../services/Core/auth_mail.service';
+import { env } from '../config/env';
 
 export class AuthMailUtil {
 
@@ -148,7 +149,7 @@ export class AuthMailUtil {
             ${passwordHtml}
             
             <div style="text-align: center;">
-                <a href="${process.env.FRONTEND_URL || '#'}/login" class="btn">Đăng Nhập Ngay</a>
+                <a href="${env.frontendUrl}/login" class="btn">Đăng Nhập Ngay</a>
             </div>
             
             <p>Trân trọng,<br>Ban Quản Trị Hệ Thống E-Health.</p>

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/Core/auth_account.model';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
+import { env } from '../config/env';
 
 export class TokenUtil {
     /*
@@ -17,7 +18,7 @@ export class TokenUtil {
 
         const accessToken = jwt.sign(
             payload,
-            process.env[TOKEN_CONFIG.ACCESS_TOKEN.SECRET_ENV] as string,
+            env.jwt.accessSecret,
             {
                 expiresIn: TOKEN_CONFIG.ACCESS_TOKEN.EXPIRES_IN,
             }
@@ -25,7 +26,7 @@ export class TokenUtil {
 
         const refreshToken = jwt.sign(
             payload,
-            process.env[TOKEN_CONFIG.REFRESH_TOKEN.SECRET_ENV] as string,
+            env.jwt.refreshSecret,
             {
                 expiresIn: TOKEN_CONFIG.REFRESH_TOKEN.EXPIRES_IN,
             }
@@ -45,7 +46,7 @@ export class TokenUtil {
         try {
             return jwt.verify(
                 token,
-                process.env[TOKEN_CONFIG.ACCESS_TOKEN.SECRET_ENV] as string
+                env.jwt.accessSecret
             ) as T;
         } catch {
             throw new Error('INVALID_ACCESS_TOKEN');
@@ -59,7 +60,7 @@ export class TokenUtil {
         try {
             return jwt.verify(
                 token,
-                process.env[TOKEN_CONFIG.REFRESH_TOKEN.SECRET_ENV] as string
+                env.jwt.refreshSecret
             ) as T;
         } catch {
             throw new Error('INVALID_REFRESH_TOKEN');

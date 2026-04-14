@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-dotenv.config();
+// ⚡ Import config đầu tiên — tự động load .env theo NODE_ENV
+import { env } from './config/env';
 
 import app from './app';
 import { connectDB, closeDB } from './config/postgresdb';
@@ -9,7 +9,7 @@ import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs';
 import { NoShowDetectionJob } from './jobs/NoShowDetection.jobs';
 import { AutoApproveAppointmentJob } from './jobs/AutoApproveAppointment.jobs';
 
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 let server: Server;
 
 // Khởi động ứng dụng

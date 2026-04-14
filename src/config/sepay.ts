@@ -1,3 +1,5 @@
+import { env } from './env';
+
 export interface SepayConfig {
     merchantId: string;
     apiKey: string;
@@ -10,16 +12,16 @@ export interface SepayConfig {
     apiBaseUrl: string;
 }
 
-/** Đọc cấu hình SePay từ biến môi trường */
+/** Đọc cấu hình SePay từ centralized config */
 export function getSepayConfig(): SepayConfig {
     return {
-        merchantId: process.env.SEPAY_MERCHANT_ID || '',
-        apiKey: process.env.SEPAY_API_KEY || '',
-        webhookSecret: process.env.SEPAY_WEBHOOK_SECRET || '',
-        environment: process.env.SEPAY_ENVIRONMENT || 'SANDBOX',
-        bankAccount: process.env.SEPAY_BANK_ACCOUNT || '',
-        bankName: process.env.SEPAY_BANK_NAME || 'MBBank',
-        vaAccount: process.env.SEPAY_VA_ACCOUNT || '',
+        merchantId: env.sepay.merchantId,
+        apiKey: env.sepay.apiKey,
+        webhookSecret: env.sepay.webhookSecret,
+        environment: env.sepay.environment,
+        bankAccount: env.sepay.bankAccount,
+        bankName: env.sepay.bankName,
+        vaAccount: env.sepay.vaAccount,
         qrBaseUrl: 'https://qr.sepay.vn/img',
         apiBaseUrl: 'https://my.sepay.vn/userapi',
     };

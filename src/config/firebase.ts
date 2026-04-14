@@ -1,8 +1,9 @@
 import admin from 'firebase-admin';
+import { env } from './env';
 
 const getServiceAccount = () => {
     try {
-        const config = process.env.FIREBASE_SERVICE_ACCOUNT;
+        const config = env.firebaseServiceAccount;
         if (!config) {
             throw new Error("Missing FIREBASE_SERVICE_ACCOUNT in .env file");
         }

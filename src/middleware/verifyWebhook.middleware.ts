@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { PAYMENT_GATEWAY_ERRORS } from '../constants/billing-payment-gateway.constant';
+import { env } from '../config/env';
 
 /**
  * Middleware xác thực webhook từ SePay
@@ -15,7 +16,7 @@ export const verifySepayWebhook = (req: Request, res: Response, next: NextFuncti
         return;
     }
 
-    const webhookSecret = process.env.SEPAY_WEBHOOK_SECRET || '';
+    const webhookSecret = env.sepay.webhookSecret;
 
     /* SePay format: "Apikey xxx" */
     const token = authHeader.replace(/^(Apikey|Bearer)\s+/i, '');
