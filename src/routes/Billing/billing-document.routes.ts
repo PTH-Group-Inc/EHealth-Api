@@ -71,15 +71,67 @@ const router = Router();
  *                 description: Hình thức thanh toán dạng text in trên HĐ
  *               notes:
  *                 type: string
+ *           example:
+ *             invoice_id: "INV_abc123"
+ *             facility_id: "FAC_001"
+ *             buyer_name: "Nguyễn Văn A"
+ *             buyer_email: "patient@email.com"
+ *             tax_rate: 0
+ *             payment_method_text: "Tiền mặt"
  *     responses:
  *       201:
  *         description: Tạo HĐĐT thành công (status = DRAFT)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     e_invoice_id:
+ *                       type: string
+ *                       example: "EIV_20260319_001"
+ *                     status:
+ *                       type: string
+ *                       enum: [DRAFT, ISSUED, SIGNED, SENT, CANCELLED, REPLACED, ADJUSTED]
+ *                       example: "DRAFT"
+ *                     invoice_number:
+ *                       type: string
+ *                       description: Số HĐĐT tự sinh
+ *                     lookup_code:
+ *                       type: string
+ *                       description: Mã tra cứu CQT
+ *                     seller_info:
+ *                       type: object
+ *                     buyer_info:
+ *                       type: object
+ *                     items:
+ *                       type: array
+ *                     total_amount:
+ *                       type: number
+ *                     tax_amount:
+ *                       type: number
+ *                     grand_total:
+ *                       type: number
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: |
  *           - DOC_009: Không tìm thấy HĐ nội bộ
  *           - DOC_010: HĐ chưa thanh toán
  *           - DOC_011: HĐ đã có HĐĐT
  *           - DOC_012: Chưa cấu hình HĐĐT cho cơ sở
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.post('/documents/e-invoices', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingDocumentController.createEInvoice);
 

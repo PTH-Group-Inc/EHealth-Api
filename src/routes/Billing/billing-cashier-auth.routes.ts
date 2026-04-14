@@ -59,11 +59,67 @@ const router = Router();
  *                 type: string
  *               notes:
  *                 type: string
+ *           example:
+ *             user_id: "USR_cashier01"
+ *             employee_code: "TN-001"
+ *             facility_id: "FAC_001"
+ *             can_collect_payment: true
+ *             can_process_refund: false
+ *             can_void_transaction: false
  *     responses:
  *       201:
  *         description: Tạo thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     cashier_profile_id:
+ *                       type: string
+ *                       example: "CSP_abc123"
+ *                     user_id:
+ *                       type: string
+ *                     employee_code:
+ *                       type: string
+ *                     branch_id:
+ *                       type: string
+ *                     facility_id:
+ *                       type: string
+ *                     is_active:
+ *                       type: boolean
+ *                       example: true
+ *                     permissions:
+ *                       type: object
+ *                       properties:
+ *                         can_collect_payment:
+ *                           type: boolean
+ *                         can_process_refund:
+ *                           type: boolean
+ *                         can_void_transaction:
+ *                           type: boolean
+ *                         can_open_shift:
+ *                           type: boolean
+ *                         can_close_shift:
+ *                           type: boolean
+ *                     supervisor_id:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: CSH_002 — User đã được gán
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.post('/cashier-auth/profiles', verifyAccessToken, authorizeRoles('ADMIN'), BillingCashierAuthController.createProfile);
 
@@ -73,7 +129,8 @@ router.post('/cashier-auth/profiles', verifyAccessToken, authorizeRoles('ADMIN')
  *   get:
  *     summary: Danh sách thu ngân
  *     description: |
- *       Filter theo branch, facility, active.
+ *       Filter theo branch, facility, active status.
+ *       Hỗ trợ phân trang.
  *
  *       Phân quyền: CASHIER_AUTH_VIEW
  *       Vai trò được phép: ADMIN, STAFF
@@ -97,7 +154,54 @@ router.post('/cashier-auth/profiles', verifyAccessToken, authorizeRoles('ADMIN')
  *         schema: { type: integer, example: 20 }
  *     responses:
  *       200:
- *         description: Danh sách + phân trang
+ *         description: Danh sách thu ngân + phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       cashier_profile_id:
+ *                         type: string
+ *                       user_id:
+ *                         type: string
+ *                       employee_code:
+ *                         type: string
+ *                       branch_id:
+ *                         type: string
+ *                       facility_id:
+ *                         type: string
+ *                       is_active:
+ *                         type: boolean
+ *                       permissions:
+ *                         type: object
+ *                       supervisor_id:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.get('/cashier-auth/profiles', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingCashierAuthController.getProfiles);
 

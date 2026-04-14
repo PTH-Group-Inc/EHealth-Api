@@ -105,27 +105,74 @@ medicalRoomRoutes.get('/dropdown', verifyAccessToken, MedicalRoomController.getD
  *           application/json:
  *             schema:
  *               type: object
- *               example:
- *                 success: true
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *                 data:
- *                   items:
- *                     - medical_rooms_id: "ROOM_abc"
- *                       branch_id: "BRN_123"
- *                       department_id: "DEPT_123"
- *                       code: "P101"
- *                       name: "Phòng Nội Trung Tâm"
- *                       room_type: "CONSULTATION"
- *                       capacity: 2
- *                       status: "ACTIVE"
- *                       branch_name: "Chi nhánh Đống Đa"
- *                       department_name: "Khoa Nội Tiêu Hóa"
- *                   pagination:
- *                     page: 1
- *                     limit: 10
- *                     total_records: 5
- *                     total_pages: 1
+ *                   type: object
+ *                   properties:
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           medical_rooms_id:
+ *                             type: string
+ *                             example: "ROOM_abc"
+ *                           branch_id:
+ *                             type: string
+ *                             example: "BRN_123"
+ *                           department_id:
+ *                             type: string
+ *                             example: "DEPT_123"
+ *                           code:
+ *                             type: string
+ *                             example: "P101"
+ *                           name:
+ *                             type: string
+ *                             example: "Phòng Nội Trung Tâm"
+ *                           room_type:
+ *                             type: string
+ *                             enum: [CONSULTATION, LAB, IMAGING, OPERATING]
+ *                             example: "CONSULTATION"
+ *                           capacity:
+ *                             type: integer
+ *                             example: 2
+ *                           status:
+ *                             type: string
+ *                             enum: [ACTIVE, MAINTENANCE, INACTIVE]
+ *                             example: "ACTIVE"
+ *                           branch_name:
+ *                             type: string
+ *                             example: "Chi nhánh Đống Đa"
+ *                           department_name:
+ *                             type: string
+ *                             example: "Khoa Nội Tiêu Hóa"
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                         total_records:
+ *                           type: integer
+ *                           example: 5
+ *                         total_pages:
+ *                           type: integer
+ *                           example: 1
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
  *       403:
  *         description: Bị chặn (FORBIDDEN_ACCESS).
+ *       500:
+ *         description: Lỗi máy chủ
  */
 medicalRoomRoutes.get('/',
     verifyAccessToken,

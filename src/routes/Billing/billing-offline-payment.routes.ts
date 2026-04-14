@@ -67,9 +67,56 @@ const router = Router();
  *               notes:
  *                 type: string
  *                 example: "BN thanh toán tiền mặt"
+ *           example:
+ *             invoice_id: "INV_abc123"
+ *             payment_method: "CASH"
+ *             amount: 500000
+ *             notes: "BN thanh toán tiền mặt"
  *     responses:
  *       201:
  *         description: Thanh toán thành công, trả về giao dịch + biên lai
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Thanh toán tại quầy thành công"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     transaction_id:
+ *                       type: string
+ *                       example: "TXN_abc123"
+ *                     invoice_id:
+ *                       type: string
+ *                     amount:
+ *                       type: number
+ *                     payment_method:
+ *                       type: string
+ *                       enum: [CASH, CREDIT_CARD, BANK_TRANSFER]
+ *                     status:
+ *                       type: string
+ *                       enum: [SUCCESS, FAILED, PENDING]
+ *                       example: "SUCCESS"
+ *                     change_amount:
+ *                       type: number
+ *                       description: Tiền thừa (chỉ CASH)
+ *                       example: 0
+ *                     receipt_number:
+ *                       type: string
+ *                       example: "RCP_20260313_001"
+ *                     shift_id:
+ *                       type: string
+ *                     cashier_id:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: |
  *           Lỗi nghiệp vụ:
@@ -80,6 +127,12 @@ const router = Router();
  *           - OFP_006: Vượt quá số tiền còn lại
  *           - OFP_007: Phương thức không hợp lệ
  *           - OFP_023: Thanh toán POS yêu cầu approval_code
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.post('/offline/pay', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingOfflinePaymentController.processPayment);
 
@@ -121,16 +174,53 @@ router.post('/offline/pay', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'),
  *             properties:
  *               void_reason:
  *                 type: string
+ *                 description: Lý do hủy giao dịch
  *                 example: "Nhập sai số tiền, cần thanh toán lại"
+ *           example:
+ *             void_reason: "Nhập sai số tiền, cần thanh toán lại"
  *     responses:
  *       200:
  *         description: Hủy giao dịch thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Hủy giao dịch thành công"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     transaction_id:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       enum: [SUCCESS, FAILED, PENDING, VOIDED]
+ *                       example: "VOIDED"
+ *                     void_reason:
+ *                       type: string
+ *                     voided_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: |
+ *           Lỗi nghiệp vụ:
  *           - OFP_009: Quá 30 phút
  *           - OFP_010: Khác ca thu ngân
  *           - OFP_011: Đã bị hủy trước đó
  *           - OFP_013: Thiếu lý do
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       404:
+ *         description: Không tìm thấy giao dịch
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.post('/offline/transactions/:transactionId/void', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingOfflinePaymentController.voidTransaction);
 

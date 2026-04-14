@@ -30,21 +30,106 @@ const router = Router();
  *             properties:
  *               patient_id:
  *                 type: string
+ *                 description: ID của bệnh nhân
  *                 example: "PAT_001"
  *               encounter_id:
  *                 type: string
+ *                 nullable: true
+ *                 description: ID của lượt khám (tuỳ chọn)
  *                 example: "ENC_abc123"
  *               facility_id:
  *                 type: string
+ *                 nullable: true
+ *                 description: ID cơ sở y tế
  *                 example: "FAC_001"
  *               notes:
  *                 type: string
+ *                 nullable: true
+ *                 description: Ghi chú hóa đơn
  *                 example: "Khám tổng quát"
+ *           example:
+ *             patient_id: "PAT_001"
+ *             encounter_id: "ENC_abc123"
+ *             facility_id: "FAC_001"
+ *             notes: "Khám tổng quát"
  *     responses:
  *       201:
- *         description: Tạo hóa đơn thành công
+ *         description: Tạo hóa đơn mới thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo hóa đơn thành công"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     invoice_id:
+ *                       type: string
+ *                       example: "INV_20260313_001"
+ *                     invoice_code:
+ *                       type: string
+ *                       example: "HĐ-20260313-001"
+ *                     patient_id:
+ *                       type: string
+ *                     patient_info:
+ *                       type: object
+ *                       properties:
+ *                         patient_id:
+ *                           type: string
+ *                         patient_name:
+ *                           type: string
+ *                         phone:
+ *                           type: string
+ *                     encounter_id:
+ *                       type: string
+ *                       nullable: true
+ *                     facility_id:
+ *                       type: string
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                     total_amount:
+ *                       type: number
+ *                       example: 0
+ *                     discount_amount:
+ *                       type: number
+ *                       example: 0
+ *                     net_amount:
+ *                       type: number
+ *                       example: 0
+ *                     insurance_amount:
+ *                       type: number
+ *                       example: 0
+ *                     patient_pay_amount:
+ *                       type: number
+ *                       example: 0
+ *                     status:
+ *                       type: string
+ *                       enum: [DRAFT, UNPAID, PARTIAL, PAID, CANCELLED]
+ *                       example: "DRAFT"
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     notes:
+ *                       type: string
  *       400:
- *         description: Dữ liệu không hợp lệ
+ *         description: |
+ *           - `PATIENT_NOT_FOUND`: Bệnh nhân không tồn tại
+ *           - `MISSING_REQUIRED_FIELDS`: Thiếu patient_id
+ *           - `INVALID_FACILITY`: Cơ sở không tồn tại
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền tạo hóa đơn
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.post('/invoices', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.createInvoice);
 
@@ -69,11 +154,113 @@ router.post('/invoices', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), Bi
  *         schema:
  *           type: string
  *           example: "ENC_abc123"
+ *         description: ID của lượt khám/encounter
  *     responses:
  *       201:
  *         description: Tạo HĐ từ encounter thành công (kèm items + insurance claim)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo hóa đơn tự động thành công"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     invoice_id:
+ *                       type: string
+ *                       example: "INV_20260313_001"
+ *                     invoice_code:
+ *                       type: string
+ *                       example: "HĐ-20260313-001"
+ *                     encounter_id:
+ *                       type: string
+ *                       example: "ENC_abc123"
+ *                     patient_info:
+ *                       type: object
+ *                       properties:
+ *                         patient_id:
+ *                           type: string
+ *                         patient_name:
+ *                           type: string
+ *                         phone:
+ *                           type: string
+ *                         insurance_id:
+ *                           type: string
+ *                         insurance_provider:
+ *                           type: string
+ *                     items:
+ *                       type: array
+ *                       description: Các dòng chi tiết hóa đơn (khám, CLS, thuốc)
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           item_id:
+ *                             type: string
+ *                           service_type:
+ *                             type: string
+ *                             enum: [CONSULTATION, LAB_ORDER, DRUG]
+ *                           service_name:
+ *                             type: string
+ *                           quantity:
+ *                             type: number
+ *                           unit_price:
+ *                             type: number
+ *                           total_price:
+ *                             type: number
+ *                     total_amount:
+ *                       type: number
+ *                       description: Tổng tiền chưa trừ BHYT
+ *                       example: 500000
+ *                     insurance_claim:
+ *                       type: object
+ *                       description: Thông tin claim bảo hiểm (nếu có)
+ *                       properties:
+ *                         claim_id:
+ *                           type: string
+ *                         insurance_percentage:
+ *                           type: number
+ *                           description: Phần trăm BHYT thanh toán (ví dụ 90)
+ *                           example: 90
+ *                         insurance_amount:
+ *                           type: number
+ *                           description: Số tiền BHYT thanh toán
+ *                           example: 450000
+ *                         patient_pay_amount:
+ *                           type: number
+ *                           description: Số tiền bệnh nhân cần trả
+ *                           example: 50000
+ *                         claim_status:
+ *                           type: string
+ *                           enum: [CREATED, SUBMITTED, APPROVED, REJECTED]
+ *                           example: "CREATED"
+ *                     net_amount:
+ *                       type: number
+ *                       description: Số tiền bệnh nhân phải trả (sau BHYT)
+ *                       example: 50000
+ *                     status:
+ *                       type: string
+ *                       enum: [DRAFT, UNPAID, PARTIAL, PAID, CANCELLED]
+ *                       example: "UNPAID"
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
- *         description: Encounter không tồn tại hoặc đã có HĐ
+ *         description: |
+ *           - `ENCOUNTER_NOT_FOUND`: Encounter không tồn tại
+ *           - `INVOICE_EXISTS`: Encounter đã có hóa đơn
+ *           - `ENCOUNTER_NOT_COMPLETED`: Lượt khám chưa kết thúc
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền tạo hóa đơn
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.post('/invoices/generate/:encounterId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.generateInvoice);
 
@@ -201,17 +388,19 @@ router.get('/invoices/by-patient/:patientId', verifyAccessToken, authorizeRoles(
  *         name: status
  *         schema:
  *           type: string
- *           enum: [UNPAID, PARTIAL, PAID, CANCELLED]
+ *           enum: [DRAFT, UNPAID, PARTIAL, PAID, CANCELLED]
  *           example: "UNPAID"
  *       - in: query
  *         name: date_from
  *         schema:
  *           type: string
+ *           format: date
  *           example: "2026-01-01"
  *       - in: query
  *         name: date_to
  *         schema:
  *           type: string
+ *           format: date
  *           example: "2026-12-31"
  *       - in: query
  *         name: search
@@ -222,15 +411,60 @@ router.get('/invoices/by-patient/:patientId', verifyAccessToken, authorizeRoles(
  *         name: page
  *         schema:
  *           type: integer
+ *           default: 1
  *           example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
+ *           default: 20
  *           example: 20
  *     responses:
  *       200:
  *         description: Danh sách hóa đơn + phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       invoice_id:
+ *                         type: string
+ *                       invoice_code:
+ *                         type: string
+ *                       patient_name:
+ *                         type: string
+ *                       total_amount:
+ *                         type: number
+ *                       net_amount:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền xem
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.get('/invoices', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'DOCTOR', 'NURSE'), BillingInvoiceController.getInvoices);
 
@@ -280,11 +514,98 @@ router.get('/invoices/:invoiceId/insurance-claim', verifyAccessToken, authorizeR
  *         schema:
  *           type: string
  *           example: "INV_abc123"
+ *         description: ID của hóa đơn
  *     responses:
  *       200:
- *         description: Chi tiết HĐ kèm items + payments
+ *         description: Chi tiết HĐ kèm items + payments thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     invoice_id:
+ *                       type: string
+ *                     invoice_code:
+ *                       type: string
+ *                     patient_info:
+ *                       type: object
+ *                       properties:
+ *                         patient_id:
+ *                           type: string
+ *                         patient_name:
+ *                           type: string
+ *                         phone:
+ *                           type: string
+ *                     encounter_id:
+ *                       type: string
+ *                       nullable: true
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           item_id:
+ *                             type: string
+ *                           service_type:
+ *                             type: string
+ *                             enum: [CONSULTATION, LAB_ORDER, DRUG]
+ *                           service_name:
+ *                             type: string
+ *                           quantity:
+ *                             type: number
+ *                           unit_price:
+ *                             type: number
+ *                           total_price:
+ *                             type: number
+ *                     total_amount:
+ *                       type: number
+ *                     discount_amount:
+ *                       type: number
+ *                     insurance_amount:
+ *                       type: number
+ *                     net_amount:
+ *                       type: number
+ *                     payments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           payment_id:
+ *                             type: string
+ *                           payment_date:
+ *                             type: string
+ *                             format: date-time
+ *                           amount:
+ *                             type: number
+ *                           method:
+ *                             type: string
+ *                             enum: [CASH, CARD, TRANSFER, INSURANCE, OTHER]
+ *                           status:
+ *                             type: string
+ *                             enum: [SUCCESS, FAILED, CANCELLED]
+ *                     status:
+ *                       type: string
+ *                       enum: [DRAFT, UNPAID, PARTIAL, PAID, CANCELLED]
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền xem
  *       404:
  *         description: Không tìm thấy HĐ
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.get('/invoices/:invoiceId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'DOCTOR', 'NURSE'), BillingInvoiceController.getInvoiceById);
 

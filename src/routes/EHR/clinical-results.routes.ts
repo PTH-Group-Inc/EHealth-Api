@@ -14,6 +14,7 @@ export const clinicalResultsRoutes = Router();
  *     description: |
  *       Lấy tất cả kết quả xét nghiệm & cận lâm sàng xuyên suốt toàn bộ lịch sử khám.
  *       Hỗ trợ phân trang, filter theo loại chỉ định, mã dịch vụ, trạng thái, khoảng thời gian.
+ *       Dữ liệu sắp xếp theo thứ tự gần nhất trước.
  *
  *       **Phân quyền:** Yêu cầu đăng nhập + session hợp lệ.
  *       **Vai trò được phép:** ADMIN, DOCTOR, NURSE, STAFF.
@@ -48,8 +49,67 @@ export const clinicalResultsRoutes = Router();
  *         name: limit
  *         schema: { type: integer, example: 20 }
  *     responses:
- *       200: { description: Lấy danh sách thành công }
- *       404: { description: Bệnh nhân không tồn tại }
+ *       200:
+ *         description: Lấy danh sách kết quả CLS thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       result_id:
+ *                         type: string
+ *                       order_id:
+ *                         type: string
+ *                       order_type:
+ *                         type: string
+ *                         enum: [LAB, IMAGING, PROCEDURE, OTHER]
+ *                       service_code:
+ *                         type: string
+ *                       service_name:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED]
+ *                       result_value:
+ *                         type: string
+ *                         description: Giá trị kết quả hoặc dữ liệu BLOB (nếu là hình ảnh)
+ *                       reference_range:
+ *                         type: string
+ *                         description: Khoảng tham chiếu bình thường
+ *                       unit:
+ *                         type: string
+ *                       ordered_at:
+ *                         type: string
+ *                         format: date-time
+ *                       completed_at:
+ *                         type: string
+ *                         format: date-time
+ *                         nullable: true
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       404:
+ *         description: Bệnh nhân không tồn tại
+ *       500:
+ *         description: Lỗi máy chủ
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results',

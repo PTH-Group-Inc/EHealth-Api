@@ -66,14 +66,55 @@ const router = Router();
  *                 type: string
  *     responses:
  *       201:
- *         description: Yêu cầu đã tạo (PENDING hoặc auto APPROVED)
+ *         description: Yêu cầu hoàn tiền đã tạo thành công (PENDING hoặc auto APPROVED)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo yêu cầu hoàn tiền thành công"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     refund_id:
+ *                       type: string
+ *                       example: "RFD_abc123"
+ *                     transaction_id:
+ *                       type: string
+ *                     refund_type:
+ *                       type: string
+ *                       enum: [FULL, PARTIAL]
+ *                     refund_amount:
+ *                       type: number
+ *                     status:
+ *                       type: string
+ *                       enum: [PENDING, APPROVED, REJECTED, PROCESSING, COMPLETED, FAILED, CANCELLED]
+ *                     reason_category:
+ *                       type: string
+ *                     reason_detail:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: |
+ *           Lỗi nghiệp vụ:
  *           - RFD_002: GD không tồn tại
  *           - RFD_003: GD chưa SUCCESS
  *           - RFD_004: Đã hoàn toàn bộ
  *           - RFD_005: Vượt số tiền có thể hoàn
  *           - RFD_007: Lý do không hợp lệ
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.post('/refunds/requests', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingRefundController.createRefundRequest);
 
@@ -83,6 +124,8 @@ router.post('/refunds/requests', verifyAccessToken, authorizeRoles('ADMIN', 'STA
  *   get:
  *     summary: Danh sách yêu cầu hoàn tiền
  *     description: |
+ *       Lấy danh sách yêu cầu hoàn tiền với filter đa chiều.
+ *
  *       Phân quyền: BILLING_REFUND_VIEW
  *       Vai trò được phép: ADMIN, STAFF
  *     tags: [9.7.1 Yêu cầu hoàn tiền]
@@ -90,31 +133,94 @@ router.post('/refunds/requests', verifyAccessToken, authorizeRoles('ADMIN', 'STA
  *     parameters:
  *       - in: query
  *         name: status
- *         schema: { type: string, enum: [PENDING, APPROVED, REJECTED, PROCESSING, COMPLETED, FAILED, CANCELLED] }
+ *         schema: 
+ *           type: string
+ *           enum: [PENDING, APPROVED, REJECTED, PROCESSING, COMPLETED, FAILED, CANCELLED]
  *       - in: query
  *         name: refund_type
- *         schema: { type: string, enum: [FULL, PARTIAL] }
+ *         schema: 
+ *           type: string
+ *           enum: [FULL, PARTIAL]
  *       - in: query
  *         name: reason_category
- *         schema: { type: string }
+ *         schema: 
+ *           type: string
  *       - in: query
  *         name: patient_id
- *         schema: { type: string }
+ *         schema: 
+ *           type: string
  *       - in: query
  *         name: date_from
- *         schema: { type: string, format: date, example: "2026-03-01" }
+ *         schema: 
+ *           type: string
+ *           format: date
+ *           example: "2026-03-01"
  *       - in: query
  *         name: date_to
- *         schema: { type: string, format: date, example: "2026-03-31" }
+ *         schema: 
+ *           type: string
+ *           format: date
+ *           example: "2026-03-31"
  *       - in: query
  *         name: page
- *         schema: { type: integer, example: 1 }
+ *         schema: 
+ *           type: integer
+ *           default: 1
+ *           example: 1
  *       - in: query
  *         name: limit
- *         schema: { type: integer, example: 20 }
+ *         schema: 
+ *           type: integer
+ *           default: 20
+ *           example: 20
  *     responses:
  *       200:
- *         description: Danh sách + phân trang
+ *         description: Danh sách yêu cầu hoàn tiền + phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       refund_id:
+ *                         type: string
+ *                       refund_type:
+ *                         type: string
+ *                         enum: [FULL, PARTIAL]
+ *                       refund_amount:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                         enum: [PENDING, APPROVED, REJECTED, PROCESSING, COMPLETED, FAILED, CANCELLED]
+ *                       reason_category:
+ *                         type: string
+ *                       patient_name:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.get('/refunds/requests', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingRefundController.getRefundRequests);
 
@@ -124,7 +230,7 @@ router.get('/refunds/requests', verifyAccessToken, authorizeRoles('ADMIN', 'STAF
  *   get:
  *     summary: Chi tiết yêu cầu hoàn tiền
  *     description: |
- *       Kèm thông tin GD gốc, invoice, bệnh nhân, người xử lý.
+ *       Xem chi tiết yêu cầu hoàn tiền kèm thông tin giao dịch gốc, hóa đơn, bệnh nhân, người xử lý.
  *
  *       Phân quyền: BILLING_REFUND_VIEW
  *       Vai trò được phép: ADMIN, STAFF
@@ -134,12 +240,74 @@ router.get('/refunds/requests', verifyAccessToken, authorizeRoles('ADMIN', 'STAF
  *       - in: path
  *         name: id
  *         required: true
- *         schema: { type: string, example: "RFD_abc123" }
+ *         schema: 
+ *           type: string
+ *           example: "RFD_abc123"
+ *         description: ID của yêu cầu hoàn tiền
  *     responses:
  *       200:
- *         description: Chi tiết yêu cầu
+ *         description: Chi tiết yêu cầu hoàn tiền thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     refund_id:
+ *                       type: string
+ *                     transaction_id:
+ *                       type: string
+ *                     invoice_id:
+ *                       type: string
+ *                     refund_type:
+ *                       type: string
+ *                       enum: [FULL, PARTIAL]
+ *                     refund_amount:
+ *                       type: number
+ *                     refund_method:
+ *                       type: string
+ *                       enum: [CASH, CREDIT_CARD, BANK_TRANSFER]
+ *                     status:
+ *                       type: string
+ *                       enum: [PENDING, APPROVED, REJECTED, PROCESSING, COMPLETED, FAILED, CANCELLED]
+ *                     reason_category:
+ *                       type: string
+ *                     reason_detail:
+ *                       type: string
+ *                     patient_info:
+ *                       type: object
+ *                       properties:
+ *                         patient_id:
+ *                           type: string
+ *                         patient_name:
+ *                           type: string
+ *                         phone:
+ *                           type: string
+ *                     evidence_urls:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     notes:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
+ *       401:
+ *         description: Chưa đăng nhập hoặc token hết hạn
+ *       403:
+ *         description: Không có quyền truy cập
  *       404:
- *         description: Không tìm thấy
+ *         description: Không tìm thấy yêu cầu hoàn tiền
+ *       500:
+ *         description: Lỗi máy chủ
  */
 router.get('/refunds/requests/:id', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingRefundController.getRefundById);
 
