@@ -40,6 +40,7 @@ import { closedDayRoutes } from './Facility Management/closed-day.routes';
 import { holidayRoutes } from './Facility Management/holiday.routes';
 import { facilityStatusRoutes } from './Facility Management/facility-status.routes';
 import { patientRoutes } from './Patient Management/patient.routes';
+import patientProfileRoutes from './Patient Management/patient-profile.routes';
 import { medicalHistoryRoutes } from './Patient Management/medical-history.routes';
 import insuranceProviderRoutes from './Patient Management/insurance-provider.routes';
 import patientInsuranceRoutes from './Patient Management/patient-insurance.routes';
@@ -243,6 +244,7 @@ export const initRoutes = (app: Express) => {
     app.use('/api/notifications/inbox', userNotificationRoutes);
 
     // Patient Management (2.1)
+    app.use('/api/patient/profiles', patientProfileRoutes);
     app.use('/api/patients', patientRoutes);
 
     // Medical History (2.2 )

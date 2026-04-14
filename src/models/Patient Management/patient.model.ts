@@ -24,8 +24,21 @@ export interface Patient {
     updated_at: string;
     deleted_at: string | null;
 
+    // Multi-profile support (Module 1 — 1 account → nhiều patient profiles)
+    relationship?: 'SELF' | 'PARENT' | 'CHILD' | 'SPOUSE' | 'SIBLING' | 'OTHER';
+    is_default?: boolean;
+
     account_email?: string;
     account_phone?: string;
+}
+
+/** Quan hệ với chủ tài khoản */
+export type PatientRelationship = 'SELF' | 'PARENT' | 'CHILD' | 'SPOUSE' | 'SIBLING' | 'OTHER';
+
+/** Input tạo profile bệnh nhân từ tài khoản đăng nhập (multi-profile) */
+export interface CreatePatientProfileInput extends CreatePatientInput {
+    relationship?: PatientRelationship;
+    is_default?: boolean;
 }
 
 /** Input tạo mới hồ sơ bệnh nhân */

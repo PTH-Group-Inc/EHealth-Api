@@ -1,4 +1,4 @@
-// ⚡ Import config đầu tiên — tự động load .env theo NODE_ENV
+// ⚡ Import config đầu tiên — tự động load .env theo NODE_ENV 
 import { env } from './config/env';
 
 import app from './app';

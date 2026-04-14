@@ -1,27 +1,31 @@
 import admin from 'firebase-admin';
 import { env } from './env';
 
-const getServiceAccount = () => {
+let firebaseInitialized = false;
+
+const initFirebase = () => {
     try {
         const config = env.firebaseServiceAccount;
-        if (!config) {
-            throw new Error("Missing FIREBASE_SERVICE_ACCOUNT in .env file");
+        if (!config || config === '{}') {
+            console.warn("⚠️  FIREBASE_SERVICE_ACCOUNT chưa cấu hình — Push Notification sẽ không hoạt động.");
+            return;
         }
-        return JSON.parse(config);
-    } catch (error) {
-        if (error instanceof Error) {
-            console.error("Firebase Auth Error:", error.message);
-        } else {
-            console.error("Firebase Auth Error:", error);
+        const serviceAccount = JSON.parse(config);
+        if (!serviceAccount.project_id) {
+            console.warn("⚠️  FIREBASE_SERVICE_ACCOUNT thiếu project_id — Push Notification sẽ không hoạt động.");
+            return;
         }
-        process.exit(1);
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+        firebaseInitialized = true;
+        console.log("✅ Firebase Admin SDK đã khởi tạo thành công.");
+    } catch (error: any) {
+        console.warn("⚠️  Firebase init thất bại:", error.message, "— Push Notification sẽ không hoạt động.");
     }
 };
 
-const serviceAccount = getServiceAccount();
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+initFirebase();
 
 export const fcmAdmin = admin;
+export const isFirebaseReady = () => firebaseInitialized;

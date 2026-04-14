@@ -6,7 +6,7 @@ import { NotificationRoleConfigRepository } from '../../repository/Core/notifica
 import { UserNotificationRepository } from '../../repository/Core/user-notification.repository';
 import { CustomNotificationInput, TriggerEventInput } from '../../models/Core/notification.model';
 import { MailService } from './auth_mail.service';
-import { fcmAdmin } from '../../config/firebase';
+import { fcmAdmin, isFirebaseReady } from '../../config/firebase';
 import { FcmTokenRepository } from '../../repository/Core/fcm-token.repository';
 
 export class NotificationEngineService {
@@ -37,6 +37,8 @@ export class NotificationEngineService {
      * Gửi Push Notification Mobile (FCM)
      */
     private static async sendPush(userId: string, title: string, body: string, dataPayload: any) {
+
+        if (!isFirebaseReady()) return; // Firebase chưa cấu hình — bỏ qua push
 
         const tokens = await FcmTokenRepository.getTokensByUser(userId);
         if (tokens.length === 0) return; // User không đăng kí nhận push
