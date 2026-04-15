@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { MedInstructionService } from '../../services/Medication Management/med-instruction.service';
 import { MED_INSTRUCTION_SUCCESS } from '../../constants/med-instruction.constant';
+import logger from '../../config/logger.config';
+
 
 const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
 
@@ -18,7 +20,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.getTemplates] Error:', error);
+                logger.error('[MedInstructionController.getTemplates] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -33,7 +35,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.createTemplate] Error:', error);
+                logger.error('[MedInstructionController.createTemplate] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -48,7 +50,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.updateTemplate] Error:', error);
+                logger.error('[MedInstructionController.updateTemplate] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -63,7 +65,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.deleteTemplate] Error:', error);
+                logger.error('[MedInstructionController.deleteTemplate] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -79,7 +81,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.getAllDefaults] Error:', error);
+                logger.error('[MedInstructionController.getAllDefaults] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -94,7 +96,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.getDrugDefault] Error:', error);
+                logger.error('[MedInstructionController.getDrugDefault] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -109,7 +111,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.upsertDrugDefault] Error:', error);
+                logger.error('[MedInstructionController.upsertDrugDefault] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -124,7 +126,7 @@ export class MedInstructionController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedInstructionController.deleteDrugDefault] Error:', error);
+                logger.error('[MedInstructionController.deleteDrugDefault] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

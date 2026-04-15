@@ -4,6 +4,8 @@ import { SecurityUtil } from '../../utils/auth-security.util';
 import { AuthMailUtil } from '../../utils/auth-mail.util';
 import { AppError } from '../../utils/app-error.util';
 import { randomBytes } from 'crypto';
+import logger from '../../config/logger.config';
+
 
 export class UserService {
     /**
@@ -51,7 +53,7 @@ export class UserService {
 
         // Gửi thông báo email cho User nếu account có gắn Email
         if (data.email) {
-            AuthMailUtil.sendNewAccountEmail(data.email, data.password ? undefined : rawPassword).catch(console.error);
+            AuthMailUtil.sendNewAccountEmail(data.email, data.password ? undefined : rawPassword).catch(logger.error);
         }
 
         return { userId };
@@ -244,7 +246,7 @@ export class UserService {
             try {
                 await AuthMailUtil.sendNewAccountEmail(user.email, newPassword);
             } catch (error) {
-                console.error("Failed to send reset password email", error);
+                logger.error("Failed to send reset password email", error);
                 throw new AppError(500, 'USER_PASSWORD_RESET_EMAIL_FAILED', 'Đã reset nhưng gửi email thất bại.');
             }
         }

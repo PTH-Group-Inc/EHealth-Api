@@ -4,6 +4,8 @@ import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { MEDICAL_RECORD_SUCCESS } from '../../constants/medical-record.constant';
 import { pool } from '../../config/postgresdb';
+import logger from '../../config/logger.config';
+
 
 /**
  * Helper: Nếu patientId là user_id (VD: USR_PAT_004), tự động resolve sang patients_id
@@ -35,7 +37,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.getFullRecord] Error:', error);
+            logger.error('[MedicalRecordController.getFullRecord] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -50,7 +52,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.getCompleteness] Error:', error);
+            logger.error('[MedicalRecordController.getCompleteness] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -66,7 +68,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.finalize] Error:', error);
+            logger.error('[MedicalRecordController.finalize] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -83,7 +85,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.sign] Error:', error);
+            logger.error('[MedicalRecordController.sign] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -108,7 +110,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.getPatientRecords] Error:', error);
+            logger.error('[MedicalRecordController.getPatientRecords] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -128,7 +130,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.getTimeline] Error:', error);
+            logger.error('[MedicalRecordController.getTimeline] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -144,7 +146,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.getStatistics] Error:', error);
+            logger.error('[MedicalRecordController.getStatistics] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -159,7 +161,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.getSnapshot] Error:', error);
+            logger.error('[MedicalRecordController.getSnapshot] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -174,7 +176,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.exportRecord] Error:', error);
+            logger.error('[MedicalRecordController.exportRecord] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -195,7 +197,7 @@ export class MedicalRecordController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[MedicalRecordController.searchRecords] Error:', error);
+            logger.error('[MedicalRecordController.searchRecords] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }

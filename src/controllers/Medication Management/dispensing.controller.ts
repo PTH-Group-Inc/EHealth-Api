@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { DispensingService } from '../../services/Medication Management/dispensing.service';
+import logger from '../../config/logger.config';
 import {
     DISPENSE_CONFIG,
     DISPENSE_SUCCESS,
@@ -31,7 +32,7 @@ export class DispensingController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DispensingController.dispense] Error:', error);
+                logger.error('[DispensingController.dispense] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -52,7 +53,7 @@ export class DispensingController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DispensingController.getByPrescription] Error:', error);
+                logger.error('[DispensingController.getByPrescription] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -78,7 +79,7 @@ export class DispensingController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DispensingController.getHistory] Error:', error);
+                logger.error('[DispensingController.getHistory] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -99,7 +100,7 @@ export class DispensingController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DispensingController.getInventory] Error:', error);
+                logger.error('[DispensingController.getInventory] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -122,7 +123,7 @@ export class DispensingController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DispensingController.checkStock] Error:', error);
+                logger.error('[DispensingController.checkStock] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -148,7 +149,7 @@ export class DispensingController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DispensingController.getByPharmacist] Error:', error);
+                logger.error('[DispensingController.getByPharmacist] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -170,7 +171,7 @@ export class DispensingController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DispensingController.cancel] Error:', error);
+                logger.error('[DispensingController.cancel] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

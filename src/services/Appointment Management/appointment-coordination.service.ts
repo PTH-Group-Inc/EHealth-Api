@@ -13,6 +13,8 @@ import {
     SLOT_SCORING, COORDINATION_ERRORS
 } from '../../constants/appointment-coordination.constant';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../../config/logger.config';
+
 
 
 export class AppointmentCoordinationService {
@@ -289,7 +291,7 @@ export class AppointmentCoordinationService {
                     await EncounterRepository.updateDoctor(encounter.encounters_id, newDoctorId);
                 }
             } catch (err: any) {
-                console.error('[REASSIGN_DOCTOR] Lỗi sync encounter:', err.message);
+                logger.error('[REASSIGN_DOCTOR] Lỗi sync encounter:', err.message);
             }
         }
 
@@ -379,7 +381,7 @@ export class AppointmentCoordinationService {
                 });
                 assignedCount++;
             } catch (err: any) {
-                console.error(`[AUTO_ASSIGN] Lỗi gán appointment ${apt.appointments_id}:`, err.message || err);
+                logger.error(`[AUTO_ASSIGN] Lỗi gán appointment ${apt.appointments_id}:`, err.message || err);
                 details.push({ appointment_id: apt.appointments_id, reason: `Lỗi: ${err.message || 'Lỗi hệ thống'}` });
                 failedCount++;
             }

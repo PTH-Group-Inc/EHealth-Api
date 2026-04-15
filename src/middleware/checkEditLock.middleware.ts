@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { SignOffRepository } from '../repository/EMR/medical-signoff.repository';
 import { HTTP_STATUS } from '../constants/httpStatus.constant';
 import { SIGNOFF_ERRORS } from '../constants/medical-signoff.constant';
+import logger from '../config/logger.config';
+
 
 /**
  * Middleware kiểm tra khóa chỉnh sửa.
@@ -29,7 +31,7 @@ export const checkEditLock = async (req: Request, res: Response, next: NextFunct
 
         next();
     } catch (error) {
-        console.error('[checkEditLock] Error:', error);
+        logger.error('[checkEditLock] Error:', error);
         next();
     }
 };

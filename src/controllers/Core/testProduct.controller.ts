@@ -1,5 +1,7 @@
 import { Request, Response } from 'express'
 import { getAllProductsService } from '../../services/Core/testProduct.service'
+import logger from '../../config/logger.config';
+
 
 export const getAllProductsController = async (
   req: Request,
@@ -14,7 +16,7 @@ export const getAllProductsController = async (
       data: products
     })
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     return res.status(500).json({
       success: false,
       message: 'Internal server error'

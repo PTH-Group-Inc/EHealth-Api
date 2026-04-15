@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { InventoryService } from '../../services/Medication Management/inventory.service';
 import { INVENTORY_CONFIG, INVENTORY_SUCCESS } from '../../constants/inventory.constant';
+import logger from '../../config/logger.config';
+
 
 const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
 
@@ -28,7 +30,7 @@ export class InventoryController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[InventoryController.getAll] Error:', error);
+                logger.error('[InventoryController.getAll] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -49,7 +51,7 @@ export class InventoryController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[InventoryController.getById] Error:', error);
+                logger.error('[InventoryController.getById] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -70,7 +72,7 @@ export class InventoryController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[InventoryController.getExpiringAlerts] Error:', error);
+                logger.error('[InventoryController.getExpiringAlerts] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -90,7 +92,7 @@ export class InventoryController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[InventoryController.getLowStockAlerts] Error:', error);
+                logger.error('[InventoryController.getLowStockAlerts] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -110,7 +112,7 @@ export class InventoryController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[InventoryController.create] Error:', error);
+                logger.error('[InventoryController.create] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -131,7 +133,7 @@ export class InventoryController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[InventoryController.update] Error:', error);
+                logger.error('[InventoryController.update] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

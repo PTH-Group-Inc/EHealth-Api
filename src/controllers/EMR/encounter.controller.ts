@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { EncounterService } from '../../services/EMR/encounter.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
+import logger from '../../config/logger.config';
 import {
     ENCOUNTER_ERRORS,
     ENCOUNTER_SUCCESS,
@@ -32,7 +33,7 @@ export class EncounterController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[EncounterController.create] Error:', error);
+                logger.error('[EncounterController.create] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo lượt khám' });
             }
         }
@@ -55,7 +56,7 @@ export class EncounterController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[EncounterController.createFromAppointment] Error:', error);
+                logger.error('[EncounterController.createFromAppointment] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo lượt khám từ lịch khám' });
             }
         }
@@ -91,7 +92,7 @@ export class EncounterController {
                 },
             });
         } catch (error: any) {
-            console.error('[EncounterController.getAll] Error:', error);
+            logger.error('[EncounterController.getAll] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy danh sách lượt khám' });
         }
     }

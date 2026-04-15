@@ -1,0 +1,19 @@
+[2026-04-15 09:54:15:5415] info: 🚀 Server is running on port 3000
+[2026-04-15 10:12:25:1225] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-15 10:12:25:1225] info: ┌──────────────────────────────────────────────┐
+[2026-04-15 10:12:25:1225] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-15 10:12:25:1225] info: │  📄 Loaded: .env.development
+[2026-04-15 10:12:25:1225] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-15 10:12:25:1225] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-15 10:12:25:1225] info: │  📊 Log level: debug
+[2026-04-15 10:12:25:1225] info: │  💳 SePay: PRODUCTION
+[2026-04-15 10:12:25:1225] info: └──────────────────────────────────────────────┘
+[2026-04-15 10:12:28:1228] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-15 10:12:31:1231] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-15 10:12:31:1231] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-15 10:12:31:1231] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-15 10:12:31:1231] info: ✅ Cron Job: Đã thu hồi 2 session hết hạn.
+[2026-04-15 10:12:31:1231] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-15 10:12:31:1231] info: 🚀 Server is running on port 3000
+[2026-04-15 10:12:31:1231] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-15 10:12:31:1231] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).

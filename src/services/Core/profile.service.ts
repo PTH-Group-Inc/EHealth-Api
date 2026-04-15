@@ -7,6 +7,8 @@ import { MasterDataItemRepository } from '../../repository/Core/master-data-item
 import { AppError } from '../../utils/app-error.util';
 import { UserProfileResponse, UpdateProfileInput, ChangePasswordInput, UpdateSettingsInput, SessionResponse, AvatarImage } from '../../models/Core/profile.model';
 import { CLOUDINARY_CONFIG, AVATAR_CONFIG, AVATAR_ERRORS } from '../../constants/system.constant';
+import logger from '../../config/logger.config';
+
 
 // Khởi tạo Cloudinary
 cloudinary.config({
@@ -234,7 +236,7 @@ export class ProfileService {
         try {
             await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
         } catch (error: any) {
-            console.error(`[AVATAR] Lỗi xóa ảnh trên Cloudinary (${publicId}):`, error.message);
+            logger.error(`[AVATAR] Lỗi xóa ảnh trên Cloudinary (${publicId}):`, error.message);
             // Vẫn tiếp tục xóa trong DB dù Cloudinary lỗi
         }
 

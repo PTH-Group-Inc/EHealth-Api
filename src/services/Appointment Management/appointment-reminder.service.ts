@@ -16,6 +16,8 @@ import {
     REMINDER_CONFIG_LIMITS,
 } from '../../constants/appointment-confirmation.constant';
 import { APPOINTMENT_ERRORS } from '../../constants/appointment.constant';
+import logger from '../../config/logger.config';
+
 
 
 export class AppointmentReminderService {
@@ -51,7 +53,7 @@ export class AppointmentReminderService {
                     variables,
                 });
             } catch (error: any) {
-                console.error(`[REMINDER] Lỗi gửi thông báo nhắc lịch:`, error.message);
+                logger.error(`[REMINDER] Lỗi gửi thông báo nhắc lịch:`, error.message);
             }
         }
 
@@ -205,7 +207,7 @@ export class AppointmentReminderService {
         const settings = await this.getReminderSettings();
 
         if (!settings.auto_reminder_enabled) {
-            console.log('[AUTO-REMINDER] Tự động nhắc lịch đang tắt. Bỏ qua.');
+            logger.info('[AUTO-REMINDER] Tự động nhắc lịch đang tắt. Bỏ qua.');
             return { total_sent: 0, details: [] };
         }
 
@@ -239,7 +241,7 @@ export class AppointmentReminderService {
                                 },
                             });
                         } catch (err: any) {
-                            console.error(`[AUTO-REMINDER] Lỗi gửi notification cho ${apt.appointment_code}:`, err.message);
+                            logger.error(`[AUTO-REMINDER] Lỗi gửi notification cho ${apt.appointment_code}:`, err.message);
                         }
                     }
 
@@ -260,12 +262,12 @@ export class AppointmentReminderService {
                     });
                 }
             } catch (error: any) {
-                console.error(`[AUTO-REMINDER] Lỗi xử lý mốc ${hours}h:`, error.message);
+                logger.error(`[AUTO-REMINDER] Lỗi xử lý mốc ${hours}h:`, error.message);
             }
         }
 
         if (totalSent > 0) {
-            console.log(`✅ [AUTO-REMINDER] Đã gửi ${totalSent} nhắc lịch tự động.`);
+            logger.info(`✅ [AUTO-REMINDER] Đã gửi ${totalSent} nhắc lịch tự động.`);
         }
 
         return { total_sent: totalSent, details };

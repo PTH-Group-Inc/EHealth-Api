@@ -1,4 +1,6 @@
 import { AppointmentConfirmationService } from '../services/Appointment Management/appointment-confirmation.service';
+import logger from '../config/logger.config';
+
 
 /**
  * Cron Job tự động duyệt các lịch hẹn PENDING.
@@ -29,7 +31,7 @@ export class AutoApproveAppointmentJob {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
-            console.log('🛑 [CRON] Auto-Approve Job đã dừng.');
+            logger.info('🛑 [CRON] Auto-Approve Job đã dừng.');
         }
     }
 
@@ -40,10 +42,10 @@ export class AutoApproveAppointmentJob {
         try {
             const result = await AppointmentConfirmationService.autoApprovePending();
             if (result.total_approved > 0) {
-                console.log(`✅ [CRON] Auto-Approve: Đã tự động duyệt ${result.total_approved} lịch hẹn.`);
+                logger.info(`✅ [CRON] Auto-Approve: Đã tự động duyệt ${result.total_approved} lịch hẹn.`);
             }
         } catch (error) {
-            console.error('❌ [CRON] Auto-Approve Error:', error);
+            logger.error('❌ [CRON] Auto-Approve Error:', error);
         }
     }
 }

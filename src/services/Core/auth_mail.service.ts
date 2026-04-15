@@ -1,6 +1,8 @@
 // services/mail.service.ts
 import nodemailer from 'nodemailer';
 import { env } from '../../config/env';
+import logger from '../../config/logger.config';
+
 
 export interface SendMailOptions {
   to: string;
@@ -28,7 +30,7 @@ export class MailService {
         html: options.html,
       });
     } catch (error) {
-      console.error('❌ Lỗi gửi email:', error);
+      logger.error('❌ Lỗi gửi email:', error);
     }
   }
 }

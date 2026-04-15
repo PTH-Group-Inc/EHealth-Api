@@ -1,6 +1,8 @@
 import { pool } from '../../config/postgresdb';
 import { AuditLog, AuditLogQueryFilters } from '../../models/Core/audit-log.model';
 import { randomUUID } from 'crypto';
+import logger from '../../config/logger.config';
+
 
 export class AuditLogRepository {
     /**
@@ -29,8 +31,8 @@ export class AuditLogRepository {
 
             await pool.query(query, values);
         } catch (error) {
-            // Không nên throw error làm đứt mạch luồng chính của App, chỉ console.error
-            console.error('[AUDIT_LOG_ERROR] Lỗi khi ghi log thao tác:', error);
+            // Không nên throw error làm đứt mạch luồng chính của App, chỉ logger.error
+            logger.error('[AUDIT_LOG_ERROR] Lỗi khi ghi log thao tác:', error);
         }
     }
 

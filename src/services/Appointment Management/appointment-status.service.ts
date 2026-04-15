@@ -16,6 +16,8 @@ import {
 } from '../../constants/appointment-status.constant';
 import { APPOINTMENT_ERRORS, APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
+import logger from '../../config/logger.config';
+
 
 
 export class AppointmentStatusService {
@@ -54,7 +56,7 @@ export class AppointmentStatusService {
                     doctorAbsentWarning = STATUS_ERRORS.DOCTOR_ABSENT_WARNING;
                 }
             } catch (err: any) {
-                console.error('[CHECK_IN] Lỗi kiểm tra BS vắng:', err.message);
+                logger.error('[CHECK_IN] Lỗi kiểm tra BS vắng:', err.message);
             }
         }
 
@@ -282,7 +284,7 @@ export class AppointmentStatusService {
                 encounterId = encounter.encounters_id;
             }
         } catch (err: any) {
-            console.error('[START_EXAM] Lỗi tạo encounter tự động:', err.message);
+            logger.error('[START_EXAM] Lỗi tạo encounter tự động:', err.message);
         }
 
         // Gửi notification bắt đầu khám
@@ -333,7 +335,7 @@ export class AppointmentStatusService {
                 await EncounterRepository.updateStatus(encounter.encounters_id, 'COMPLETED');
             }
         } catch (err: any) {
-            console.error('[COMPLETE_EXAM] Lỗi đóng encounter tự động:', err.message);
+            logger.error('[COMPLETE_EXAM] Lỗi đóng encounter tự động:', err.message);
         }
 
         // Gửi notification hoàn tất
@@ -388,7 +390,7 @@ export class AppointmentStatusService {
                 }
             }
         } catch (err: any) {
-            console.error('[MARK_NO_SHOW] Lỗi dọn dẹp encounter:', err.message);
+            logger.error('[MARK_NO_SHOW] Lỗi dọn dẹp encounter:', err.message);
         }
 
         // Gửi notification
@@ -409,7 +411,7 @@ export class AppointmentStatusService {
         const settings = await this.getSettings();
 
         if (!settings.auto_no_show_enabled) {
-            console.log('[AUTO-NOSHOW] Tự động phát hiện No-Show đang tắt. Bỏ qua.');
+            logger.info('[AUTO-NOSHOW] Tự động phát hiện No-Show đang tắt. Bỏ qua.');
             return { total_marked: 0, details: [] };
         }
 
@@ -441,7 +443,7 @@ export class AppointmentStatusService {
                         }
                     }
                 } catch (cleanupErr: any) {
-                    console.error(`[AUTO-NOSHOW] Lỗi dọn encounter cho ${apt.appointment_code}:`, cleanupErr.message);
+                    logger.error(`[AUTO-NOSHOW] Lỗi dọn encounter cho ${apt.appointment_code}:`, cleanupErr.message);
                 }
 
                 // Notification
@@ -458,19 +460,19 @@ export class AppointmentStatusService {
                             },
                         });
                     } catch (err: any) {
-                        console.error(`[AUTO-NOSHOW] Lỗi gửi notification cho ${apt.appointment_code}:`, err.message);
+                        logger.error(`[AUTO-NOSHOW] Lỗi gửi notification cho ${apt.appointment_code}:`, err.message);
                     }
                 }
 
                 totalMarked++;
                 details.push({ appointment_code: apt.appointment_code, patient_name: apt.patient_name });
             } catch (error: any) {
-                console.error(`[AUTO-NOSHOW] Lỗi xử lý ${apt.appointment_code}:`, error.message);
+                logger.error(`[AUTO-NOSHOW] Lỗi xử lý ${apt.appointment_code}:`, error.message);
             }
         }
 
         if (totalMarked > 0) {
-            console.log(`✅ [AUTO-NOSHOW] Đã đánh dấu ${totalMarked} lịch khám No-Show.`);
+            logger.info(`✅ [AUTO-NOSHOW] Đã đánh dấu ${totalMarked} lịch khám No-Show.`);
         }
 
         return { total_marked: totalMarked, details };
@@ -635,7 +637,7 @@ export class AppointmentStatusService {
                 variables,
             });
         } catch (error: any) {
-            console.error(`[NOTIFICATION] Lỗi gửi thông báo ${templateCode}:`, error.message);
+            logger.error(`[NOTIFICATION] Lỗi gửi thông báo ${templateCode}:`, error.message);
         }
     }
 

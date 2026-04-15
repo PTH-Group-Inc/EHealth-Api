@@ -1,4 +1,6 @@
 import { AppointmentReminderService } from '../services/Appointment Management/appointment-reminder.service';
+import logger from '../config/logger.config';
+
 
 /**
  * Cron Job nhắc lịch khám tự động.
@@ -21,7 +23,7 @@ export class AppointmentReminderJob {
             this.runReminder();
         }, INTERVAL_MS);
 
-        console.log('📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).');
+        logger.info('📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).');
     }
 
     /**
@@ -31,7 +33,7 @@ export class AppointmentReminderJob {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
-            console.log('🛑 [CRON] Appointment Reminder Job đã dừng.');
+            logger.info('🛑 [CRON] Appointment Reminder Job đã dừng.');
         }
     }
 
@@ -42,10 +44,10 @@ export class AppointmentReminderJob {
         try {
             const result = await AppointmentReminderService.processAutoReminders();
             if (result.total_sent > 0) {
-                console.log(`✅ [CRON] Reminder Job: Đã gửi ${result.total_sent} nhắc lịch tự động.`);
+                logger.info(`✅ [CRON] Reminder Job: Đã gửi ${result.total_sent} nhắc lịch tự động.`);
             }
         } catch (error) {
-            console.error('❌ [CRON] Reminder Job Error:', error);
+            logger.error('❌ [CRON] Reminder Job Error:', error);
         }
     }
 }

@@ -3,6 +3,8 @@ import { DiagnosisService } from '../../services/EMR/diagnosis.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { DIAGNOSIS_SUCCESS, DIAGNOSIS_CONFIG } from '../../constants/diagnosis.constant';
+import logger from '../../config/logger.config';
+
 
 
 export class DiagnosisController {
@@ -18,7 +20,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.create] Error:', error);
+                logger.error('[DiagnosisController.create] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi thêm chẩn đoán' });
             }
         }
@@ -33,7 +35,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.getByEncounterId] Error:', error);
+                logger.error('[DiagnosisController.getByEncounterId] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -48,7 +50,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.update] Error:', error);
+                logger.error('[DiagnosisController.update] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật chẩn đoán' });
             }
         }
@@ -63,7 +65,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.delete] Error:', error);
+                logger.error('[DiagnosisController.delete] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi xóa chẩn đoán' });
             }
         }
@@ -78,7 +80,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.changeType] Error:', error);
+                logger.error('[DiagnosisController.changeType] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -93,7 +95,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.setConclusion] Error:', error);
+                logger.error('[DiagnosisController.setConclusion] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -108,7 +110,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.getConclusion] Error:', error);
+                logger.error('[DiagnosisController.getConclusion] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -135,7 +137,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.getByPatient] Error:', error);
+                logger.error('[DiagnosisController.getByPatient] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -150,7 +152,7 @@ export class DiagnosisController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[DiagnosisController.searchICD] Error:', error);
+                logger.error('[DiagnosisController.searchICD] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

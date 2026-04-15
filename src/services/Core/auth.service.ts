@@ -11,6 +11,8 @@ import { AuthMailUtil } from "../../utils/auth-mail.util";
 import { AccountVerificationRepository } from "../../repository/Core/auth_verification.repository";
 import { AUTH_CONSTANTS } from "../../constants/auth.constant";
 import { PermissionRepository } from "../../repository/Core/permission.repository";
+import logger from '../../config/logger.config';
+
 
 export class AuthService {
   /**
@@ -189,7 +191,7 @@ export class AuthService {
 
       await AuthMailUtil.sendResetPasswordOtpEmail(user.email, resetToken);
     } catch (error) {
-      console.error("Lỗi quên mật khẩu:", error);
+      logger.error("Lỗi quên mật khẩu:", error);
     }
   }
 
@@ -271,7 +273,7 @@ export class AuthService {
 
       await AuthMailUtil.sendOtpEmail(input.email, otpCode);
     } catch (error) {
-      console.error("⚠️ Lỗi gửi OTP:", error);
+      logger.error("⚠️ Lỗi gửi OTP:", error);
     }
 
     return result;

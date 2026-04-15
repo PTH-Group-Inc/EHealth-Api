@@ -22,6 +22,8 @@ import {
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
 import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS } from '../../constants/appointment-change.constant';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../../config/logger.config';
+
 
 export class AppointmentService {
 
@@ -289,7 +291,7 @@ export class AppointmentService {
                 }
             }
         } catch (err: any) {
-            console.error('[CANCEL_APPOINTMENT] Lỗi dọn dẹp encounter:', err.message);
+            logger.error('[CANCEL_APPOINTMENT] Lỗi dọn dẹp encounter:', err.message);
         }
 
         // Ghi change log
@@ -378,7 +380,7 @@ export class AppointmentService {
                     await EncounterRepository.updateDoctor(encounter.encounters_id, doctorId);
                 }
             } catch (err: any) {
-                console.error('[ASSIGN_DOCTOR] Lỗi sync encounter:', err.message);
+                logger.error('[ASSIGN_DOCTOR] Lỗi sync encounter:', err.message);
             }
         }
 
@@ -422,7 +424,7 @@ export class AppointmentService {
                     await EncounterRepository.updateRoomStatus(roomId, 'OCCUPIED', id);
                 }
             } catch (err: any) {
-                console.error('[ASSIGN_ROOM] Lỗi sync encounter:', err.message);
+                logger.error('[ASSIGN_ROOM] Lỗi sync encounter:', err.message);
             }
         }
 
@@ -792,7 +794,7 @@ export class AppointmentService {
                 },
             });
         } catch (error: any) {
-            console.error(`[NOTIFICATION] Lỗi gửi ${templateCode} cho appointment ${appointmentId}:`, error.message);
+            logger.error(`[NOTIFICATION] Lỗi gửi ${templateCode} cho appointment ${appointmentId}:`, error.message);
         }
     }
 
