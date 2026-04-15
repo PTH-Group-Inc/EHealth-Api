@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { SupplierService } from '../../services/Medication Management/supplier.service';
 import { SUPPLIER_SUCCESS } from '../../constants/stock-in.constant';
+import logger from '../../config/logger.config';
+
 
 const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
 
@@ -17,7 +19,7 @@ export class SupplierController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[SupplierController.getAll] Error:', error);
+                logger.error('[SupplierController.getAll] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -31,7 +33,7 @@ export class SupplierController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[SupplierController.getById] Error:', error);
+                logger.error('[SupplierController.getById] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -45,7 +47,7 @@ export class SupplierController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[SupplierController.create] Error:', error);
+                logger.error('[SupplierController.create] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -59,7 +61,7 @@ export class SupplierController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[SupplierController.update] Error:', error);
+                logger.error('[SupplierController.update] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

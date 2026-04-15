@@ -3,6 +3,8 @@ import { TreatmentProgressService } from '../../services/EMR/treatment-progress.
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { TREATMENT_SUCCESS } from '../../constants/treatment-progress.constant';
+import logger from '../../config/logger.config';
+
 
 
 export class TreatmentProgressController {
@@ -17,7 +19,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.createPlan] Error:', error);
+            logger.error('[TreatmentProgressController.createPlan] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -32,7 +34,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.getPlanDetail] Error:', error);
+            logger.error('[TreatmentProgressController.getPlanDetail] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -48,7 +50,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.updatePlan] Error:', error);
+            logger.error('[TreatmentProgressController.updatePlan] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -64,7 +66,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.changeStatus] Error:', error);
+            logger.error('[TreatmentProgressController.changeStatus] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -83,7 +85,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.getPatientPlans] Error:', error);
+            logger.error('[TreatmentProgressController.getPatientPlans] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -99,7 +101,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.createNote] Error:', error);
+            logger.error('[TreatmentProgressController.createNote] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -119,7 +121,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.getNotes] Error:', error);
+            logger.error('[TreatmentProgressController.getNotes] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -136,7 +138,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.updateNote] Error:', error);
+            logger.error('[TreatmentProgressController.updateNote] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -153,7 +155,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.deleteNote] Error:', error);
+            logger.error('[TreatmentProgressController.deleteNote] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -169,7 +171,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.createFollowUp] Error:', error);
+            logger.error('[TreatmentProgressController.createFollowUp] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -184,7 +186,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.getFollowUpChain] Error:', error);
+            logger.error('[TreatmentProgressController.getFollowUpChain] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -199,7 +201,7 @@ export class TreatmentProgressController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[TreatmentProgressController.getSummary] Error:', error);
+            logger.error('[TreatmentProgressController.getSummary] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }

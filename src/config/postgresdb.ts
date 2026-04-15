@@ -1,5 +1,7 @@
 import { Pool } from 'pg';
 import { env } from './env';
+import logger from './logger.config';
+
 
 export const pool = new Pool({
     user: env.db.user,
@@ -13,16 +15,16 @@ export const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-    console.error('❌ Lỗi PostgreSQL Pool ngầm:', err.message);
+    logger.error('❌ Lỗi PostgreSQL Pool ngầm:', err.message);
 });
 
 export const connectDB = async () => {
     try {
         const client = await pool.connect();
-        console.log('✅ Kết nối PostgreSQL thành công');
+        logger.info('✅ Kết nối PostgreSQL thành công');
         client.release();
     } catch (error) {
-        console.error('❌ Kết nối database thất bại:', error);
+        logger.error('❌ Kết nối database thất bại:', error);
         process.exit(1);
     }
 };
@@ -30,8 +32,8 @@ export const connectDB = async () => {
 export const closeDB = async () => {
     try {
         await pool.end();
-        console.log('🔌 Đã đóng kết nối PostgreSQL Pool an toàn.');
+        logger.info('🔌 Đã đóng kết nối PostgreSQL Pool an toàn.');
     } catch (error) {
-        console.error('❌ Lỗi khi đóng kết nối PostgreSQL:', error);
+        logger.error('❌ Lỗi khi đóng kết nối PostgreSQL:', error);
     }
 };

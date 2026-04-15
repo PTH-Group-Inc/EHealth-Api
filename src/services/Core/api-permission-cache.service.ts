@@ -1,5 +1,7 @@
 import { pool } from '../../config/postgresdb';
 import { ApiMatcherUtil } from '../../utils/api-matcher.util';
+import logger from '../../config/logger.config';
+
 
 interface CachedApiPermission {
     method: string;
@@ -15,16 +17,16 @@ export class ApiPermissionCacheService {
      */
     static async initCache(): Promise<void> {
         await this.loadFromDatabase();
-        console.log('✅ Load cấu hình Dynamic API Permissions vào Cache thành công!');
+        logger.info('✅ Load cấu hình Dynamic API Permissions vào Cache thành công!');
     }
 
     /**
      * Tải lại bộ đệm từ Database
      */
     static async refreshCache(): Promise<void> {
-        console.log('🔄 Đang Refresh Dynamic API Cache...');
+        logger.info('🔄 Đang Refresh Dynamic API Cache...');
         await this.loadFromDatabase();
-        console.log('✅ Refresh API Cache hoàn tất!');
+        logger.info('✅ Refresh API Cache hoàn tất!');
     }
 
     private static async loadFromDatabase() {
@@ -53,7 +55,7 @@ export class ApiPermissionCacheService {
 
             this.cache = newCache;
         } catch (error) {
-            console.error('❌ Lỗi khi nạp API Permission Cache:', error);
+            logger.error('❌ Lỗi khi nạp API Permission Cache:', error);
         }
     }
 

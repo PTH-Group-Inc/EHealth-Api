@@ -3,6 +3,8 @@ import { SignOffService } from '../../services/EMR/medical-signoff.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { SIGNOFF_SUCCESS } from '../../constants/medical-signoff.constant';
+import logger from '../../config/logger.config';
+
 
 
 export class SignOffController {
@@ -20,7 +22,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.completeEncounter] Error:', error);
+            logger.error('[SignOffController.completeEncounter] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -37,7 +39,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.draftSign] Error:', error);
+            logger.error('[SignOffController.draftSign] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -54,7 +56,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.officialSign] Error:', error);
+            logger.error('[SignOffController.officialSign] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -71,7 +73,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.revoke] Error:', error);
+            logger.error('[SignOffController.revoke] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -86,7 +88,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.getSignatures] Error:', error);
+            logger.error('[SignOffController.getSignatures] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -103,7 +105,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.verify] Error:', error);
+            logger.error('[SignOffController.verify] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -118,7 +120,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.getAuditLog] Error:', error);
+            logger.error('[SignOffController.getAuditLog] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -133,7 +135,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.getLockStatus] Error:', error);
+            logger.error('[SignOffController.getLockStatus] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }
@@ -149,7 +151,7 @@ export class SignOffController {
             if (error instanceof AppError) {
                 return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             }
-            console.error('[SignOffController.getPending] Error:', error);
+            logger.error('[SignOffController.getPending] Error:', error);
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }
     }

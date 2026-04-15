@@ -9,6 +9,8 @@ import {
 } from '../../constants/remote-consultation.constant';
 import { pool } from '../../config/postgresdb';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../../config/logger.config';
+
 
 /**
  * Business Logic Layer cho đặt lịch khám từ xa
@@ -109,7 +111,7 @@ export class TeleBookingService {
         // Lấy config (giá, thời lượng, platform)
         let config = await TeleBookingRepository.getConfig(input.type_id, input.specialty_id, input.facility_id);
         if (!config) {
-            console.warn(`[TeleBookingService] No config found for type=${input.type_id}, specialty=${input.specialty_id}, facility=${input.facility_id}. Using fallback.`);
+            logger.warn(`[TeleBookingService] No config found for type=${input.type_id}, specialty=${input.specialty_id}, facility=${input.facility_id}. Using fallback.`);
             config = {
                 config_id: null,
                 base_price: 300000,

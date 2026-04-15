@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import { LeaveService } from '../../services/Facility Management/leave.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
+import logger from '../../config/logger.config';
+
 
 export class LeaveController {
 
@@ -76,7 +78,7 @@ export class LeaveController {
             const updated = await LeaveService.updateLeave(req.params.id as string, { start_date, end_date, reason });
             res.status(HTTP_STATUS.OK).json({ success: true, message: 'Cập nhật đơn nghỉ phép thành công', data: updated });
         } catch (error: any) {
-            console.error('[LeaveController.updateLeave] Error:', error);
+            logger.error('[LeaveController.updateLeave] Error:', error);
             if (error instanceof AppError) res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             else res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
         }

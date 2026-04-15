@@ -10,6 +10,7 @@ import {
     ENCOUNTER_ERRORS,
     ENCOUNTER_CONFIG,
 } from '../../constants/encounter.constant';
+import logger from '../../config/logger.config';
 import {
     Encounter,
     EncounterType,
@@ -236,7 +237,7 @@ export class EncounterService {
                         action_note: `Sync BS từ encounter: ${encounterId} → doctor: ${doctorId}`
                     });
                 } catch (err: any) {
-                    console.error('[ENCOUNTER_ASSIGN_DOCTOR] Lỗi sync appointment:', err.message);
+                    logger.error('[ENCOUNTER_ASSIGN_DOCTOR] Lỗi sync appointment:', err.message);
                 }
             }
 
@@ -291,7 +292,7 @@ export class EncounterService {
                         action_note: `Sync phòng từ encounter: ${encounterId} → room: ${roomId}`
                     });
                 } catch (err: any) {
-                    console.error('[ENCOUNTER_ASSIGN_ROOM] Lỗi sync appointment:', err.message);
+                    logger.error('[ENCOUNTER_ASSIGN_ROOM] Lỗi sync appointment:', err.message);
                 }
             }
 
@@ -367,7 +368,7 @@ export class EncounterService {
                     action_note: `Hoàn tất khám từ encounter: ${encounterId}`,
                 });
             } catch (auditErr: any) {
-                console.error('[ENCOUNTER_COMPLETE] Lỗi ghi audit log:', auditErr.message);
+                logger.error('[ENCOUNTER_COMPLETE] Lỗi ghi audit log:', auditErr.message);
             }
 
             try {
@@ -384,7 +385,7 @@ export class EncounterService {
                     });
                 }
             } catch (notifErr: any) {
-                console.error('[ENCOUNTER_COMPLETE] Lỗi gửi notification:', notifErr.message);
+                logger.error('[ENCOUNTER_COMPLETE] Lỗi gửi notification:', notifErr.message);
             }
         }
 

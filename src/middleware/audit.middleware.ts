@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuditLogRepository } from '../repository/Core/audit-log.repository';
 import { AuditActionType } from '../models/Core/audit-log.model';
+import logger from '../config/logger.config';
+
 
 export const auditMiddleware = (req: Request, res: Response, next: NextFunction) => {
     if (!['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
@@ -48,7 +50,7 @@ export const auditMiddleware = (req: Request, res: Response, next: NextFunction)
                 new_value: safeBody,
                 ip_address: req.ip,
                 user_agent: req.headers['user-agent']
-            }).catch((e: any) => console.error('[AUDIT_GUARD_ERROR]', e));
+            }).catch((e: any) => logger.error('[AUDIT_GUARD_ERROR]', e));
         }
 
         return originalSend.call(this, body);

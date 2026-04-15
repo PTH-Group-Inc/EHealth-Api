@@ -1,4 +1,6 @@
 import { AppointmentStatusService } from '../services/Appointment Management/appointment-status.service';
+import logger from '../config/logger.config';
+
 
 /**
  * Cron Job tự động phát hiện No-Show.
@@ -19,7 +21,7 @@ export class NoShowDetectionJob {
             this.runDetection();
         }, INTERVAL_MS);
 
-        console.log('🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).');
+        logger.info('🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).');
     }
 
     /**
@@ -29,7 +31,7 @@ export class NoShowDetectionJob {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
-            console.log('🛑 [CRON] No-Show Detection Job đã dừng.');
+            logger.info('🛑 [CRON] No-Show Detection Job đã dừng.');
         }
     }
 
@@ -40,10 +42,10 @@ export class NoShowDetectionJob {
         try {
             const result = await AppointmentStatusService.processAutoNoShow();
             if (result.total_marked > 0) {
-                console.log(`✅ [CRON] No-Show Detection: Đã đánh dấu ${result.total_marked} lịch khám No-Show.`);
+                logger.info(`✅ [CRON] No-Show Detection: Đã đánh dấu ${result.total_marked} lịch khám No-Show.`);
             }
         } catch (error) {
-            console.error('❌ [CRON] No-Show Detection Error:', error);
+            logger.error('❌ [CRON] No-Show Detection Error:', error);
         }
     }
 }

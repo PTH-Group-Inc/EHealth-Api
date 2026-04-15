@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { BillingOfflinePaymentService } from '../../services/Billing/billing-offline-payment.service';
 import { OFFLINE_PAYMENT_CONFIG } from '../../constants/billing-offline-payment.constant';
+import logger from '../../config/logger.config';
+
 
 export class BillingOfflinePaymentController {
 
@@ -13,7 +15,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.processOfflinePayment(req.body, cashierId);
             res.status(201).json({ success: true, message: 'Thanh toán tại quầy thành công.', data });
         } catch (error: any) {
-            console.error('[Offline Payment Error]:', error);
+            logger.error('[Offline Payment Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -29,7 +31,7 @@ export class BillingOfflinePaymentController {
             );
             res.json({ success: true, message: 'Hủy giao dịch thành công.', data });
         } catch (error: any) {
-            console.error('[Void Error]:', error);
+            logger.error('[Void Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -49,7 +51,7 @@ export class BillingOfflinePaymentController {
             );
             res.json({ success: true, ...data });
         } catch (error: any) {
-            console.error('[Get Transactions Error]:', error);
+            logger.error('[Get Transactions Error]:', error);
             next(error);
         }
     }
@@ -63,7 +65,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.createTerminal(req.body, userId);
             res.status(201).json({ success: true, message: 'Đăng ký thiết bị POS thành công.', data });
         } catch (error: any) {
-            console.error('[Create Terminal Error]:', error);
+            logger.error('[Create Terminal Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -76,7 +78,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.updateTerminal(String(req.params.terminalId), req.body);
             res.json({ success: true, message: 'Cập nhật thiết bị POS thành công.', data });
         } catch (error: any) {
-            console.error('[Update Terminal Error]:', error);
+            logger.error('[Update Terminal Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -96,7 +98,7 @@ export class BillingOfflinePaymentController {
             );
             res.json({ success: true, ...data });
         } catch (error: any) {
-            console.error('[Get Terminals Error]:', error);
+            logger.error('[Get Terminals Error]:', error);
             next(error);
         }
     }
@@ -107,7 +109,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.getTerminalById(String(req.params.terminalId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Get Terminal Error]:', error);
+            logger.error('[Get Terminal Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -120,7 +122,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.toggleTerminalStatus(String(req.params.terminalId));
             res.json({ success: true, message: 'Cập nhật trạng thái thiết bị POS thành công.', data });
         } catch (error: any) {
-            console.error('[Toggle Terminal Error]:', error);
+            logger.error('[Toggle Terminal Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -135,7 +137,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.getReceiptByTransaction(String(req.params.transactionId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Get Receipt Error]:', error);
+            logger.error('[Get Receipt Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -148,7 +150,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.getReceiptById(String(req.params.receiptId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Get Receipt Error]:', error);
+            logger.error('[Get Receipt Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -161,7 +163,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.reprintReceipt(String(req.params.receiptId));
             res.json({ success: true, message: 'In lại biên lai thành công.', data });
         } catch (error: any) {
-            console.error('[Reprint Receipt Error]:', error);
+            logger.error('[Reprint Receipt Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -179,7 +181,7 @@ export class BillingOfflinePaymentController {
             );
             res.json({ success: true, message: 'Kê khai mệnh giá tiền thành công.', data });
         } catch (error: any) {
-            console.error('[Cash Denomination Error]:', error);
+            logger.error('[Cash Denomination Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -192,7 +194,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.getShiftTransactions(String(req.params.shiftId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Shift Transactions Error]:', error);
+            logger.error('[Shift Transactions Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -205,7 +207,7 @@ export class BillingOfflinePaymentController {
             const data = await BillingOfflinePaymentService.getShiftSummary(String(req.params.shiftId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Shift Summary Error]:', error);
+            logger.error('[Shift Summary Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -223,7 +225,7 @@ export class BillingOfflinePaymentController {
             );
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Daily Report Error]:', error);
+            logger.error('[Daily Report Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -239,7 +241,7 @@ export class BillingOfflinePaymentController {
             );
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Cashier Performance Error]:', error);
+            logger.error('[Cashier Performance Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }

@@ -8,6 +8,8 @@ import { CustomNotificationInput, TriggerEventInput } from '../../models/Core/no
 import { MailService } from './auth_mail.service';
 import { fcmAdmin, isFirebaseReady } from '../../config/firebase';
 import { FcmTokenRepository } from '../../repository/Core/fcm-token.repository';
+import logger from '../../config/logger.config';
+
 
 export class NotificationEngineService {
     /**
@@ -30,7 +32,7 @@ export class NotificationEngineService {
             subject: subject,
             html: htmlContent
         });
-        console.log(`[EMAIL DISPATCHER] -> Đã gửi mail thành công tới: ${email}`);
+        logger.info(`[EMAIL DISPATCHER] -> Đã gửi mail thành công tới: ${email}`);
     }
 
     /**
@@ -66,7 +68,7 @@ export class NotificationEngineService {
             // BẤM NÚT GỬI FIREBASE !!
             const response = await fcmAdmin.messaging().sendEachForMulticast(message);
 
-            console.log(`[FIREBASE] Đã gửi ${response.successCount} tin, Thất bại ${response.failureCount} tin`);
+            logger.info(`[FIREBASE] Đã gửi ${response.successCount} tin, Thất bại ${response.failureCount} tin`);
 
             // Nếu gửi thất bại vì User đã Xóa App, Firebase sẽ báo lại. 
             // Ta phải XÓA token đó khỏi DB để lần sau code không bị gửi thừa.
@@ -81,7 +83,7 @@ export class NotificationEngineService {
             }
 
         } catch (error) {
-            console.error('Lỗi khi gọi Firebase:', error);
+            logger.error('Lỗi khi gọi Firebase:', error);
         }
     }
 
@@ -136,7 +138,7 @@ export class NotificationEngineService {
                     await Promise.allSettled(externalTasks);
                 }
             } catch (err: any) {
-                console.error(`Lỗi gửi Broadcast cho user ${user.users_id}:`, err);
+                logger.error(`Lỗi gửi Broadcast cho user ${user.users_id}:`, err);
             }
         });
 
@@ -165,7 +167,7 @@ export class NotificationEngineService {
         // Lấy Template
         const template = await NotificationTemplateRepository.getTemplateByCode(input.template_code);
         if (!template || !template.is_active) {
-            console.warn(`[NOTIFICATION] Template không tìm thấy hoặc không active: ${input.template_code} — bỏ qua gửi thông báo.`);
+            logger.warn(`[NOTIFICATION] Template không tìm thấy hoặc không active: ${input.template_code} — bỏ qua gửi thông báo.`);
             return;
         }
 

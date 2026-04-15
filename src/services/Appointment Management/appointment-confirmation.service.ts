@@ -12,6 +12,8 @@ import {
 } from '../../constants/appointment-confirmation.constant';
 import { APPOINTMENT_ERRORS, APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../../config/logger.config';
+
 
 
 export class AppointmentConfirmationService {
@@ -146,13 +148,13 @@ export class AppointmentConfirmationService {
                     try {
                         await AppointmentStatusService.generateQrToken(row.appointments_id);
                     } catch (qrErr: any) {
-                        console.error(`[AUTO_APPROVE] QR generation failed for ${row.appointments_id}:`, qrErr.message);
+                        logger.error(`[AUTO_APPROVE] QR generation failed for ${row.appointments_id}:`, qrErr.message);
                     }
                     
                     approvedCount++;
                 }
             } catch (err: any) {
-                console.error(`[AUTO_APPROVE] Failed to approve ${row.appointments_id}:`, err.message);
+                logger.error(`[AUTO_APPROVE] Failed to approve ${row.appointments_id}:`, err.message);
             }
         }
 
@@ -168,7 +170,7 @@ export class AppointmentConfirmationService {
         variables: Record<string, any>
     ): Promise<void> {
         if (!accountId) {
-            console.warn(`[NOTIFICATION] Bệnh nhân chưa có tài khoản, bỏ qua gửi thông báo template: ${templateCode}`);
+            logger.warn(`[NOTIFICATION] Bệnh nhân chưa có tài khoản, bỏ qua gửi thông báo template: ${templateCode}`);
             return;
         }
 
@@ -179,7 +181,7 @@ export class AppointmentConfirmationService {
                 variables,
             });
         } catch (error: any) {
-            console.error(`[NOTIFICATION] Lỗi gửi thông báo ${templateCode}:`, error.message);
+            logger.error(`[NOTIFICATION] Lỗi gửi thông báo ${templateCode}:`, error.message);
         }
     }
 

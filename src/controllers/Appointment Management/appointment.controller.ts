@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { AppointmentService } from '../../services/Appointment Management/appointment.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
+import logger from '../../config/logger.config';
 import {
     APPOINTMENT_ERRORS, APPOINTMENT_SUCCESS
 } from '../../constants/appointment.constant';
@@ -458,7 +459,7 @@ export class AppointmentController {
                 data: appointment
             });
         } catch (error: any) {
-            console.error('[AppointmentController.createByPatient] Error:', error);
+            logger.error('[AppointmentController.createByPatient] Error:', error);
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
@@ -485,7 +486,7 @@ export class AppointmentController {
                 data: appointment
             });
         } catch (error: any) {
-            console.error('[AppointmentController.bookByStaff] Error:', error);
+            logger.error('[AppointmentController.bookByStaff] Error:', error);
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {

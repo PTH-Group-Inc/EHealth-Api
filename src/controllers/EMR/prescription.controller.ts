@@ -3,6 +3,8 @@ import { PrescriptionService } from '../../services/EMR/prescription.service';
 import { AppError } from '../../utils/app-error.util';
 import { PRESCRIPTION_SUCCESS, PRESCRIPTION_CONFIG } from '../../constants/prescription.constant';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
+import logger from '../../config/logger.config';
+
 
 export class PrescriptionController {
 
@@ -23,7 +25,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.create] Error:', error);
+                logger.error('[PrescriptionController.create] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo đơn thuốc' });
             }
         }
@@ -44,7 +46,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.getByEncounterId] Error:', error);
+                logger.error('[PrescriptionController.getByEncounterId] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -65,7 +67,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.update] Error:', error);
+                logger.error('[PrescriptionController.update] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -86,7 +88,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.confirm] Error:', error);
+                logger.error('[PrescriptionController.confirm] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -108,7 +110,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.cancel] Error:', error);
+                logger.error('[PrescriptionController.cancel] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -135,7 +137,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.getByPatient] Error:', error);
+                logger.error('[PrescriptionController.getByPatient] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -157,7 +159,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.addDetail] Error:', error);
+                logger.error('[PrescriptionController.addDetail] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -178,7 +180,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.updateDetail] Error:', error);
+                logger.error('[PrescriptionController.updateDetail] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -198,7 +200,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.deleteDetail] Error:', error);
+                logger.error('[PrescriptionController.deleteDetail] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -219,7 +221,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.getDetails] Error:', error);
+                logger.error('[PrescriptionController.getDetails] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -242,7 +244,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.searchDrugs] Error:', error);
+                logger.error('[PrescriptionController.searchDrugs] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -263,7 +265,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.getSummary] Error:', error);
+                logger.error('[PrescriptionController.getSummary] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -290,7 +292,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.getByDoctor] Error:', error);
+                logger.error('[PrescriptionController.getByDoctor] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -321,7 +323,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.search] Error:', error);
+                logger.error('[PrescriptionController.search] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -342,7 +344,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.searchByCode] Error:', error);
+                logger.error('[PrescriptionController.searchByCode] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -367,7 +369,7 @@ export class PrescriptionController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[PrescriptionController.getStats] Error:', error);
+                logger.error('[PrescriptionController.getStats] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

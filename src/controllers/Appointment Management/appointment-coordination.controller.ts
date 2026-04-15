@@ -4,6 +4,8 @@ import { AppointmentCoordinationService } from '../../services/Appointment Manag
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { COORDINATION_SUCCESS } from '../../constants/appointment-coordination.constant';
+import logger from '../../config/logger.config';
+
 
 /**
  * Controller cho Module 3.9 — Điều phối & tối ưu lịch khám
@@ -26,7 +28,7 @@ export class AppointmentCoordinationController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[COORDINATION] getDoctorLoad error:', error);
+                logger.error('[COORDINATION] getDoctorLoad error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy tải BS' });
             }
         }
@@ -49,7 +51,7 @@ export class AppointmentCoordinationController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[COORDINATION] suggestSlots error:', error);
+                logger.error('[COORDINATION] suggestSlots error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi gợi ý slot' });
             }
         }
@@ -70,7 +72,7 @@ export class AppointmentCoordinationController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[COORDINATION] getBalanceOverview error:', error);
+                logger.error('[COORDINATION] getBalanceOverview error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy dashboard cân bằng' });
             }
         }
@@ -91,7 +93,7 @@ export class AppointmentCoordinationController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[COORDINATION] setPriority error:', error);
+                logger.error('[COORDINATION] setPriority error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật ưu tiên' });
             }
         }
@@ -112,7 +114,7 @@ export class AppointmentCoordinationController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[COORDINATION] reassignDoctor error:', error);
+                logger.error('[COORDINATION] reassignDoctor error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi chuyển BS' });
             }
         }
@@ -133,7 +135,7 @@ export class AppointmentCoordinationController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[COORDINATION] autoAssign error:', error);
+                logger.error('[COORDINATION] autoAssign error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi auto-assign' });
             }
         }
@@ -155,7 +157,7 @@ export class AppointmentCoordinationController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[COORDINATION] getAIDataset error:', error);
+                logger.error('[COORDINATION] getAIDataset error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi xuất dữ liệu AI' });
             }
         }

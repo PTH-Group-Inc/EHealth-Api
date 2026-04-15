@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { BillingInvoiceService } from '../../services/Billing/billing-invoices.service';
+import logger from '../../config/logger.config';
 import {
     BILLING_INVOICE_CONFIG,
 } from '../../constants/billing-invoices.constant';
@@ -15,7 +16,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.createInvoice(req.body, userId);
             res.status(201).json({ success: true, message: 'Tạo hóa đơn thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -30,7 +31,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.generateInvoiceFromEncounter(encounterId, userId);
             res.status(201).json({ success: true, message: 'Tạo hóa đơn tự động thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -50,7 +51,7 @@ export class BillingInvoiceController {
             );
             res.json({ success: true, ...data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             next(error);
         }
     }
@@ -61,7 +62,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.getInvoiceById(String(req.params.invoiceId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -75,7 +76,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.updateInvoice(String(req.params.invoiceId), req.body, userId);
             res.json({ success: true, message: 'Cập nhật hóa đơn thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -90,7 +91,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.cancelInvoice(String(req.params.invoiceId), reason, userId);
             res.json({ success: true, message: 'Hủy hóa đơn thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -103,7 +104,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.getInvoiceByEncounter(String(req.params.encounterId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -118,7 +119,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.getInvoicesByPatient(String(req.params.patientId), page, limit);
             res.json({ success: true, ...data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -134,7 +135,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.addInvoiceItem(String(req.params.invoiceId), req.body, userId);
             res.status(201).json({ success: true, message: 'Thêm dòng chi tiết thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -150,7 +151,7 @@ export class BillingInvoiceController {
             );
             res.json({ success: true, message: 'Cập nhật dòng chi tiết thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -164,7 +165,7 @@ export class BillingInvoiceController {
             await BillingInvoiceService.deleteInvoiceItem(String(req.params.invoiceId), String(req.params.itemId), userId);
             res.json({ success: true, message: 'Xóa dòng chi tiết thành công.' });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -177,7 +178,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.recalculateInvoice(String(req.params.invoiceId));
             res.json({ success: true, message: 'Tính lại tổng tiền thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -193,7 +194,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.processPayment(req.body, cashierId);
             res.status(201).json({ success: true, message: 'Ghi nhận thanh toán thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -206,7 +207,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.getPaymentById(String(req.params.paymentId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -219,7 +220,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.getPaymentsByInvoice(String(req.params.invoiceId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -233,7 +234,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.processRefund(String(req.params.paymentId), req.body, cashierId);
             res.status(201).json({ success: true, message: 'Hoàn tiền thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -249,7 +250,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.openShift(req.body, cashierId);
             res.status(201).json({ success: true, message: 'Mở ca thu ngân thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -263,7 +264,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.closeShift(String(req.params.shiftId), req.body, cashierId);
             res.json({ success: true, message: 'Đóng ca thu ngân thành công.', data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(400).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -276,7 +277,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.getShiftById(String(req.params.shiftId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -295,7 +296,7 @@ export class BillingInvoiceController {
             );
             res.json({ success: true, ...data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             next(error);
         }
     }
@@ -312,7 +313,7 @@ export class BillingInvoiceController {
             );
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }
@@ -325,7 +326,7 @@ export class BillingInvoiceController {
             const data = await BillingInvoiceService.getInsuranceClaim(String(req.params.invoiceId));
             res.json({ success: true, data });
         } catch (error: any) {
-            console.error('[Global Error]:', error);
+            logger.error('[Global Error]:', error);
             if (error.code) {
                 res.status(404).json({ success: false, code: error.code, message: error.message });
             } else { next(error); }

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { StockOutService } from '../../services/Medication Management/stock-out.service';
 import { STOCK_OUT_SUCCESS, STOCK_OUT_CONFIG } from '../../constants/stock-out.constant';
+import logger from '../../config/logger.config';
+
 
 const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
 
@@ -18,7 +20,7 @@ export class StockOutController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[StockOutController.createOrder] Error:', error);
+                logger.error('[StockOutController.createOrder] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -33,7 +35,7 @@ export class StockOutController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[StockOutController.addItem] Error:', error);
+                logger.error('[StockOutController.addItem] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -48,7 +50,7 @@ export class StockOutController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[StockOutController.deleteItem] Error:', error);
+                logger.error('[StockOutController.deleteItem] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -64,7 +66,7 @@ export class StockOutController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[StockOutController.confirm] Error:', error);
+                logger.error('[StockOutController.confirm] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -79,7 +81,7 @@ export class StockOutController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[StockOutController.cancel] Error:', error);
+                logger.error('[StockOutController.cancel] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -102,7 +104,7 @@ export class StockOutController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[StockOutController.getHistory] Error:', error);
+                logger.error('[StockOutController.getHistory] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -117,7 +119,7 @@ export class StockOutController {
             if (error.httpCode) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[StockOutController.getDetail] Error:', error);
+                logger.error('[StockOutController.getDetail] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

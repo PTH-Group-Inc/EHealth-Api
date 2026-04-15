@@ -8,6 +8,7 @@ import { ApiPermissionCacheService } from './services/Core/api-permission-cache.
 import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs';
 import { NoShowDetectionJob } from './jobs/NoShowDetection.jobs';
 import { AutoApproveAppointmentJob } from './jobs/AutoApproveAppointment.jobs';
+import logger from './config/logger.config';
 
 const PORT = env.PORT;
 let server: Server;
@@ -18,7 +19,7 @@ const startServer = async () => {
     await ApiPermissionCacheService.initCache();
 
     server = app.listen(PORT, () => {
-        console.log(`🚀 Server is running on port ${PORT}`);
+        logger.info(`🚀 Server is running on port ${PORT}`);
 
         // Khởi động Cron Jobs
         AppointmentReminderJob.startReminderJob();
@@ -30,20 +31,20 @@ const startServer = async () => {
 startServer();
 
 const gracefulShutdown = async (signal: string) => {
-    console.log(`\n🛑 Nhận tín hiệu ${signal}. Đang tiến hành tắt server an toàn...`);
+    logger.info(`\n🛑 Nhận tín hiệu ${signal}. Đang tiến hành tắt server an toàn...`);
 
     if (server) {
         server.close(async (err) => {
             if (err) {
-                console.error('❌ Lỗi khi tắt HTTP Server:', err);
+                logger.error('❌ Lỗi khi tắt HTTP Server:', { error: err });
                 process.exit(1);
             }
 
-            console.log('✅ Đã tắt HTTP Server (Không nhận thêm Request mới).');
+            logger.info('✅ Đã tắt HTTP Server (Không nhận thêm Request mới).');
 
             await closeDB();
 
-            console.log('👋 Tạm biệt! Graceful shutdown hoàn tất.');
+            logger.info('👋 Tạm biệt! Graceful shutdown hoàn tất.');
             process.exit(0);
         });
     } else {
@@ -58,11 +59,11 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 // Bắt các vòng lặp lỗi không xác định
 process.on('uncaughtException', (err) => {
-    console.error('💥 Lỗi không xác định (uncaughtException):', err);
+    logger.error(`💥 Lỗi không xác định (uncaughtException): ${err.message || err}`, { stack: err.stack });
     gracefulShutdown('uncaughtException');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('💥 Lệnh Promise bị từ chối (unhandledRejection):', reason);
+    logger.error(`💥 Lệnh Promise bị từ chối (unhandledRejection): ${reason}`);
     gracefulShutdown('unhandledRejection');
 });

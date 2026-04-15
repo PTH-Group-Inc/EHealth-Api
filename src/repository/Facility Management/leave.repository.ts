@@ -2,6 +2,8 @@
 import { pool } from '../../config/postgresdb';
 import { CreateLeaveInput, LeaveRequest, UpdateLeaveInput } from '../../models/Facility Management/leave.model';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../../config/logger.config';
+
 
 export class LeaveRepository {
 
@@ -73,7 +75,7 @@ export class LeaveRepository {
             const result = await pool.query(query, [id]);
             return result.rows[0] || null;
         } catch (error) {
-            console.error('[LeaveRepository.findById] SQL Error:', error);
+            logger.error('[LeaveRepository.findById] SQL Error:', error);
             throw error;
         }
     }
@@ -104,11 +106,11 @@ export class LeaveRepository {
                 WHERE leave_requests_id = $${index}
                 RETURNING *;
             `;
-            console.log('[LeaveRepository.update] Query:', query, 'Values:', values);
+            logger.info('[LeaveRepository.update] Query:', query, 'Values:', values);
             const result = await pool.query(query, values);
             return result.rows[0] || null;
         } catch (error) {
-            console.error('[LeaveRepository.update] SQL Error:', error);
+            logger.error('[LeaveRepository.update] SQL Error:', error);
             throw error;
         }
     }

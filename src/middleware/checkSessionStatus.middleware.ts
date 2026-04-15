@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { UserSessionRepository } from "../repository/Core/auth_user-session.repository";
+import logger from '../config/logger.config';
+
 
 export const checkSessionStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -29,7 +31,7 @@ export const checkSessionStatus = async (req: Request, res: Response, next: Next
 
         next();
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.status(500).json({
             success: false,
             message: "Lỗi kiểm tra trạng thái phiên làm việc."

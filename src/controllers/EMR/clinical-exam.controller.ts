@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ClinicalExamService } from '../../services/EMR/clinical-exam.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
+import logger from '../../config/logger.config';
 import {
     CLINICAL_EXAM_SUCCESS,
     CLINICAL_EXAM_CONFIG,
@@ -27,7 +28,7 @@ export class ClinicalExamController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[ClinicalExamController.create] Error:', error);
+                logger.error('[ClinicalExamController.create] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo phiếu khám lâm sàng' });
             }
         }
@@ -48,7 +49,7 @@ export class ClinicalExamController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[ClinicalExamController.getByEncounterId] Error:', error);
+                logger.error('[ClinicalExamController.getByEncounterId] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy phiếu khám' });
             }
         }
@@ -69,7 +70,7 @@ export class ClinicalExamController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[ClinicalExamController.update] Error:', error);
+                logger.error('[ClinicalExamController.update] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật phiếu khám' });
             }
         }
@@ -90,7 +91,7 @@ export class ClinicalExamController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[ClinicalExamController.updateVitals] Error:', error);
+                logger.error('[ClinicalExamController.updateVitals] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật sinh hiệu' });
             }
         }
@@ -111,7 +112,7 @@ export class ClinicalExamController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[ClinicalExamController.finalize] Error:', error);
+                logger.error('[ClinicalExamController.finalize] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi xác nhận phiếu khám' });
             }
         }
@@ -144,7 +145,7 @@ export class ClinicalExamController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[ClinicalExamController.getByPatient] Error:', error);
+                logger.error('[ClinicalExamController.getByPatient] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -165,7 +166,7 @@ export class ClinicalExamController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[ClinicalExamController.getSummary] Error:', error);
+                logger.error('[ClinicalExamController.getSummary] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }

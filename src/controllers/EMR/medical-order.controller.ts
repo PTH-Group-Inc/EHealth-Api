@@ -3,6 +3,8 @@ import { MedicalOrderService } from '../../services/EMR/medical-order.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { ORDER_SUCCESS, ORDER_CONFIG } from '../../constants/medical-order.constant';
+import logger from '../../config/logger.config';
+
 
 
 export class MedicalOrderController {
@@ -18,7 +20,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.create] Error:', error);
+                logger.error('[MedicalOrderController.create] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo chỉ định' });
             }
         }
@@ -33,7 +35,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.getByEncounterId] Error:', error);
+                logger.error('[MedicalOrderController.getByEncounterId] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -48,7 +50,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.getDetail] Error:', error);
+                logger.error('[MedicalOrderController.getDetail] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -63,7 +65,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.update] Error:', error);
+                logger.error('[MedicalOrderController.update] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -78,7 +80,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.cancel] Error:', error);
+                logger.error('[MedicalOrderController.cancel] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -93,7 +95,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.start] Error:', error);
+                logger.error('[MedicalOrderController.start] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -109,7 +111,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.createResult] Error:', error);
+                logger.error('[MedicalOrderController.createResult] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -124,7 +126,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.updateResult] Error:', error);
+                logger.error('[MedicalOrderController.updateResult] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -152,7 +154,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.getByPatient] Error:', error);
+                logger.error('[MedicalOrderController.getByPatient] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -178,7 +180,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.getPending] Error:', error);
+                logger.error('[MedicalOrderController.getPending] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -196,7 +198,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.searchServices] Error:', error);
+                logger.error('[MedicalOrderController.searchServices] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
@@ -211,7 +213,7 @@ export class MedicalOrderController {
             if (error instanceof AppError) {
                 res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
             } else {
-                console.error('[MedicalOrderController.getSummary] Error:', error);
+                logger.error('[MedicalOrderController.getSummary] Error:', error);
                 res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
             }
         }
