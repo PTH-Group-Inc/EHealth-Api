@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { DrugService } from '../../services/Medication Management/drug.service';
 import { CreateDrugInput, UpdateDrugInput, ToggleDrugStatusInput } from '../../models/Medication Management/drug.model';
 
@@ -6,8 +7,7 @@ export class DrugController {
     /**
      * Lấy danh sách thuốc (Dành cho Admin)
      */
-    static async getDrugsAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getDrugsAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const search = req.query.search as string | undefined;
             const categoryId = req.query.categoryId as string | undefined;
 
@@ -30,16 +30,12 @@ export class DrugController {
                 success: true,
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách thuốc (Dành cho chức năng autocomplete của Bác sĩ)
      */
-    static async getActiveDrugs(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getActiveDrugs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const search = req.query.search as string | undefined;
             const data = await DrugService.getActiveDrugs(search);
 
@@ -47,16 +43,12 @@ export class DrugController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết 1 loại thuốc theo ID
      */
-    static async getDrugById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getDrugById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await DrugService.getDrugById(id);
 
@@ -64,16 +56,12 @@ export class DrugController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới thuốc
      */
-    static async createDrug(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createDrug = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreateDrugInput = req.body;
             const data = await DrugService.createDrug(input);
 
@@ -81,16 +69,12 @@ export class DrugController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin thuốc
      */
-    static async updateDrug(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateDrug = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdateDrugInput = req.body;
 
@@ -100,16 +84,12 @@ export class DrugController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Vô hiệu hóa / Mở khóa thuốc
      */
-    static async toggleDrugStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static toggleDrugStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const { is_active }: ToggleDrugStatusInput = req.body;
 
@@ -120,32 +100,24 @@ export class DrugController {
                 message: is_active ? 'Đã mở khóa thuốc thành công.' : 'Đã vô hiệu hóa thuốc thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xuất danh sách thuốc ra file Excel
      */
-    static async exportDrugs(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static exportDrugs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const buffer = await DrugService.exportDrugs();
 
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=Pharmacy_Drugs.xlsx');
 
             res.status(200).send(buffer);
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Nhập danh sách thuốc từ file Excel
      */
-    static async importDrugs(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static importDrugs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             if (!req.file) {
                 res.status(400).json({
                     success: false,
@@ -162,8 +134,5 @@ export class DrugController {
                 message: 'Đã xử lý file Excel thành công.',
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

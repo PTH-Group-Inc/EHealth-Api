@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { MasterDataItemService } from '../../services/Core/master-data-item.service';
 import { CreateItemInput, UpdateItemInput } from '../../models/Core/master-data-item.model';
 
@@ -6,8 +7,7 @@ export class MasterDataItemController {
     /**
      * Lấy danh sách items có phân trang (Admin)
      */
-    static async getItems(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getItems = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const search = req.query.search as string | undefined;
             const categoryCode = req.query.categoryCode as string | undefined;
             const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
@@ -19,16 +19,12 @@ export class MasterDataItemController {
                 success: true,
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách items đang active của một nhóm danh mục
      */
-    static async getActiveItemsByCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getActiveItemsByCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { categoryCode } = req.params as { categoryCode: string };
             const data = await MasterDataItemService.getActiveItemsByCategory(categoryCode);
 
@@ -36,16 +32,12 @@ export class MasterDataItemController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết 1 item theo ID
      */
-    static async getItemById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getItemById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await MasterDataItemService.getItemById(id);
 
@@ -53,16 +45,12 @@ export class MasterDataItemController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới một item thuộc một category
      */
-    static async createItem(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createItem = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { categoryCode } = req.params as { categoryCode: string };
             const input: CreateItemInput = req.body;
 
@@ -72,16 +60,12 @@ export class MasterDataItemController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin item
      */
-    static async updateItem(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateItem = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdateItemInput = req.body;
 
@@ -91,16 +75,12 @@ export class MasterDataItemController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa mềm item
      */
-    static async deleteItem(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteItem = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             await MasterDataItemService.deleteItem(id);
 
@@ -108,16 +88,12 @@ export class MasterDataItemController {
                 success: true,
                 message: 'Đã xóa (vô hiệu hóa) chi tiết danh mục thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xuất danh sách items của 1 nhóm danh mục ra file Excel
      */
-    static async exportItems(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static exportItems = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { categoryCode } = req.params as { categoryCode: string };
             const buffer = await MasterDataItemService.exportItems(categoryCode);
 
@@ -125,16 +101,12 @@ export class MasterDataItemController {
             res.setHeader('Content-Disposition', `attachment; filename=MasterData_Items_${categoryCode}.xlsx`);
 
             res.status(200).send(buffer);
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Nhập danh sách items cho 1 nhóm danh mục từ file Excel
      */
-    static async importItems(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static importItems = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { categoryCode } = req.params as { categoryCode: string };
 
             if (!req.file) {
@@ -153,8 +125,5 @@ export class MasterDataItemController {
                 message: 'Đã xử lý file Excel thành công.',
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

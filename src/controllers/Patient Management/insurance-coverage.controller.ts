@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { InsuranceCoverageService } from '../../services/Patient Management/insurance-coverage.service';
 import {
     CreateInsuranceCoverageInput,
@@ -10,8 +11,7 @@ export class InsuranceCoverageController {
     /**
      * Lấy danh sách tỷ lệ chi trả
      */
-    static async getCoverages(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getCoverages = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { provider_id, page, limit } = req.query as Record<string, string>;
 
             const data = await InsuranceCoverageService.getCoverages(
@@ -21,16 +21,12 @@ export class InsuranceCoverageController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới tỷ lệ chi trả
      */
-    static async createCoverage(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createCoverage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreateInsuranceCoverageInput = req.body;
             const data = await InsuranceCoverageService.createCoverage(input);
             res.status(201).json({
@@ -38,16 +34,12 @@ export class InsuranceCoverageController {
                 message: 'Tạo tỷ lệ chi trả bảo hiểm thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật tỷ lệ chi trả
      */
-    static async updateCoverage(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateCoverage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdateInsuranceCoverageInput = req.body;
 
@@ -60,16 +52,12 @@ export class InsuranceCoverageController {
                 message: 'Cập nhật tỷ lệ chi trả thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa tỷ lệ chi trả
      */
-    static async deleteCoverage(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteCoverage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             const oldData = await InsuranceCoverageService.getCoverageById(id);
@@ -80,8 +68,5 @@ export class InsuranceCoverageController {
                 success: true,
                 message: 'Đã xóa tỷ lệ chi trả thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

@@ -1,13 +1,13 @@
 // src/controllers/Facility Management/appointment-slot.controller.ts
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AppointmentSlotService } from '../../services/Facility Management/appointment-slot.service';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 
 export class AppointmentSlotController {
 
     // Tạo 1 Slot đơn lẻ
-    static async createSlot(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createSlot = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             if (req.body.interval_minutes) {
                 const slots = await AppointmentSlotService.bulkCreateSlots(req.body);
                 res.status(HTTP_STATUS.CREATED).json({
@@ -24,14 +24,10 @@ export class AppointmentSlotController {
                 message: 'Tạo Slot Khám Bệnh thành công.',
                 data: slot
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Lấy Danh sách Slot
-    static async getSlots(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSlots = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const shiftId = req.query.shift_id as string | undefined;
 
             let isActive: boolean | undefined = undefined;
@@ -45,14 +41,10 @@ export class AppointmentSlotController {
                 message: 'Tra cứu danh sách Slot thành công.',
                 data: slots
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Chi tiết 1 Slot
-    static async getSlotById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSlotById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const slotId = req.params.id as string;
             const slot = await AppointmentSlotService.getSlotById(slotId);
 
@@ -61,14 +53,10 @@ export class AppointmentSlotController {
                 message: 'Lấy chi tiết Slot thành công.',
                 data: slot
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Cập nhật Slot
-    static async updateSlot(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateSlot = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const slotId = req.params.id as string;
             const updateData = req.body;
 
@@ -79,14 +67,10 @@ export class AppointmentSlotController {
                 message: 'Cập nhật cấu hình Slot thành công.',
                 data: updatedSlot
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Soft Delete (Disable)
-    static async disableSlot(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static disableSlot = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const slotId = req.params.id as string;
             await AppointmentSlotService.disableSlot(slotId);
 
@@ -94,8 +78,5 @@ export class AppointmentSlotController {
                 success: true,
                 message: 'Đã vô hiệu hóa Slot khỏi danh mục áp dụng.',
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

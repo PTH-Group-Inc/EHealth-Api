@@ -1,4 +1,5 @@
 import { Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuthenticatedRequest } from '../../middleware/authorizeRoles.middleware';
 import { RoleService } from '../../services/Core/role.service';
 import { CreateRoleInput, UpdateRoleInput, RoleQueryFilter } from '../../models/Core/role.model';
@@ -14,8 +15,7 @@ export class RoleController {
     /**
      * Lấy danh sách Vai trò
      */
-    static async getRoles(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getRoles = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filter: RoleQueryFilter = {
                 search: req.query.search as string,
                 status: req.query.status as 'ACTIVE' | 'INACTIVE',
@@ -27,31 +27,23 @@ export class RoleController {
                 success: true,
                 data: roles
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết Vai trò
      */
-    static async getRoleById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getRoleById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const role = await RoleService.getRoleById(req.params.roleId as string);
             res.status(200).json({
                 success: true,
                 data: role
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo Vai trò mới
      */
-    static async createRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createRole = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính người dùng');
 
@@ -70,16 +62,12 @@ export class RoleController {
                 message: 'Tạo vai trò thành công',
                 data: newRole
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật Vai trò
      */
-    static async updateRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateRole = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính người dùng');
 
@@ -98,16 +86,12 @@ export class RoleController {
                 message: 'Cập nhật vai trò thành công',
                 data: updatedRole
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật Trạng thái Vai trò (Bật/Tắt)
      */
-    static async updateRoleStatus(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateRoleStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính người dùng');
 
@@ -125,16 +109,12 @@ export class RoleController {
                 message: `Đã đổi trạng thái thành ${status}`,
                 data: updatedRole
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa Vai trò
      */
-    static async deleteRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteRole = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính người dùng');
 
@@ -146,10 +126,7 @@ export class RoleController {
                 success: true,
                 message: 'Xóa vai trò thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // =========================================================================
     // PHÂN QUYỀN (ROLE-PERMISSIONS)
@@ -158,23 +135,18 @@ export class RoleController {
     /**
      * Lấy danh sách quyền của Role
      */
-    static async getRolePermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getRolePermissions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const permissions = await RolePermissionService.getPermissionsByRoleId(req.params.roleId as string);
             res.status(200).json({
                 success: true,
                 data: permissions
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Thay thế toàn bộ quyền của Role
      */
-    static async replaceRolePermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static replaceRolePermissions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -190,16 +162,12 @@ export class RoleController {
                 success: true,
                 message: 'Cập nhật phân quyền cho hệ thống thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gán lẻ một quyền cho Role
      */
-    static async assignRolePermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignRolePermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -219,16 +187,12 @@ export class RoleController {
                 success: true,
                 message: 'Gán quyền thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa vĩnh viễn quyền khỏi Role
      */
-    static async removeRolePermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeRolePermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -240,10 +204,7 @@ export class RoleController {
                 success: true,
                 message: 'Xóa quyền khỏi vai trò thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // =========================================================================
     // QUẢN LÝ MENU (ROLE-MENUS)
@@ -252,23 +213,18 @@ export class RoleController {
     /**
      * Lấy danh sách Menu của Role
      */
-    static async getRoleMenus(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getRoleMenus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const menus = await RoleMenuService.getMenusByRoleId(req.params.roleId as string);
             res.status(200).json({
                 success: true,
                 data: menus
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gán lẻ một Menu cho Role
      */
-    static async assignRoleMenu(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignRoleMenu = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -288,16 +244,12 @@ export class RoleController {
                 success: true,
                 message: 'Gán menu thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa vĩnh viễn menu khỏi Role
      */
-    static async removeRoleMenu(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeRoleMenu = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -309,10 +261,7 @@ export class RoleController {
                 success: true,
                 message: 'Gỡ menu khỏi vai trò thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // =========================================================================
     // QUẢN LÝ API (ROLE-API-PERMISSIONS)
@@ -321,23 +270,18 @@ export class RoleController {
     /**
      * Lấy danh sách API do Role quản lý
      */
-    static async getRoleApiPermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getRoleApiPermissions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const apiPermissions = await RoleApiPermissionService.getApiPermissionsByRoleId(req.params.roleId as string);
             res.status(200).json({
                 success: true,
                 data: apiPermissions
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gán 1 API permission cho Vai trò
      */
-    static async assignRoleApiPermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignRoleApiPermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -354,16 +298,12 @@ export class RoleController {
                 success: true,
                 message: 'Phân quyền API cho Vai trò thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gỡ API Permission khỏi Vai trò
      */
-    static async removeRoleApiPermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeRoleApiPermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -375,8 +315,5 @@ export class RoleController {
                 success: true,
                 message: 'Đã gỡ quyền truy cập API khỏi Vai trò'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

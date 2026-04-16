@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { PatientInsuranceService } from '../../services/Patient Management/patient-insurance.service';
 import {
     CreatePatientInsuranceInput,
@@ -11,8 +12,7 @@ export class PatientInsuranceController {
     /**
      * Lấy danh sách thẻ bảo hiểm
      */
-    static async getInsurances(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getInsurances = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patient_id, page, limit } = req.query as Record<string, string>;
 
             const data = await PatientInsuranceService.getInsurances(
@@ -22,29 +22,21 @@ export class PatientInsuranceController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Chi tiết thẻ bảo hiểm
      */
-    static async getInsuranceById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getInsuranceById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await PatientInsuranceService.getInsuranceById(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Thêm thẻ bảo hiểm mới
      */
-    static async createInsurance(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createInsurance = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreatePatientInsuranceInput = req.body;
             const data = await PatientInsuranceService.createInsurance(input);
             res.status(201).json({
@@ -52,16 +44,12 @@ export class PatientInsuranceController {
                 message: 'Thêm thẻ bảo hiểm thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thẻ bảo hiểm.
      */
-    static async updateInsurance(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateInsurance = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdatePatientInsuranceInput = req.body;
 
@@ -74,16 +62,12 @@ export class PatientInsuranceController {
                 message: 'Cập nhật thẻ bảo hiểm thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa thẻ bảo hiểm.
      */
-    static async deleteInsurance(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteInsurance = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             const oldData = await PatientInsuranceService.getInsuranceById(id);
@@ -94,16 +78,12 @@ export class PatientInsuranceController {
                 success: true,
                 message: 'Đã xóa thẻ bảo hiểm thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Danh sách thẻ bảo hiểm còn hiệu lực
      */
-    static async getActiveInsurances(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getActiveInsurances = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patient_id, page, limit } = req.query as Record<string, string>;
 
             const data = await PatientInsuranceService.getActiveInsurances(
@@ -113,16 +93,12 @@ export class PatientInsuranceController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Danh sách thẻ bảo hiểm đã hết hạn
      */
-    static async getExpiredInsurances(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getExpiredInsurances = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patient_id, page, limit } = req.query as Record<string, string>;
 
             const data = await PatientInsuranceService.getExpiredInsurances(
@@ -132,16 +108,12 @@ export class PatientInsuranceController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lịch sử thay đổi thẻ bảo hiểm (từ bảng audit_logs)
      */
-    static async getInsuranceHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getInsuranceHistory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             // Đảm bảo thẻ tồn tại
@@ -168,8 +140,5 @@ export class PatientInsuranceController {
                     total_pages: Math.ceil(data.total / limit)
                 }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

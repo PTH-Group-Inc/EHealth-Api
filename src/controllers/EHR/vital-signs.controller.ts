@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { VitalSignsService } from '../../services/EHR/vital-signs.service';
 import { VS_SUCCESS } from '../../constants/vital-signs.constant';
 
@@ -6,8 +7,7 @@ import { VS_SUCCESS } from '../../constants/vital-signs.constant';
 export class VitalSignsController {
 
     /** API 1: Lịch sử sinh hiệu */
-    static async getVitals(req: Request, res: Response): Promise<void> {
-        try {
+    static getVitals = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const filters = {
                 from_date: req.query.from_date as string | undefined,
@@ -17,65 +17,39 @@ export class VitalSignsController {
             };
             const data = await VitalSignsService.getVitals(patientId, filters);
             res.status(200).json({ success: true, message: VS_SUCCESS.VITALS_FETCHED, ...data });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /** API 2: Sinh hiệu mới nhất */
-    static async getLatestVitals(req: Request, res: Response): Promise<void> {
-        try {
+    static getLatestVitals = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const data = await VitalSignsService.getLatestVitals(patientId);
             res.status(200).json({ success: true, message: VS_SUCCESS.LATEST_FETCHED, data });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /** API 3: Xu hướng */
-    static async getTrends(req: Request, res: Response): Promise<void> {
-        try {
+    static getTrends = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const metricType = req.query.metric_type as string;
             const data = await VitalSignsService.getTrends(patientId, metricType);
             res.status(200).json({ success: true, message: VS_SUCCESS.TRENDS_FETCHED, data });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404
-                : error.message?.includes('bắt buộc') ? 400 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /** API 4: Bất thường */
-    static async getAbnormalVitals(req: Request, res: Response): Promise<void> {
-        try {
+    static getAbnormalVitals = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const data = await VitalSignsService.getAbnormalVitals(patientId);
             res.status(200).json({ success: true, message: VS_SUCCESS.ABNORMAL_FETCHED, data, total: data.length });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /** API 5: Tổng hợp */
-    static async getSummary(req: Request, res: Response): Promise<void> {
-        try {
+    static getSummary = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const data = await VitalSignsService.getSummary(patientId);
             res.status(200).json({ success: true, message: VS_SUCCESS.SUMMARY_FETCHED, data });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /** API 6: DS health metrics */
-    static async getHealthMetrics(req: Request, res: Response): Promise<void> {
-        try {
+    static getHealthMetrics = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const filters = {
                 metric_code: req.query.metric_code as string | undefined,
@@ -87,34 +61,19 @@ export class VitalSignsController {
             };
             const data = await VitalSignsService.getHealthMetrics(patientId, filters);
             res.status(200).json({ success: true, message: VS_SUCCESS.METRICS_FETCHED, ...data });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /** API 7: Thêm chỉ số */
-    static async createHealthMetric(req: Request, res: Response): Promise<void> {
-        try {
+    static createHealthMetric = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const data = await VitalSignsService.createHealthMetric(patientId, req.body);
             res.status(201).json({ success: true, message: VS_SUCCESS.METRIC_CREATED, data });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404
-                : error.message?.includes('bắt buộc') ? 400 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /** API 8: Timeline */
-    static async getTimeline(req: Request, res: Response): Promise<void> {
-        try {
+    static getTimeline = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const data = await VitalSignsService.getTimeline(patientId);
             res.status(200).json({ success: true, message: VS_SUCCESS.TIMELINE_FETCHED, data });
-        } catch (error: any) {
-            const status = error.message?.includes('không tồn tại') ? 404 : 500;
-            res.status(status).json({ success: false, message: error.message });
-        }
-    }
+    });
 }

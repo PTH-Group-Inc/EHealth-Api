@@ -1,140 +1,67 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { MedicalOrderService } from '../../services/EMR/medical-order.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { ORDER_SUCCESS, ORDER_CONFIG } from '../../constants/medical-order.constant';
-import logger from '../../config/logger.config';
 
 
 
 export class MedicalOrderController {
 
     /** API 1: POST /api/medical-orders/:encounterId */
-    static async create(req: Request, res: Response) {
-        try {
+    static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const userId = (req as any).auth?.user_id;
             const record = await MedicalOrderService.create(encounterId, req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: ORDER_SUCCESS.CREATED, data: record });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.create] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo chỉ định' });
-            }
-        }
-    }
+    });
 
     /** API 2: GET /api/medical-orders/:encounterId */
-    static async getByEncounterId(req: Request, res: Response) {
-        try {
+    static getByEncounterId = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await MedicalOrderService.getByEncounterId(req.params.encounterId as string);
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.LIST_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.getByEncounterId] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 3: GET /api/medical-orders/detail/:orderId */
-    static async getDetail(req: Request, res: Response) {
-        try {
+    static getDetail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await MedicalOrderService.getDetail(req.params.orderId as string);
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.DETAIL_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.getDetail] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 4: PATCH /api/medical-orders/:orderId */
-    static async update(req: Request, res: Response) {
-        try {
+    static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await MedicalOrderService.update(req.params.orderId as string, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.UPDATED, data: record });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.update] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 5: PATCH /api/medical-orders/:orderId/cancel */
-    static async cancel(req: Request, res: Response) {
-        try {
+    static cancel = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await MedicalOrderService.cancel(req.params.orderId as string, req.body.cancelled_reason);
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.CANCELLED, data: record });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.cancel] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 6: PATCH /api/medical-orders/:orderId/start */
-    static async start(req: Request, res: Response) {
-        try {
+    static start = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await MedicalOrderService.start(req.params.orderId as string);
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.STARTED, data: record });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.start] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 7: POST /api/medical-orders/:orderId/result */
-    static async createResult(req: Request, res: Response) {
-        try {
+    static createResult = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const data = await MedicalOrderService.createResult(req.params.orderId as string, req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: ORDER_SUCCESS.RESULT_CREATED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.createResult] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 8: PATCH /api/medical-orders/:orderId/result */
-    static async updateResult(req: Request, res: Response) {
-        try {
+    static updateResult = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await MedicalOrderService.updateResult(req.params.orderId as string, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.RESULT_UPDATED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.updateResult] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 9: GET /api/medical-orders/by-patient/:patientId */
-    static async getByPatient(req: Request, res: Response) {
-        try {
+    static getByPatient = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const page = req.query.page ? parseInt(req.query.page.toString()) : ORDER_CONFIG.DEFAULT_PAGE;
             const limit = req.query.limit ? parseInt(req.query.limit.toString()) : ORDER_CONFIG.DEFAULT_LIMIT;
@@ -150,19 +77,10 @@ export class MedicalOrderController {
                 data: result.data,
                 pagination: { page: result.page, limit: result.limit, total: result.total, totalPages: result.totalPages },
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.getByPatient] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 10: GET /api/medical-orders/pending */
-    static async getPending(req: Request, res: Response) {
-        try {
+    static getPending = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const page = req.query.page ? parseInt(req.query.page.toString()) : ORDER_CONFIG.DEFAULT_PAGE;
             const limit = req.query.limit ? parseInt(req.query.limit.toString()) : ORDER_CONFIG.DEFAULT_LIMIT;
             const status = req.query.status?.toString() || 'PENDING';
@@ -176,46 +94,20 @@ export class MedicalOrderController {
                 data: result.data,
                 pagination: { page: result.page, limit: result.limit, total: result.total, totalPages: result.totalPages },
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.getPending] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 11: GET /api/medical-orders/search-services */
-    static async searchServices(req: Request, res: Response) {
-        try {
+    static searchServices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await MedicalOrderService.searchServices(
                 req.query.q?.toString() || '',
                 req.query.service_type?.toString()
             );
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.SERVICES_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.searchServices] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 12: GET /api/medical-orders/:encounterId/summary */
-    static async getSummary(req: Request, res: Response) {
-        try {
+    static getSummary = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await MedicalOrderService.getSummary(req.params.encounterId as string);
             res.status(HTTP_STATUS.OK).json({ success: true, message: ORDER_SUCCESS.SUMMARY_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[MedicalOrderController.getSummary] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 }

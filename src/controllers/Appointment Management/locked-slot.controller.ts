@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { LockedSlotService } from '../../services/Appointment Management/locked-slot.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -13,8 +14,7 @@ export class LockedSlotController {
     /**
      * POST /api/slots/lock — Khoá 1 hoặc nhiều slot theo ngày
      */
-    static async lockSlots(req: Request, res: Response): Promise<void> {
-        try {
+    static lockSlots = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const result = await LockedSlotService.lockSlots(req.body, userId);
 
@@ -27,20 +27,12 @@ export class LockedSlotController {
                     : null,
                 affected_appointments: result.affected_appointments,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi khoá slot' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/slots/locked — Lấy danh sách slot đã khoá
      */
-    static async getLockedSlots(req: Request, res: Response): Promise<void> {
-        try {
+    static getLockedSlots = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const date = req.query.date?.toString() || '';
             const shiftId = req.query.shift_id?.toString();
             const slotId = req.query.slot_id?.toString();
@@ -52,20 +44,12 @@ export class LockedSlotController {
                 message: LOCKED_SLOT_SUCCESS.LIST_FETCHED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy danh sách slot bị khoá' });
-            }
-        }
-    }
+    });
 
     /**
      * DELETE /api/slots/lock/:lockedSlotId — Mở khoá 1 slot
      */
-    static async unlockSlot(req: Request, res: Response): Promise<void> {
-        try {
+    static unlockSlot = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const lockedSlotId = req.params.lockedSlotId as string;
             await LockedSlotService.unlockSlot(lockedSlotId);
 
@@ -73,20 +57,12 @@ export class LockedSlotController {
                 success: true,
                 message: LOCKED_SLOT_SUCCESS.UNLOCKED,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi mở khoá slot' });
-            }
-        }
-    }
+    });
 
     /**
      * POST /api/slots/lock-by-shift — Khoá tất cả slot trong 1 ca
      */
-    static async lockByShift(req: Request, res: Response): Promise<void> {
-        try {
+    static lockByShift = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const result = await LockedSlotService.lockByShift(req.body, userId);
 
@@ -100,20 +76,12 @@ export class LockedSlotController {
                     : null,
                 affected_appointments: result.affected_appointments,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi khoá slot theo ca' });
-            }
-        }
-    }
+    });
 
     /**
      * DELETE /api/locked-slots/unlock-by-shift — Mở khoá tất cả slot trong 1 ca
      */
-    static async unlockByShift(req: Request, res: Response): Promise<void> {
-        try {
+    static unlockByShift = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { shift_id, locked_date } = req.body;
             const result = await LockedSlotService.unlockByShift(shift_id, locked_date);
 
@@ -122,12 +90,5 @@ export class LockedSlotController {
                 message: LOCKED_SLOT_SUCCESS.UNLOCKED_BY_SHIFT,
                 unlocked_count: result.unlocked_count,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi mở khoá slot theo ca' });
-            }
-        }
-    }
+    });
 }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { NotificationCategoryService } from '../../services/Core/notification-category.service';
 import { CreateCategoryInput, UpdateCategoryInput } from '../../models/Core/notification.model';
 
@@ -6,8 +7,7 @@ export class NotificationCategoryController {
     /**
      * Lấy danh sách phân trang (Admin)
      */
-    static async getCategories(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getCategories = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const search = req.query.search as string;
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 20;
@@ -25,32 +25,24 @@ export class NotificationCategoryController {
                     totalPages: result.totalPages
                 }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách cấu hình Dropdown (Public)
      */
-    static async getActiveCategories(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getActiveCategories = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const categories = await NotificationCategoryService.getActiveCategories();
             res.status(200).json({
                 success: true,
                 message: 'Thành công.',
                 data: categories
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Thêm mới danh mục
      */
-    static async createCategory(req: Request, res: Response, next: NextFunction) {
-        try {
+    static createCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data: CreateCategoryInput = req.body;
             const category = await NotificationCategoryService.createCategory(data);
 
@@ -59,16 +51,12 @@ export class NotificationCategoryController {
                 message: 'Tạo loại thông báo thành công.',
                 data: category
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật danh mục
      */
-    static async updateCategory(req: Request, res: Response, next: NextFunction) {
-        try {
+    static updateCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const data: UpdateCategoryInput = req.body;
             const category = await NotificationCategoryService.updateCategory(id, data);
@@ -78,16 +66,12 @@ export class NotificationCategoryController {
                 message: 'Cập nhật loại thông báo thành công.',
                 data: category
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa mềm danh mục
      */
-    static async deleteCategory(req: Request, res: Response, next: NextFunction) {
-        try {
+    static deleteCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             await NotificationCategoryService.deleteCategory(id);
 
@@ -95,8 +79,5 @@ export class NotificationCategoryController {
                 success: true,
                 message: 'Đã xóa loại thông báo thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

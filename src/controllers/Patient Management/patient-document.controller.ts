@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { PatientDocumentService } from '../../services/Patient Management/patient-document.service';
 import {
     CreatePatientDocumentInput,
@@ -10,8 +11,7 @@ export class PatientDocumentController {
     /**
      * Upload tài liệu bệnh nhân (multipart/form-data)
      */
-    static async upload(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static upload = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreatePatientDocumentInput = {
                 patient_id: req.body.patient_id,
                 document_type_id: req.body.document_type_id,
@@ -27,16 +27,12 @@ export class PatientDocumentController {
                 message: DOCUMENT_MESSAGES.DOC_UPLOAD_SUCCESS,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Danh sách tài liệu bệnh nhân (phân trang, filter)
      */
-    static async getList(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getList = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.query.patient_id as string;
             const documentTypeId = (req.query.document_type_id as string) || null;
             const page = parseInt(req.query.page as string, 10) || 1;
@@ -44,29 +40,21 @@ export class PatientDocumentController {
 
             const result = await PatientDocumentService.getByPatient(patientId, documentTypeId, page, limit);
             res.status(200).json({ success: true, ...result });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Chi tiết tài liệu
      */
-    static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await PatientDocumentService.getById(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật metadata tài liệu
      */
-    static async updateMetadata(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateMetadata = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdatePatientDocumentInput = req.body;
 
@@ -80,32 +68,24 @@ export class PatientDocumentController {
                 message: DOCUMENT_MESSAGES.DOC_UPDATE_SUCCESS,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa mềm tài liệu
      */
-    static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static delete = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             await PatientDocumentService.delete(id);
             res.status(200).json({
                 success: true,
                 message: DOCUMENT_MESSAGES.DOC_DELETE_SUCCESS
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Upload phiên bản mới cho tài liệu
      */
-    static async uploadVersion(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static uploadVersion = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const file = req.file as Express.Multer.File;
             const uploadedBy = (req as any).user?.userId || null;
@@ -116,56 +96,40 @@ export class PatientDocumentController {
                 message: DOCUMENT_VERSION_MESSAGES.VERSION_UPLOAD_SUCCESS,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy lịch sử tất cả phiên bản của tài liệu
      */
-    static async listVersions(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static listVersions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await PatientDocumentService.getVersionHistory(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Chi tiết 1 phiên bản cụ thể
      */
-    static async getVersion(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getVersion = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id, versionId } = req.params as { id: string; versionId: string };
             const data = await PatientDocumentService.getVersionById(id, versionId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xem tài liệu trực tiếp (inline — trình duyệt hiển thị, không tải về)
      */
-    static async viewFile(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static viewFile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const fileUrl = await PatientDocumentService.getFileUrl(id);
             res.redirect(302, fileUrl);
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Ép trình duyệt tải file về máy (download attachment).
      * Dùng Cloudinary transformation flag fl_attachment để ép download.
      */
-    static async downloadFile(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static downloadFile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const fileUrl = await PatientDocumentService.getFileUrl(id);
 
@@ -175,8 +139,5 @@ export class PatientDocumentController {
                 : fileUrl;
 
             res.redirect(302, downloadUrl);
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

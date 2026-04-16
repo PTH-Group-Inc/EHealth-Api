@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { FacilityServiceLogic } from '../../services/Facility Management/facility-service.service';
 import { CreateFacilityServiceInput, UpdateFacilityServiceInput } from '../../models/Facility Management/facility-service.model';
 
@@ -6,8 +7,7 @@ export class FacilityServiceController {
     /**
      * Lấy danh sách dịch vụ tại cơ sở (Dành cho Admin/Manager)
      */
-    static async getFacilityServices(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getFacilityServices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = String(req.params.facilityId);
             const departmentId = req.query.departmentId ? String(req.query.departmentId) : undefined;
             const search = req.query.search ? String(req.query.search) : undefined;
@@ -27,16 +27,12 @@ export class FacilityServiceController {
                 success: true,
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách dịch vụ ĐANG HOẠT ĐỘNG (Cho Dropdown kê dịch vụ của bác sĩ, kèm filter tên)
      */
-    static async getActiveFacilityServices(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getActiveFacilityServices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = String(req.params.facilityId);
             const departmentId = req.query.departmentId ? String(req.query.departmentId) : undefined;
             const search = req.query.search ? String(req.query.search) : undefined;
@@ -47,16 +43,12 @@ export class FacilityServiceController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết 1 cấu hình dịch vụ cơ sở
      */
-    static async getFacilityServiceById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getFacilityServiceById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await FacilityServiceLogic.getFacilityServiceById(id);
 
@@ -64,16 +56,12 @@ export class FacilityServiceController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Bật dịch vụ chuẩn thành dịch vụ cơ sở
      */
-    static async createFacilityService(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createFacilityService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = req.params.facilityId;
             const input: CreateFacilityServiceInput = {
                 ...req.body,
@@ -86,16 +74,12 @@ export class FacilityServiceController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin giá, thời gian... của dịch vụ tại cơ sở
      */
-    static async updateFacilityService(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateFacilityService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdateFacilityServiceInput = req.body;
 
@@ -105,16 +89,12 @@ export class FacilityServiceController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Bật / Tắt dịch vụ (Ngưng cung cấp tại cơ sở)
      */
-    static async toggleFacilityServiceStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static toggleFacilityServiceStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const is_active = req.body.is_active === true;
 
@@ -125,16 +105,12 @@ export class FacilityServiceController {
                 message: is_active ? 'Đã bật lại dịch vụ thành công.' : 'Đã ngưng cung cấp dịch vụ thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xuất danh sách dịch vụ cơ sở ra file Excel
      */
-    static async exportFacilityServices(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static exportFacilityServices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = String(req.params.facilityId);
             const buffer = await FacilityServiceLogic.exportFacilityServices(facilityId);
 
@@ -142,16 +118,12 @@ export class FacilityServiceController {
             res.setHeader('Content-Disposition', `attachment; filename=FacilityServices_${facilityId}.xlsx`);
 
             res.status(200).send(buffer);
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Nhập danh sách dịch vụ cơ sở từ file Excel
      */
-    static async importFacilityServices(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static importFacilityServices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = String(req.params.facilityId);
 
             if (!req.file) {
@@ -170,8 +142,5 @@ export class FacilityServiceController {
                 message: 'Đã xử lý file Excel thành công.',
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

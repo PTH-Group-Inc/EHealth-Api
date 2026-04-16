@@ -1,25 +1,16 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { getAllProductsService } from '../../services/Core/testProduct.service'
-import logger from '../../config/logger.config';
 
-
-export const getAllProductsController = async (
-  req: Request,
-  res: Response
+export const getAllProductsController = asyncHandler(async (
+    req: Request,
+    res: Response,
+    next: NextFunction
 ) => {
-  try {
     const products = await getAllProductsService()
-
     return res.status(200).json({
-      success: true,
-      message: 'Get product list successfully',
-      data: products
+        success: true,
+        message: 'Get product list successfully',
+        data: products
     })
-  } catch (error) {
-    logger.error(error)
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    })
-  }
-}
+})

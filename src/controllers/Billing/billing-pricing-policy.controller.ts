@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { BillingPricingPolicyService } from '../../services/Billing/billing-pricing-policy.service';
 import { POLICY_CONFIG, POLICY_SUCCESS } from '../../constants/billing-pricing-policy.constant';
 
@@ -7,20 +8,14 @@ export class BillingPricingPolicyController {
     // ═══ NHÓM 1: CHÍNH SÁCH GIẢM GIÁ ═══
 
     /** Tạo */
-    static async createDiscount(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createDiscount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const data = await BillingPricingPolicyService.createDiscount(req.body, userId);
             res.status(201).json({ success: true, message: POLICY_SUCCESS.DISCOUNT_CREATED, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Danh sách */
-    static async getDiscounts(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getDiscounts = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { discount_type, apply_to, is_active, facility_id } = req.query;
             const page = req.query.page ? parseInt(String(req.query.page)) : POLICY_CONFIG.DEFAULT_PAGE;
             const limit = req.query.limit ? parseInt(String(req.query.limit)) : POLICY_CONFIG.DEFAULT_LIMIT;
@@ -29,68 +24,44 @@ export class BillingPricingPolicyController {
                 facility_id as string, page, limit
             );
             res.json({ success: true, ...data });
-        } catch (error: any) { next(error); }
-    }
+    });
 
     /** Chi tiết */
-    static async getDiscountById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getDiscountById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.getDiscountById(String(req.params.id));
             res.json({ success: true, data });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Cập nhật */
-    static async updateDiscount(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateDiscount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.updateDiscount(String(req.params.id), req.body);
             res.json({ success: true, message: POLICY_SUCCESS.DISCOUNT_UPDATED, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Vô hiệu hóa */
-    static async deleteDiscount(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteDiscount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             await BillingPricingPolicyService.deleteDiscount(String(req.params.id));
             res.json({ success: true, message: POLICY_SUCCESS.DISCOUNT_DELETED });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Tính giảm giá */
-    static async calculateDiscount(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static calculateDiscount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { services, patient_type, facility_id } = req.body;
             const data = await BillingPricingPolicyService.calculateDiscount(services, patient_type, facility_id);
             res.json({ success: true, data });
-        } catch (error: any) { next(error); }
-    }
+    });
 
     // ═══ NHÓM 2: VOUCHER ═══
 
     /** Tạo */
-    static async createVoucher(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createVoucher = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const data = await BillingPricingPolicyService.createVoucher(req.body, userId);
             res.status(201).json({ success: true, message: POLICY_SUCCESS.VOUCHER_CREATED, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Danh sách */
-    static async getVouchers(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getVouchers = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { is_active, facility_id } = req.query;
             const page = req.query.page ? parseInt(String(req.query.page)) : POLICY_CONFIG.DEFAULT_PAGE;
             const limit = req.query.limit ? parseInt(String(req.query.limit)) : POLICY_CONFIG.DEFAULT_LIMIT;
@@ -98,93 +69,56 @@ export class BillingPricingPolicyController {
                 is_active as string, facility_id as string, page, limit
             );
             res.json({ success: true, ...data });
-        } catch (error: any) { next(error); }
-    }
+    });
 
     /** Chi tiết */
-    static async getVoucherById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getVoucherById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.getVoucherById(String(req.params.id));
             res.json({ success: true, data });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Cập nhật */
-    static async updateVoucher(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateVoucher = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.updateVoucher(String(req.params.id), req.body);
             res.json({ success: true, message: POLICY_SUCCESS.VOUCHER_UPDATED, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Vô hiệu hóa */
-    static async deleteVoucher(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteVoucher = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             await BillingPricingPolicyService.deleteVoucher(String(req.params.id));
             res.json({ success: true, message: POLICY_SUCCESS.VOUCHER_DELETED });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Validate voucher code */
-    static async validateVoucher(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static validateVoucher = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.validateVoucher(req.body);
             res.json({ success: true, message: POLICY_SUCCESS.VOUCHER_VALID, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Redeem voucher */
-    static async redeemVoucher(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static redeemVoucher = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const data = await BillingPricingPolicyService.redeemVoucher(req.body, userId);
             res.json({ success: true, message: POLICY_SUCCESS.VOUCHER_REDEEMED, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Lịch sử sử dụng */
-    static async getVoucherUsage(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getVoucherUsage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.getVoucherUsage(String(req.params.id));
             res.json({ success: true, data });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     // ═══ NHÓM 3: GÓI DỊCH VỤ ═══
 
     /** Tạo */
-    static async createBundle(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createBundle = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const data = await BillingPricingPolicyService.createBundle(req.body, userId);
             res.status(201).json({ success: true, message: POLICY_SUCCESS.BUNDLE_CREATED, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Danh sách */
-    static async getBundles(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getBundles = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { is_active, facility_id } = req.query;
             const page = req.query.page ? parseInt(String(req.query.page)) : POLICY_CONFIG.DEFAULT_PAGE;
             const limit = req.query.limit ? parseInt(String(req.query.limit)) : POLICY_CONFIG.DEFAULT_LIMIT;
@@ -192,66 +126,42 @@ export class BillingPricingPolicyController {
                 is_active as string, facility_id as string, page, limit
             );
             res.json({ success: true, ...data });
-        } catch (error: any) { next(error); }
-    }
+    });
 
     /** Chi tiết + items */
-    static async getBundleById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getBundleById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.getBundleById(String(req.params.id));
             res.json({ success: true, data });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Cập nhật */
-    static async updateBundle(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateBundle = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.updateBundle(String(req.params.id), req.body);
             res.json({ success: true, message: POLICY_SUCCESS.BUNDLE_UPDATED, data });
-        } catch (error: any) {
-            if (error.code) { res.status(400).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Vô hiệu hóa */
-    static async deleteBundle(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteBundle = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             await BillingPricingPolicyService.deleteBundle(String(req.params.id));
             res.json({ success: true, message: POLICY_SUCCESS.BUNDLE_DELETED });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     /** Tính giá gói vs giá lẻ */
-    static async calculateBundle(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static calculateBundle = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.calculateBundle(String(req.params.id));
             res.json({ success: true, data });
-        } catch (error: any) {
-            if (error.code) { res.status(404).json({ success: false, code: error.code, message: error.message }); }
-            else { next(error); }
-        }
-    }
+    });
 
     // ═══ NHÓM 4: TỔNG QUAN ═══
 
     /** Ưu đãi đang chạy */
-    static async getActivePromotions(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getActivePromotions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await BillingPricingPolicyService.getActivePromotions(req.query.facility_id as string);
             res.json({ success: true, data });
-        } catch (error: any) { next(error); }
-    }
+    });
 
     /** Lịch sử thay đổi */
-    static async getPolicyHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPolicyHistory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { facility_service_id, change_source } = req.query;
             const page = req.query.page ? parseInt(String(req.query.page)) : POLICY_CONFIG.DEFAULT_PAGE;
             const limit = req.query.limit ? parseInt(String(req.query.limit)) : POLICY_CONFIG.DEFAULT_LIMIT;
@@ -259,6 +169,5 @@ export class BillingPricingPolicyController {
                 facility_service_id as string, change_source as string, page, limit
             );
             res.json({ success: true, ...data });
-        } catch (error: any) { next(error); }
-    }
+    });
 }

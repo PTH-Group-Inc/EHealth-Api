@@ -2,12 +2,104 @@
 import { AppointmentRepository } from '../../repository/Appointment Management/appointment.repository';
 import { AppointmentChangeRepository } from '../../repository/Appointment Management/appointment-change.repository';
 import { BookingConfigService } from '../Facility Management/booking-config.service';
+import { AppointmentService } from './appointment.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
-import { CHANGE_ERRORS, RESCHEDULABLE_STATUSES } from '../../constants/appointment-change.constant';
+import {
+    CHANGE_APPROVAL_STATUS,
+    CHANGE_APPROVED_BY_TYPE,
+    CHANGE_ERRORS,
+    POLICY_RESULT,
+    RESCHEDULABLE_STATUSES,
+    SYSTEM_AUTO_APPROVER,
+} from '../../constants/appointment-change.constant';
+import { v4 as uuidv4 } from 'uuid';
 
 
 export class AppointmentChangeService {
+    static async createAndAutoApproveRescheduleRequest(data: {
+        appointmentId: string;
+        newDate: string;
+        newSlotId: string;
+        reason?: string;
+        requestedBy?: string;
+    }) {
+        const { appointmentId, newDate, newSlotId, reason, requestedBy } = data;
+        if (!appointmentId || !newDate || !newSlotId) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_RESCHEDULE_DATA', CHANGE_ERRORS.MISSING_RESCHEDULE_DATA);
+        }
+
+        const existing = await AppointmentRepository.findById(appointmentId);
+        if (!existing) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', CHANGE_ERRORS.APPOINTMENT_NOT_FOUND);
+        }
+
+        const canReschedule = await this.canReschedule(appointmentId);
+        if (!canReschedule.can_reschedule) {
+            throw new AppError(
+                HTTP_STATUS.BAD_REQUEST,
+                'RESCHEDULE_NOT_ALLOWED',
+                canReschedule.reason || CHANGE_ERRORS.RESCHEDULE_NOT_ALLOWED
+            );
+        }
+
+        const changeLog = await AppointmentChangeRepository.createChangeLog({
+            id: `ACHG_${uuidv4().substring(0, 12)}`,
+            appointment_id: appointmentId,
+            change_type: 'RESCHEDULE',
+            approval_status: CHANGE_APPROVAL_STATUS.PENDING,
+            old_date: existing.appointment_date,
+            old_slot_id: existing.slot_id,
+            new_date: newDate,
+            new_slot_id: newSlotId,
+            reason: reason || 'Bệnh nhân yêu cầu dời lịch',
+            changed_by: requestedBy,
+            policy_checked: false,
+            policy_result: POLICY_RESULT.ALLOWED,
+        });
+
+        try {
+            const updatedAppointment = await AppointmentService.rescheduleAppointment(
+                appointmentId,
+                newDate,
+                newSlotId,
+                requestedBy,
+                reason,
+                { skipChangeLog: true }
+            );
+
+            const approvedAt = new Date().toISOString();
+            const approvedChangeLog = await AppointmentChangeRepository.updateApprovalStatus(changeLog.id, {
+                approval_status: CHANGE_APPROVAL_STATUS.APPROVED,
+                approved_by: SYSTEM_AUTO_APPROVER,
+                approved_by_type: CHANGE_APPROVED_BY_TYPE.SYSTEM,
+                approved_at: approvedAt,
+                policy_result: POLICY_RESULT.AUTO_APPROVED,
+            });
+
+            return {
+                change_log: approvedChangeLog,
+                approval_status: CHANGE_APPROVAL_STATUS.APPROVED,
+                approved_by: SYSTEM_AUTO_APPROVER,
+                approved_by_type: CHANGE_APPROVED_BY_TYPE.SYSTEM,
+                approved_at: approvedAt,
+                old_date: existing.appointment_date,
+                old_slot: existing.slot_id,
+                new_date: newDate,
+                new_slot: newSlotId,
+                appointment: updatedAppointment,
+            };
+        } catch (error: any) {
+            await AppointmentChangeRepository.updateApprovalStatus(changeLog.id, {
+                approval_status: CHANGE_APPROVAL_STATUS.REJECTED,
+                approved_by: SYSTEM_AUTO_APPROVER,
+                approved_by_type: CHANGE_APPROVED_BY_TYPE.SYSTEM,
+                approved_at: new Date().toISOString(),
+                policy_result: POLICY_RESULT.AUTO_REJECTED,
+            });
+            throw error;
+        }
+    }
 
     /**
      * Lịch sử thay đổi của 1 lịch khám

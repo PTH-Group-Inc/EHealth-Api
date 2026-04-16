@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { RoomServiceService } from '../../services/Facility Management/room-service.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -12,8 +13,7 @@ export class RoomServiceController {
     /**
      * POST /api/medical-rooms/:roomId/services — Gán dịch vụ cho phòng
      */
-    static async assignServices(req: Request, res: Response): Promise<void> {
-        try {
+    static assignServices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const roomId = req.params.roomId as string;
             const { facility_service_ids } = req.body;
 
@@ -24,20 +24,12 @@ export class RoomServiceController {
                 message: ROOM_SERVICE_SUCCESS.ASSIGNED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi gán dịch vụ' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/medical-rooms/:roomId/services — Xem dịch vụ đã gán
      */
-    static async getServicesByRoom(req: Request, res: Response): Promise<void> {
-        try {
+    static getServicesByRoom = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const roomId = req.params.roomId as string;
             const data = await RoomServiceService.getServicesByRoom(roomId);
 
@@ -46,20 +38,12 @@ export class RoomServiceController {
                 message: ROOM_SERVICE_SUCCESS.LIST_FETCHED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * DELETE /api/medical-rooms/:roomId/services/:facilityServiceId — Gỡ dịch vụ
      */
-    static async removeService(req: Request, res: Response): Promise<void> {
-        try {
+    static removeService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const roomId = req.params.roomId as string;
             const facilityServiceId = req.params.facilityServiceId as string;
 
@@ -69,12 +53,5 @@ export class RoomServiceController {
                 success: true,
                 message: ROOM_SERVICE_SUCCESS.REMOVED,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 }

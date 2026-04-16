@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { DepartmentSpecialtyService } from '../../services/Facility Management/department-specialty.service';
 import { AssignDepartmentSpecialtiesInput } from '../../models/Facility Management/department-specialty.model';
 
@@ -6,8 +7,7 @@ export class DepartmentSpecialtyController {
     /**
      * Lấy danh sách chuyên khoa thuộc 1 phòng ban
      */
-    static async getSpecialtiesByDepartment(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSpecialtiesByDepartment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { departmentId } = req.params as { departmentId: string };
             const data = await DepartmentSpecialtyService.getSpecialtiesByDepartmentId(departmentId);
 
@@ -15,16 +15,12 @@ export class DepartmentSpecialtyController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách chuyên khoa theo chi nhánh
      */
-    static async getSpecialtiesByBranch(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSpecialtiesByBranch = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { branchId } = req.params as { branchId: string };
             const data = await DepartmentSpecialtyService.getSpecialtiesByBranchId(branchId);
 
@@ -32,16 +28,12 @@ export class DepartmentSpecialtyController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách chuyên khoa theo cơ sở
      */
-    static async getSpecialtiesByFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSpecialtiesByFacility = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { facilityId } = req.params as { facilityId: string };
             const data = await DepartmentSpecialtyService.getSpecialtiesByFacilityId(facilityId);
 
@@ -49,16 +41,12 @@ export class DepartmentSpecialtyController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gán danh sách chuyên khoa vào phòng ban (Replace strategy)
      */
-    static async assignSpecialties(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignSpecialties = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { departmentId } = req.params as { departmentId: string };
             const input: AssignDepartmentSpecialtiesInput = req.body;
 
@@ -69,16 +57,12 @@ export class DepartmentSpecialtyController {
                 message: `Đã gán ${result.assigned} chuyên khoa cho phòng ban thành công.`,
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gỡ 1 chuyên khoa khỏi phòng ban
      */
-    static async removeSpecialty(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeSpecialty = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { departmentId, specialtyId } = req.params as { departmentId: string; specialtyId: string };
 
             await DepartmentSpecialtyService.removeSpecialty(departmentId, specialtyId);
@@ -87,8 +71,5 @@ export class DepartmentSpecialtyController {
                 success: true,
                 message: 'Đã gỡ chuyên khoa khỏi phòng ban thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

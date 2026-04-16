@@ -299,10 +299,14 @@ export class AppointmentService {
             id: `ACHG_${uuidv4().substring(0, 12)}`,
             appointment_id: id,
             change_type: CHANGE_TYPE.CANCEL,
+            approval_status: 'APPROVED',
             old_date: existing.appointment_date,
             old_slot_id: existing.slot_id,
             reason: cancellationReason,
             changed_by: userId,
+            approved_by: userId || null,
+            approved_by_type: 'USER',
+            approved_at: new Date().toISOString(),
             policy_checked: policyChecked,
             policy_result: policyResult as string,
         });
@@ -593,7 +597,14 @@ export class AppointmentService {
     /**
      * Đổi lịch khám (nâng cấp: yêu cầu reason + change log)
      */
-    static async rescheduleAppointment(id: string, newDate: string, newSlotId: string, userId?: string, rescheduleReason?: string): Promise<Appointment> {
+    static async rescheduleAppointment(
+        id: string,
+        newDate: string,
+        newSlotId: string,
+        userId?: string,
+        rescheduleReason?: string,
+        options?: { skipChangeLog?: boolean }
+    ): Promise<Appointment> {
         const existing = await AppointmentRepository.findById(id);
         if (!existing) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
@@ -656,20 +667,25 @@ export class AppointmentService {
 
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống khi đổi lịch');
 
-        // Ghi change log
-        await AppointmentChangeRepository.createChangeLog({
-            id: `ACHG_${uuidv4().substring(0, 12)}`,
-            appointment_id: id,
-            change_type: CHANGE_TYPE.RESCHEDULE,
-            old_date: oldDate,
-            old_slot_id: oldSlotId,
-            new_date: newDate,
-            new_slot_id: newSlotId,
-            reason: rescheduleReason,
-            changed_by: userId,
-            policy_checked: false,
-            policy_result: POLICY_RESULT.ALLOWED,
-        });
+        if (!options?.skipChangeLog) {
+            await AppointmentChangeRepository.createChangeLog({
+                id: `ACHG_${uuidv4().substring(0, 12)}`,
+                appointment_id: id,
+                change_type: CHANGE_TYPE.RESCHEDULE,
+                approval_status: 'APPROVED',
+                old_date: oldDate,
+                old_slot_id: oldSlotId,
+                new_date: newDate,
+                new_slot_id: newSlotId,
+                reason: rescheduleReason,
+                changed_by: userId,
+                approved_by: userId || null,
+                approved_by_type: 'USER',
+                approved_at: new Date().toISOString(),
+                policy_checked: false,
+                policy_result: POLICY_RESULT.ALLOWED,
+            });
+        }
 
         // Gửi thông báo đổi lịch tới bệnh nhân (fire-and-forget)
         this.sendAppointmentNotification(

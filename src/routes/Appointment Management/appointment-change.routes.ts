@@ -5,6 +5,13 @@ import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 const appointmentChangeRoutes = Router();
 
+appointmentChangeRoutes.post(
+    '/',
+    verifyAccessToken,
+    checkSessionStatus,
+    AppointmentChangeController.createAutoApprovedReschedule
+);
+
 // =====================================================================
 // 3.8  QUẢN LÝ THAY ĐỔI & DỜI LỊCH
 /**

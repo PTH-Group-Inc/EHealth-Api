@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { StaffService } from '../../services/Facility Management/staff.service';
 import { LicenseService } from '../../services/Facility Management/license.service';
 import { DoctorInfoService } from '../../services/Facility Management/doctor-info.service';
@@ -11,8 +12,7 @@ import { AppError } from '../../utils/app-error.util';
 import path from 'path';
 
 export class StaffController {
-    static async getStaffs(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getStaffs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filter = {
                 page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
                 limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
@@ -30,23 +30,15 @@ export class StaffController {
 
             const data = await StaffService.getStaffs(filter);
             res.status(200).json({ status: 'success', data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
-    static async getStaffById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getStaffById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const data = await StaffService.getStaffById(userId);
             res.status(200).json({ status: 'success', data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
-    static async createStaff(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createStaff = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreateStaffInput = req.body;
             const adminId = (req as any).auth?.user_id || 'SYSTEM';
 
@@ -62,13 +54,9 @@ export class StaffController {
                 req.get('User-Agent') || null
             );
             res.status(201).json({ status: 'success', message: 'Tạo hồ sơ nhân sự thành công.', data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
-    static async updateStaff(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateStaff = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const input: UpdateStaffInput = req.body;
             const adminId = (req as any).auth?.user_id || 'SYSTEM';
@@ -82,13 +70,9 @@ export class StaffController {
             );
 
             res.status(200).json({ status: 'success', message: 'Cập nhật thông tin nhân sự thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
-    static async updateSignature(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateSignature = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const file = req.file;
 
@@ -105,45 +89,33 @@ export class StaffController {
                 message: 'Cập nhật ảnh chữ ký thành công.',
                 data: { signature_url: signatureUrl }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // --- BẰNG CẤP CHỨNG CHỈ (LICENSES) ---
 
     /**
      * Lấy danh sách bằng cấp / chứng chỉ theo nhân viên.
      */
-    static async getLicensesByUserId(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getLicensesByUserId = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const data = await LicenseService.getLicenses({ user_id: userId });
             res.status(200).json({ status: 'success', data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết chứng chỉ theo ID
      */
-    static async getLicenseById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getLicenseById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const licenseId = req.params.licenseId as string;
             const data = await LicenseService.getLicenseById(licenseId);
             res.status(200).json({ status: 'success', data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo chứng chỉ cho nhân viên.
      * Lấy user_id từ URL param để chống payload spoofing.
      */
-    static async createLicense(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createLicense = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const { license_type, license_number, issue_date, expiry_date, issued_by, document_url } = req.body;
 
@@ -161,61 +133,45 @@ export class StaffController {
                 document_url: document_url || null,
             });
             res.status(201).json({ status: 'success', message: 'Thêm chứng chỉ thành công.', data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật chứng chỉ
      */
-    static async updateLicense(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateLicense = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const licenseId = req.params.licenseId as string;
             const { license_type, license_number, issue_date, expiry_date, issued_by, document_url } = req.body;
             const data = await LicenseService.updateLicense(licenseId, {
                 license_type, license_number, issue_date, expiry_date, issued_by, document_url,
             });
             res.status(200).json({ status: 'success', message: 'Cập nhật chứng chỉ thành công.', data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa chứng chỉ (Soft Delete)
      */
-    static async deleteLicense(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteLicense = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const licenseId = req.params.licenseId as string;
             await LicenseService.deleteLicense(licenseId);
             res.status(200).json({ status: 'success', message: 'Xóa chứng chỉ thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // --- CHUYÊN MÔN BÁC SĨ ---
     /*
     / Cập nhật thông tin chuyên môn bác sĩ
     */
-    static async updateDoctorInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateDoctorInfo = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const input: UpdateDoctorInfoInput = req.body;
             await DoctorInfoService.updateDoctorInfo(userId, input);
             res.status(200).json({ status: 'success', message: 'Cập nhật thông tin chuyên khoa Bác sĩ thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // --- QUẢN LÝ TRẠNG THÁI ---
     /*
     / Cập nhật trạng thái nhân sự
     */
-    static async updateStaffStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateStaffStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const input: UpdateUserStatusInput = req.body;
             const ipAddress = req.ip || req.connection.remoteAddress || null;
@@ -224,50 +180,38 @@ export class StaffController {
 
             await UserService.updateUserStatus(userId, input, adminId, ipAddress, userAgent);
             res.status(200).json({ status: 'success', message: 'Cập nhật trạng thái nhân sự thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // --- QUẢN LÝ VAI TRÒ ---
     /*
     / Gán vai trò cho nhân sự
     */
-    static async assignStaffRole(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignStaffRole = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const input: AssignRoleInput = req.body;
             const adminId = (req as any).auth?.user_id || 'SYSTEM';
 
             await UserService.assignRole(userId, input, adminId);
             res.status(200).json({ status: 'success', message: 'Cấp quyền vai trò thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /*
     / Thu hồi vai trò của nhân sự
     */
-    static async removeStaffRole(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeStaffRole = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const roleId = req.params.roleId as string;
             const adminId = (req as any).auth?.user_id || 'SYSTEM';
 
             await UserService.removeRole(userId, roleId, adminId);
             res.status(200).json({ status: 'success', message: 'Thu hồi vai trò thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // --- QUẢN LÝ CHI NHÁNH / KHÁM CHỮA BỆNH ---
     /*
     / Gán nhân sự vào chi nhánh / phòng ban
     */
-    static async assignStaffFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignStaffFacility = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const input: AssignUserFacilityInput = req.body;
             const ipAddress = req.ip || req.connection.remoteAddress || null;
@@ -276,16 +220,12 @@ export class StaffController {
 
             await UserFacilityService.assignUserToFacility(userId, input, adminId, ipAddress, userAgent);
             res.status(200).json({ status: 'success', message: 'Phân công nhân sự vào chi nhánh thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /*
     / Xóa phân công nhân sự khỏi chi nhánh
     */
-    static async removeStaffFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeStaffFacility = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.staffId as string;
             const branchId = req.params.branchId as string;
             const { reason } = req.body;
@@ -295,8 +235,5 @@ export class StaffController {
 
             await UserFacilityService.removeUserFromFacility(userId, branchId, reason || 'Điều chuyển công tác', adminId, ipAddress, userAgent);
             res.status(200).json({ status: 'success', message: 'Xóa phân công nhân sự tại chi nhánh thành công.' });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

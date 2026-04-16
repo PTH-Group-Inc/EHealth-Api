@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { SpecialtyService } from '../../services/Facility Management/specialty.service';
 import { DepartmentSpecialtyRepository } from '../../repository/Facility Management/department-specialty.repository';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -10,8 +11,7 @@ export class SpecialtyController {
      * GET /api/specialties/by-facility/:facilityId
      * Lấy danh sách chuyên khoa kèm department_id theo cơ sở y tế (PUBLIC).
      */
-    static async getSpecialtiesByFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSpecialtiesByFacility = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { facilityId } = req.params as { facilityId: string };
             if (!facilityId) {
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -28,22 +28,12 @@ export class SpecialtyController {
                 message: SUCCESS_MESSAGES.SPECIALTY_FETCHED,
                 data
             });
-        } catch (error: any) {
-            const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
-            const message = error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR;
-
-            res.status(statusCode).json({
-                success: false,
-                message: message
-            });
-        }
-    }
+    });
 
     /**
      * Lấy danh sách chuyên khoa có hỗ trợ phân trang và tìm kiếm.
      */
-    static async getSpecialties(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSpecialties = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
             const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
             const searchKeyword = req.query.searchKeyword ? req.query.searchKeyword as string : undefined;
@@ -56,22 +46,12 @@ export class SpecialtyController {
                 data: result.data,
                 meta: result.meta
             });
-        } catch (error: any) {
-            const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
-            const message = error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR;
-
-            res.status(statusCode).json({
-                success: false,
-                message: message
-            });
-        }
-    }
+    });
 
     /**
      * Lấy thông tin chi tiết một chuyên khoa dựa vào ID truyền trên path.
      */
-    static async getSpecialtyById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSpecialtyById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const specialty = await SpecialtyService.getSpecialtyById(id);
 
@@ -80,22 +60,12 @@ export class SpecialtyController {
                 message: SUCCESS_MESSAGES.SPECIALTY_FETCHED,
                 data: specialty
             });
-        } catch (error: any) {
-            const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
-            const message = error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR;
-
-            res.status(statusCode).json({
-                success: false,
-                message: message
-            });
-        }
-    }
+    });
 
     /**
      * Thêm mới một chuyên khoa.
      */
-    static async createSpecialty(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createSpecialty = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const payload: SpecialtyPayloadDTO = {
                 code: req.body.code,
                 name: req.body.name,
@@ -109,22 +79,12 @@ export class SpecialtyController {
                 message: SUCCESS_MESSAGES.SPECIALTY_CREATED,
                 data: newSpecialty
             });
-        } catch (error: any) {
-            const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
-            const message = error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR;
-
-            res.status(statusCode).json({
-                success: false,
-                message: message
-            });
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin chuyên khoa.
      */
-    static async updateSpecialty(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateSpecialty = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             // Khởi tạo object rỗng, client gửi gì thì gán nấy
@@ -149,22 +109,12 @@ export class SpecialtyController {
                 message: SUCCESS_MESSAGES.SPECIALTY_UPDATED,
                 data: updatedSpecialty
             });
-        } catch (error: any) {
-            const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
-            const message = error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR;
-
-            res.status(statusCode).json({
-                success: false,
-                message: message
-            });
-        }
-    }
+    });
 
     /**
      * Xóa mềm một chuyên khoa.
      */
-    static async deleteSpecialty(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteSpecialty = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             await SpecialtyService.deleteSpecialty(id);
@@ -173,14 +123,5 @@ export class SpecialtyController {
                 success: true,
                 message: SUCCESS_MESSAGES.SPECIALTY_DELETED
             });
-        } catch (error: any) {
-            const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
-            const message = error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR;
-
-            res.status(statusCode).json({
-                success: false,
-                message: message
-            });
-        }
-    }
+    });
 }

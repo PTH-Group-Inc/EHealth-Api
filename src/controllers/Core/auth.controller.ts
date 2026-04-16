@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuthService } from "../../services/Core/auth.service";
 import { AUTH_ERRORS } from "../../constants/auth-error.constant";
 
@@ -6,8 +7,7 @@ export class AuthController {
     /**
      * Đăng nhập bằng Email + mật khẩu
      */
-    static async loginByEmail(req: Request, res: Response): Promise<Response> {
-        try {
+    static loginByEmail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { email, password, clientInfo } = req.body;
 
             const data = await AuthService.loginByEmail(
@@ -25,20 +25,12 @@ export class AuthController {
                 success: true,
                 data,
             });
-        } catch (error: any) {
-            return res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code || "INTERNAL_ERROR",
-                message: error.message || "Internal Server Error",
-            });
-        }
-    }
+    });
 
     /**
      * Đăng nhập bằng SĐT + mật khẩu
      */
-    static async loginByPhone(req: Request, res: Response): Promise<Response> {
-        try {
+    static loginByPhone = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { phone, password, clientInfo } = req.body;
 
             const data = await AuthService.loginByPhone(
@@ -56,20 +48,12 @@ export class AuthController {
                 success: true,
                 data,
             });
-        } catch (error: any) {
-            return res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code || "INTERNAL_ERROR",
-                message: error.message || "Internal Server Error",
-            });
-        }
-    }
+    });
 
     /**
     * Đăng xuất session hiện tại
     */
-    static async logout(req: Request, res: Response): Promise<Response> {
-        try {
+    static logout = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { refreshToken } = req.body;
 
             if (!refreshToken) {
@@ -85,20 +69,12 @@ export class AuthController {
                 success: true,
                 message: 'Đăng xuất thành công',
             });
-        } catch (error: any) {
-            return res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code || 'AUTH_999',
-                message: error.message || 'Lỗi máy chủ nội bộ',
-            });
-        }
-    }
+    });
 
     /**
      * Yêu cầu quên mật khẩu
      */
-    static async forgotPassword(req: Request, res: Response): Promise<Response> {
-        try {
+    static forgotPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { email } = req.body;
 
             // Luôn trả về 200 dù email có tồn tại hay không (theo Docs)
@@ -108,23 +84,14 @@ export class AuthController {
                 success: true,
                 message: "Nếu tài khoản tồn tại, một liên kết đặt lại mật khẩu đã được gửi",
             });
-        } catch (error: any) {
-            // Log lỗi hệ thống nếu có, nhưng vẫn trả về thông báo chung hoặc lỗi server
-            return res.status(500).json({
-                success: false,
-                code: 'AUTH_999',
-                message: 'Lỗi máy chủ nội bộ',
-            });
-        }
-    }
+    });
 
 
 
     /**
      * Đặt lại mật khẩu
      */
-    static async resetPassword(req: Request, res: Response): Promise<Response> {
-        try {
+    static resetPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { otp, newPassword } = req.body;
 
             if (!otp || !newPassword) {
@@ -140,24 +107,14 @@ export class AuthController {
                 success: true,
                 message: "Mật khẩu đã được đặt lại thành công",
             });
-        } catch (error: any) {
-            // Mapping lỗi từ Service ra HTTP code tương ứng
-            const httpCode = error.httpCode || 500;
-            return res.status(httpCode).json({
-                success: false,
-                code: error.code || 'AUTH_999',
-                message: error.message || 'Lỗi máy chủ nội bộ',
-            });
-        }
-    }
+    });
 
 
 
     /**
      * Đăng ký bằng Email
      */
-    static async registerByEmail(req: Request, res: Response): Promise<Response> {
-        try {
+    static registerByEmail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { email, password, name } = req.body;
 
             const data = await AuthService.registerByEmail({ email, password, name });
@@ -167,20 +124,12 @@ export class AuthController {
                 message: "Register successfully",
                 data,
             });
-        } catch (error: any) {
-            return res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code || "AUTH_999",
-                message: error.message || "Lỗi máy chủ nội bộ",
-            });
-        }
-    }
+    });
 
     /**
      * Đăng ký bằng SĐT
      */
-    static async registerByPhone(req: Request, res: Response): Promise<Response> {
-        try {
+    static registerByPhone = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { phone, password, name } = req.body;
 
             const data = await AuthService.registerByPhone({ phone, password, name });
@@ -190,20 +139,12 @@ export class AuthController {
                 message: "Register successfully",
                 data,
             });
-        } catch (error: any) {
-            return res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code || "AUTH_999",
-                message: error.message || "Lỗi máy chủ nội bộ",
-            });
-        }
-    }
+    });
 
     /**
      * Xác thực OTP Email
      */
-    static async verifyEmail(req: Request, res: Response): Promise<Response> {
-        try {
+    static verifyEmail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { email, code } = req.body;
 
             if (!email || !code) {
@@ -221,21 +162,13 @@ export class AuthController {
                 message: "Xác thực tài khoản thành công!",
             });
 
-        } catch (error: any) {
-            return res.status(400).json({
-                success: false,
-                code: error.code || "AUTH_VERIFY_FAILED",
-                message: error.message || "Xác thực thất bại",
-            });
-        }
-    }
+    });
 
 
     /**
      * Mở khóa tài khoản (Thường dành cho Admin)
      */
-    static async unlockAccount(req: Request, res: Response): Promise<Response> {
-        try {
+    static unlockAccount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { accountId } = req.body; // Lấy ID tài khoản cần mở khóa
 
             if (!accountId) {
@@ -251,20 +184,12 @@ export class AuthController {
                 success: true,
                 message: "Đã mở khóa tài khoản thành công",
             });
-        } catch (error: any) {
-            return res.status(500).json({
-                success: false,
-                code: "AUTH_UNLOCK_FAILED",
-                message: error.message || "Lỗi mở khóa tài khoản",
-            });
-        }
-    }
+    });
 
     /*
      * Làm mới Token (Refresh Token)
      */
-    static async refreshToken(req: Request, res: Response): Promise<Response> {
-        try {
+    static refreshToken = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { refreshToken } = req.body;
 
             if (!refreshToken) {
@@ -281,13 +206,6 @@ export class AuthController {
                 message: "Làm mới token thành công",
                 data,
             });
-        } catch (error: any) {
-            return res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code || 'AUTH_999',
-                message: error.message || 'Lỗi máy chủ nội bộ',
-            });
-        }
-    }
+    });
 
 }

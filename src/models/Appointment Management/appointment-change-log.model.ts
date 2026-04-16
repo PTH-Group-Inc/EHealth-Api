@@ -3,12 +3,16 @@ export interface AppointmentChangeLog {
     id: string;
     appointment_id: string;
     change_type: 'RESCHEDULE' | 'CANCEL';
+    approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED';
     old_date?: string | null;
     old_slot_id?: string | null;
     new_date?: string | null;
     new_slot_id?: string | null;
     reason?: string | null;
     changed_by?: string | null;
+    approved_by?: string | null;
+    approved_by_type?: 'SYSTEM' | 'USER' | null;
+    approved_at?: string | null;
     policy_checked: boolean;
     policy_result?: string | null;
     created_at: string;
@@ -32,6 +36,10 @@ export interface CreateChangeLogInput {
     new_slot_id?: string | null;
     reason?: string;
     changed_by?: string;
+    approval_status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    approved_by?: string | null;
+    approved_by_type?: 'SYSTEM' | 'USER' | null;
+    approved_at?: string | null;
     policy_checked?: boolean;
     policy_result?: string;
 }

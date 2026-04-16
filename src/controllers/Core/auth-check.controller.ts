@@ -1,4 +1,5 @@
 import { Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuthenticatedRequest } from '../../middleware/authorizeRoles.middleware';
 import { UserRepository } from '../../repository/Core/user.repository';
 import { MenuRepository } from '../../repository/Core/menu.repository';
@@ -9,8 +10,7 @@ export class AuthCheckController {
     /**
      * Lấy danh sách Roles của phiên đăng nhập hiện hành
      */
-    static async getMeRoles(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getMeRoles = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.auth?.user_id;
             if (!userId) throw new AppError(401, 'UNAUTHORIZED', 'Invalid session');
 
@@ -19,16 +19,12 @@ export class AuthCheckController {
                 success: true,
                 data: roles
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách Menu UI hiển thị của phiên đăng nhập hiện hành
      */
-    static async getMeMenus(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getMeMenus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.auth?.user_id;
             if (!userId) throw new AppError(401, 'UNAUTHORIZED', 'Invalid session');
 
@@ -42,16 +38,12 @@ export class AuthCheckController {
                 success: true,
                 data: mergedMenus
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách đặc quyền hệ thống (Permission Codes)
      */
-    static async getMePermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getMePermissions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.auth?.user_id;
             if (!userId) throw new AppError(401, 'UNAUTHORIZED', 'Invalid session');
 
@@ -64,8 +56,5 @@ export class AuthCheckController {
                 success: true,
                 data: mergedPermissions
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

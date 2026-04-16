@@ -1,5 +1,6 @@
 // src/controllers/Appointment Management/appointment-change.controller.ts
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AppointmentChangeService } from '../../services/Appointment Management/appointment-change.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -8,9 +9,28 @@ import { CHANGE_SUCCESS, CHANGE_ERRORS } from '../../constants/appointment-chang
 
 export class AppointmentChangeController {
 
-    /** GET /api/appointment-changes/:appointmentId/history */
-    static async getHistory(req: Request, res: Response) {
-        try {
+    /** POST /api/appointment-changes */
+    static createAutoApprovedReschedule = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const { appointmentId, newDate, newSlotId, reason } = req.body;
+        const requestedBy = (req as any).auth?.user_id;
+
+        const data = await AppointmentChangeService.createAndAutoApproveRescheduleRequest({
+            appointmentId,
+            newDate,
+            newSlotId,
+            reason,
+            requestedBy,
+        });
+
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: CHANGE_SUCCESS.RESCHEDULE_REQUEST_CREATED,
+            data,
+        });
+    });
+
+
+    static getHistory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const appointmentId = req.params.appointmentId?.toString();
             const data = await AppointmentChangeService.getHistory(appointmentId);
             res.status(HTTP_STATUS.OK).json({
@@ -18,18 +38,10 @@ export class AppointmentChangeController {
                 message: CHANGE_SUCCESS.HISTORY_FETCHED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy lịch sử thay đổi' });
-            }
-        }
-    }
+    });
 
     /** GET /api/appointment-changes/stats */
-    static async getStats(req: Request, res: Response) {
-        try {
+    static getStats = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const fromDate = req.query.from_date?.toString();
             const toDate = req.query.to_date?.toString();
             const branchId = req.query.branch_id?.toString();
@@ -44,18 +56,10 @@ export class AppointmentChangeController {
                 message: CHANGE_SUCCESS.STATS_FETCHED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy thống kê' });
-            }
-        }
-    }
+    });
 
     /** POST /api/appointment-changes/:appointmentId/check-cancel-policy */
-    static async checkCancelPolicy(req: Request, res: Response) {
-        try {
+    static checkCancelPolicy = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const appointmentId = req.params.appointmentId?.toString();
             const data = await AppointmentChangeService.checkCancelPolicy(appointmentId);
             res.status(HTTP_STATUS.OK).json({
@@ -63,18 +67,10 @@ export class AppointmentChangeController {
                 message: CHANGE_SUCCESS.POLICY_CHECKED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi kiểm tra chính sách hủy' });
-            }
-        }
-    }
+    });
 
     /** GET /api/appointment-changes/recent */
-    static async getRecentChanges(req: Request, res: Response) {
-        try {
+    static getRecentChanges = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
                 change_type: req.query.change_type?.toString(),
                 branch_id: req.query.branch_id?.toString(),
@@ -93,18 +89,10 @@ export class AppointmentChangeController {
                     totalPages: Math.ceil(result.total / filters.limit),
                 },
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy danh sách thay đổi gần đây' });
-            }
-        }
-    }
+    });
 
     /** GET /api/appointment-changes/:appointmentId/can-reschedule */
-    static async canReschedule(req: Request, res: Response) {
-        try {
+    static canReschedule = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const appointmentId = req.params.appointmentId?.toString();
             const data = await AppointmentChangeService.canReschedule(appointmentId);
             res.status(HTTP_STATUS.OK).json({
@@ -112,12 +100,5 @@ export class AppointmentChangeController {
                 message: CHANGE_SUCCESS.CAN_RESCHEDULE_CHECKED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi kiểm tra khả năng dời lịch' });
-            }
-        }
-    }
+    });
 }

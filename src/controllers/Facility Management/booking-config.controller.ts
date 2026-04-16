@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { BookingConfigService } from '../../services/Facility Management/booking-config.service';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 
@@ -11,8 +12,7 @@ export class BookingConfigController {
     /**
      * Lấy cấu hình ĐÃ KẾT HỢP (Resolved) của chi nhánh.
      */
-    static async getResolvedConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getResolvedConfig = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const branchId = req.params.branchId as string;
             const config = await BookingConfigService.getResolvedConfig(branchId);
 
@@ -21,16 +21,12 @@ export class BookingConfigController {
                 message: 'Lấy cấu hình đặt khám (Resolved) thành công',
                 data: config,
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy cấu hình thô (Raw) từ DB.
      */
-    static async getRawConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getRawConfig = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const branchId = req.params.branchId as string;
             const config = await BookingConfigService.getRawConfig(branchId);
 
@@ -41,16 +37,12 @@ export class BookingConfigController {
                     : 'Chi nhánh này chưa có cấu hình riêng, đang sử dụng cấu hình mặc định của hệ thống.',
                 data: config,
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật (UPSERT) cấu hình đặt khám cho chi nhánh.
      */
-    static async upsertConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static upsertConfig = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const branchId = req.params.branchId as string;
             const input = req.body;
 
@@ -61,8 +53,5 @@ export class BookingConfigController {
                 message: 'Cập nhật cấu hình đặt khám cho chi nhánh thành công',
                 data: config,
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

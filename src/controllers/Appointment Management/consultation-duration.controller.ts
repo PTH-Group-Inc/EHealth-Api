@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { ConsultationDurationService } from '../../services/Appointment Management/consultation-duration.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -14,8 +15,7 @@ export class ConsultationDurationController {
      * GET /api/facilities/:facilityId/service-durations
      * Lấy danh sách thời lượng khám tại cơ sở
      */
-    static async getServiceDurations(req: Request, res: Response): Promise<void> {
-        try {
+    static getServiceDurations = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = req.params.facilityId as string;
             const isActive = req.query.is_active !== undefined
                 ? req.query.is_active === 'true'
@@ -29,21 +29,13 @@ export class ConsultationDurationController {
                 message: DURATION_SUCCESS.LIST_FETCHED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy danh sách thời lượng khám' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/facilities/:facilityId/service-durations/:serviceId
      * Cập nhật thời lượng 1 dịch vụ
      */
-    static async updateSingleDuration(req: Request, res: Response): Promise<void> {
-        try {
+    static updateSingleDuration = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = req.params.facilityId as string;
             const serviceId = req.params.serviceId as string;
             const { estimated_duration_minutes } = req.body;
@@ -59,21 +51,13 @@ export class ConsultationDurationController {
                 message: DURATION_SUCCESS.UPDATED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật thời lượng khám' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/facilities/:facilityId/service-durations
      * Batch cập nhật thời lượng nhiều dịch vụ
      */
-    static async batchUpdateDurations(req: Request, res: Response): Promise<void> {
-        try {
+    static batchUpdateDurations = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = req.params.facilityId as string;
             const { updates } = req.body;
 
@@ -88,12 +72,5 @@ export class ConsultationDurationController {
                 message: DURATION_SUCCESS.BATCH_UPDATED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật hàng loạt thời lượng khám' });
-            }
-        }
-    }
+    });
 }

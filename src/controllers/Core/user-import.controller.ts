@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { UserImportService } from "../../services/Facility Management/user-import.service";
 import { AppError } from "../../utils/app-error.util";
 import { UserRepository } from "../../repository/Core/user.repository";
@@ -7,8 +8,7 @@ export class UserImportController {
     /**
      * Upload và Validate File
      */
-    static async validateImport(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static validateImport = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             if (!req.file) {
                 throw new AppError(400, 'FILE_MISSING', 'Vui lòng đính kèm file CSV hoặc Excel');
             }
@@ -24,16 +24,12 @@ export class UserImportController {
                 message: "Đã phân tích file",
                 data: result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Upload và Execute File để Import User thực sự
      */
-    static async executeImport(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static executeImport = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             if (!req.file) {
                 throw new AppError(400, 'FILE_MISSING', 'Vui lòng đính kèm file CSV hoặc Excel');
             }
@@ -56,24 +52,17 @@ export class UserImportController {
                 message: `Import thành công ${result.valid_count} người dùng.`,
                 data: result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xem lịch sử  Import
      */
-    static async getImportHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getImportHistory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const history = await UserRepository.getImportHistory();
 
             res.status(200).json({
                 success: true,
                 data: history
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

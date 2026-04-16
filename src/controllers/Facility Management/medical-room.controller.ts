@@ -1,28 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { MedicalRoomService } from '../../services/Facility Management/medical-room.service';
 
 export class MedicalRoomController {
     /**
      * Lấy danh sách thả xuống [Dropdown]
      */
-    static async getDropdownList(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getDropdownList = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { branch_id, department_id } = req.query;
             const data = await MedicalRoomService.getDropdown(
                 branch_id?.toString(),
                 department_id?.toString()
             );
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách phân trang (kèm filter search, branch, dept, type)
      */
-    static async getMedicalRooms(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getMedicalRooms = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { page, limit, search, branch_id, department_id, room_type, status } = req.query;
 
             const params = {
@@ -49,68 +45,45 @@ export class MedicalRoomController {
                     } : null
                 }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xem chi tiết
      */
-    static async getMedicalRoomById(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getMedicalRoomById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data = await MedicalRoomService.getDetail(req.params.id?.toString());
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới
      */
-    static async createMedicalRoom(req: Request, res: Response, next: NextFunction) {
-        try {
+    static createMedicalRoom = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await MedicalRoomService.createRoom(req.body);
             res.status(201).json({ success: true, message: result.message, data: result.data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin toàn diện
      */
-    static async updateMedicalRoom(req: Request, res: Response, next: NextFunction) {
-        try {
+    static updateMedicalRoom = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await MedicalRoomService.updateRoom(req.params.id?.toString(), req.body);
             res.status(200).json({ success: true, message: result.message });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật trạng thái
      */
-    static async changeMedicalRoomStatus(req: Request, res: Response, next: NextFunction) {
-        try {
+    static changeMedicalRoomStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await MedicalRoomService.changeStatus(req.params.id?.toString(), req.body.status);
             res.status(200).json({ success: true, message: result.message });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa mềm
      */
-    static async deleteMedicalRoom(req: Request, res: Response, next: NextFunction) {
-        try {
+    static deleteMedicalRoom = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await MedicalRoomService.deleteRoom(req.params.id?.toString());
             res.status(200).json({ success: true, message: result.message });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }
