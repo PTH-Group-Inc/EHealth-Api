@@ -1869,3 +1869,932 @@
 [2026-04-16 14:17:01:171] info: 🚀 Server is running on port 3000
 [2026-04-16 14:17:01:171] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
 [2026-04-16 14:17:01:171] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 20:03:52:352] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 20:03:52:352] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 20:03:52:352] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 20:03:52:352] info: │  📄 Loaded: .env.development
+[2026-04-16 20:03:52:352] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 20:03:52:352] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 20:03:52:352] info: │  📊 Log level: debug
+[2026-04-16 20:03:52:352] info: │  💳 SePay: PRODUCTION
+[2026-04-16 20:03:52:352] info: └──────────────────────────────────────────────┘
+[2026-04-16 20:03:59:359] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 20:04:03:43] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 20:04:03:43] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 20:04:03:43] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 20:04:04:44] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 20:04:04:44] info: ✅ Cron Job: Đã thu hồi 2 session hết hạn.
+[2026-04-16 20:04:04:44] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 20:04:04:44] info: 🚀 Server is running on port 3000
+[2026-04-16 20:04:04:44] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 20:04:04:44] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 20:05:17:517] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 19.158 ms
+[2026-04-16 20:05:17:517] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 401 100 bytes - 2.588 ms
+[2026-04-16 20:05:17:517] http: GET /api/patient/profiles/default 401 100 bytes - 1.075 ms
+[2026-04-16 20:05:17:517] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 401 100 bytes - 3.299 ms
+[2026-04-16 20:05:17:517] http: GET /api/patient/profiles/default 401 100 bytes - 2.148 ms
+[2026-04-16 20:05:17:517] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.588 ms
+[2026-04-16 20:05:17:517] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 401 100 bytes - 1.571 ms
+[2026-04-16 20:05:17:517] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 401 100 bytes - 1.953 ms
+[2026-04-16 20:05:17:517] http: POST /api/auth/refresh-token 200 605 bytes - 35.862 ms
+[2026-04-16 20:05:17:517] http: GET /api/patient/profiles/default 200 626 bytes - 20.740 ms
+[2026-04-16 20:05:17:517] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 200 1462 bytes - 49.876 ms
+[2026-04-16 20:05:17:517] http: GET /api/patient/profiles/default 304 - bytes - 33.730 ms
+[2026-04-16 20:05:17:517] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 304 - bytes - 63.815 ms
+[2026-04-16 20:05:17:517] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 304 - bytes - 20.945 ms
+[2026-04-16 20:05:17:517] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 304 - bytes - 50.558 ms
+[2026-04-16 20:05:17:517] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 146.181 ms
+[2026-04-16 20:05:17:517] http: GET /api/notifications/inbox?page=1&limit=10 200 7332 bytes - 187.196 ms
+[2026-04-16 20:05:17:517] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 66.504 ms
+[2026-04-16 20:05:17:517] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 83.986 ms
+[2026-04-16 20:05:18:518] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 360.435 ms
+[2026-04-16 20:05:18:518] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 66.242 ms
+[2026-04-16 20:05:32:532] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 304 - bytes - 18.163 ms
+[2026-04-16 20:05:32:532] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 304 - bytes - 21.479 ms
+[2026-04-16 20:05:32:532] http: GET /api/patient/profiles/default 304 - bytes - 60.000 ms
+[2026-04-16 20:05:32:532] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 28.876 ms
+[2026-04-16 20:05:32:532] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 32.736 ms
+[2026-04-16 20:05:32:532] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 304 - bytes - 121.603 ms
+[2026-04-16 20:05:32:532] http: GET /api/patient/profiles/default 304 - bytes - 54.962 ms
+[2026-04-16 20:05:32:532] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 34.287 ms
+[2026-04-16 20:05:32:532] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 304 - bytes - 87.399 ms
+[2026-04-16 20:05:32:532] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 64.292 ms
+[2026-04-16 20:05:32:532] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 287.186 ms
+[2026-04-16 20:05:32:532] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 66.563 ms
+[2026-04-16 20:05:36:536] http: GET /api/patient/profiles 304 - bytes - 56.296 ms
+[2026-04-16 20:05:36:536] http: GET /api/patient/profiles 304 - bytes - 49.734 ms
+[2026-04-16 20:05:36:536] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 200 1463 bytes - 95.551 ms
+[2026-04-16 20:05:38:538] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=COMPLETED&limit=50 304 - bytes - 325.688 ms
+[2026-04-16 20:05:38:538] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 200 13999 bytes - 102.494 ms
+[2026-04-16 20:05:39:539] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=COMPLETED&limit=50 304 - bytes - 303.629 ms
+[2026-04-16 20:05:40:540] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 104.754 ms
+[2026-04-16 20:05:42:542] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 19.334 ms
+[2026-04-16 20:05:42:542] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 15.557 ms
+[2026-04-16 20:05:45:545] http: GET /api/patients/PAT_001 304 - bytes - 42.979 ms
+[2026-04-16 20:05:45:545] http: GET /api/patients/PAT_001 304 - bytes - 32.430 ms
+[2026-04-16 20:06:05:65] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 74.055 ms
+[2026-04-16 20:06:05:65] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 66.173 ms
+[2026-04-16 20:06:06:66] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 77.834 ms
+[2026-04-16 20:06:06:66] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 94.613 ms
+[2026-04-16 20:06:06:66] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 50.621 ms
+[2026-04-16 20:06:06:66] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 88.256 ms
+[2026-04-16 20:06:08:68] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 55.205 ms
+[2026-04-16 20:06:08:68] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 66.794 ms
+[2026-04-16 20:06:08:68] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 65.638 ms
+[2026-04-16 20:06:08:68] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 71.439 ms
+[2026-04-16 20:06:09:69] http: GET /api/encounters/by-patient/PAT_001 304 - bytes - 61.690 ms
+[2026-04-16 20:06:09:69] http: GET /api/encounters/by-patient/PAT_001 304 - bytes - 69.711 ms
+[2026-04-16 20:06:11:611] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 64.337 ms
+[2026-04-16 20:06:11:611] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 58.075 ms
+[2026-04-16 20:06:11:611] http: GET /api/document-types 304 - bytes - 48.890 ms
+[2026-04-16 20:06:11:611] http: GET /api/patients/PAT_001/documents 304 - bytes - 76.562 ms
+[2026-04-16 20:06:11:611] http: GET /api/document-types 304 - bytes - 43.506 ms
+[2026-04-16 20:06:12:612] http: GET /api/patients/PAT_001/documents 304 - bytes - 72.833 ms
+[2026-04-16 20:06:13:613] http: GET /api/patients/PAT_001/audit-logs 200 15548 bytes - 118.120 ms
+[2026-04-16 20:06:13:613] http: GET /api/patients/PAT_001/audit-logs 304 - bytes - 115.043 ms
+[2026-04-16 20:06:18:618] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 35.928 ms
+[2026-04-16 20:06:18:618] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 22.810 ms
+[2026-04-16 20:06:21:621] http: GET /api/patient/profiles 304 - bytes - 49.580 ms
+[2026-04-16 20:06:21:621] http: GET /api/patient/profiles 304 - bytes - 49.054 ms
+[2026-04-16 20:06:21:621] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 54.310 ms
+[2026-04-16 20:06:26:626] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 95.227 ms
+[2026-04-16 20:06:26:626] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 39.799 ms
+[2026-04-16 20:06:32:632] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 115.552 ms
+[2026-04-16 20:07:32:732] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 60.410 ms
+[2026-04-16 20:08:32:832] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 46.857 ms
+[2026-04-16 20:09:32:932] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 64.983 ms
+[2026-04-16 20:10:32:1032] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.841 ms
+[2026-04-16 20:11:32:1132] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 63.935 ms
+[2026-04-16 20:12:44:1244] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 66.656 ms
+[2026-04-16 20:13:32:1332] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 63.290 ms
+[2026-04-16 20:14:44:1444] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 61.297 ms
+[2026-04-16 20:15:44:1544] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 168.445 ms
+[2026-04-16 20:18:39:1839] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 60.190 ms
+[2026-04-16 20:18:39:1839] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.405 ms
+[2026-04-16 20:18:39:1839] http: GET /api/patient/profiles 304 - bytes - 23.304 ms
+[2026-04-16 20:18:39:1839] http: GET /api/patient/profiles 304 - bytes - 20.290 ms
+[2026-04-16 20:18:39:1839] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 33.438 ms
+[2026-04-16 20:18:39:1839] http: GET /api/medical-records/by-patient/PAT_001/timeline 200 2368 bytes - 76.005 ms
+[2026-04-16 20:18:39:1839] http: GET /api/medical-records/by-patient/PAT_001/statistics 200 757 bytes - 136.730 ms
+[2026-04-16 20:19:39:1939] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 146.590 ms
+[2026-04-16 20:20:40:2040] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 383.048 ms
+[2026-04-16 20:21:39:2139] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 70.249 ms
+[2026-04-16 20:24:02:242] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.091 ms
+[2026-04-16 20:24:02:242] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.594 ms
+[2026-04-16 20:24:02:242] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 304 - bytes - 71.880 ms
+[2026-04-16 20:24:02:242] http: GET /api/appointments/my-appointments?status=PENDING,CONFIRMED&limit=5 304 - bytes - 39.758 ms
+[2026-04-16 20:24:02:242] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 304 - bytes - 117.208 ms
+[2026-04-16 20:24:02:242] http: GET /api/teleconsultation/booking/my-bookings?patientId=USR_PAT_121&status=scheduled 304 - bytes - 44.871 ms
+[2026-04-16 20:24:02:242] http: GET /api/patient/profiles/default 304 - bytes - 338.198 ms
+[2026-04-16 20:24:03:243] http: GET /api/patient/profiles/default 304 - bytes - 50.676 ms
+[2026-04-16 20:24:03:243] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 26.505 ms
+[2026-04-16 20:24:03:243] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 24.206 ms
+[2026-04-16 20:24:03:243] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 67.444 ms
+[2026-04-16 20:24:03:243] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 67.544 ms
+[2026-04-16 20:24:16:2416] http: GET /api/patient/profiles 304 - bytes - 50.191 ms
+[2026-04-16 20:24:17:2417] http: GET /api/patient/profiles 304 - bytes - 49.811 ms
+[2026-04-16 20:24:17:2417] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 48.320 ms
+[2026-04-16 20:24:17:2417] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 57.689 ms
+[2026-04-16 20:24:17:2417] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 55.384 ms
+[2026-04-16 20:24:33:2433] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 41.881 ms
+[2026-04-16 20:24:33:2433] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 58.038 ms
+[2026-04-16 20:24:42:2442] http: GET /api/patient/profiles 304 - bytes - 55.355 ms
+[2026-04-16 20:24:42:2442] http: GET /api/patient/profiles 304 - bytes - 72.782 ms
+[2026-04-16 20:24:42:2442] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 75.337 ms
+[2026-04-16 20:24:42:2442] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 94.622 ms
+[2026-04-16 20:24:42:2442] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 97.858 ms
+[2026-04-16 20:24:44:2444] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 68.597 ms
+[2026-04-16 20:24:44:2444] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 64.287 ms
+[2026-04-16 20:25:02:252] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 80.253 ms
+[2026-04-16 20:25:09:259] http: GET /api/patient/profiles 304 - bytes - 51.499 ms
+[2026-04-16 20:25:09:259] http: GET /api/patient/profiles 304 - bytes - 50.792 ms
+[2026-04-16 20:25:09:259] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 13.865 ms
+[2026-04-16 20:25:09:259] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 23.961 ms
+[2026-04-16 20:25:09:259] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 42.032 ms
+[2026-04-16 20:26:02:262] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.899 ms
+[2026-04-16 20:26:10:2610] http: GET /api/patient/profiles 304 - bytes - 23.358 ms
+[2026-04-16 20:26:10:2610] http: GET /api/patient/profiles 304 - bytes - 23.088 ms
+[2026-04-16 20:26:10:2610] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 19.801 ms
+[2026-04-16 20:27:02:272] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 55.186 ms
+[2026-04-16 20:28:02:282] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.593 ms
+[2026-04-16 20:29:02:292] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 45.068 ms
+[2026-04-16 20:30:02:302] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.618 ms
+[2026-04-16 20:31:02:312] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 87.089 ms
+[2026-04-16 20:32:02:322] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.975 ms
+[2026-04-16 20:33:02:332] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 81.398 ms
+[2026-04-16 20:34:02:342] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.245 ms
+[2026-04-16 20:34:14:3414] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 69.918 ms
+[2026-04-16 20:34:14:3414] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 36.292 ms
+[2026-04-16 20:35:02:352] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.826 ms
+[2026-04-16 20:35:52:3552] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 2.224 ms
+[2026-04-16 20:35:52:3552] http: GET /api/medical-records/ENC_260316_a60a783f 401 100 bytes - 1.414 ms
+[2026-04-16 20:35:52:3552] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 3.073 ms
+[2026-04-16 20:35:52:3552] http: GET /api/medical-records/ENC_260316_a60a783f 401 100 bytes - 4.863 ms
+[2026-04-16 20:35:52:3552] http: POST /api/auth/refresh-token 200 605 bytes - 68.531 ms
+[2026-04-16 20:35:52:3552] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 145.698 ms
+[2026-04-16 20:35:52:3552] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 153.572 ms
+[2026-04-16 20:35:52:3552] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.613 ms
+[2026-04-16 20:35:52:3552] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 40.869 ms
+[2026-04-16 20:35:54:3554] http: GET /api/patient/profiles 304 - bytes - 21.744 ms
+[2026-04-16 20:35:54:3554] http: GET /api/patient/profiles 304 - bytes - 23.730 ms
+[2026-04-16 20:35:54:3554] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 28.362 ms
+[2026-04-16 20:35:57:3557] http: GET /api/patient/profiles 304 - bytes - 31.564 ms
+[2026-04-16 20:35:57:3557] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 63.361 ms
+[2026-04-16 20:35:57:3557] http: GET /api/patient/profiles 304 - bytes - 50.354 ms
+[2026-04-16 20:35:57:3557] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 47.710 ms
+[2026-04-16 20:35:57:3557] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 65.387 ms
+[2026-04-16 20:36:57:3657] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 61.366 ms
+[2026-04-16 20:37:57:3757] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 61.396 ms
+[2026-04-16 20:38:57:3857] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 65.499 ms
+[2026-04-16 20:39:57:3957] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 56.173 ms
+[2026-04-16 20:40:57:4057] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 87.443 ms
+[2026-04-16 20:41:57:4157] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 70.052 ms
+[2026-04-16 20:42:57:4257] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 52.873 ms
+[2026-04-16 20:43:57:4357] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 61.061 ms
+[2026-04-16 20:44:15:4415] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.871 ms
+[2026-04-16 20:44:15:4415] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.514 ms
+[2026-04-16 20:44:15:4415] http: GET /api/patient/profiles 304 - bytes - 64.340 ms
+[2026-04-16 20:44:15:4415] http: GET /api/patient/profiles 304 - bytes - 22.012 ms
+[2026-04-16 20:44:15:4415] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.149 ms
+[2026-04-16 20:44:17:4417] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 112.818 ms
+[2026-04-16 20:44:17:4417] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 74.207 ms
+[2026-04-16 20:44:22:4422] http: GET /api/patient/profiles 304 - bytes - 83.082 ms
+[2026-04-16 20:44:22:4422] http: GET /api/patient/profiles 304 - bytes - 57.383 ms
+[2026-04-16 20:44:22:4422] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 28.734 ms
+[2026-04-16 20:44:29:4429] http: GET /api/patient/profiles 304 - bytes - 47.356 ms
+[2026-04-16 20:44:29:4429] http: GET /api/patient/profiles 304 - bytes - 46.990 ms
+[2026-04-16 20:44:29:4429] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 57.274 ms
+[2026-04-16 20:44:29:4429] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 69.628 ms
+[2026-04-16 20:45:15:4515] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.687 ms
+[2026-04-16 20:46:15:4615] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.419 ms
+[2026-04-16 20:46:27:4627] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 31.296 ms
+[2026-04-16 20:46:31:4631] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 144.004 ms
+[2026-04-16 20:46:31:4631] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 73.351 ms
+[2026-04-16 20:46:33:4633] http: GET /api/patient/profiles 304 - bytes - 48.348 ms
+[2026-04-16 20:46:33:4633] http: GET /api/patient/profiles 304 - bytes - 53.095 ms
+[2026-04-16 20:46:33:4633] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 25.077 ms
+[2026-04-16 20:46:33:4633] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 50.930 ms
+[2026-04-16 20:46:52:4652] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 37.306 ms
+[2026-04-16 20:46:59:4659] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 138.483 ms
+[2026-04-16 20:46:59:4659] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 117.820 ms
+[2026-04-16 20:46:59:4659] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 200 867 bytes - 127.074 ms
+[2026-04-16 20:46:59:4659] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 84.051 ms
+[2026-04-16 20:47:10:4710] http: GET /api/patient/profiles 304 - bytes - 283.617 ms
+[2026-04-16 20:47:10:4710] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.093 ms
+[2026-04-16 20:47:10:4710] http: GET /api/patient/profiles 304 - bytes - 47.927 ms
+[2026-04-16 20:47:10:4710] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 49.433 ms
+[2026-04-16 20:47:15:4715] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.926 ms
+[2026-04-16 20:47:53:4753] http: GET /api/patient/profiles 304 - bytes - 59.800 ms
+[2026-04-16 20:47:53:4753] http: GET /api/patient/profiles 304 - bytes - 30.795 ms
+[2026-04-16 20:47:53:4753] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 67.804 ms
+[2026-04-16 20:47:53:4753] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 166.703 ms
+[2026-04-16 20:47:53:4753] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 99.879 ms
+[2026-04-16 20:47:53:4753] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 314.400 ms
+[2026-04-16 20:48:00:480] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 75.420 ms
+[2026-04-16 20:48:02:482] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 91.312 ms
+[2026-04-16 20:48:02:482] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 200 88 bytes - 35.751 ms
+[2026-04-16 20:48:02:482] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 290.717 ms
+[2026-04-16 20:48:02:482] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 83.658 ms
+[2026-04-16 20:48:06:486] http: GET /api/patient/profiles 304 - bytes - 52.680 ms
+[2026-04-16 20:48:06:486] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 22.291 ms
+[2026-04-16 20:48:06:486] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 26.113 ms
+[2026-04-16 20:48:06:486] http: GET /api/patient/profiles 304 - bytes - 282.183 ms
+[2026-04-16 20:48:08:488] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 41.412 ms
+[2026-04-16 20:48:10:4810] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 70.698 ms
+[2026-04-16 20:48:10:4810] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 32.807 ms
+[2026-04-16 20:48:10:4810] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 67.714 ms
+[2026-04-16 20:48:10:4810] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 84.332 ms
+[2026-04-16 20:48:29:4829] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 20:48:29:4829] http: GET /api/medical-records/string 404 81 bytes - 41.409 ms
+[2026-04-16 20:48:29:4829] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 20:48:29:4829] http: GET /api/medical-records/string 404 81 bytes - 17.783 ms
+[2026-04-16 20:48:30:4830] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 125.303 ms
+[2026-04-16 20:48:30:4830] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 98.833 ms
+[2026-04-16 20:48:32:4832] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 20:48:32:4832] http: GET /api/medical-records/string 404 81 bytes - 21.853 ms
+[2026-04-16 20:48:32:4832] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 20:48:32:4832] http: GET /api/medical-records/string 404 81 bytes - 26.621 ms
+[2026-04-16 20:48:33:4833] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 114.623 ms
+[2026-04-16 20:48:33:4833] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 99.528 ms
+[2026-04-16 20:48:38:4838] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 20:48:38:4838] http: GET /api/medical-records/string 404 81 bytes - 24.905 ms
+[2026-04-16 20:48:38:4838] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 20:48:38:4838] http: GET /api/medical-records/string 404 81 bytes - 23.590 ms
+[2026-04-16 20:48:38:4838] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 96.509 ms
+[2026-04-16 20:48:38:4838] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 93.873 ms
+[2026-04-16 20:48:41:4841] http: GET /api/patient/profiles 304 - bytes - 50.959 ms
+[2026-04-16 20:48:41:4841] http: GET /api/patient/profiles 304 - bytes - 53.018 ms
+[2026-04-16 20:48:41:4841] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 18.697 ms
+[2026-04-16 20:48:41:4841] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 91.864 ms
+[2026-04-16 20:48:53:4853] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.888 ms
+[2026-04-16 20:49:53:4953] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 61.103 ms
+[2026-04-16 20:50:28:5028] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 41.329 ms
+[2026-04-16 20:50:28:5028] http: GET /api/patient/profiles 304 - bytes - 19.172 ms
+[2026-04-16 20:50:28:5028] http: GET /api/patient/profiles 304 - bytes - 21.622 ms
+[2026-04-16 20:50:28:5028] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.762 ms
+[2026-04-16 20:50:28:5028] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 25.676 ms
+[2026-04-16 20:50:28:5028] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 71.061 ms
+[2026-04-16 20:50:38:5038] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 79.263 ms
+[2026-04-16 20:50:38:5038] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 46.597 ms
+[2026-04-16 20:50:38:5038] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 67.858 ms
+[2026-04-16 20:50:38:5038] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 76.229 ms
+[2026-04-16 20:50:41:5041] http: GET /api/patient/profiles 304 - bytes - 52.860 ms
+[2026-04-16 20:50:41:5041] http: GET /api/patient/profiles 304 - bytes - 51.669 ms
+[2026-04-16 20:50:42:5042] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 24.927 ms
+[2026-04-16 20:50:42:5042] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 46.080 ms
+[2026-04-16 20:51:28:5128] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.195 ms
+[2026-04-16 20:52:28:5228] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.386 ms
+[2026-04-16 20:53:28:5328] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.672 ms
+[2026-04-16 20:54:28:5428] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.519 ms
+[2026-04-16 20:55:28:5528] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 86.495 ms
+[2026-04-16 20:56:28:5628] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.020 ms
+[2026-04-16 20:57:23:5723] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.084 ms
+[2026-04-16 20:57:23:5723] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.181 ms
+[2026-04-16 20:57:23:5723] http: GET /api/patient/profiles 304 - bytes - 22.943 ms
+[2026-04-16 20:57:23:5723] http: GET /api/patient/profiles 304 - bytes - 18.767 ms
+[2026-04-16 20:57:23:5723] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 21.004 ms
+[2026-04-16 20:57:23:5723] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 123.352 ms
+[2026-04-16 20:57:29:5729] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 81.370 ms
+[2026-04-16 20:57:29:5729] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 36.028 ms
+[2026-04-16 20:57:29:5729] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 76.962 ms
+[2026-04-16 20:57:29:5729] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 85.837 ms
+[2026-04-16 20:57:31:5731] http: GET /api/patient/profiles 304 - bytes - 51.730 ms
+[2026-04-16 20:57:31:5731] http: GET /api/patient/profiles 304 - bytes - 54.088 ms
+[2026-04-16 20:57:31:5731] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 27.405 ms
+[2026-04-16 20:57:31:5731] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 45.793 ms
+[2026-04-16 20:58:23:5823] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.958 ms
+[2026-04-16 20:59:23:5923] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.925 ms
+[2026-04-16 20:59:30:5930] http: GET /api/patient/profiles 304 - bytes - 26.558 ms
+[2026-04-16 20:59:30:5930] http: GET /api/patient/profiles 304 - bytes - 18.406 ms
+[2026-04-16 20:59:30:5930] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 27.226 ms
+[2026-04-16 20:59:30:5930] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 61.432 ms
+[2026-04-16 20:59:30:5930] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 105.080 ms
+[2026-04-16 21:00:12:012] http: GET /api/patient/profiles 304 - bytes - 19.862 ms
+[2026-04-16 21:00:12:012] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 83.510 ms
+[2026-04-16 21:00:12:012] http: GET /api/patient/profiles 304 - bytes - 23.727 ms
+[2026-04-16 21:00:12:012] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 23.769 ms
+[2026-04-16 21:00:12:012] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 55.850 ms
+[2026-04-16 21:00:12:012] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 113.874 ms
+[2026-04-16 21:00:12:012] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 136.496 ms
+[2026-04-16 21:00:15:015] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 75.376 ms
+[2026-04-16 21:00:16:016] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 95.147 ms
+[2026-04-16 21:00:16:016] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 300.874 ms
+[2026-04-16 21:00:16:016] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 82.634 ms
+[2026-04-16 21:00:18:018] http: GET /api/patient/profiles 304 - bytes - 50.714 ms
+[2026-04-16 21:00:19:019] http: GET /api/patient/profiles 304 - bytes - 58.158 ms
+[2026-04-16 21:00:19:019] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 15.930 ms
+[2026-04-16 21:00:19:019] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 31.478 ms
+[2026-04-16 21:00:19:019] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 50.768 ms
+[2026-04-16 21:00:20:020] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 68.937 ms
+[2026-04-16 21:00:20:020] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 64.740 ms
+[2026-04-16 21:00:20:020] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 325.736 ms
+[2026-04-16 21:00:20:020] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 319.590 ms
+[2026-04-16 21:00:26:026] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 100.726 ms
+[2026-04-16 21:00:26:026] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 109.401 ms
+[2026-04-16 21:00:26:026] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 21:00:26:026] http: GET /api/medical-records/string 404 81 bytes - 288.189 ms
+[2026-04-16 21:00:26:026] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 21:00:26:026] http: GET /api/medical-records/string 404 81 bytes - 51.822 ms
+[2026-04-16 21:00:31:031] http: GET /api/patient/profiles 304 - bytes - 161.308 ms
+[2026-04-16 21:00:31:031] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 19.738 ms
+[2026-04-16 21:00:31:031] http: GET /api/patient/profiles 304 - bytes - 52.325 ms
+[2026-04-16 21:00:31:031] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 61.917 ms
+[2026-04-16 21:00:31:031] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 65.346 ms
+[2026-04-16 21:01:12:112] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.133 ms
+[2026-04-16 21:02:12:212] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.530 ms
+[2026-04-16 21:03:12:312] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.204 ms
+[2026-04-16 21:04:12:412] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.440 ms
+[2026-04-16 21:05:12:512] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 86.274 ms
+[2026-04-16 21:06:12:612] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.102 ms
+[2026-04-16 21:06:12:612] http: POST /api/auth/refresh-token 200 605 bytes - 30.101 ms
+[2026-04-16 21:06:12:612] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.624 ms
+[2026-04-16 21:07:44:744] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 54.572 ms
+[2026-04-16 21:08:03:83] http: GET /api/patient/profiles 304 - bytes - 20.421 ms
+[2026-04-16 21:08:03:83] http: GET /api/patient/profiles 304 - bytes - 18.102 ms
+[2026-04-16 21:08:03:83] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.569 ms
+[2026-04-16 21:08:03:83] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 52.442 ms
+[2026-04-16 21:08:03:83] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 126.460 ms
+[2026-04-16 21:08:44:844] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 54.069 ms
+[2026-04-16 21:09:44:944] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 53.907 ms
+[2026-04-16 21:10:44:1044] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 57.263 ms
+[2026-04-16 21:10:51:1051] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.629 ms
+[2026-04-16 21:10:51:1051] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.562 ms
+[2026-04-16 21:10:51:1051] http: GET /api/patient/profiles 304 - bytes - 84.221 ms
+[2026-04-16 21:10:51:1051] http: GET /api/patient/profiles 304 - bytes - 23.297 ms
+[2026-04-16 21:10:51:1051] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.832 ms
+[2026-04-16 21:10:51:1051] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 51.133 ms
+[2026-04-16 21:10:51:1051] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 253.615 ms
+[2026-04-16 21:11:51:1151] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 69.354 ms
+[2026-04-16 21:12:51:1251] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 61.017 ms
+[2026-04-16 21:13:51:1351] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 57.741 ms
+[2026-04-16 21:14:51:1451] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.682 ms
+[2026-04-16 21:15:41:1541] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 74.865 ms
+[2026-04-16 21:15:41:1541] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.900 ms
+[2026-04-16 21:15:41:1541] http: GET /api/patient/profiles 304 - bytes - 60.942 ms
+[2026-04-16 21:15:41:1541] http: GET /api/patient/profiles 304 - bytes - 16.689 ms
+[2026-04-16 21:15:42:1542] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 24.818 ms
+[2026-04-16 21:15:42:1542] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 56.347 ms
+[2026-04-16 21:15:43:1543] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 1091.220 ms
+[2026-04-16 21:15:57:1557] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 75.010 ms
+[2026-04-16 21:15:57:1557] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 41.721 ms
+[2026-04-16 21:15:57:1557] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 66.420 ms
+[2026-04-16 21:15:57:1557] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 85.820 ms
+[2026-04-16 21:16:39:1639] http: GET /api/patient/profiles 304 - bytes - 54.919 ms
+[2026-04-16 21:16:39:1639] http: GET /api/patient/profiles 304 - bytes - 18.735 ms
+[2026-04-16 21:16:39:1639] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.364 ms
+[2026-04-16 21:16:39:1639] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 59.153 ms
+[2026-04-16 21:16:39:1639] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 124.315 ms
+[2026-04-16 21:16:41:1641] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 88.897 ms
+[2026-04-16 21:16:42:1642] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 70.811 ms
+[2026-04-16 21:16:42:1642] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 36.320 ms
+[2026-04-16 21:16:42:1642] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 67.473 ms
+[2026-04-16 21:16:42:1642] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 85.314 ms
+[2026-04-16 21:16:45:1645] http: GET /api/patient/profiles 304 - bytes - 50.189 ms
+[2026-04-16 21:16:45:1645] http: GET /api/patient/profiles 304 - bytes - 49.388 ms
+[2026-04-16 21:16:45:1645] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 17.515 ms
+[2026-04-16 21:16:45:1645] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 24.521 ms
+[2026-04-16 21:16:45:1645] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 50.659 ms
+[2026-04-16 21:16:50:1650] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 38.571 ms
+[2026-04-16 21:16:50:1650] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 49.375 ms
+[2026-04-16 21:16:50:1650] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 193.476 ms
+[2026-04-16 21:16:50:1650] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 85.543 ms
+[2026-04-16 21:16:52:1652] http: GET /api/patient/profiles 304 - bytes - 49.544 ms
+[2026-04-16 21:16:52:1652] http: GET /api/patient/profiles 304 - bytes - 54.260 ms
+[2026-04-16 21:16:52:1652] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 20.083 ms
+[2026-04-16 21:16:52:1652] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 25.790 ms
+[2026-04-16 21:16:52:1652] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 46.735 ms
+[2026-04-16 21:17:06:176] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.741 ms
+[2026-04-16 21:17:06:176] http: GET /api/patient/profiles 304 - bytes - 24.772 ms
+[2026-04-16 21:17:06:176] http: GET /api/patient/profiles 304 - bytes - 19.385 ms
+[2026-04-16 21:17:06:176] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.030 ms
+[2026-04-16 21:17:06:176] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 17.050 ms
+[2026-04-16 21:17:06:176] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 20.012 ms
+[2026-04-16 21:17:06:176] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 26.128 ms
+[2026-04-16 21:17:42:1742] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 149.251 ms
+[2026-04-16 21:17:42:1742] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 82.509 ms
+[2026-04-16 21:17:43:1743] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 134.828 ms
+[2026-04-16 21:17:43:1743] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 83.681 ms
+[2026-04-16 21:18:06:186] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 101.347 ms
+[2026-04-16 21:18:33:1833] http: GET /api/patient/profiles 304 - bytes - 50.465 ms
+[2026-04-16 21:18:33:1833] http: GET /api/patient/profiles 304 - bytes - 52.909 ms
+[2026-04-16 21:18:33:1833] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 52.573 ms
+[2026-04-16 21:18:33:1833] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 55.802 ms
+[2026-04-16 21:18:33:1833] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 88.161 ms
+[2026-04-16 21:19:06:196] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.069 ms
+[2026-04-16 21:20:00:200] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.255 ms
+[2026-04-16 21:20:00:200] http: GET /api/patient/profiles 304 - bytes - 29.330 ms
+[2026-04-16 21:20:00:200] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.247 ms
+[2026-04-16 21:20:00:200] http: GET /api/patient/profiles 304 - bytes - 22.632 ms
+[2026-04-16 21:20:01:201] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 25.758 ms
+[2026-04-16 21:20:01:201] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 95.313 ms
+[2026-04-16 21:20:01:201] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 117.572 ms
+[2026-04-16 21:20:03:203] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 74.769 ms
+[2026-04-16 21:20:03:203] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 66.231 ms
+[2026-04-16 21:20:04:204] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 314.307 ms
+[2026-04-16 21:20:04:204] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 89.977 ms
+[2026-04-16 21:21:01:211] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.963 ms
+[2026-04-16 21:21:05:215] http: GET /api/patient/profiles 304 - bytes - 37.200 ms
+[2026-04-16 21:21:05:215] http: GET /api/patient/profiles 304 - bytes - 20.600 ms
+[2026-04-16 21:21:05:215] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 23.290 ms
+[2026-04-16 21:21:05:215] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 59.142 ms
+[2026-04-16 21:21:05:215] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 127.499 ms
+[2026-04-16 21:22:01:221] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.193 ms
+[2026-04-16 21:23:01:231] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 41.405 ms
+[2026-04-16 21:24:02:242] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 366.692 ms
+[2026-04-16 21:25:01:251] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.925 ms
+[2026-04-16 21:27:45:2745] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 66.421 ms
+[2026-04-16 21:27:45:2745] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.682 ms
+[2026-04-16 21:27:45:2745] http: GET /api/patient/profiles 304 - bytes - 63.122 ms
+[2026-04-16 21:27:45:2745] http: GET /api/patient/profiles 304 - bytes - 18.818 ms
+[2026-04-16 21:27:45:2745] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 31.289 ms
+[2026-04-16 21:27:45:2745] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 59.299 ms
+[2026-04-16 21:27:46:2746] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 113.856 ms
+[2026-04-16 21:28:46:2846] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 298.030 ms
+[2026-04-16 21:29:45:2945] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 60.694 ms
+[2026-04-16 21:30:46:3046] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 469.608 ms
+[2026-04-16 21:31:45:3145] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 55.697 ms
+[2026-04-16 21:31:48:3148] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.472 ms
+[2026-04-16 21:31:48:3148] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.012 ms
+[2026-04-16 21:31:48:3148] http: GET /api/patient/profiles 304 - bytes - 136.987 ms
+[2026-04-16 21:31:48:3148] http: GET /api/patient/profiles 304 - bytes - 49.698 ms
+[2026-04-16 21:31:48:3148] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 25.790 ms
+[2026-04-16 21:31:48:3148] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 59.744 ms
+[2026-04-16 21:31:48:3148] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 104.298 ms
+[2026-04-16 21:32:01:321] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 42.674 ms
+[2026-04-16 21:32:01:321] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 39.912 ms
+[2026-04-16 21:32:01:321] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 81.303 ms
+[2026-04-16 21:32:02:322] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 320.093 ms
+[2026-04-16 21:32:20:3220] http: GET /api/patient/profiles 304 - bytes - 50.364 ms
+[2026-04-16 21:32:20:3220] http: GET /api/patient/profiles 304 - bytes - 66.795 ms
+[2026-04-16 21:32:20:3220] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 37.198 ms
+[2026-04-16 21:32:20:3220] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 33.448 ms
+[2026-04-16 21:32:20:3220] http: GET /api/medical-records/by-patient/PAT_001/statistics 304 - bytes - 103.929 ms
+[2026-04-16 21:32:49:3249] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 307.636 ms
+[2026-04-16 21:33:48:3348] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.011 ms
+[2026-04-16 21:34:48:3448] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 75.743 ms
+[2026-04-16 21:36:51:3651] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.936 ms
+[2026-04-16 21:36:51:3651] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.676 ms
+[2026-04-16 21:36:51:3651] http: GET /api/patient/profiles 401 100 bytes - 2.075 ms
+[2026-04-16 21:36:51:3651] http: GET /api/patient/profiles 401 100 bytes - 1.923 ms
+[2026-04-16 21:36:51:3651] http: POST /api/auth/refresh-token 200 605 bytes - 65.469 ms
+[2026-04-16 21:36:51:3651] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.667 ms
+[2026-04-16 21:36:51:3651] http: GET /api/patient/profiles 304 - bytes - 45.754 ms
+[2026-04-16 21:36:51:3651] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 24.169 ms
+[2026-04-16 21:36:51:3651] http: GET /api/patient/profiles 304 - bytes - 15.992 ms
+[2026-04-16 21:36:51:3651] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 19.644 ms
+[2026-04-16 21:36:51:3651] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 20.593 ms
+[2026-04-16 21:37:13:3713] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.662 ms
+[2026-04-16 21:37:13:3713] http: GET /api/patient/profiles 304 - bytes - 20.456 ms
+[2026-04-16 21:37:13:3713] http: GET /api/patient/profiles 304 - bytes - 207.642 ms
+[2026-04-16 21:37:13:3713] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 219.049 ms
+[2026-04-16 21:37:13:3713] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 61.311 ms
+[2026-04-16 21:37:13:3713] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 62.100 ms
+[2026-04-16 21:37:22:3722] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.634 ms
+[2026-04-16 21:37:22:3722] http: GET /api/patient/profiles 304 - bytes - 26.209 ms
+[2026-04-16 21:37:22:3722] http: GET /api/patient/profiles 304 - bytes - 17.771 ms
+[2026-04-16 21:37:22:3722] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.551 ms
+[2026-04-16 21:37:22:3722] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.281 ms
+[2026-04-16 21:37:22:3722] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 19.656 ms
+[2026-04-16 21:37:26:3726] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 66.944 ms
+[2026-04-16 21:37:26:3726] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 37.997 ms
+[2026-04-16 21:37:26:3726] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 65.874 ms
+[2026-04-16 21:37:26:3726] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 34.641 ms
+[2026-04-16 21:37:29:3729] http: GET /api/patient/profiles 304 - bytes - 21.288 ms
+[2026-04-16 21:37:29:3729] http: GET /api/patient/profiles 304 - bytes - 18.715 ms
+[2026-04-16 21:37:29:3729] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 29.268 ms
+[2026-04-16 21:37:29:3729] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 32.796 ms
+[2026-04-16 21:38:22:3822] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.537 ms
+[2026-04-16 21:38:54:3854] http: GET /api/patient/profiles 304 - bytes - 48.698 ms
+[2026-04-16 21:38:55:3855] http: GET /api/patient/profiles 304 - bytes - 21.201 ms
+[2026-04-16 21:38:55:3855] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 25.456 ms
+[2026-04-16 21:38:55:3855] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 58.594 ms
+[2026-04-16 21:39:22:3922] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 42.830 ms
+[2026-04-16 21:39:26:3926] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.479 ms
+[2026-04-16 21:39:26:3926] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.984 ms
+[2026-04-16 21:39:26:3926] http: GET /api/patient/profiles 304 - bytes - 26.818 ms
+[2026-04-16 21:39:26:3926] http: GET /api/patient/profiles 304 - bytes - 19.508 ms
+[2026-04-16 21:39:26:3926] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.813 ms
+[2026-04-16 21:39:26:3926] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 57.989 ms
+[2026-04-16 21:40:26:4026] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.777 ms
+[2026-04-16 21:41:26:4126] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.699 ms
+[2026-04-16 21:42:26:4226] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.748 ms
+[2026-04-16 21:45:02:452] http: GET /api/patient/profiles 304 - bytes - 25.438 ms
+[2026-04-16 21:45:02:452] http: GET /api/patient/profiles 304 - bytes - 29.435 ms
+[2026-04-16 21:45:02:452] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 23.846 ms
+[2026-04-16 21:45:02:452] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 69.076 ms
+[2026-04-16 21:45:02:452] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 308.386 ms
+[2026-04-16 21:45:02:452] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 82.317 ms
+[2026-04-16 21:45:09:459] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 258.595 ms
+[2026-04-16 21:45:09:459] http: GET /api/patient/profiles 304 - bytes - 26.164 ms
+[2026-04-16 21:45:09:459] http: GET /api/patient/profiles 304 - bytes - 20.715 ms
+[2026-04-16 21:45:09:459] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 42.369 ms
+[2026-04-16 21:45:09:459] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 39.731 ms
+[2026-04-16 21:45:09:459] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 107.525 ms
+[2026-04-16 21:45:31:4531] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 106.166 ms
+[2026-04-16 21:45:31:4531] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 51.020 ms
+[2026-04-16 21:45:31:4531] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 130.678 ms
+[2026-04-16 21:45:31:4531] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 73.952 ms
+[2026-04-16 21:45:36:4536] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 21:45:36:4536] http: GET /api/medical-records/string 404 81 bytes - 23.283 ms
+[2026-04-16 21:45:36:4536] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 21:45:36:4536] http: GET /api/medical-records/string 404 81 bytes - 20.915 ms
+[2026-04-16 21:45:36:4536] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 81.520 ms
+[2026-04-16 21:45:36:4536] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 114.330 ms
+[2026-04-16 21:46:08:468] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 110.520 ms
+[2026-04-16 21:47:08:478] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 83.524 ms
+[2026-04-16 21:48:08:488] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.034 ms
+[2026-04-16 21:49:08:498] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.357 ms
+[2026-04-16 21:49:27:4927] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 46.746 ms
+[2026-04-16 21:49:27:4927] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 21:49:27:4927] http: GET /api/medical-records/string 404 81 bytes - 71.165 ms
+[2026-04-16 21:49:27:4927] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.842 ms
+[2026-04-16 21:49:27:4927] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 21:49:27:4927] http: GET /api/medical-records/string 404 81 bytes - 18.177 ms
+[2026-04-16 21:50:08:508] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.035 ms
+[2026-04-16 21:50:27:5027] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.564 ms
+[2026-04-16 21:51:08:518] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 49.978 ms
+[2026-04-16 21:51:27:5127] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 68.415 ms
+[2026-04-16 21:52:27:5227] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.699 ms
+[2026-04-16 21:52:44:5244] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.016 ms
+[2026-04-16 21:53:27:5327] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.219 ms
+[2026-04-16 21:53:44:5344] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 22.822 ms
+[2026-04-16 21:54:27:5427] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.201 ms
+[2026-04-16 21:54:44:5444] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.583 ms
+[2026-04-16 21:55:27:5527] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.813 ms
+[2026-04-16 21:55:44:5544] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.174 ms
+[2026-04-16 21:56:35:5635] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 21:56:35:5635] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 21:56:35:5635] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 21:56:35:5635] info: │  📄 Loaded: .env.development
+[2026-04-16 21:56:35:5635] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 21:56:35:5635] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 21:56:35:5635] info: │  📊 Log level: debug
+[2026-04-16 21:56:35:5635] info: │  💳 SePay: PRODUCTION
+[2026-04-16 21:56:35:5635] info: └──────────────────────────────────────────────┘
+[2026-04-16 21:56:38:5638] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 21:56:39:5639] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:56:39:5639] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 21:56:39:5639] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 21:56:39:5639] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 21:56:39:5639] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 21:56:39:5639] info: 🚀 Server is running on port 3000
+[2026-04-16 21:56:39:5639] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:56:39:5639] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 21:56:40:5640] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 21:56:40:5640] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 21:56:40:5640] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 21:56:40:5640] info: │  📄 Loaded: .env.development
+[2026-04-16 21:56:40:5640] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 21:56:40:5640] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 21:56:40:5640] info: │  📊 Log level: debug
+[2026-04-16 21:56:40:5640] info: │  💳 SePay: PRODUCTION
+[2026-04-16 21:56:40:5640] info: └──────────────────────────────────────────────┘
+[2026-04-16 21:56:43:5643] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 21:56:44:5644] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:56:44:5644] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 21:56:44:5644] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 21:56:44:5644] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 21:56:44:5644] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 21:56:44:5644] info: 🚀 Server is running on port 3000
+[2026-04-16 21:56:44:5644] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:56:44:5644] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 21:56:44:5644] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 42.847 ms
+[2026-04-16 21:56:44:5644] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.301 ms
+[2026-04-16 21:56:46:5646] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 21:56:46:5646] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 21:56:46:5646] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 21:56:46:5646] info: │  📄 Loaded: .env.development
+[2026-04-16 21:56:46:5646] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 21:56:46:5646] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 21:56:46:5646] info: │  📊 Log level: debug
+[2026-04-16 21:56:46:5646] info: │  💳 SePay: PRODUCTION
+[2026-04-16 21:56:46:5646] info: └──────────────────────────────────────────────┘
+[2026-04-16 21:56:49:5649] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 21:56:50:5650] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:56:50:5650] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 21:56:50:5650] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 21:56:50:5650] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 21:56:50:5650] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 21:56:50:5650] info: 🚀 Server is running on port 3000
+[2026-04-16 21:56:50:5650] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:56:50:5650] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 21:57:22:5722] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 21:57:22:5722] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 21:57:22:5722] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 21:57:22:5722] info: │  📄 Loaded: .env.development
+[2026-04-16 21:57:22:5722] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 21:57:22:5722] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 21:57:22:5722] info: │  📊 Log level: debug
+[2026-04-16 21:57:22:5722] info: │  💳 SePay: PRODUCTION
+[2026-04-16 21:57:22:5722] info: └──────────────────────────────────────────────┘
+[2026-04-16 21:57:25:5725] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 21:57:26:5726] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:57:26:5726] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 21:57:26:5726] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 21:57:26:5726] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 21:57:26:5726] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 21:57:26:5726] info: 🚀 Server is running on port 3000
+[2026-04-16 21:57:26:5726] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:57:26:5726] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 21:57:33:5733] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 21:57:33:5733] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 21:57:33:5733] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 21:57:33:5733] info: │  📄 Loaded: .env.development
+[2026-04-16 21:57:33:5733] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 21:57:33:5733] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 21:57:33:5733] info: │  📊 Log level: debug
+[2026-04-16 21:57:33:5733] info: │  💳 SePay: PRODUCTION
+[2026-04-16 21:57:33:5733] info: └──────────────────────────────────────────────┘
+[2026-04-16 21:57:36:5736] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 21:57:37:5737] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:57:37:5737] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 21:57:37:5737] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 21:57:37:5737] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 21:57:37:5737] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 21:57:37:5737] info: 🚀 Server is running on port 3000
+[2026-04-16 21:57:37:5737] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:57:37:5737] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 21:57:44:5744] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 93.135 ms
+[2026-04-16 21:57:44:5744] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 84.521 ms
+[2026-04-16 21:57:47:5747] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 21:57:47:5747] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 21:57:47:5747] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 21:57:47:5747] info: │  📄 Loaded: .env.development
+[2026-04-16 21:57:47:5747] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 21:57:47:5747] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 21:57:47:5747] info: │  📊 Log level: debug
+[2026-04-16 21:57:47:5747] info: │  💳 SePay: PRODUCTION
+[2026-04-16 21:57:47:5747] info: └──────────────────────────────────────────────┘
+[2026-04-16 21:57:50:5750] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 21:57:52:5752] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:57:52:5752] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 21:57:52:5752] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 21:57:52:5752] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 21:57:52:5752] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 21:57:52:5752] info: 🚀 Server is running on port 3000
+[2026-04-16 21:57:52:5752] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 21:57:52:5752] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 21:58:44:5844] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.607 ms
+[2026-04-16 21:58:44:5844] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.403 ms
+[2026-04-16 21:59:44:5944] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.943 ms
+[2026-04-16 21:59:44:5944] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.004 ms
+[2026-04-16 22:00:44:044] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.658 ms
+[2026-04-16 22:00:44:044] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.339 ms
+[2026-04-16 22:00:49:049] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.628 ms
+[2026-04-16 22:00:49:049] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 22:00:49:049] http: GET /api/medical-records/string 404 81 bytes - 59.405 ms
+[2026-04-16 22:00:49:049] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.470 ms
+[2026-04-16 22:00:49:049] warn: [AppError] NOT_FOUND - Không tìm thấy lượt khám
+[2026-04-16 22:00:49:049] http: GET /api/medical-records/string 404 81 bytes - 20.390 ms
+[2026-04-16 22:00:54:054] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.311 ms
+[2026-04-16 22:00:54:054] http: GET /api/patient/profiles 304 - bytes - 19.620 ms
+[2026-04-16 22:00:54:054] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.776 ms
+[2026-04-16 22:00:54:054] http: GET /api/patient/profiles 304 - bytes - 23.943 ms
+[2026-04-16 22:00:54:054] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.631 ms
+[2026-04-16 22:00:54:054] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 21.918 ms
+[2026-04-16 22:00:56:056] http: GET /api/medical-records/ENC_260316_a60a783f 200 5070 bytes - 83.784 ms
+[2026-04-16 22:00:56:056] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 200 859 bytes - 42.241 ms
+[2026-04-16 22:00:56:056] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 78.106 ms
+[2026-04-16 22:00:56:056] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 41.698 ms
+[2026-04-16 22:01:22:122] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 43.651 ms
+[2026-04-16 22:01:22:122] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 46.982 ms
+[2026-04-16 22:01:22:122] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.837 ms
+[2026-04-16 22:01:22:122] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 45.823 ms
+[2026-04-16 22:01:22:122] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 30.339 ms
+[2026-04-16 22:01:22:122] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 34.122 ms
+[2026-04-16 22:01:28:128] http: GET /api/patient/profiles 304 - bytes - 23.285 ms
+[2026-04-16 22:01:28:128] http: GET /api/patient/profiles 304 - bytes - 22.166 ms
+[2026-04-16 22:01:28:128] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 24.643 ms
+[2026-04-16 22:01:28:128] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 32.019 ms
+[2026-04-16 22:01:38:138] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 36.659 ms
+[2026-04-16 22:01:38:138] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 38.260 ms
+[2026-04-16 22:01:38:138] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 37.553 ms
+[2026-04-16 22:01:38:138] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 30.735 ms
+[2026-04-16 22:01:39:139] http: GET /api/patient/profiles 304 - bytes - 21.336 ms
+[2026-04-16 22:01:39:139] http: GET /api/patient/profiles 304 - bytes - 17.675 ms
+[2026-04-16 22:01:39:139] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 19.310 ms
+[2026-04-16 22:01:39:139] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.070 ms
+[2026-04-16 22:01:41:141] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 37.917 ms
+[2026-04-16 22:01:41:141] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 39.133 ms
+[2026-04-16 22:01:41:141] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 42.082 ms
+[2026-04-16 22:01:41:141] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 37.090 ms
+[2026-04-16 22:01:44:144] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.256 ms
+[2026-04-16 22:01:46:146] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 7.715 ms
+[2026-04-16 22:01:46:146] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 7.382 ms
+[2026-04-16 22:01:49:149] http: GET /api/patient/profiles 304 - bytes - 19.857 ms
+[2026-04-16 22:01:49:149] http: GET /api/patient/profiles 304 - bytes - 22.720 ms
+[2026-04-16 22:01:49:149] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 50.048 ms
+[2026-04-16 22:01:51:151] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=COMPLETED&limit=50 304 - bytes - 37.398 ms
+[2026-04-16 22:01:52:152] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 304 - bytes - 45.325 ms
+[2026-04-16 22:01:53:153] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=COMPLETED&limit=50 304 - bytes - 43.449 ms
+[2026-04-16 22:01:54:154] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 304 - bytes - 40.637 ms
+[2026-04-16 22:01:56:156] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 9.387 ms
+[2026-04-16 22:01:56:156] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 5.890 ms
+[2026-04-16 22:01:57:157] http: GET /api/patient/profiles 304 - bytes - 22.447 ms
+[2026-04-16 22:01:57:157] http: GET /api/patient/profiles 304 - bytes - 19.561 ms
+[2026-04-16 22:01:57:157] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 26.328 ms
+[2026-04-16 22:01:57:157] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 28.916 ms
+[2026-04-16 22:02:22:222] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.788 ms
+[2026-04-16 22:02:23:223] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.349 ms
+[2026-04-16 22:02:23:223] http: GET /api/patient/profiles 304 - bytes - 24.568 ms
+[2026-04-16 22:02:23:223] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.224 ms
+[2026-04-16 22:02:23:223] http: GET /api/patient/profiles 304 - bytes - 16.043 ms
+[2026-04-16 22:02:23:223] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 27.340 ms
+[2026-04-16 22:02:23:223] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 27.704 ms
+[2026-04-16 22:02:24:224] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 86.861 ms
+[2026-04-16 22:02:24:224] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 32.211 ms
+[2026-04-16 22:02:24:224] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 74.384 ms
+[2026-04-16 22:02:24:224] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 42.938 ms
+[2026-04-16 22:02:44:244] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.446 ms
+[2026-04-16 22:03:23:323] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 52.703 ms
+[2026-04-16 22:03:44:344] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.635 ms
+[2026-04-16 22:03:46:346] http: GET /api/patient/profiles 304 - bytes - 27.162 ms
+[2026-04-16 22:03:46:346] http: GET /api/patient/profiles 304 - bytes - 18.735 ms
+[2026-04-16 22:03:47:347] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 53.511 ms
+[2026-04-16 22:03:47:347] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 52.459 ms
+[2026-04-16 22:04:23:423] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.203 ms
+[2026-04-16 22:04:44:444] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.400 ms
+[2026-04-16 22:05:17:517] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 155.180 ms
+[2026-04-16 22:05:17:517] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 40.883 ms
+[2026-04-16 22:05:18:518] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 306.594 ms
+[2026-04-16 22:05:18:518] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 88.270 ms
+[2026-04-16 22:05:23:523] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 73.070 ms
+[2026-04-16 22:05:44:544] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 81.823 ms
+[2026-04-16 22:05:46:546] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 83.374 ms
+[2026-04-16 22:05:46:546] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 97.681 ms
+[2026-04-16 22:05:46:546] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 34.680 ms
+[2026-04-16 22:05:46:546] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 80.596 ms
+[2026-04-16 22:05:46:546] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 341.209 ms
+[2026-04-16 22:05:46:546] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 102.468 ms
+[2026-04-16 22:05:50:550] http: GET /api/patient/profiles 304 - bytes - 52.618 ms
+[2026-04-16 22:05:50:550] http: GET /api/patient/profiles 304 - bytes - 55.756 ms
+[2026-04-16 22:05:50:550] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 20.690 ms
+[2026-04-16 22:05:50:550] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 55.572 ms
+[2026-04-16 22:05:58:558] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 88.086 ms
+[2026-04-16 22:05:58:558] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 69.895 ms
+[2026-04-16 22:05:58:558] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 310.065 ms
+[2026-04-16 22:05:58:558] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 86.477 ms
+[2026-04-16 22:06:01:61] http: GET /api/patient/profiles 304 - bytes - 57.259 ms
+[2026-04-16 22:06:01:61] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 50.327 ms
+[2026-04-16 22:06:01:61] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 53.302 ms
+[2026-04-16 22:06:01:61] http: GET /api/patient/profiles 304 - bytes - 285.705 ms
+[2026-04-16 22:06:04:64] http: GET /api/patient/profiles 304 - bytes - 59.714 ms
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 53.607 ms
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 84.639 ms
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 95.228 ms
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 25.111 ms
+[2026-04-16 22:06:04:64] http: GET /api/patient/profiles 304 - bytes - 80.036 ms
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 50.518 ms
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 284.708 ms
+[2026-04-16 22:06:44:644] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 58.005 ms
+[2026-04-16 22:06:46:646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.668 ms
+[2026-04-16 22:07:10:710] http: GET /api/ehr/patients/USR_PAT_121/vitals/latest 401 100 bytes - 2.085 ms
+[2026-04-16 22:07:10:710] http: GET /api/ehr/patients/USR_PAT_121/vitals 401 100 bytes - 1.867 ms
+[2026-04-16 22:07:10:710] http: POST /api/auth/refresh-token 200 605 bytes - 30.090 ms
+[2026-04-16 22:07:10:710] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/vitals Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:10:710] http: GET /api/ehr/patients/USR_PAT_121/vitals 500 116 bytes - 23.572 ms
+[2026-04-16 22:07:10:710] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/vitals/latest Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:10:710] http: GET /api/ehr/patients/USR_PAT_121/vitals/latest 500 116 bytes - 55.415 ms
+[2026-04-16 22:07:11:711] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/medical-histories Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:11:711] http: GET /api/ehr/patients/USR_PAT_121/medical-histories 500 116 bytes - 17.723 ms
+[2026-04-16 22:07:12:712] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/diagnosis-history Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:12:712] http: GET /api/ehr/patients/USR_PAT_121/diagnosis-history 500 116 bytes - 22.766 ms
+[2026-04-16 22:07:12:712] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/treatment-records Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:12:712] http: GET /api/ehr/patients/USR_PAT_121/treatment-records 500 116 bytes - 20.949 ms
+[2026-04-16 22:07:12:712] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:12:712] http: GET /api/ehr/patients/USR_PAT_121/timeline 500 116 bytes - 18.656 ms
+[2026-04-16 22:07:44:744] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 55.512 ms
+[2026-04-16 22:07:46:746] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.932 ms
+[2026-04-16 22:08:44:844] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 74.380 ms
+[2026-04-16 22:08:46:846] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.779 ms
+[2026-04-16 22:09:31:931] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.111 ms
+[2026-04-16 22:09:46:946] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.119 ms
+[2026-04-16 22:09:50:950] warn: [404] GET /api/ehr/patients//profile — Endpoint không tồn tại
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients//profile 404 125 bytes - 1.660 ms
+[2026-04-16 22:09:50:950] warn: [404] GET /api/ehr/patients//current-medications — Endpoint không tồn tại
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients//current-medications 404 137 bytes - 1.948 ms
+[2026-04-16 22:09:50:950] warn: [404] GET /api/ehr/patients//allergies — Endpoint không tồn tại
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients//allergies 404 127 bytes - 0.788 ms
+[2026-04-16 22:09:50:950] warn: [404] GET /api/ehr/patients//profile — Endpoint không tồn tại
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients//profile 404 125 bytes - 0.914 ms
+[2026-04-16 22:09:50:950] warn: [404] GET /api/ehr/patients//current-medications — Endpoint không tồn tại
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients//current-medications 404 137 bytes - 0.859 ms
+[2026-04-16 22:09:50:950] warn: [404] GET /api/ehr/patients//allergies — Endpoint không tồn tại
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients//allergies 404 127 bytes - 0.772 ms
+[2026-04-16 22:09:50:950] http: GET /api/patient/profiles 304 - bytes - 23.752 ms
+[2026-04-16 22:09:50:950] http: GET /api/patient/profiles 304 - bytes - 16.876 ms
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 79.543 ms
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients/PAT_001/profile 200 6998 bytes - 106.850 ms
+[2026-04-16 22:09:50:950] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 147.682 ms
+[2026-04-16 22:10:31:1031] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 64.423 ms
+[2026-04-16 22:10:46:1046] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.800 ms
+[2026-04-16 22:11:38:1138] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 59.966 ms
+[2026-04-16 22:11:46:1146] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.548 ms
+[2026-04-16 22:12:18:1218] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.728 ms
+[2026-04-16 22:13:09:139] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.596 ms
+[2026-04-16 22:13:12:1312] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.781 ms
+[2026-04-16 22:13:12:1312] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.932 ms
+[2026-04-16 22:13:12:1312] http: GET /api/patient/profiles 304 - bytes - 73.384 ms
+[2026-04-16 22:13:12:1312] http: GET /api/patient/profiles 304 - bytes - 17.653 ms
+[2026-04-16 22:13:12:1312] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 27.720 ms
+[2026-04-16 22:13:12:1312] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 69.127 ms
+[2026-04-16 22:13:12:1312] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 78.934 ms
+[2026-04-16 22:13:13:1313] http: GET /api/ehr/patients/PAT_001/profile 200 6998 bytes - 1332.662 ms
+[2026-04-16 22:13:44:1344] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 61.135 ms
+[2026-04-16 22:14:12:1412] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.719 ms
+[2026-04-16 22:14:44:1444] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 187.435 ms
+[2026-04-16 22:15:12:1512] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.851 ms
+[2026-04-16 22:15:29:1529] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.029 ms
+[2026-04-16 22:15:29:1529] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.263 ms
+[2026-04-16 22:15:29:1529] http: GET /api/patient/profiles 304 - bytes - 53.164 ms
+[2026-04-16 22:15:29:1529] http: GET /api/patient/profiles 304 - bytes - 56.545 ms
+[2026-04-16 22:15:29:1529] http: GET /api/ehr/patients/PAT_001/profile 200 6998 bytes - 155.065 ms
+[2026-04-16 22:15:29:1529] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 165.859 ms
+[2026-04-16 22:15:29:1529] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 194.475 ms
+[2026-04-16 22:15:29:1529] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 198.136 ms
+[2026-04-16 22:15:37:1537] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 28.044 ms
+[2026-04-16 22:15:37:1537] http: GET /api/ehr/patients/PAT_001/vitals 304 - bytes - 36.171 ms
+[2026-04-16 22:15:42:1542] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 29.319 ms
+[2026-04-16 22:15:44:1544] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.330 ms
+[2026-04-16 22:15:47:1547] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.238 ms
+[2026-04-16 22:15:47:1547] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 31.825 ms
+[2026-04-16 22:15:47:1547] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 33.542 ms
+[2026-04-16 22:15:51:1551] http: GET /api/ehr/patients/PAT_001/treatment-records 200 633 bytes - 26.345 ms
+[2026-04-16 22:15:57:1557] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 25.450 ms
+[2026-04-16 22:16:29:1629] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.145 ms
+[2026-04-16 22:16:44:1644] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.328 ms
+[2026-04-16 22:17:29:1729] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.460 ms
+[2026-04-16 22:17:44:1744] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.487 ms
+[2026-04-16 22:18:00:180] http: GET /api/patient/profiles 304 - bytes - 21.848 ms
+[2026-04-16 22:18:00:180] http: GET /api/patient/profiles 304 - bytes - 17.742 ms
+[2026-04-16 22:18:00:180] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 77.042 ms
+[2026-04-16 22:18:00:180] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 74.403 ms
+[2026-04-16 22:18:00:180] http: GET /api/ehr/patients/PAT_001/profile 200 6998 bytes - 109.719 ms
+[2026-04-16 22:18:00:180] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 112.274 ms
+[2026-04-16 22:18:29:1829] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 87.100 ms
+[2026-04-16 22:18:44:1844] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 84.140 ms
+[2026-04-16 22:19:29:1929] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 67.292 ms
+[2026-04-16 22:19:30:1930] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 78.109 ms
+[2026-04-16 22:20:29:2029] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 84.830 ms
+[2026-04-16 22:20:44:2044] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 80.253 ms
+[2026-04-16 22:21:29:2129] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 80.351 ms
+[2026-04-16 22:21:44:2144] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 82.225 ms
+[2026-04-16 22:22:44:2244] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 67.219 ms
+[2026-04-16 22:22:44:2244] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.563 ms
+[2026-04-16 22:23:09:239] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.594 ms
+[2026-04-16 22:23:18:2318] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.575 ms
+[2026-04-16 22:23:19:2319] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.825 ms
+[2026-04-16 22:23:19:2319] http: GET /api/patient/profiles 304 - bytes - 27.079 ms
+[2026-04-16 22:23:19:2319] http: GET /api/patient/profiles 304 - bytes - 67.827 ms
+[2026-04-16 22:23:19:2319] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 60.287 ms
+[2026-04-16 22:23:19:2319] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 88.521 ms
+[2026-04-16 22:23:19:2319] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 92.895 ms
+[2026-04-16 22:23:19:2319] http: GET /api/ehr/patients/PAT_001/profile 200 6998 bytes - 141.949 ms
+[2026-04-16 22:23:25:2325] http: GET /api/ehr/patients/PAT_001/vitals 304 - bytes - 27.279 ms
+[2026-04-16 22:23:25:2325] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 70.145 ms
+[2026-04-16 22:23:30:2330] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 26.812 ms
+[2026-04-16 22:23:30:2330] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 62.282 ms
+[2026-04-16 22:23:37:2337] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 18.717 ms
+[2026-04-16 22:23:37:2337] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 32.322 ms
+[2026-04-16 22:23:37:2337] http: GET /api/ehr/patients/PAT_001/clinical-results?page=1&limit=100 200 886 bytes - 78.533 ms
+[2026-04-16 22:23:37:2337] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 38.229 ms
+[2026-04-16 22:23:41:2341] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 25.087 ms
+[2026-04-16 22:23:43:2343] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 19.336 ms
+[2026-04-16 22:24:19:2419] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.964 ms
+[2026-04-16 22:24:44:2444] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 23.972 ms
+[2026-04-16 22:25:15:2515] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.523 ms
+[2026-04-16 22:25:19:2519] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.549 ms
+[2026-04-16 22:26:19:2619] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.249 ms
+[2026-04-16 22:26:44:2644] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.403 ms
+[2026-04-16 22:26:52:2652] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.597 ms
+[2026-04-16 22:26:53:2653] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 47.552 ms
+[2026-04-16 22:26:53:2653] http: GET /api/patient/profiles 304 - bytes - 20.289 ms
+[2026-04-16 22:26:53:2653] http: GET /api/patient/profiles 304 - bytes - 30.494 ms
+[2026-04-16 22:26:53:2653] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 93.867 ms
+[2026-04-16 22:26:53:2653] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 93.652 ms
+[2026-04-16 22:26:53:2653] http: GET /api/ehr/patients/PAT_001/profile 200 6998 bytes - 127.454 ms
+[2026-04-16 22:26:53:2653] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 128.636 ms
+[2026-04-16 22:26:57:2657] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 76.587 ms
+[2026-04-16 22:26:57:2657] http: GET /api/ehr/patients/PAT_001/vitals 304 - bytes - 96.220 ms
+[2026-04-16 22:27:00:270] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 123.077 ms
+[2026-04-16 22:27:00:270] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 289.822 ms
+[2026-04-16 22:27:04:274] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 25.097 ms
+[2026-04-16 22:27:04:274] http: GET /api/ehr/patients/PAT_001/clinical-results?page=1&limit=100 304 - bytes - 47.477 ms
+[2026-04-16 22:27:04:274] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260316_a60a783f 304 - bytes - 33.349 ms
+[2026-04-16 22:27:04:274] http: GET /api/ehr/patients/PAT_001/clinical-results/by-encounter/ENC_260328_e6749111 304 - bytes - 53.842 ms
+[2026-04-16 22:27:06:276] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 52.791 ms
+[2026-04-16 22:27:08:278] http: GET /api/medical-records/by-patient/PAT_001/timeline 304 - bytes - 49.337 ms
+[2026-04-16 22:27:44:2744] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 64.309 ms
+[2026-04-16 22:27:53:2753] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.585 ms
+[2026-04-16 22:28:44:2844] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 59.179 ms
+[2026-04-16 22:28:53:2853] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.936 ms
+[2026-04-16 22:29:44:2944] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 71.768 ms
+[2026-04-16 22:29:53:2953] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 27.404 ms
+[2026-04-16 22:30:44:3044] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 59.456 ms
+[2026-04-16 22:30:53:3053] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.828 ms

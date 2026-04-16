@@ -86,3 +86,15 @@
 [2026-04-16 14:16:47:1647] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
 [2026-04-16 14:16:47:1647] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
 [2026-04-16 14:16:48:1648] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:06:04:64] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:10:710] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/vitals Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:10:710] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/vitals/latest Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:11:711] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/medical-histories Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:12:712] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/diagnosis-history Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:12:712] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/treatment-records Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 22:07:12:712] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
