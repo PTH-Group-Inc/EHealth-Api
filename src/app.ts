@@ -6,6 +6,7 @@ import { initRoutes } from './routes/index.route'
 import { SessionCleanup } from './jobs/SessionCleanup.jobs'
 import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs'
 import { startPaymentOrderExpiryJob } from './jobs/PaymentOrderExpiry.jobs'
+import { startAppointmentNoShowJob } from './jobs/AppointmentNoShow.jobs'
 import morganMiddleware from './middleware/morgan.middleware'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware'
 
@@ -26,6 +27,7 @@ initRoutes(app);
 SessionCleanup.startSessionCleanupJob();
 AppointmentReminderJob.startReminderJob();
 startPaymentOrderExpiryJob();
+startAppointmentNoShowJob();
 
 // ─── 404 Handler ─── Đặt sau tất cả routes
 app.use(notFoundHandler);
