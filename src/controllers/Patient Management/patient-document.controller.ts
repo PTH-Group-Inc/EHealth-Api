@@ -13,7 +13,7 @@ export class PatientDocumentController {
      */
     static upload = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreatePatientDocumentInput = {
-                patient_id: req.body.patient_id,
+                patient_id: req.params.patientId || req.body.patient_id,
                 document_type_id: req.body.document_type_id,
                 document_name: req.body.document_name,
                 notes: req.body.notes,
@@ -33,7 +33,7 @@ export class PatientDocumentController {
      * Danh sách tài liệu bệnh nhân (phân trang, filter)
      */
     static getList = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const patientId = req.query.patient_id as string;
+            const patientId = (req.params.patientId || req.query.patient_id) as string;
             const documentTypeId = (req.query.document_type_id as string) || null;
             const page = parseInt(req.query.page as string, 10) || 1;
             const limit = parseInt(req.query.limit as string, 10) || 20;

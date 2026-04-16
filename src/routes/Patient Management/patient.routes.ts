@@ -1267,11 +1267,7 @@ router.delete('/:id', verifyAccessToken, checkSessionStatus, PatientController.d
  *       403:
  *         description: Không có quyền
  */
-router.get('/:patientId/documents', verifyAccessToken, checkSessionStatus, (req, res, next) => {
-    // Inject patientId từ path vào query để tái dùng service logic
-    req.query.patient_id = req.params.patientId;
-    return PatientDocumentController.getList(req, res, next);
-});
+router.get('/:patientId/documents', verifyAccessToken, checkSessionStatus, PatientDocumentController.getList);
 
 /**
  * @swagger
@@ -1328,11 +1324,7 @@ router.get('/:patientId/documents', verifyAccessToken, checkSessionStatus, (req,
  *       403:
  *         description: Không có quyền
  */
-router.post('/:patientId/documents', verifyAccessToken, checkSessionStatus, uploadDoc.single('file'), (req, res, next) => {
-    // Inject patientId từ path vào body để tái dùng upload logic
-    req.body.patient_id = req.params.patientId;
-    return PatientDocumentController.upload(req, res, next);
-});
+router.post('/:patientId/documents', verifyAccessToken, checkSessionStatus, uploadDoc.single('file'), PatientDocumentController.upload);
 
 // 2.6.2 GẮN/GỠ THẺ CHO BỆNH NHÂN (Patient Tag Assignments)
 

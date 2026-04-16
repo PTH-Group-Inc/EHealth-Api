@@ -289,3 +289,1583 @@
 [2026-04-16 11:37:28:3728] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 53.478 ms
 [2026-04-16 11:38:28:3828] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.429 ms
 [2026-04-16 11:39:28:3928] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 32.004 ms
+[2026-04-16 11:40:28:4028] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.450 ms
+[2026-04-16 11:41:28:4128] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.808 ms
+[2026-04-16 11:41:48:4148] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 43.180 ms
+[2026-04-16 11:41:48:4148] http: GET /api/patient/profiles 304 - bytes - 61.903 ms
+[2026-04-16 11:41:48:4148] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.945 ms
+[2026-04-16 11:41:48:4148] http: GET /api/patient/profiles 304 - bytes - 25.360 ms
+[2026-04-16 11:41:48:4148] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 44.703 ms
+[2026-04-16 11:41:51:4151] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 200 10258 bytes - 47.747 ms
+[2026-04-16 11:41:58:4158] http: GET /api/appointments/APT_81fa0d68-a07 200 2170 bytes - 39.300 ms
+[2026-04-16 11:41:58:4158] http: GET /api/appointments/APT_81fa0d68-a07 304 - bytes - 66.715 ms
+[2026-04-16 11:42:01:421] http: GET /api/patient/profiles 304 - bytes - 22.295 ms
+[2026-04-16 11:42:01:421] http: GET /api/patient/profiles 304 - bytes - 21.028 ms
+[2026-04-16 11:42:01:421] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 49.705 ms
+[2026-04-16 11:42:05:425] http: GET /api/appointments/APT_3d22e6da-beb 304 - bytes - 37.989 ms
+[2026-04-16 11:42:05:425] http: GET /api/appointments/APT_3d22e6da-beb 304 - bytes - 33.941 ms
+[2026-04-16 11:42:07:427] http: GET /api/patient/profiles 304 - bytes - 22.230 ms
+[2026-04-16 11:42:07:427] http: GET /api/patient/profiles 304 - bytes - 21.586 ms
+[2026-04-16 11:42:07:427] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 60.769 ms
+[2026-04-16 11:42:48:4248] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 75.548 ms
+[2026-04-16 11:43:48:4348] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.169 ms
+[2026-04-16 11:43:48:4348] http: POST /api/auth/refresh-token 200 605 bytes - 71.117 ms
+[2026-04-16 11:43:48:4348] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.967 ms
+[2026-04-16 11:44:48:4448] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 90.168 ms
+[2026-04-16 11:45:48:4548] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 74.900 ms
+[2026-04-16 11:46:22:4622] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 11:46:22:4622] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 11:46:22:4622] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 11:46:22:4622] info: │  📄 Loaded: .env.development
+[2026-04-16 11:46:22:4622] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 11:46:22:4622] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 11:46:22:4622] info: │  📊 Log level: debug
+[2026-04-16 11:46:22:4622] info: │  💳 SePay: PRODUCTION
+[2026-04-16 11:46:22:4622] info: └──────────────────────────────────────────────┘
+[2026-04-16 11:46:25:4625] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 11:46:26:4626] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:46:26:4626] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 11:46:26:4626] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 11:46:22:4622] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 11:46:22:4622] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 11:46:22:4622] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 11:46:22:4622] info: │  📄 Loaded: .env.development
+[2026-04-16 11:46:22:4622] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 11:46:22:4622] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 11:46:22:4622] info: │  📊 Log level: debug
+[2026-04-16 11:46:22:4622] info: │  💳 SePay: PRODUCTION
+[2026-04-16 11:46:22:4622] info: └──────────────────────────────────────────────┘
+[2026-04-16 11:46:25:4625] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 11:46:26:4626] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:46:26:4626] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 11:46:26:4626] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 11:46:26:4626] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 11:46:26:4626] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 11:46:27:4627] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 11:46:27:4627] info: 🚀 Server is running on port 3000
+[2026-04-16 11:46:27:4627] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:46:27:4627] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 11:46:27:4627] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 11:46:27:4627] info: 🚀 Server is running on port 3000
+[2026-04-16 11:46:27:4627] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:46:27:4627] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 11:46:48:4648] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.170 ms
+[2026-04-16 11:46:57:4657] warn: [NOTIFICATION] Template không tìm thấy hoặc không active: APPOINTMENT_NO_SHOW — bỏ qua gửi thông báo.
+[2026-04-16 11:46:57:4657] info: ✅ [AUTO-NOSHOW] Đã đánh dấu 1 lịch khám No-Show.
+[2026-04-16 11:46:57:4657] info: ✅ [CRON] No-Show Detection: Đã đánh dấu 1 lịch khám No-Show.
+[2026-04-16 11:46:57:4657] warn: [NOTIFICATION] Template không tìm thấy hoặc không active: APPOINTMENT_NO_SHOW — bỏ qua gửi thông báo.
+[2026-04-16 11:46:57:4657] info: ✅ [AUTO-NOSHOW] Đã đánh dấu 1 lịch khám No-Show.
+[2026-04-16 11:46:57:4657] info: ✅ [CRON] No-Show Detection: Đã đánh dấu 1 lịch khám No-Show.
+[2026-04-16 11:47:22:4722] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 11:47:22:4722] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 11:47:22:4722] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 11:47:22:4722] info: │  📄 Loaded: .env.development
+[2026-04-16 11:47:22:4722] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 11:47:22:4722] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 11:47:22:4722] info: │  📊 Log level: debug
+[2026-04-16 11:47:22:4722] info: │  💳 SePay: PRODUCTION
+[2026-04-16 11:47:22:4722] info: └──────────────────────────────────────────────┘
+[2026-04-16 11:47:23:4723] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 11:47:23:4723] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 11:47:23:4723] info: 🔌 Đã đóng kết nối PostgreSQL Pool an toàn.
+[2026-04-16 11:47:48:4748] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 78.697 ms
+[2026-04-16 11:48:12:4812] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 11:48:12:4812] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 11:48:12:4812] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 11:48:12:4812] info: │  📄 Loaded: .env.development
+[2026-04-16 11:48:12:4812] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 11:48:12:4812] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 11:48:12:4812] info: │  📊 Log level: debug
+[2026-04-16 11:48:12:4812] info: │  💳 SePay: PRODUCTION
+[2026-04-16 11:48:12:4812] info: └──────────────────────────────────────────────┘
+[2026-04-16 11:48:12:4812] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 11:48:12:4812] info: 🔌 Đã đóng kết nối PostgreSQL Pool an toàn.
+[2026-04-16 11:49:46:4946] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 69.577 ms
+[2026-04-16 11:51:37:5137] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 11:51:37:5137] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 11:51:37:5137] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 11:51:37:5137] info: │  📄 Loaded: .env.development
+[2026-04-16 11:51:37:5137] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 11:51:37:5137] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 11:51:37:5137] info: │  📊 Log level: debug
+[2026-04-16 11:51:37:5137] info: │  💳 SePay: PRODUCTION
+[2026-04-16 11:51:37:5137] info: └──────────────────────────────────────────────┘
+[2026-04-16 11:51:41:5141] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 11:51:42:5142] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:51:42:5142] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 11:51:42:5142] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 11:51:37:5137] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 11:51:37:5137] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 11:51:37:5137] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 11:51:37:5137] info: │  📄 Loaded: .env.development
+[2026-04-16 11:51:37:5137] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 11:51:37:5137] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 11:51:37:5137] info: │  📊 Log level: debug
+[2026-04-16 11:51:37:5137] info: │  💳 SePay: PRODUCTION
+[2026-04-16 11:51:37:5137] info: └──────────────────────────────────────────────┘
+[2026-04-16 11:51:41:5141] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 11:51:42:5142] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:51:42:5142] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 11:51:42:5142] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 11:51:42:5142] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 11:51:42:5142] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 11:51:42:5142] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 11:51:42:5142] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 11:51:42:5142] info: 🚀 Server is running on port 3000
+[2026-04-16 11:51:42:5142] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:51:42:5142] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 11:51:42:5142] info: 🚀 Server is running on port 3000
+[2026-04-16 11:51:42:5142] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 11:51:42:5142] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 11:51:46:5146] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 45.992 ms
+[2026-04-16 11:52:16:5216] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.348 ms
+[2026-04-16 11:52:16:5216] http: GET /api/patient/profiles 304 - bytes - 64.290 ms
+[2026-04-16 11:52:16:5216] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.748 ms
+[2026-04-16 11:52:16:5216] http: GET /api/patient/profiles 304 - bytes - 21.404 ms
+[2026-04-16 11:52:16:5216] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 200 3939 bytes - 49.336 ms
+[2026-04-16 11:52:18:5218] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=COMPLETED&limit=50 200 1527 bytes - 38.921 ms
+[2026-04-16 11:52:19:5219] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 200 11490 bytes - 44.669 ms
+[2026-04-16 11:52:23:5223] http: GET /api/appointments/APT_3d22e6da-beb 200 2169 bytes - 35.536 ms
+[2026-04-16 11:52:23:5223] http: GET /api/appointments/APT_3d22e6da-beb 304 - bytes - 28.307 ms
+[2026-04-16 11:52:24:5224] http: GET /api/patient/profiles 304 - bytes - 20.747 ms
+[2026-04-16 11:52:24:5224] http: GET /api/patient/profiles 304 - bytes - 22.234 ms
+[2026-04-16 11:52:24:5224] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 47.399 ms
+[2026-04-16 11:52:28:5228] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 304 - bytes - 42.437 ms
+[2026-04-16 11:52:59:5259] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 88.105 ms
+[2026-04-16 11:53:11:5311] http: GET /api/appointments/APT_a0b54ffc-904 200 1869 bytes - 32.429 ms
+[2026-04-16 11:53:11:5311] http: GET /api/appointments/APT_a0b54ffc-904 304 - bytes - 30.704 ms
+[2026-04-16 11:53:16:5316] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.078 ms
+[2026-04-16 11:53:22:5322] http: DELETE /api/appointments/APT_a0b54ffc-904 200 1060 bytes - 64.649 ms
+[2026-04-16 11:53:22:5322] http: GET /api/appointments/APT_a0b54ffc-904 200 2182 bytes - 70.953 ms
+[2026-04-16 11:53:24:5324] http: GET /api/patient/profiles 304 - bytes - 97.459 ms
+[2026-04-16 11:53:24:5324] http: GET /api/patient/profiles 304 - bytes - 18.827 ms
+[2026-04-16 11:53:24:5324] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 200 2704 bytes - 38.944 ms
+[2026-04-16 11:53:26:5326] http: GET /api/appointments/APT_ee61cefc-1c2 200 1897 bytes - 29.820 ms
+[2026-04-16 11:53:26:5326] http: GET /api/appointments/APT_ee61cefc-1c2 304 - bytes - 31.807 ms
+[2026-04-16 11:53:29:5329] http: GET /api/patient/profiles 304 - bytes - 26.654 ms
+[2026-04-16 11:53:29:5329] http: GET /api/patient/profiles 304 - bytes - 23.742 ms
+[2026-04-16 11:53:29:5329] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 50.008 ms
+[2026-04-16 11:54:16:5416] http: GET /api/notifications/inbox?page=1&limit=10 200 7148 bytes - 46.874 ms
+[2026-04-16 11:55:16:5516] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.184 ms
+[2026-04-16 11:55:33:5533] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 200 12760 bytes - 47.074 ms
+[2026-04-16 11:55:37:5537] http: GET /api/appointments/APT_a0b54ffc-904 304 - bytes - 32.031 ms
+[2026-04-16 11:55:37:5537] http: GET /api/appointments/APT_a0b54ffc-904 304 - bytes - 30.985 ms
+[2026-04-16 11:55:38:5538] http: GET /api/patient/profiles 304 - bytes - 21.530 ms
+[2026-04-16 11:55:38:5538] http: GET /api/patient/profiles 304 - bytes - 20.141 ms
+[2026-04-16 11:55:38:5538] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 71.604 ms
+[2026-04-16 11:55:39:5539] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 304 - bytes - 43.310 ms
+[2026-04-16 11:55:40:5540] http: GET /api/appointments/APT_3d22e6da-beb 304 - bytes - 31.899 ms
+[2026-04-16 11:55:40:5540] http: GET /api/appointments/APT_3d22e6da-beb 304 - bytes - 30.869 ms
+[2026-04-16 11:56:16:5616] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 42.606 ms
+[2026-04-16 11:56:17:5617] http: GET /api/patient/profiles 304 - bytes - 20.748 ms
+[2026-04-16 11:56:17:5617] http: GET /api/patient/profiles 304 - bytes - 29.915 ms
+[2026-04-16 11:56:17:5617] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 95.831 ms
+[2026-04-16 11:57:16:5716] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 47.453 ms
+[2026-04-16 11:57:48:5748] http: GET /api/appointments/APT_e65278ea-439 200 1875 bytes - 32.056 ms
+[2026-04-16 11:57:48:5748] http: GET /api/appointments/APT_e65278ea-439 304 - bytes - 72.132 ms
+[2026-04-16 11:57:49:5749] http: GET /api/patient/profiles 304 - bytes - 25.385 ms
+[2026-04-16 11:57:49:5749] http: GET /api/patient/profiles 304 - bytes - 24.481 ms
+[2026-04-16 11:57:49:5749] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 73.896 ms
+[2026-04-16 11:57:51:5751] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 304 - bytes - 54.124 ms
+[2026-04-16 11:57:52:5752] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=COMPLETED&limit=50 304 - bytes - 41.153 ms
+[2026-04-16 11:57:53:5753] http: GET /api/appointments/APT_ea81512b-af0 200 2891 bytes - 32.762 ms
+[2026-04-16 11:57:53:5753] http: GET /api/appointments/APT_ea81512b-af0 304 - bytes - 42.107 ms
+[2026-04-16 11:57:53:5753] http: GET /api/encounters/by-appointment/APT_ea81512b-af0 304 - bytes - 31.123 ms
+[2026-04-16 11:57:53:5753] http: GET /api/encounters/by-appointment/APT_ea81512b-af0 304 - bytes - 20.712 ms
+[2026-04-16 11:57:53:5753] http: GET /api/diagnoses/ENC_260316_a60a783f 304 - bytes - 40.114 ms
+[2026-04-16 11:57:53:5753] http: GET /api/diagnoses/ENC_260316_a60a783f 304 - bytes - 29.484 ms
+[2026-04-16 11:57:53:5753] http: GET /api/prescriptions/ENC_260316_a60a783f 304 - bytes - 42.628 ms
+[2026-04-16 11:57:53:5753] http: GET /api/prescriptions/ENC_260316_a60a783f 304 - bytes - 37.677 ms
+[2026-04-16 11:58:00:580] http: GET /api/patient/profiles 304 - bytes - 20.579 ms
+[2026-04-16 11:58:00:580] http: GET /api/patient/profiles 304 - bytes - 21.156 ms
+[2026-04-16 11:58:00:580] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 38.014 ms
+[2026-04-16 11:58:01:581] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=CANCELLED,NO_SHOW&limit=50 304 - bytes - 41.221 ms
+[2026-04-16 11:58:03:583] http: GET /api/appointments/APT_3d22e6da-beb 304 - bytes - 29.042 ms
+[2026-04-16 11:58:03:583] http: GET /api/appointments/APT_3d22e6da-beb 304 - bytes - 33.716 ms
+[2026-04-16 11:58:13:5813] http: GET /api/patient/profiles 304 - bytes - 22.012 ms
+[2026-04-16 11:58:13:5813] http: GET /api/patient/profiles 304 - bytes - 20.979 ms
+[2026-04-16 11:58:13:5813] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 43.913 ms
+[2026-04-16 11:58:16:5816] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.016 ms
+[2026-04-16 11:58:30:5830] http: GET /api/patient/profiles 304 - bytes - 22.995 ms
+[2026-04-16 11:58:30:5830] http: GET /api/patient/profiles 304 - bytes - 20.854 ms
+[2026-04-16 11:59:16:5916] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.923 ms
+[2026-04-16 12:00:19:019] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.258 ms
+[2026-04-16 12:01:16:116] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.229 ms
+[2026-04-16 12:02:46:246] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 79.845 ms
+[2026-04-16 12:03:04:34] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.258 ms
+[2026-04-16 12:03:04:34] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.288 ms
+[2026-04-16 12:03:17:317] http: GET /api/patients/account/USR_PAT_121 200 691 bytes - 9.051 ms
+[2026-04-16 12:04:04:44] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.604 ms
+[2026-04-16 12:04:22:422] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 7.790 ms
+[2026-04-16 12:04:48:448] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 6.886 ms
+[2026-04-16 12:04:58:458] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 8.033 ms
+[2026-04-16 12:05:04:54] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.419 ms
+[2026-04-16 12:05:11:511] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 7.608 ms
+[2026-04-16 12:06:04:64] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.161 ms
+[2026-04-16 12:07:04:74] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.985 ms
+[2026-04-16 12:08:04:84] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.416 ms
+[2026-04-16 12:09:04:94] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.173 ms
+[2026-04-16 12:10:27:1027] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 8.699 ms
+[2026-04-16 12:10:27:1027] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 8.346 ms
+[2026-04-16 12:10:27:1027] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 48.935 ms
+[2026-04-16 12:10:27:1027] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.754 ms
+[2026-04-16 12:10:30:1030] http: GET /api/patients/PAT_001 200 689 bytes - 21.280 ms
+[2026-04-16 12:10:30:1030] http: GET /api/patients/PAT_001 304 - bytes - 19.950 ms
+[2026-04-16 12:10:32:1032] http: GET /api/patient-insurances?patient_id=PAT_001 200 857 bytes - 51.297 ms
+[2026-04-16 12:10:32:1032] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 33.641 ms
+[2026-04-16 12:10:32:1032] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 200 560 bytes - 38.085 ms
+[2026-04-16 12:10:32:1032] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 35.477 ms
+[2026-04-16 12:10:33:1033] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 117.573 ms
+[2026-04-16 12:10:33:1033] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 119.860 ms
+[2026-04-16 12:10:33:1033] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 32.213 ms
+[2026-04-16 12:10:33:1033] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 33.530 ms
+[2026-04-16 12:10:33:1033] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 27.302 ms
+[2026-04-16 12:10:33:1033] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 27.138 ms
+[2026-04-16 12:10:34:1034] http: GET /api/encounters/by-patient/PAT_001 200 1682 bytes - 30.405 ms
+[2026-04-16 12:10:34:1034] http: GET /api/encounters/by-patient/PAT_001 304 - bytes - 33.539 ms
+[2026-04-16 12:10:35:1035] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 29.213 ms
+[2026-04-16 12:10:35:1035] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 29.892 ms
+[2026-04-16 12:10:37:1037] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:10:37:1037] http: GET /api/patients/PAT_001/documents 500 116 bytes - 24.767 ms
+[2026-04-16 12:10:37:1037] http: GET /api/document-types 304 - bytes - 25.127 ms
+[2026-04-16 12:10:37:1037] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:10:37:1037] http: GET /api/patients/PAT_001/documents 500 116 bytes - 21.379 ms
+[2026-04-16 12:10:37:1037] http: GET /api/document-types 304 - bytes - 25.404 ms
+[2026-04-16 12:10:37:1037] http: GET /api/patients/PAT_001/audit-logs 200 14063 bytes - 81.488 ms
+[2026-04-16 12:10:37:1037] http: GET /api/patients/PAT_001/audit-logs 304 - bytes - 43.194 ms
+[2026-04-16 12:10:53:1053] http: GET /api/document-types 304 - bytes - 21.742 ms
+[2026-04-16 12:10:53:1053] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:10:53:1053] http: GET /api/patients/PAT_001/documents 500 116 bytes - 24.667 ms
+[2026-04-16 12:10:53:1053] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:10:53:1053] http: GET /api/patients/PAT_001/documents 500 116 bytes - 50.409 ms
+[2026-04-16 12:10:53:1053] http: GET /api/document-types 304 - bytes - 52.860 ms
+[2026-04-16 12:11:20:1120] http: POST /api/patients/PAT_001/documents 201 633 bytes - 3317.374 ms
+[2026-04-16 12:11:51:1151] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:11:51:1151] http: GET /api/patients/PAT_001/documents 500 116 bytes - 29.952 ms
+[2026-04-16 12:11:51:1151] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 80.113 ms
+[2026-04-16 12:11:55:1155] http: GET /api/patients/PAT_001 304 - bytes - 34.299 ms
+[2026-04-16 12:11:55:1155] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 126.668 ms
+[2026-04-16 12:11:55:1155] http: GET /api/patients/PAT_001 304 - bytes - 94.586 ms
+[2026-04-16 12:11:55:1155] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.884 ms
+[2026-04-16 12:11:57:1157] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:11:57:1157] http: GET /api/patients/PAT_001/documents 500 116 bytes - 19.816 ms
+[2026-04-16 12:11:57:1157] http: GET /api/document-types 304 - bytes - 22.283 ms
+[2026-04-16 12:11:57:1157] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:11:57:1157] http: GET /api/patients/PAT_001/documents 500 116 bytes - 28.547 ms
+[2026-04-16 12:11:57:1157] http: GET /api/document-types 304 - bytes - 26.351 ms
+[2026-04-16 12:12:25:1225] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:12:25:1225] http: GET /api/patients/PAT_001/documents 500 116 bytes - 26.609 ms
+[2026-04-16 12:12:25:1225] http: GET /api/document-types 304 - bytes - 26.594 ms
+[2026-04-16 12:12:25:1225] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:12:25:1225] http: GET /api/patients/PAT_001/documents 500 116 bytes - 26.095 ms
+[2026-04-16 12:12:25:1225] http: GET /api/document-types 304 - bytes - 25.384 ms
+[2026-04-16 12:12:55:1255] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.912 ms
+[2026-04-16 12:13:03:133] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.110 ms
+[2026-04-16 12:13:03:133] http: GET /api/patients/PAT_001 304 - bytes - 56.340 ms
+[2026-04-16 12:13:03:133] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.250 ms
+[2026-04-16 12:13:03:133] http: GET /api/patients/PAT_001 304 - bytes - 20.434 ms
+[2026-04-16 12:13:04:134] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 32.778 ms
+[2026-04-16 12:13:04:134] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 33.803 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 28.930 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 33.601 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 25.716 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 32.524 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 28.074 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 27.801 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 25.693 ms
+[2026-04-16 12:13:05:135] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 29.881 ms
+[2026-04-16 12:13:06:136] http: GET /api/encounters/by-patient/PAT_001 304 - bytes - 31.612 ms
+[2026-04-16 12:13:06:136] http: GET /api/encounters/by-patient/PAT_001 304 - bytes - 33.893 ms
+[2026-04-16 12:13:06:136] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 29.097 ms
+[2026-04-16 12:13:06:136] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 26.854 ms
+[2026-04-16 12:13:06:136] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:13:06:136] http: GET /api/patients/PAT_001/documents 500 116 bytes - 18.222 ms
+[2026-04-16 12:13:06:136] http: GET /api/document-types 304 - bytes - 20.428 ms
+[2026-04-16 12:13:06:136] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:13:06:136] http: GET /api/patients/PAT_001/documents 500 116 bytes - 25.560 ms
+[2026-04-16 12:13:06:136] http: GET /api/document-types 304 - bytes - 27.901 ms
+[2026-04-16 12:13:07:137] http: GET /api/patients/PAT_001/audit-logs 304 - bytes - 43.330 ms
+[2026-04-16 12:13:07:137] http: GET /api/patients/PAT_001/audit-logs 304 - bytes - 40.884 ms
+[2026-04-16 12:13:50:1350] http: GET /api/patients/PAT_001/documents 401 100 bytes - 1.572 ms
+[2026-04-16 12:13:50:1350] http: GET /api/document-types 401 100 bytes - 0.995 ms
+[2026-04-16 12:13:50:1350] http: GET /api/patients/PAT_001/documents 401 100 bytes - 0.875 ms
+[2026-04-16 12:13:50:1350] http: GET /api/document-types 401 100 bytes - 1.067 ms
+[2026-04-16 12:13:50:1350] http: POST /api/auth/refresh-token 200 605 bytes - 27.859 ms
+[2026-04-16 12:13:50:1350] http: GET /api/document-types 304 - bytes - 28.136 ms
+[2026-04-16 12:13:50:1350] http: GET /api/document-types 304 - bytes - 21.359 ms
+[2026-04-16 12:13:50:1350] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:13:50:1350] http: GET /api/patients/PAT_001/documents 500 116 bytes - 51.422 ms
+[2026-04-16 12:13:50:1350] error: [UnhandledError] GET /api/patients/PAT_001/documents Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:13:50:1350] http: GET /api/patients/PAT_001/documents 500 116 bytes - 20.619 ms
+[2026-04-16 12:14:03:143] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.334 ms
+[2026-04-16 12:15:03:153] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.329 ms
+[2026-04-16 12:15:21:1521] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:15:21:1521] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:15:21:1521] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:15:21:1521] info: │  📄 Loaded: .env.development
+[2026-04-16 12:15:21:1521] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:15:21:1521] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:15:21:1521] info: │  📊 Log level: debug
+[2026-04-16 12:15:21:1521] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:15:21:1521] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:15:24:1524] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:15:24:1524] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:15:24:1524] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:15:24:1524] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:15:24:1524] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:15:24:1524] info: 🚀 Server is running on port 3000
+[2026-04-16 12:15:24:1524] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:15:24:1524] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:15:30:1530] http: GET /api/patients/pp-001/documents 401 100 bytes - 0.248 ms
+[2026-04-16 12:16:03:163] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.493 ms
+[2026-04-16 12:17:03:173] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.967 ms
+[2026-04-16 12:17:59:1759] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:17:59:1759] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:17:59:1759] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:17:59:1759] info: │  📄 Loaded: .env.development
+[2026-04-16 12:17:59:1759] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:17:59:1759] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:17:59:1759] info: │  📊 Log level: debug
+[2026-04-16 12:17:59:1759] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:17:59:1759] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:18:02:182] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:18:03:183] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:03:183] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:18:03:183] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:17:59:1759] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:17:59:1759] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:17:59:1759] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:17:59:1759] info: │  📄 Loaded: .env.development
+[2026-04-16 12:17:59:1759] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:17:59:1759] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:17:59:1759] info: │  📊 Log level: debug
+[2026-04-16 12:17:59:1759] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:17:59:1759] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:18:02:182] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:18:03:183] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:03:183] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:18:03:183] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:18:03:183] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:18:03:183] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:18:03:183] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:18:03:183] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:18:03:183] info: 🚀 Server is running on port 3000
+[2026-04-16 12:18:03:183] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:03:183] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:18:03:183] info: 🚀 Server is running on port 3000
+[2026-04-16 12:18:03:183] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:03:183] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:18:04:184] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 45.895 ms
+[2026-04-16 12:18:09:189] error: [UnhandledError] POST /api/auth/login/phone Tài khoản hoặc mật khẩu không chính xác
+[2026-04-16 12:18:09:189] http: POST /api/auth/login/phone 500 116 bytes - 12.387 ms
+[2026-04-16 12:18:30:1830] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:18:30:1830] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:18:30:1830] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:18:30:1830] info: │  📄 Loaded: .env.development
+[2026-04-16 12:18:30:1830] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:18:30:1830] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:18:30:1830] info: │  📊 Log level: debug
+[2026-04-16 12:18:30:1830] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:18:30:1830] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:18:33:1833] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:18:34:1834] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:34:1834] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:18:34:1834] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:18:30:1830] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:18:30:1830] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:18:30:1830] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:18:30:1830] info: │  📄 Loaded: .env.development
+[2026-04-16 12:18:30:1830] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:18:30:1830] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:18:30:1830] info: │  📊 Log level: debug
+[2026-04-16 12:18:30:1830] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:18:30:1830] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:18:33:1833] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:18:34:1834] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:34:1834] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:18:34:1834] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:18:34:1834] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:18:34:1834] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:18:34:1834] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:18:34:1834] info: 🚀 Server is running on port 3000
+[2026-04-16 12:18:34:1834] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:34:1834] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:18:34:1834] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:18:34:1834] info: 🚀 Server is running on port 3000
+[2026-04-16 12:18:34:1834] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:18:34:1834] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:18:45:1845] warn: [AppError] INVALID_JSON - Dữ liệu JSON không hợp lệ.
+[2026-04-16 12:18:51:1851] warn: [AppError] AUTH_002 - Tài khoản hoặc mật khẩu không chính xác
+[2026-04-16 12:18:51:1851] http: POST /api/auth/login/phone 401 99 bytes - 10.900 ms
+[2026-04-16 12:18:59:1859] warn: [AppError] AUTH_002 - Tài khoản hoặc mật khẩu không chính xác
+[2026-04-16 12:18:59:1859] http: POST /api/auth/login/phone 401 99 bytes - 7.971 ms
+[2026-04-16 12:19:03:193] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.518 ms
+[2026-04-16 12:20:46:2046] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.421 ms
+[2026-04-16 12:20:59:2059] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.591 ms
+[2026-04-16 12:20:59:2059] http: GET /api/patients/PAT_001 304 - bytes - 59.902 ms
+[2026-04-16 12:20:59:2059] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.251 ms
+[2026-04-16 12:20:59:2059] http: GET /api/patients/PAT_001 304 - bytes - 22.586 ms
+[2026-04-16 12:21:00:210] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:21:00:210] http: GET /api/patients/PAT_001/documents 404 111 bytes - 24.246 ms
+[2026-04-16 12:21:00:210] http: GET /api/document-types 304 - bytes - 24.621 ms
+[2026-04-16 12:21:00:210] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:21:00:210] http: GET /api/patients/PAT_001/documents 404 111 bytes - 22.496 ms
+[2026-04-16 12:21:00:210] http: GET /api/document-types 304 - bytes - 26.767 ms
+[2026-04-16 12:21:08:218] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 6.667 ms
+[2026-04-16 12:21:08:218] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 6.713 ms
+[2026-04-16 12:21:16:2116] http: PUT /api/patients/PAT_001 200 687 bytes - 60.861 ms
+[2026-04-16 12:21:16:2116] warn: [404] PUT /api/patients/PAT_001/contact — Endpoint không tồn tại
+[2026-04-16 12:21:16:2116] http: PUT /api/patients/PAT_001/contact 404 128 bytes - 0.965 ms
+[2026-04-16 12:21:16:2116] http: GET /api/patients/account/USR_PAT_121 200 691 bytes - 10.785 ms
+[2026-04-16 12:21:17:2117] http: GET /api/patients/PAT_001 200 689 bytes - 21.430 ms
+[2026-04-16 12:21:18:2118] http: GET /api/patients/PAT_001 304 - bytes - 20.725 ms
+[2026-04-16 12:21:19:2119] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 33.219 ms
+[2026-04-16 12:21:19:2119] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 31.739 ms
+[2026-04-16 12:21:20:2120] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 30.785 ms
+[2026-04-16 12:21:20:2120] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 37.049 ms
+[2026-04-16 12:21:20:2120] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 27.572 ms
+[2026-04-16 12:21:20:2120] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 34.553 ms
+[2026-04-16 12:21:21:2121] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 36.690 ms
+[2026-04-16 12:21:21:2121] http: GET /api/patient-insurances?patient_id=PAT_001 304 - bytes - 31.217 ms
+[2026-04-16 12:21:21:2121] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 27.768 ms
+[2026-04-16 12:21:21:2121] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 32.282 ms
+[2026-04-16 12:21:21:2121] http: GET /api/ehr/patients/PAT_001/vitals/latest 304 - bytes - 27.415 ms
+[2026-04-16 12:21:21:2121] http: GET /api/ehr/patients/PAT_001/vitals?limit=50 304 - bytes - 35.562 ms
+[2026-04-16 12:21:22:2122] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 26.461 ms
+[2026-04-16 12:21:22:2122] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 32.065 ms
+[2026-04-16 12:21:22:2122] http: GET /api/ehr/patients/PAT_001/allergies 304 - bytes - 27.711 ms
+[2026-04-16 12:21:22:2122] http: GET /api/ehr/patients/PAT_001/medical-histories 304 - bytes - 27.765 ms
+[2026-04-16 12:21:23:2123] http: GET /api/encounters/by-patient/PAT_001 304 - bytes - 134.706 ms
+[2026-04-16 12:21:23:2123] http: GET /api/encounters/by-patient/PAT_001 304 - bytes - 30.126 ms
+[2026-04-16 12:21:24:2124] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 27.898 ms
+[2026-04-16 12:21:24:2124] http: GET /api/ehr/patients/PAT_001/current-medications 304 - bytes - 26.702 ms
+[2026-04-16 12:21:25:2125] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:21:25:2125] http: GET /api/patients/PAT_001/documents 404 111 bytes - 22.868 ms
+[2026-04-16 12:21:25:2125] http: GET /api/document-types 304 - bytes - 22.735 ms
+[2026-04-16 12:21:25:2125] http: GET /api/document-types 304 - bytes - 16.607 ms
+[2026-04-16 12:21:25:2125] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:21:25:2125] http: GET /api/patients/PAT_001/documents 404 111 bytes - 22.025 ms
+[2026-04-16 12:21:28:2128] http: GET /api/patients/PAT_001 304 - bytes - 21.820 ms
+[2026-04-16 12:21:28:2128] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.279 ms
+[2026-04-16 12:21:28:2128] http: GET /api/patients/PAT_001 304 - bytes - 20.931 ms
+[2026-04-16 12:21:28:2128] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.111 ms
+[2026-04-16 12:21:29:2129] http: GET /api/document-types 304 - bytes - 19.259 ms
+[2026-04-16 12:21:29:2129] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:21:29:2129] http: GET /api/patients/PAT_001/documents 404 111 bytes - 23.417 ms
+[2026-04-16 12:21:30:2130] http: GET /api/document-types 304 - bytes - 19.646 ms
+[2026-04-16 12:21:30:2130] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:21:30:2130] http: GET /api/patients/PAT_001/documents 404 111 bytes - 21.197 ms
+[2026-04-16 12:22:28:2228] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 44.274 ms
+[2026-04-16 12:23:28:2328] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 54.775 ms
+[2026-04-16 12:23:30:2330] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:23:30:2330] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:23:30:2330] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:23:30:2330] info: │  📄 Loaded: .env.development
+[2026-04-16 12:23:30:2330] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:23:30:2330] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:23:30:2330] info: │  📊 Log level: debug
+[2026-04-16 12:23:30:2330] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:23:30:2330] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:24:28:2428] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.870 ms
+[2026-04-16 12:24:30:2430] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:24:30:2430] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:24:30:2430] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:24:30:2430] info: │  📄 Loaded: .env.development
+[2026-04-16 12:24:30:2430] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:24:30:2430] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:24:30:2430] info: │  📊 Log level: debug
+[2026-04-16 12:24:30:2430] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:24:30:2430] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:24:33:2433] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:24:34:2434] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:34:2434] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:24:30:2430] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:24:34:2434] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:24:30:2430] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:24:30:2430] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:24:30:2430] info: │  📄 Loaded: .env.development
+[2026-04-16 12:24:30:2430] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:24:30:2430] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:24:30:2430] info: │  📊 Log level: debug
+[2026-04-16 12:24:30:2430] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:24:30:2430] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:24:33:2433] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:24:34:2434] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:34:2434] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:24:34:2434] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:24:34:2434] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:24:34:2434] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:24:34:2434] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:24:34:2434] info: 🚀 Server is running on port 3000
+[2026-04-16 12:24:34:2434] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:34:2434] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:24:34:2434] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:24:34:2434] info: 🚀 Server is running on port 3000
+[2026-04-16 12:24:34:2434] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:34:2434] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:24:40:2440] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:24:40:2440] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:24:40:2440] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:24:40:2440] info: │  📄 Loaded: .env.development
+[2026-04-16 12:24:40:2440] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:24:40:2440] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:24:40:2440] info: │  📊 Log level: debug
+[2026-04-16 12:24:40:2440] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:24:40:2440] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:24:43:2443] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:24:44:2444] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:44:2444] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:24:44:2444] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:24:40:2440] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:24:40:2440] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:24:40:2440] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:24:40:2440] info: │  📄 Loaded: .env.development
+[2026-04-16 12:24:40:2440] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:24:40:2440] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:24:40:2440] info: │  📊 Log level: debug
+[2026-04-16 12:24:40:2440] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:24:40:2440] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:24:43:2443] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:24:44:2444] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:44:2444] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:24:44:2444] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:24:44:2444] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:24:44:2444] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:24:44:2444] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:24:44:2444] info: 🚀 Server is running on port 3000
+[2026-04-16 12:24:44:2444] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:44:2444] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:24:44:2444] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:24:44:2444] info: 🚀 Server is running on port 3000
+[2026-04-16 12:24:44:2444] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:24:44:2444] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:24:49:2449] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:24:49:2449] http: GET /api/patients/PAT_001/documents 404 111 bytes - 14.702 ms
+[2026-04-16 12:24:59:2459] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:24:59:2459] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:24:59:2459] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:24:59:2459] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:24:59:2459] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:24:59:2459] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:24:59:2459] info: │  📄 Loaded: .env.development
+[2026-04-16 12:24:59:2459] info: │  📄 Loaded: .env.development
+[2026-04-16 12:24:59:2459] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:24:59:2459] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:24:59:2459] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:24:59:2459] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:24:59:2459] info: │  📊 Log level: debug
+[2026-04-16 12:24:59:2459] info: │  📊 Log level: debug
+[2026-04-16 12:24:59:2459] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:24:59:2459] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:24:59:2459] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:24:59:2459] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:25:02:252] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:25:02:252] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:25:03:253] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:25:03:253] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:25:03:253] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:25:03:253] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:25:03:253] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:25:03:253] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:25:03:253] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:25:03:253] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:25:03:253] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:25:03:253] info: 🚀 Server is running on port 3000
+[2026-04-16 12:25:03:253] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:25:03:253] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:25:03:253] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:25:03:253] info: 🚀 Server is running on port 3000
+[2026-04-16 12:25:03:253] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:25:03:253] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:25:18:2518] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:25:18:2518] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:25:18:2518] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:25:18:2518] info: │  📄 Loaded: .env.development
+[2026-04-16 12:25:18:2518] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:25:18:2518] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:25:18:2518] info: │  📊 Log level: debug
+[2026-04-16 12:25:18:2518] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:25:18:2518] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:25:28:2528] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.778 ms
+[2026-04-16 12:25:36:2536] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:25:36:2536] http: GET /api/patients/PAT_001/documents 404 111 bytes - 12.083 ms
+[2026-04-16 12:26:28:2628] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.286 ms
+[2026-04-16 12:26:43:2643] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:26:43:2643] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:26:43:2643] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:26:43:2643] info: │  📄 Loaded: .env.development
+[2026-04-16 12:26:43:2643] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:26:43:2643] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:26:43:2643] info: │  📊 Log level: debug
+[2026-04-16 12:26:43:2643] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:26:43:2643] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:26:46:2646] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:26:48:2648] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:26:48:2648] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:26:48:2648] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:26:43:2643] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:26:43:2643] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:26:43:2643] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:26:43:2643] info: │  📄 Loaded: .env.development
+[2026-04-16 12:26:43:2643] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:26:43:2643] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:26:43:2643] info: │  📊 Log level: debug
+[2026-04-16 12:26:43:2643] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:26:43:2643] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:26:46:2646] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:26:48:2648] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:26:48:2648] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:26:48:2648] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:26:48:2648] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:26:48:2648] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:26:48:2648] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:26:48:2648] info: 🚀 Server is running on port 3000
+[2026-04-16 12:26:48:2648] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:26:48:2648] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:26:48:2648] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:26:48:2648] info: 🚀 Server is running on port 3000
+[2026-04-16 12:26:48:2648] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:26:48:2648] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:26:52:2652] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:26:52:2652] http: GET /api/patients/PAT_001/documents 404 111 bytes - 13.455 ms
+[2026-04-16 12:27:28:2728] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.997 ms
+[2026-04-16 12:27:48:2748] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:27:48:2748] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:27:48:2748] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:27:48:2748] info: │  📄 Loaded: .env.development
+[2026-04-16 12:27:48:2748] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:27:48:2748] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:27:48:2748] info: │  📊 Log level: debug
+[2026-04-16 12:27:48:2748] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:27:48:2748] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:27:51:2751] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:27:52:2752] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:27:52:2752] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:27:52:2752] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:27:48:2748] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:27:48:2748] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:27:48:2748] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:27:48:2748] info: │  📄 Loaded: .env.development
+[2026-04-16 12:27:48:2748] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:27:48:2748] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:27:48:2748] info: │  📊 Log level: debug
+[2026-04-16 12:27:48:2748] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:27:48:2748] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:27:51:2751] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:27:52:2752] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:27:52:2752] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:27:52:2752] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:27:52:2752] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:27:52:2752] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:27:52:2752] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:27:52:2752] info: 🚀 Server is running on port 3000
+[2026-04-16 12:27:52:2752] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:27:52:2752] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:27:52:2752] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:27:52:2752] info: 🚀 Server is running on port 3000
+[2026-04-16 12:27:52:2752] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:27:52:2752] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:27:56:2756] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:27:56:2756] http: GET /api/patients/PAT_001/documents 404 111 bytes - 13.221 ms
+[2026-04-16 12:28:40:2840] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 41.055 ms
+[2026-04-16 12:28:42:2842] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 166.236 ms
+[2026-04-16 12:28:42:2842] http: GET /api/patients/PAT_001 304 - bytes - 186.853 ms
+[2026-04-16 12:28:42:2842] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.233 ms
+[2026-04-16 12:28:42:2842] http: GET /api/patients/PAT_001 304 - bytes - 30.242 ms
+[2026-04-16 12:28:43:2843] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:28:43:2843] http: GET /api/patients/PAT_001/documents 404 111 bytes - 8.218 ms
+[2026-04-16 12:28:43:2843] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:28:43:2843] http: GET /api/patients/PAT_001/documents 404 111 bytes - 9.363 ms
+[2026-04-16 12:28:43:2843] http: GET /api/document-types 304 - bytes - 26.187 ms
+[2026-04-16 12:28:43:2843] http: GET /api/document-types 304 - bytes - 21.743 ms
+[2026-04-16 12:29:35:2935] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:29:35:2935] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:29:35:2935] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:29:35:2935] info: │  📄 Loaded: .env.development
+[2026-04-16 12:29:35:2935] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:29:35:2935] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:29:35:2935] info: │  📊 Log level: debug
+[2026-04-16 12:29:35:2935] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:29:35:2935] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:29:38:2938] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:29:39:2939] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:39:2939] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:29:39:2939] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:29:35:2935] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:29:35:2935] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:29:35:2935] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:29:35:2935] info: │  📄 Loaded: .env.development
+[2026-04-16 12:29:35:2935] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:29:35:2935] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:29:35:2935] info: │  📊 Log level: debug
+[2026-04-16 12:29:35:2935] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:29:35:2935] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:29:38:2938] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:29:39:2939] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:39:2939] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:29:39:2939] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:29:39:2939] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:29:39:2939] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:29:39:2939] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:29:39:2939] info: 🚀 Server is running on port 3000
+[2026-04-16 12:29:39:2939] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:39:2939] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:29:39:2939] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:29:39:2939] info: 🚀 Server is running on port 3000
+[2026-04-16 12:29:39:2939] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:39:2939] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:29:42:2942] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.311 ms
+[2026-04-16 12:29:47:2947] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:29:47:2947] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:29:47:2947] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:29:47:2947] info: │  📄 Loaded: .env.development
+[2026-04-16 12:29:47:2947] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:29:47:2947] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:29:47:2947] info: │  📊 Log level: debug
+[2026-04-16 12:29:47:2947] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:29:47:2947] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:29:50:2950] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:29:51:2951] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:51:2951] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:29:51:2951] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:29:47:2947] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:29:47:2947] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:29:47:2947] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:29:47:2947] info: │  📄 Loaded: .env.development
+[2026-04-16 12:29:47:2947] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:29:47:2947] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:29:47:2947] info: │  📊 Log level: debug
+[2026-04-16 12:29:47:2947] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:29:47:2947] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:29:50:2950] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:29:51:2951] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:51:2951] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:29:51:2951] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:29:51:2951] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:29:51:2951] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:29:51:2951] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:29:51:2951] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:29:51:2951] info: 🚀 Server is running on port 3000
+[2026-04-16 12:29:51:2951] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:51:2951] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:29:51:2951] info: 🚀 Server is running on port 3000
+[2026-04-16 12:29:51:2951] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:29:51:2951] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:29:54:2954] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:29:54:2954] http: GET /api/patients/PAT_001/documents 404 111 bytes - 12.321 ms
+[2026-04-16 12:30:42:3042] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.201 ms
+[2026-04-16 12:30:50:3050] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:30:50:3050] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:30:50:3050] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:30:50:3050] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:30:50:3050] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:30:50:3050] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:30:50:3050] info: │  📄 Loaded: .env.development
+[2026-04-16 12:30:50:3050] info: │  📄 Loaded: .env.development
+[2026-04-16 12:30:50:3050] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:30:50:3050] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:30:50:3050] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:30:50:3050] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:30:50:3050] info: │  📊 Log level: debug
+[2026-04-16 12:30:50:3050] info: │  📊 Log level: debug
+[2026-04-16 12:30:50:3050] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:30:50:3050] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:30:50:3050] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:30:50:3050] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:30:54:3054] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:30:54:3054] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:30:56:3056] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:30:56:3056] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:30:56:3056] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:30:56:3056] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:30:56:3056] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:30:56:3056] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:30:56:3056] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:30:56:3056] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:30:56:3056] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:30:56:3056] info: 🚀 Server is running on port 3000
+[2026-04-16 12:30:56:3056] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:30:56:3056] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:30:56:3056] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:30:56:3056] info: 🚀 Server is running on port 3000
+[2026-04-16 12:30:56:3056] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:30:56:3056] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:30:58:3058] warn: [AppError] DOC_003 - Không tìm thấy hồ sơ bệnh nhân được chỉ định.
+[2026-04-16 12:30:58:3058] http: GET /api/patients/PAT_001/documents 404 111 bytes - 19.063 ms
+[2026-04-16 12:31:16:3116] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:31:16:3116] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:31:16:3116] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:31:16:3116] info: │  📄 Loaded: .env.development
+[2026-04-16 12:31:16:3116] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:31:16:3116] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:31:16:3116] info: │  📊 Log level: debug
+[2026-04-16 12:31:16:3116] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:31:16:3116] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:31:19:3119] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:31:20:3120] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:20:3120] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:31:20:3120] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:31:16:3116] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:31:16:3116] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:31:16:3116] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:31:16:3116] info: │  📄 Loaded: .env.development
+[2026-04-16 12:31:16:3116] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:31:16:3116] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:31:16:3116] info: │  📊 Log level: debug
+[2026-04-16 12:31:16:3116] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:31:16:3116] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:31:19:3119] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:31:20:3120] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:20:3120] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:31:20:3120] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:31:20:3120] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:31:20:3120] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:31:21:3121] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:31:21:3121] info: 🚀 Server is running on port 3000
+[2026-04-16 12:31:21:3121] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:21:3121] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:31:21:3121] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:31:21:3121] info: 🚀 Server is running on port 3000
+[2026-04-16 12:31:21:3121] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:21:3121] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:31:21:3121] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 17.078 ms
+[2026-04-16 12:31:21:3121] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 10.423 ms
+[2026-04-16 12:31:23:3123] http: GET /api/patients/PAT_001 304 - bytes - 25.231 ms
+[2026-04-16 12:31:23:3123] http: GET /api/patients/PAT_001 304 - bytes - 20.566 ms
+[2026-04-16 12:31:24:3124] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:31:24:3124] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:31:24:3124] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:31:24:3124] info: │  📄 Loaded: .env.development
+[2026-04-16 12:31:24:3124] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:31:24:3124] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:31:24:3124] info: │  📊 Log level: debug
+[2026-04-16 12:31:24:3124] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:31:24:3124] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:31:27:3127] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:31:28:3128] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:28:3128] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:31:28:3128] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:31:24:3124] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:31:24:3124] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:31:24:3124] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:31:24:3124] info: │  📄 Loaded: .env.development
+[2026-04-16 12:31:24:3124] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:31:24:3124] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:31:24:3124] info: │  📊 Log level: debug
+[2026-04-16 12:31:24:3124] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:31:24:3124] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:31:27:3127] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:31:28:3128] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:28:3128] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:31:28:3128] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:31:28:3128] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:31:28:3128] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:31:28:3128] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:31:28:3128] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:31:28:3128] info: 🚀 Server is running on port 3000
+[2026-04-16 12:31:28:3128] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:28:3128] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:31:28:3128] info: 🚀 Server is running on port 3000
+[2026-04-16 12:31:28:3128] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:28:3128] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:31:28:3128] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 15.038 ms
+[2026-04-16 12:31:28:3128] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 8.762 ms
+[2026-04-16 12:31:30:3130] http: GET /api/patients/PAT_001 304 - bytes - 21.726 ms
+[2026-04-16 12:31:30:3130] http: GET /api/patients/PAT_001 304 - bytes - 21.388 ms
+[2026-04-16 12:31:30:3130] warn: [404] GET /api/patients/PAT_001/documents — Endpoint không tồn tại
+[2026-04-16 12:31:30:3130] http: GET /api/patients/PAT_001/documents 404 130 bytes - 1.967 ms
+[2026-04-16 12:31:30:3130] warn: [404] GET /api/patients/PAT_001/documents — Endpoint không tồn tại
+[2026-04-16 12:31:30:3130] http: GET /api/patients/PAT_001/documents 404 130 bytes - 1.123 ms
+[2026-04-16 12:31:30:3130] http: GET /api/document-types 304 - bytes - 26.896 ms
+[2026-04-16 12:31:30:3130] http: GET /api/document-types 304 - bytes - 21.811 ms
+[2026-04-16 12:31:32:3132] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 8.963 ms
+[2026-04-16 12:31:32:3132] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 8.864 ms
+[2026-04-16 12:31:34:3134] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 9.862 ms
+[2026-04-16 12:31:34:3134] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 6.978 ms
+[2026-04-16 12:31:34:3134] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.651 ms
+[2026-04-16 12:31:34:3134] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.012 ms
+[2026-04-16 12:31:46:3146] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:31:46:3146] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:31:46:3146] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:31:46:3146] info: │  📄 Loaded: .env.development
+[2026-04-16 12:31:46:3146] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:31:46:3146] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:31:46:3146] info: │  📊 Log level: debug
+[2026-04-16 12:31:46:3146] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:31:46:3146] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:31:50:3150] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:31:51:3151] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:51:3151] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:31:51:3151] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:31:46:3146] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:31:46:3146] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:31:46:3146] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:31:46:3146] info: │  📄 Loaded: .env.development
+[2026-04-16 12:31:46:3146] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:31:46:3146] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:31:46:3146] info: │  📊 Log level: debug
+[2026-04-16 12:31:46:3146] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:31:46:3146] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:31:50:3150] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:31:51:3151] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:51:3151] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:31:51:3151] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:31:51:3151] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:31:51:3151] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:31:51:3151] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:31:51:3151] info: 🚀 Server is running on port 3000
+[2026-04-16 12:31:51:3151] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:51:3151] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:31:51:3151] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:31:51:3151] info: 🚀 Server is running on port 3000
+[2026-04-16 12:31:51:3151] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:31:51:3151] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:32:16:3216] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:32:16:3216] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:32:16:3216] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:32:16:3216] info: │  📄 Loaded: .env.development
+[2026-04-16 12:32:16:3216] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:32:16:3216] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:32:16:3216] info: │  📊 Log level: debug
+[2026-04-16 12:32:16:3216] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:32:16:3216] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:32:20:3220] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:32:21:3221] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:21:3221] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:32:21:3221] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:32:21:3221] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:32:16:3216] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:32:16:3216] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:32:16:3216] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:32:16:3216] info: │  📄 Loaded: .env.development
+[2026-04-16 12:32:16:3216] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:32:16:3216] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:32:16:3216] info: │  📊 Log level: debug
+[2026-04-16 12:32:16:3216] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:32:16:3216] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:32:20:3220] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:32:21:3221] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:21:3221] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:32:21:3221] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:32:21:3221] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:32:21:3221] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:32:21:3221] info: 🚀 Server is running on port 3000
+[2026-04-16 12:32:21:3221] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:21:3221] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:32:21:3221] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:32:21:3221] info: 🚀 Server is running on port 3000
+[2026-04-16 12:32:21:3221] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:21:3221] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:32:25:3225] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:32:25:3225] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:32:25:3225] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:32:25:3225] info: │  📄 Loaded: .env.development
+[2026-04-16 12:32:25:3225] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:32:25:3225] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:32:25:3225] info: │  📊 Log level: debug
+[2026-04-16 12:32:25:3225] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:32:25:3225] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:32:28:3228] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:32:29:3229] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:29:3229] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:32:29:3229] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:32:25:3225] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 12:32:25:3225] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 12:32:25:3225] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 12:32:25:3225] info: │  📄 Loaded: .env.development
+[2026-04-16 12:32:25:3225] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 12:32:25:3225] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 12:32:25:3225] info: │  📊 Log level: debug
+[2026-04-16 12:32:25:3225] info: │  💳 SePay: PRODUCTION
+[2026-04-16 12:32:25:3225] info: └──────────────────────────────────────────────┘
+[2026-04-16 12:32:28:3228] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 12:32:29:3229] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:29:3229] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 12:32:29:3229] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 12:32:29:3229] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:32:29:3229] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 12:32:29:3229] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:32:29:3229] info: 🚀 Server is running on port 3000
+[2026-04-16 12:32:29:3229] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:29:3229] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:32:29:3229] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 12:32:29:3229] info: 🚀 Server is running on port 3000
+[2026-04-16 12:32:29:3229] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 12:32:29:3229] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 12:32:34:3234] http: GET /api/patients 401 100 bytes - 2.588 ms
+[2026-04-16 12:32:34:3234] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.746 ms
+[2026-04-16 12:33:34:3334] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 66.302 ms
+[2026-04-16 12:34:34:3434] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.993 ms
+[2026-04-16 12:35:34:3534] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 82.582 ms
+[2026-04-16 12:36:34:3634] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 159.691 ms
+[2026-04-16 12:37:34:3734] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 74.780 ms
+[2026-04-16 12:38:46:3846] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.797 ms
+[2026-04-16 12:39:39:3939] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 66.308 ms
+[2026-04-16 12:40:34:4034] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.105 ms
+[2026-04-16 12:41:20:4120] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 45.307 ms
+[2026-04-16 12:41:20:4120] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 44.776 ms
+[2026-04-16 12:41:20:4120] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 11.708 ms
+[2026-04-16 12:41:21:4121] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 228.080 ms
+[2026-04-16 12:41:22:4122] http: GET /api/patients/PAT_001 304 - bytes - 22.183 ms
+[2026-04-16 12:41:22:4122] http: GET /api/patients/PAT_001 304 - bytes - 35.485 ms
+[2026-04-16 12:41:23:4123] http: GET /api/document-types 304 - bytes - 35.444 ms
+[2026-04-16 12:41:23:4123] http: GET /api/patients/PAT_001/documents 200 635 bytes - 46.847 ms
+[2026-04-16 12:41:23:4123] http: GET /api/document-types 304 - bytes - 20.943 ms
+[2026-04-16 12:41:23:4123] http: GET /api/patients/PAT_001/documents 304 - bytes - 37.649 ms
+[2026-04-16 12:42:21:4221] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.814 ms
+[2026-04-16 12:42:40:4240] http: POST /api/patients/PAT_001/documents 201 628 bytes - 1977.796 ms
+[2026-04-16 12:42:40:4240] http: GET /api/patients/PAT_001/documents 200 1195 bytes - 66.961 ms
+[2026-04-16 12:42:46:4246] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 11.170 ms
+[2026-04-16 12:42:46:4246] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 7.201 ms
+[2026-04-16 12:42:53:4253] http: GET /api/medical-records/by-patient/USR_PAT_121 304 - bytes - 31.802 ms
+[2026-04-16 12:42:53:4253] http: GET /api/medical-records/by-patient/USR_PAT_121 304 - bytes - 34.334 ms
+[2026-04-16 12:43:00:430] http: GET /api/medical-records/by-patient/USR_PAT_121 304 - bytes - 38.482 ms
+[2026-04-16 12:43:01:431] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 134.513 ms
+[2026-04-16 12:43:01:431] http: GET /api/medical-records/by-patient/USR_PAT_121 304 - bytes - 159.188 ms
+[2026-04-16 12:43:01:431] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 118.599 ms
+[2026-04-16 12:43:03:433] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:43:03:433] http: GET /api/ehr/patients/USR_PAT_121/timeline 500 116 bytes - 29.856 ms
+[2026-04-16 12:43:04:434] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:43:04:434] http: GET /api/ehr/patients/USR_PAT_121/timeline 500 116 bytes - 37.094 ms
+[2026-04-16 12:43:05:435] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:43:05:435] http: GET /api/ehr/patients/USR_PAT_121/timeline 500 116 bytes - 20.692 ms
+[2026-04-16 12:43:06:436] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:43:06:436] http: GET /api/ehr/patients/USR_PAT_121/timeline 500 116 bytes - 78.647 ms
+[2026-04-16 12:44:01:441] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.136 ms
+[2026-04-16 12:44:01:441] http: POST /api/auth/refresh-token 200 605 bytes - 24.541 ms
+[2026-04-16 12:44:01:441] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.661 ms
+[2026-04-16 12:45:01:451] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.023 ms
+[2026-04-16 12:46:01:461] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 51.202 ms
+[2026-04-16 12:47:01:471] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 67.370 ms
+[2026-04-16 12:47:26:4726] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.226 ms
+[2026-04-16 12:47:26:4726] http: GET /api/medical-records/by-patient/USR_PAT_121 304 - bytes - 60.297 ms
+[2026-04-16 12:47:26:4726] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.604 ms
+[2026-04-16 12:47:26:4726] http: GET /api/medical-records/by-patient/USR_PAT_121 304 - bytes - 26.416 ms
+[2026-04-16 12:48:27:4827] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.881 ms
+[2026-04-16 12:49:04:494] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:49:04:494] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 36.299 ms
+[2026-04-16 12:49:04:494] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:49:04:494] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 20.524 ms
+[2026-04-16 12:49:04:494] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:49:04:494] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 78.784 ms
+[2026-04-16 12:49:04:494] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:49:04:494] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 85.609 ms
+[2026-04-16 12:49:04:494] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:49:04:494] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 29.335 ms
+[2026-04-16 12:49:04:494] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:49:04:494] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 31.227 ms
+[2026-04-16 12:49:26:4926] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 43.655 ms
+[2026-04-16 12:50:25:5025] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:50:25:5025] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 21.964 ms
+[2026-04-16 12:50:25:5025] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:50:25:5025] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 35.825 ms
+[2026-04-16 12:50:25:5025] http: GET /api/patient/profiles 200 701 bytes - 26.051 ms
+[2026-04-16 12:50:25:5025] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:50:25:5025] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 26.070 ms
+[2026-04-16 12:50:25:5025] http: GET /api/patient/profiles 304 - bytes - 31.359 ms
+[2026-04-16 12:50:25:5025] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:50:25:5025] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 83.136 ms
+[2026-04-16 12:50:25:5025] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:50:25:5025] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 72.043 ms
+[2026-04-16 12:50:25:5025] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:50:25:5025] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 22.453 ms
+[2026-04-16 12:50:26:5026] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.165 ms
+[2026-04-16 12:51:26:5126] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.374 ms
+[2026-04-16 12:52:26:5226] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.346 ms
+[2026-04-16 12:52:52:5252] http: GET /api/patient/profiles 304 - bytes - 22.407 ms
+[2026-04-16 12:52:52:5252] http: GET /api/patient/profiles 304 - bytes - 22.396 ms
+[2026-04-16 12:52:52:5252] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 56.421 ms
+[2026-04-16 12:52:55:5255] http: GET /api/patient/profiles 304 - bytes - 22.448 ms
+[2026-04-16 12:52:55:5255] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.306 ms
+[2026-04-16 12:52:55:5255] http: GET /api/patient/profiles 304 - bytes - 21.176 ms
+[2026-04-16 12:52:55:5255] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.631 ms
+[2026-04-16 12:52:55:5255] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 35.107 ms
+[2026-04-16 12:53:54:5354] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:53:54:5354] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 54.431 ms
+[2026-04-16 12:53:54:5354] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:53:54:5354] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 54.586 ms
+[2026-04-16 12:53:54:5354] http: GET /api/patient/profiles 304 - bytes - 53.899 ms
+[2026-04-16 12:53:54:5354] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:53:54:5354] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 64.046 ms
+[2026-04-16 12:53:54:5354] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:53:54:5354] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 22.143 ms
+[2026-04-16 12:53:54:5354] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:53:54:5354] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 23.978 ms
+[2026-04-16 12:53:54:5354] http: GET /api/patient/profiles 304 - bytes - 29.287 ms
+[2026-04-16 12:53:54:5354] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 12:53:54:5354] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 25.280 ms
+[2026-04-16 12:53:55:5355] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.401 ms
+[2026-04-16 12:53:58:5358] http: GET /api/billing/invoices?limit=50 403 116 bytes - 2.097 ms
+[2026-04-16 12:53:58:5358] http: GET /api/billing/invoices?limit=50 403 116 bytes - 2.979 ms
+[2026-04-16 12:53:58:5358] http: GET /api/billing/pricing/catalog 200 5793 bytes - 15.730 ms
+[2026-04-16 12:53:58:5358] http: GET /api/billing/pricing/catalog 304 - bytes - 13.464 ms
+[2026-04-16 12:53:58:5358] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 8.289 ms
+[2026-04-16 12:53:58:5358] http: GET /api/patients/account/USR_PAT_121 304 - bytes - 7.773 ms
+[2026-04-16 12:54:00:540] http: GET /api/patient/profiles 304 - bytes - 21.784 ms
+[2026-04-16 12:54:00:540] http: GET /api/patient/profiles 304 - bytes - 24.572 ms
+[2026-04-16 12:54:00:540] http: GET /api/appointments/my-appointments?patient_id=PAT_001&status=PENDING,CONFIRMED&limit=50 304 - bytes - 47.503 ms
+[2026-04-16 12:54:55:5455] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.107 ms
+[2026-04-16 12:55:04:554] http: GET /api/patient/profiles 304 - bytes - 22.239 ms
+[2026-04-16 12:55:04:554] http: GET /api/patient/profiles 304 - bytes - 21.252 ms
+[2026-04-16 12:55:04:554] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.541 ms
+[2026-04-16 12:55:09:559] http: GET /api/patient/profiles 304 - bytes - 23.218 ms
+[2026-04-16 12:55:09:559] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.226 ms
+[2026-04-16 12:55:09:559] http: GET /api/patient/profiles 304 - bytes - 27.193 ms
+[2026-04-16 12:55:09:559] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.985 ms
+[2026-04-16 12:55:09:559] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 55.093 ms
+[2026-04-16 12:56:09:569] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.820 ms
+[2026-04-16 12:57:09:579] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.697 ms
+[2026-04-16 12:57:21:5721] http: GET /api/medical-records/by-patient/1 401 100 bytes - 0.259 ms
+[2026-04-16 12:58:09:589] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.412 ms
+[2026-04-16 12:59:09:599] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.291 ms
+[2026-04-16 12:59:11:5911] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 51.997 ms
+[2026-04-16 12:59:11:5911] http: GET /api/patient/profiles 304 - bytes - 53.570 ms
+[2026-04-16 12:59:11:5911] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.024 ms
+[2026-04-16 12:59:11:5911] http: GET /api/patient/profiles 304 - bytes - 23.087 ms
+[2026-04-16 12:59:11:5911] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 21.963 ms
+[2026-04-16 13:00:11:011] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.785 ms
+[2026-04-16 13:01:11:111] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.889 ms
+[2026-04-16 13:02:11:211] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.844 ms
+[2026-04-16 13:02:13:213] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.913 ms
+[2026-04-16 13:02:13:213] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.206 ms
+[2026-04-16 13:02:13:213] http: GET /api/patient/profiles 304 - bytes - 50.817 ms
+[2026-04-16 13:02:13:213] http: GET /api/patient/profiles 304 - bytes - 20.672 ms
+[2026-04-16 13:02:13:213] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 21.463 ms
+[2026-04-16 13:02:21:221] http: GET /api/medical-records/ENC_260328_e6749111 200 1295 bytes - 79.005 ms
+[2026-04-16 13:02:21:221] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 34.829 ms
+[2026-04-16 13:02:23:223] http: GET /api/patient/profiles 304 - bytes - 22.472 ms
+[2026-04-16 13:02:23:223] http: GET /api/patient/profiles 304 - bytes - 20.977 ms
+[2026-04-16 13:02:23:223] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 21.974 ms
+[2026-04-16 13:02:24:224] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 35.370 ms
+[2026-04-16 13:02:24:224] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 37.280 ms
+[2026-04-16 13:02:29:229] http: GET /api/patient/profiles 304 - bytes - 22.028 ms
+[2026-04-16 13:02:29:229] http: GET /api/patient/profiles 304 - bytes - 25.082 ms
+[2026-04-16 13:02:29:229] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 19.375 ms
+[2026-04-16 13:02:41:241] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 31.281 ms
+[2026-04-16 13:02:41:241] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 29.831 ms
+[2026-04-16 13:02:43:243] http: GET /api/patient/profiles 304 - bytes - 22.741 ms
+[2026-04-16 13:02:43:243] http: GET /api/patient/profiles 304 - bytes - 20.828 ms
+[2026-04-16 13:02:43:243] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.695 ms
+[2026-04-16 13:02:44:244] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 32.311 ms
+[2026-04-16 13:02:44:244] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 33.373 ms
+[2026-04-16 13:02:48:248] http: GET /api/patient/profiles 304 - bytes - 18.939 ms
+[2026-04-16 13:02:48:248] http: GET /api/patient/profiles 304 - bytes - 19.002 ms
+[2026-04-16 13:02:48:248] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 21.024 ms
+[2026-04-16 13:02:50:250] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.425 ms
+[2026-04-16 13:02:50:250] http: GET /api/ehr/patients/PAT_001/timeline 304 - bytes - 37.603 ms
+[2026-04-16 13:02:50:250] http: GET /api/ehr/patients/PAT_001/timeline 304 - bytes - 34.625 ms
+[2026-04-16 13:02:52:252] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.616 ms
+[2026-04-16 13:03:00:30] http: GET /api/patient/profiles 304 - bytes - 19.182 ms
+[2026-04-16 13:03:00:30] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.240 ms
+[2026-04-16 13:03:00:30] http: GET /api/patient/profiles 304 - bytes - 22.073 ms
+[2026-04-16 13:03:00:30] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.396 ms
+[2026-04-16 13:03:00:30] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.876 ms
+[2026-04-16 13:03:12:312] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 30.597 ms
+[2026-04-16 13:03:12:312] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 29.790 ms
+[2026-04-16 13:03:13:313] http: GET /api/patient/profiles 304 - bytes - 21.590 ms
+[2026-04-16 13:03:13:313] http: GET /api/patient/profiles 304 - bytes - 20.908 ms
+[2026-04-16 13:03:13:313] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 22.076 ms
+[2026-04-16 13:03:20:320] http: GET /api/patient/profiles 304 - bytes - 21.700 ms
+[2026-04-16 13:03:20:320] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 48.072 ms
+[2026-04-16 13:03:20:320] http: GET /api/patient/profiles 304 - bytes - 30.656 ms
+[2026-04-16 13:03:20:320] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 45.492 ms
+[2026-04-16 13:03:20:320] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 23.477 ms
+[2026-04-16 13:04:20:420] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.727 ms
+[2026-04-16 13:05:20:520] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 73.239 ms
+[2026-04-16 13:06:08:68] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.313 ms
+[2026-04-16 13:06:08:68] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.540 ms
+[2026-04-16 13:06:08:68] http: GET /api/patient/profiles 304 - bytes - 53.027 ms
+[2026-04-16 13:06:08:68] http: GET /api/patient/profiles 304 - bytes - 20.915 ms
+[2026-04-16 13:06:08:68] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 26.652 ms
+[2026-04-16 13:07:08:78] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.820 ms
+[2026-04-16 13:08:08:88] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 79.902 ms
+[2026-04-16 13:09:08:98] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 101.615 ms
+[2026-04-16 13:10:08:108] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.660 ms
+[2026-04-16 13:11:08:118] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.620 ms
+[2026-04-16 13:12:08:128] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.976 ms
+[2026-04-16 13:13:46:1346] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 60.201 ms
+[2026-04-16 13:14:46:1446] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 0.984 ms
+[2026-04-16 13:14:46:1446] http: POST /api/auth/refresh-token 200 605 bytes - 28.838 ms
+[2026-04-16 13:14:46:1446] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.991 ms
+[2026-04-16 13:15:46:1546] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 60.897 ms
+[2026-04-16 13:16:46:1646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.652 ms
+[2026-04-16 13:17:25:1725] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.206 ms
+[2026-04-16 13:18:31:1831] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.686 ms
+[2026-04-16 13:19:08:198] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 53.221 ms
+[2026-04-16 13:20:46:2046] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.664 ms
+[2026-04-16 13:21:46:2146] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 67.626 ms
+[2026-04-16 13:22:46:2246] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.460 ms
+[2026-04-16 13:23:46:2346] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 112.161 ms
+[2026-04-16 13:24:46:2446] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.817 ms
+[2026-04-16 13:25:00:250] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:25:00:250] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:25:00:250] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:25:00:250] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:25:46:2546] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 71.585 ms
+[2026-04-16 13:26:46:2646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.036 ms
+[2026-04-16 13:27:46:2746] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 64.416 ms
+[2026-04-16 13:28:46:2846] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.306 ms
+[2026-04-16 13:29:46:2946] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 76.636 ms
+[2026-04-16 13:30:00:300] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:30:00:300] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:30:00:300] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:30:00:300] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:30:46:3046] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 54.694 ms
+[2026-04-16 13:31:46:3146] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 67.967 ms
+[2026-04-16 13:32:46:3246] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.078 ms
+[2026-04-16 13:33:46:3346] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 67.427 ms
+[2026-04-16 13:34:46:3446] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.387 ms
+[2026-04-16 13:35:00:350] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:35:00:350] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:35:00:350] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:35:00:350] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:35:46:3546] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 69.825 ms
+[2026-04-16 13:36:46:3646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.071 ms
+[2026-04-16 13:37:09:379] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.968 ms
+[2026-04-16 13:37:11:3711] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.638 ms
+[2026-04-16 13:37:11:3711] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.712 ms
+[2026-04-16 13:37:11:3711] http: GET /api/patient/profiles 304 - bytes - 51.776 ms
+[2026-04-16 13:37:11:3711] http: GET /api/patient/profiles 304 - bytes - 21.045 ms
+[2026-04-16 13:37:11:3711] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 23.260 ms
+[2026-04-16 13:37:15:3715] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 64.598 ms
+[2026-04-16 13:37:15:3715] http: GET /api/medical-records/ENC_260328_e6749111 304 - bytes - 33.340 ms
+[2026-04-16 13:37:16:3716] http: GET /api/patient/profiles 304 - bytes - 21.871 ms
+[2026-04-16 13:37:16:3716] http: GET /api/patient/profiles 304 - bytes - 20.977 ms
+[2026-04-16 13:37:16:3716] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.869 ms
+[2026-04-16 13:37:27:3727] http: GET /api/patient/profiles 304 - bytes - 19.843 ms
+[2026-04-16 13:37:27:3727] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.312 ms
+[2026-04-16 13:37:27:3727] http: GET /api/patient/profiles 304 - bytes - 23.665 ms
+[2026-04-16 13:37:27:3727] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.502 ms
+[2026-04-16 13:37:27:3727] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 21.569 ms
+[2026-04-16 13:38:27:3827] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.555 ms
+[2026-04-16 13:39:27:3927] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.873 ms
+[2026-04-16 13:40:00:400] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:40:00:400] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:40:00:400] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:40:00:400] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:40:27:4027] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.214 ms
+[2026-04-16 13:41:27:4127] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.010 ms
+[2026-04-16 13:42:27:4227] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.822 ms
+[2026-04-16 13:43:27:4327] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 49.397 ms
+[2026-04-16 13:44:46:4446] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.090 ms
+[2026-04-16 13:44:46:4446] http: POST /api/auth/refresh-token 200 605 bytes - 26.894 ms
+[2026-04-16 13:44:46:4446] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.363 ms
+[2026-04-16 13:45:00:450] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:45:00:450] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:45:00:450] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:45:00:450] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:45:46:4546] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 142.952 ms
+[2026-04-16 13:46:46:4646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.935 ms
+[2026-04-16 13:47:46:4746] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.377 ms
+[2026-04-16 13:48:46:4846] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.663 ms
+[2026-04-16 13:49:46:4946] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 73.111 ms
+[2026-04-16 13:50:00:500] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:50:00:500] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:50:00:500] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:50:00:500] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:50:46:5046] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.560 ms
+[2026-04-16 13:51:46:5146] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 73.929 ms
+[2026-04-16 13:52:46:5246] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.045 ms
+[2026-04-16 13:53:46:5346] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.027 ms
+[2026-04-16 13:54:46:5446] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.327 ms
+[2026-04-16 13:55:00:550] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:55:00:550] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 13:55:00:550] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:55:00:550] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 13:55:46:5546] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 66.185 ms
+[2026-04-16 13:56:46:5646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.111 ms
+[2026-04-16 13:57:46:5746] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 74.761 ms
+[2026-04-16 13:58:46:5846] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 90.443 ms
+[2026-04-16 13:59:46:5946] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 70.442 ms
+[2026-04-16 14:00:00:00] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 14:00:00:00] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-16 14:00:00:00] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 14:00:00:00] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-16 14:00:46:046] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.078 ms
+[2026-04-16 14:01:46:146] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 65.240 ms
+[2026-04-16 14:02:29:229] warn: [NOTIFICATION] Template không tìm thấy hoặc không active: APPOINTMENT_NO_SHOW — bỏ qua gửi thông báo.
+[2026-04-16 14:02:29:229] info: ✅ [AUTO-NOSHOW] Đã đánh dấu 1 lịch khám No-Show.
+[2026-04-16 14:02:29:229] info: ✅ [CRON] No-Show Detection: Đã đánh dấu 1 lịch khám No-Show.
+[2026-04-16 14:02:39:239] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.551 ms
+[2026-04-16 14:02:41:241] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 42.170 ms
+[2026-04-16 14:02:41:241] http: GET /api/patient/profiles 304 - bytes - 24.541 ms
+[2026-04-16 14:02:41:241] http: GET /api/patient/profiles 304 - bytes - 20.843 ms
+[2026-04-16 14:02:41:241] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.461 ms
+[2026-04-16 14:02:41:241] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 24.290 ms
+[2026-04-16 14:03:41:341] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 71.071 ms
+[2026-04-16 14:04:09:49] http: PUT /api/notifications/inbox/undefined/read 200 59 bytes - 21.462 ms
+[2026-04-16 14:04:09:49] http: PUT /api/notifications/inbox/undefined/read 200 59 bytes - 20.352 ms
+[2026-04-16 14:04:11:411] http: PUT /api/notifications/inbox/undefined/read 200 59 bytes - 19.976 ms
+[2026-04-16 14:04:14:414] http: PUT /api/notifications/inbox/undefined/read 200 59 bytes - 18.011 ms
+[2026-04-16 14:04:14:414] warn: [404] PATCH /api/notifications/inbox/read-all — Endpoint không tồn tại
+[2026-04-16 14:04:14:414] http: PATCH /api/notifications/inbox/read-all 404 132 bytes - 12.031 ms
+[2026-04-16 14:04:14:414] http: PUT /api/notifications/inbox/read-all 200 78 bytes - 28.064 ms
+[2026-04-16 14:04:19:419] http: GET /api/notifications/inbox?page=1&limit=10 200 7357 bytes - 36.801 ms
+[2026-04-16 14:04:19:419] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.345 ms
+[2026-04-16 14:04:19:419] http: GET /api/patient/profiles 304 - bytes - 57.823 ms
+[2026-04-16 14:04:19:419] http: GET /api/patient/profiles 304 - bytes - 19.622 ms
+[2026-04-16 14:04:19:419] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 23.229 ms
+[2026-04-16 14:05:19:519] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.932 ms
+[2026-04-16 14:06:19:619] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 85.290 ms
+[2026-04-16 14:07:19:719] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.204 ms
+[2026-04-16 14:08:19:819] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.845 ms
+[2026-04-16 14:08:53:853] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.830 ms
+[2026-04-16 14:08:53:853] http: GET /api/patient/profiles 304 - bytes - 51.941 ms
+[2026-04-16 14:08:53:853] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.285 ms
+[2026-04-16 14:08:53:853] http: GET /api/patient/profiles 304 - bytes - 24.642 ms
+[2026-04-16 14:08:53:853] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 24.349 ms
+[2026-04-16 14:09:27:927] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.743 ms
+[2026-04-16 14:09:27:927] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.986 ms
+[2026-04-16 14:09:27:927] http: GET /api/patient/profiles 304 - bytes - 63.175 ms
+[2026-04-16 14:09:27:927] http: GET /api/patient/profiles 304 - bytes - 23.794 ms
+[2026-04-16 14:09:27:927] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 20.303 ms
+[2026-04-16 14:09:30:930] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 73.078 ms
+[2026-04-16 14:09:30:930] http: GET /api/medical-records/ENC_260316_a60a783f 304 - bytes - 45.978 ms
+[2026-04-16 14:09:35:935] http: GET /api/patient/profiles 304 - bytes - 21.430 ms
+[2026-04-16 14:09:35:935] http: GET /api/patient/profiles 304 - bytes - 20.124 ms
+[2026-04-16 14:09:35:935] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 19.791 ms
+[2026-04-16 14:09:41:941] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:41:941] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 19.190 ms
+[2026-04-16 14:09:41:941] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:41:941] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 23.123 ms
+[2026-04-16 14:09:41:941] http: GET /api/patient/profiles 304 - bytes - 21.192 ms
+[2026-04-16 14:09:41:941] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:41:941] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 24.001 ms
+[2026-04-16 14:09:41:941] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:41:941] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 25.948 ms
+[2026-04-16 14:09:41:941] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:41:941] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 21.047 ms
+[2026-04-16 14:09:41:941] http: GET /api/patient/profiles 304 - bytes - 23.572 ms
+[2026-04-16 14:09:41:941] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:41:941] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 26.407 ms
+[2026-04-16 14:09:43:943] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/profile Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:43:943] http: GET /api/ehr/patients/USR_PAT_121/profile 500 116 bytes - 23.578 ms
+[2026-04-16 14:09:43:943] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:43:943] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 22.532 ms
+[2026-04-16 14:09:43:943] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/current-medications Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:09:43:943] http: GET /api/ehr/patients/USR_PAT_121/current-medications 500 116 bytes - 25.482 ms
+[2026-04-16 14:10:03:103] http: GET /api/patient/profiles 304 - bytes - 19.537 ms
+[2026-04-16 14:10:03:103] http: GET /api/patient/profiles 304 - bytes - 21.075 ms
+[2026-04-16 14:10:03:103] http: GET /api/medical-records/by-patient/PAT_001 304 - bytes - 21.324 ms
+[2026-04-16 14:10:27:1027] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 134.813 ms
+[2026-04-16 14:11:27:1127] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.306 ms
+[2026-04-16 14:12:06:126] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:12:06:126] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:12:06:126] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:12:06:126] info: │  📄 Loaded: .env.development
+[2026-04-16 14:12:06:126] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:12:06:126] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:12:06:126] info: │  📊 Log level: debug
+[2026-04-16 14:12:06:126] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:12:06:126] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:12:06:126] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:12:06:126] info: 🔌 Đã đóng kết nối PostgreSQL Pool an toàn.
+[2026-04-16 14:12:27:1227] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.810 ms
+[2026-04-16 14:12:36:1236] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:12:36:1236] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:12:36:1236] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:12:36:1236] info: │  📄 Loaded: .env.development
+[2026-04-16 14:12:36:1236] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:12:36:1236] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:12:36:1236] info: │  📊 Log level: debug
+[2026-04-16 14:12:36:1236] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:12:36:1236] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:12:36:1236] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:12:36:1236] info: 🔌 Đã đóng kết nối PostgreSQL Pool an toàn.
+[2026-04-16 14:12:57:1257] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:12:57:1257] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:12:57:1257] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:12:57:1257] info: │  📄 Loaded: .env.development
+[2026-04-16 14:12:57:1257] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:12:57:1257] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:12:57:1257] info: │  📊 Log level: debug
+[2026-04-16 14:12:57:1257] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:12:57:1257] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:12:57:1257] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:12:57:1257] info: 🔌 Đã đóng kết nối PostgreSQL Pool an toàn.
+[2026-04-16 14:13:22:1322] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:13:22:1322] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:13:22:1322] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:13:22:1322] info: │  📄 Loaded: .env.development
+[2026-04-16 14:13:22:1322] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:13:22:1322] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:13:22:1322] info: │  📊 Log level: debug
+[2026-04-16 14:13:22:1322] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:13:22:1322] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:13:22:1322] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:13:22:1322] info: 🔌 Đã đóng kết nối PostgreSQL Pool an toàn.
+[2026-04-16 14:13:27:1327] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.231 ms
+[2026-04-16 14:14:13:1413] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:14:13:1413] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:14:13:1413] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:14:13:1413] info: │  📄 Loaded: .env.development
+[2026-04-16 14:14:13:1413] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:14:13:1413] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:14:13:1413] info: │  📊 Log level: debug
+[2026-04-16 14:14:13:1413] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:14:13:1413] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:14:16:1416] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 14:14:17:1417] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:17:1417] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 14:14:17:1417] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 14:14:13:1413] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:14:13:1413] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:14:13:1413] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:14:13:1413] info: │  📄 Loaded: .env.development
+[2026-04-16 14:14:13:1413] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:14:13:1413] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:14:13:1413] info: │  📊 Log level: debug
+[2026-04-16 14:14:13:1413] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:14:13:1413] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:14:16:1416] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 14:14:17:1417] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:17:1417] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 14:14:17:1417] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 14:14:17:1417] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:14:17:1417] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:14:17:1417] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 14:14:17:1417] info: 🚀 Server is running on port 3000
+[2026-04-16 14:14:17:1417] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:17:1417] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 14:14:17:1417] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 14:14:17:1417] info: 🚀 Server is running on port 3000
+[2026-04-16 14:14:17:1417] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:17:1417] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 14:14:27:1427] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 40.394 ms
+[2026-04-16 14:14:50:1450] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:14:50:1450] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:14:50:1450] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:14:50:1450] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:14:50:1450] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:14:50:1450] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:14:50:1450] info: │  📄 Loaded: .env.development
+[2026-04-16 14:14:50:1450] info: │  📄 Loaded: .env.development
+[2026-04-16 14:14:50:1450] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:14:50:1450] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:14:50:1450] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:14:50:1450] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:14:50:1450] info: │  📊 Log level: debug
+[2026-04-16 14:14:50:1450] info: │  📊 Log level: debug
+[2026-04-16 14:14:50:1450] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:14:50:1450] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:14:50:1450] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:14:50:1450] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:14:53:1453] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 14:14:53:1453] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 14:14:53:1453] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:53:1453] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:53:1453] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 14:14:53:1453] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 14:14:53:1453] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 14:14:53:1453] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 14:14:54:1454] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:14:54:1454] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:14:54:1454] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 14:14:54:1454] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 14:14:54:1454] info: 🚀 Server is running on port 3000
+[2026-04-16 14:14:54:1454] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:54:1454] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 14:14:54:1454] info: 🚀 Server is running on port 3000
+[2026-04-16 14:14:54:1454] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:14:54:1454] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 14:15:27:1527] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 4.416 ms
+[2026-04-16 14:15:27:1527] http: POST /api/auth/refresh-token 200 605 bytes - 28.441 ms
+[2026-04-16 14:15:27:1527] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.313 ms
+[2026-04-16 14:15:31:1531] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 114.770 ms
+[2026-04-16 14:15:31:1531] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:31:1531] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 120.404 ms
+[2026-04-16 14:15:31:1531] http: GET /api/patient/profiles 304 - bytes - 118.729 ms
+[2026-04-16 14:15:31:1531] http: GET /api/ehr/patients/USR_PAT_121/current-medications 200 945 bytes - 136.408 ms
+[2026-04-16 14:15:31:1531] http: GET /api/patient/profiles 304 - bytes - 26.292 ms
+[2026-04-16 14:15:31:1531] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:31:1531] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 30.903 ms
+[2026-04-16 14:15:31:1531] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 84.425 ms
+[2026-04-16 14:15:31:1531] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 61.941 ms
+[2026-04-16 14:15:32:1532] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:32:1532] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 20.434 ms
+[2026-04-16 14:15:32:1532] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 28.599 ms
+[2026-04-16 14:15:32:1532] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 54.147 ms
+[2026-04-16 14:15:37:1537] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 49.666 ms
+[2026-04-16 14:15:37:1537] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 51.967 ms
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 84.753 ms
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 76.544 ms
+[2026-04-16 14:15:37:1537] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 27.682 ms
+[2026-04-16 14:15:37:1537] http: GET /api/patient/profiles 304 - bytes - 31.167 ms
+[2026-04-16 14:15:37:1537] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 47.635 ms
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 35.745 ms
+[2026-04-16 14:15:37:1537] http: GET /api/patient/profiles 304 - bytes - 38.287 ms
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 55.516 ms
+[2026-04-16 14:15:37:1537] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 18.455 ms
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 32.266 ms
+[2026-04-16 14:15:37:1537] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 51.140 ms
+[2026-04-16 14:15:41:1541] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/vitals/latest Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:41:1541] http: GET /api/ehr/patients/USR_PAT_121/vitals/latest 500 116 bytes - 24.730 ms
+[2026-04-16 14:15:41:1541] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/vitals Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:41:1541] http: GET /api/ehr/patients/USR_PAT_121/vitals 500 116 bytes - 24.609 ms
+[2026-04-16 14:15:42:1542] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/medical-histories Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:42:1542] http: GET /api/ehr/patients/USR_PAT_121/medical-histories 500 116 bytes - 20.369 ms
+[2026-04-16 14:15:42:1542] http: GET /api/ehr/patients/USR_PAT_121/diagnosis-history 200 828 bytes - 32.626 ms
+[2026-04-16 14:15:42:1542] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/treatment-records Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:42:1542] http: GET /api/ehr/patients/USR_PAT_121/treatment-records 500 116 bytes - 21.304 ms
+[2026-04-16 14:15:44:1544] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:44:1544] http: GET /api/ehr/patients/USR_PAT_121/timeline 500 116 bytes - 22.230 ms
+[2026-04-16 14:15:45:1545] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/treatment-records Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:45:1545] http: GET /api/ehr/patients/USR_PAT_121/treatment-records 500 116 bytes - 21.130 ms
+[2026-04-16 14:15:46:1546] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/timeline Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:15:46:1546] http: GET /api/ehr/patients/USR_PAT_121/timeline 500 116 bytes - 40.576 ms
+[2026-04-16 14:16:37:1637] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 64.310 ms
+[2026-04-16 14:16:46:1646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.452 ms
+[2026-04-16 14:16:46:1646] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.605 ms
+[2026-04-16 14:16:47:1647] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 92.156 ms
+[2026-04-16 14:16:47:1647] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:16:47:1647] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 86.938 ms
+[2026-04-16 14:16:47:1647] http: GET /api/patient/profiles 304 - bytes - 81.219 ms
+[2026-04-16 14:16:47:1647] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 101.670 ms
+[2026-04-16 14:16:47:1647] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:16:47:1647] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 22.043 ms
+[2026-04-16 14:16:47:1647] http: GET /api/patient/profiles 304 - bytes - 20.447 ms
+[2026-04-16 14:16:47:1647] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 57.300 ms
+[2026-04-16 14:16:47:1647] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 43.929 ms
+[2026-04-16 14:16:48:1648] error: [UnhandledError] GET /api/ehr/patients/USR_PAT_121/allergies Bệnh nhân không tồn tại hoặc đã bị xóa
+[2026-04-16 14:16:48:1648] http: GET /api/ehr/patients/USR_PAT_121/allergies 500 116 bytes - 21.013 ms
+[2026-04-16 14:16:48:1648] http: GET /api/ehr/patients/USR_PAT_121/current-medications 304 - bytes - 29.561 ms
+[2026-04-16 14:16:48:1648] http: GET /api/ehr/patients/USR_PAT_121/profile 200 6998 bytes - 48.476 ms
+[2026-04-16 14:16:57:1657] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:16:57:1657] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:16:57:1657] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:16:57:1657] info: │  📄 Loaded: .env.development
+[2026-04-16 14:16:57:1657] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:16:57:1657] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:16:57:1657] info: │  📊 Log level: debug
+[2026-04-16 14:16:57:1657] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-16 14:16:57:1657] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:16:57:1657] info: ┌──────────────────────────────────────────────┐
+[2026-04-16 14:16:57:1657] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:16:57:1657] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-16 14:16:57:1657] info: │  📄 Loaded: .env.development
+[2026-04-16 14:16:57:1657] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-16 14:16:57:1657] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-16 14:17:00:170] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 14:17:01:171] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:16:57:1657] info: │  📊 Log level: debug
+[2026-04-16 14:17:01:171] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 14:16:57:1657] info: │  💳 SePay: PRODUCTION
+[2026-04-16 14:16:57:1657] info: └──────────────────────────────────────────────┘
+[2026-04-16 14:17:00:170] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-16 14:17:01:171] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:17:01:171] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-16 14:17:01:171] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 14:17:01:171] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-16 14:17:01:171] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:17:01:171] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-16 14:17:01:171] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 14:17:01:171] info: 🚀 Server is running on port 3000
+[2026-04-16 14:17:01:171] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:17:01:171] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-16 14:17:01:171] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-16 14:17:01:171] info: 🚀 Server is running on port 3000
+[2026-04-16 14:17:01:171] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-16 14:17:01:171] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).

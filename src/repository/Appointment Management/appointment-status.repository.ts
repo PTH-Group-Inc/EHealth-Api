@@ -13,7 +13,7 @@ export class AppointmentStatusRepository {
         const query = `
             SELECT COALESCE(MAX(queue_number), 0) + 1 AS next_queue
             FROM appointments
-            WHERE appointment_date = CURRENT_DATE
+            WHERE appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date
               AND queue_number IS NOT NULL;
         `;
         const result = await pool.query(query);
@@ -267,9 +267,9 @@ export class AppointmentStatusRepository {
             JOIN patients p ON a.patient_id = p.id::varchar
             JOIN appointment_slots sl ON a.slot_id = sl.slot_id
             WHERE a.status IN ('PENDING', 'CONFIRMED')
-              AND a.appointment_date = CURRENT_DATE
+              AND a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date
               AND sl.end_time IS NOT NULL
-              AND (a.appointment_date + sl.end_time::time + INTERVAL '1 minute' * $1)::timestamp < CURRENT_TIMESTAMP
+              AND (a.appointment_date + sl.end_time::time + INTERVAL '1 minute' * $1) < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')
             ORDER BY sl.start_time ASC;
         `;
         const result = await pool.query(query, [bufferMinutes]);
@@ -300,7 +300,7 @@ export class AppointmentStatusRepository {
             conditions.push(`a.appointment_date = $${paramIdx++}::date`);
             params.push(date);
         } else {
-            conditions.push(`a.appointment_date = CURRENT_DATE`);
+            conditions.push(`a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`);
         }
 
         if (branchId) {
@@ -322,7 +322,7 @@ export class AppointmentStatusRepository {
                 (
                     SELECT queue_number FROM appointments sub
                     LEFT JOIN medical_rooms smr ON sub.room_id = smr.medical_rooms_id
-                    WHERE sub.appointment_date = COALESCE(${date ? `$1::date` : `CURRENT_DATE`}, CURRENT_DATE)
+                    WHERE sub.appointment_date = COALESCE(${date ? `$1::date` : `(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`}, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date)
                       AND sub.status = 'CHECKED_IN'
                       ${branchId ? `AND smr.branch_id = '${branchId}'` : ''}
                     ORDER BY CASE sub.priority WHEN 'EMERGENCY' THEN 0 WHEN 'URGENT' THEN 1 ELSE 2 END, sub.queue_number ASC
@@ -362,7 +362,7 @@ export class AppointmentStatusRepository {
         status?: string;
         specialty_id?: string;
     }): Promise<any[]> {
-        const conditions: string[] = [`a.appointment_date = CURRENT_DATE`, `a.status IN ('CHECKED_IN', 'IN_PROGRESS')`];
+        const conditions: string[] = [`a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`, `a.status IN ('CHECKED_IN', 'IN_PROGRESS')`];
         const params: any[] = [];
         let paramIdx = 1;
 

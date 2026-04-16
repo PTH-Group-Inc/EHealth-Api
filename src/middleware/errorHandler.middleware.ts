@@ -57,6 +57,12 @@ function normalizeError(err: any): AppError | null {
         const details = err.errors?.map((e: any) => `${e.path.join('.')}: ${e.message}`).join('; ');
         return new AppError(422, 'VALIDATION_ERROR', `Dữ liệu không hợp lệ: ${details}`);
     }
+    if (err && typeof err === 'object' && !Array.isArray(err) && !(err instanceof AppError)) {
+        const statusCode = err.status || err.httpCode;
+        if (statusCode && err.code && err.message) {
+            return new AppError(statusCode, err.code, err.message);
+        }
+    }
 
     return null;
 }
