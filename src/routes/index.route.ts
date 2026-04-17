@@ -93,6 +93,7 @@ import billingReconciliationRoutes from './Billing/billing-reconciliation.routes
 import billingRefundRoutes from './Billing/billing-refund.routes';
 import billingPricingPolicyRoutes from './Billing/billing-pricing-policy.routes';
 import billingCashierAuthRoutes from './Billing/billing-cashier-auth.routes';
+import { reportsRoutes } from './Reports/reports.routes';
 import { teleConsultationTypeRoutes } from './Remote Consultation/tele-consultation-type.routes';
 import { teleBookingRoutes } from './Remote Consultation/tele-booking.routes';
 import { teleRoomRoutes } from './Remote Consultation/tele-room.routes';
@@ -368,6 +369,9 @@ export const initRoutes = (app: Express) => {
 
     // Module 9.9 – Quản lý phân quyền thu ngân
     app.use('/api/billing', billingCashierAuthRoutes);
+
+    // Admin reporting
+    app.use('/api/reports', reportsRoutes);
 
     // ═══ MODULE 8: KHÁM TỪ XA (REMOTE CONSULTATION) ═══
     // Module 8.1 – Quản lý hình thức khám từ xa
