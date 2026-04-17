@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuthenticatedRequest } from '../../middleware/authorizeRoles.middleware';
 import { ApiPermissionService } from '../../services/Core/api-permission.service';

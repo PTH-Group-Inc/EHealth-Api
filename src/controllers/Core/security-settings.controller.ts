@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler.util';
 import { SecuritySettingsService } from '../../services/Core/security-settings.service';
 import { UpdateSecurityConfigInput } from '../../models/Core/system-settings.model';
