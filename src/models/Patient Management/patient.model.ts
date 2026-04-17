@@ -2,6 +2,8 @@
  * Interface Types cho Module 2.1 - Quản lý hồ sơ bệnh nhân (Patient Profile)
  */
 
+import { AvatarImage } from '../Core/profile.model';
+
 /** Thông tin hồ sơ bệnh nhân */
 export interface Patient {
     id: string;
@@ -19,6 +21,7 @@ export interface Patient {
     ward_id: number | null;
     emergency_contact_name: string | null;
     emergency_contact_phone: string | null;
+    avatar_url?: AvatarImage[];
     status: string;
     created_at: string;
     updated_at: string;
