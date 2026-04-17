@@ -15,7 +15,7 @@ export const BRANCH_ERRORS = {
     BRANCH_CODE_EXISTS: {
         success: false,
         error_code: 'BRANCH_CODE_EXISTS',
-        message: 'Mã chi nhánh đã tồn tại trong hệ thống'
+        message: 'Mã chi nhánh đã tồn tại trong hệ thống.'
     },
     INVALID_FACILITY_ID: {
         success: false,
