@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { UserNotificationRepository } from '../../repository/Core/user-notification.repository';
 import { NotificationEngineService } from '../../services/Core/notification-engine.service';
 import { CustomNotificationInput } from '../../models/Core/notification.model';
@@ -7,8 +8,7 @@ export class UserNotificationController {
     /**
      * [USER] Xem hộp thư In-app cá nhân
      */
-    static async getMyInbox(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getMyInbox = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 20;
@@ -29,16 +29,12 @@ export class UserNotificationController {
                     totalPages: result.totalPages
                 }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * [USER] Đọc 1 thông báo
      */
-    static async markAsRead(req: Request, res: Response, next: NextFunction) {
-        try {
+    static markAsRead = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const id = req.params.id as string;
 
@@ -48,16 +44,12 @@ export class UserNotificationController {
                 success: true,
                 message: 'Đã đánh dấu đã đọc.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * [USER] Đọc tất cả thông báo
      */
-    static async markAllAsRead(req: Request, res: Response, next: NextFunction) {
-        try {
+    static markAllAsRead = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
 
             const updatedCount = await UserNotificationRepository.markAllAsRead(userId!);
@@ -66,16 +58,12 @@ export class UserNotificationController {
                 success: true,
                 message: `Đã đánh dấu ${updatedCount} thông báo là đã đọc.`
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * [ADMIN/SYSTEM] Broadcast/ Gửi thông báo thủ công bằng tay (Không cần trigger template)
      */
-    static async sendManualNotification(req: Request, res: Response, next: NextFunction) {
-        try {
+    static sendManualNotification = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data: CustomNotificationInput = req.body;
 
             const sentCount = await NotificationEngineService.sendCustomNotification(data);
@@ -85,8 +73,5 @@ export class UserNotificationController {
                 message: `Đã gửi thông báo thành công cho ${sentCount} người dùng.`,
                 data: { sent_count: sentCount }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

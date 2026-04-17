@@ -1,9 +1,9 @@
 // src/controllers/Appointment Management/appointment.controller.ts
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AppointmentService } from '../../services/Appointment Management/appointment.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
-import logger from '../../config/logger.config';
 import {
     APPOINTMENT_ERRORS, APPOINTMENT_SUCCESS
 } from '../../constants/appointment.constant';
@@ -17,8 +17,7 @@ export class AppointmentController {
     /**
      * POST /api/appointments — Đặt lịch khám mới
      */
-    static async create(req: Request, res: Response) {
-        try {
+    static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patient_id, branch_id, shift_id, slot_id, appointment_date, booking_channel } = req.body;
             if (!patient_id || !branch_id || (!slot_id && !shift_id) || !appointment_date || !booking_channel) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
@@ -35,21 +34,12 @@ export class AppointmentController {
                 warning: warning || undefined,
                 data: appointmentData
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo lịch khám' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/appointments — Danh sách lịch khám
      */
-    static async getAll(req: Request, res: Response) {
-        try {
+    static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
                 status: req.query.status?.toString(),
                 patient_id: req.query.patient_id?.toString(),
@@ -76,17 +66,13 @@ export class AppointmentController {
                     totalPages: Math.ceil(result.total / (filters.limit || 20))
                 }
             });
-        } catch (error: any) {
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy danh sách lịch khám' });
-        }
-    }
+    });
 
     /**
      * GET /api/appointments/my-appointments — Lịch khám của tôi (theo user đang đăng nhập)
      * Hỗ trợ lấy lịch từ tất cả hồ sơ BN liên kết với tài khoản.
      */
-    static async getMyAppointments(req: Request, res: Response) {
-        try {
+    static getMyAppointments = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             if (!userId) {
                 throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'UNAUTHORIZED', 'Không xác định được người dùng');
@@ -113,20 +99,12 @@ export class AppointmentController {
                     totalPages: Math.ceil(result.total / (filters.limit || 20))
                 }
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy lịch khám của tôi' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/appointments/:id — Chi tiết lịch khám
      */
-    static async getById(req: Request, res: Response) {
-        try {
+    static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await AppointmentService.getAppointmentById(req.params.id as string);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
@@ -134,20 +112,12 @@ export class AppointmentController {
                 data: result.appointment,
                 audit_logs: result.auditLogs
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * PUT /api/appointments/:id — Cập nhật lịch khám
      */
-    static async update(req: Request, res: Response) {
-        try {
+    static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const updated = await AppointmentService.updateAppointment(req.params.id as string, req.body, userId);
             res.status(HTTP_STATUS.OK).json({
@@ -155,20 +125,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.UPDATED,
                 data: updated
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật lịch khám' });
-            }
-        }
-    }
+    });
 
     /**
      * DELETE /api/appointments/:id — Huỷ lịch khám (soft cancel)
      */
-    static async cancel(req: Request, res: Response) {
-        try {
+    static cancel = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { cancellation_reason } = req.body;
             if (!cancellation_reason) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_CANCELLATION_REASON', APPOINTMENT_ERRORS.MISSING_CANCELLATION_REASON);
@@ -181,20 +143,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.CANCELLED,
                 data: cancelled
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi huỷ lịch khám' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/appointments/:id/assign-doctor — Gán bác sĩ
      */
-    static async assignDoctor(req: Request, res: Response) {
-        try {
+    static assignDoctor = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { doctor_id } = req.body;
             if (!doctor_id) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DOCTOR_ID', APPOINTMENT_ERRORS.MISSING_DOCTOR_ID);
@@ -206,20 +160,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.DOCTOR_ASSIGNED,
                 data: updated
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/appointments/doctor/:doctorId — Lịch của bác sĩ
      */
-    static async getByDoctor(req: Request, res: Response) {
-        try {
+    static getByDoctor = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
                 fromDate: req.query.fromDate?.toString(),
                 toDate: req.query.toDate?.toString(),
@@ -230,16 +176,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.LIST_FETCHED,
                 data: appointments
             });
-        } catch (error: any) {
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-        }
-    }
+    });
 
     /**
      * PATCH /api/appointments/:id/assign-room — Gán phòng khám
      */
-    static async assignRoom(req: Request, res: Response) {
-        try {
+    static assignRoom = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { room_id } = req.body;
             if (!room_id) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_ROOM_ID', APPOINTMENT_ERRORS.MISSING_ROOM_ID);
@@ -251,20 +193,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.ROOM_ASSIGNED,
                 data: updated
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/appointments/:id/assign-service — Gán dịch vụ
      */
-    static async assignService(req: Request, res: Response) {
-        try {
+    static assignService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { facility_service_id } = req.body;
             if (!facility_service_id) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SERVICE_ID', APPOINTMENT_ERRORS.MISSING_SERVICE_ID);
@@ -276,20 +210,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.SERVICE_ASSIGNED,
                 data: updated
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/appointments/available-slots — Slot trống theo ngày
      */
-    static async getAvailableSlots(req: Request, res: Response) {
-        try {
+    static getAvailableSlots = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const date = req.query.date?.toString();
             if (!date) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DATE', 'Thiếu tham số date');
@@ -303,20 +229,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.SLOTS_FETCHED,
                 data: slots
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy slot trống' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/appointments/:id/reschedule — Đổi lịch khám
      */
-    static async reschedule(req: Request, res: Response) {
-        try {
+    static reschedule = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { new_date, new_slot_id, reschedule_reason } = req.body;
             if (!new_date || !new_slot_id) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_RESCHEDULE_DATA', APPOINTMENT_ERRORS.MISSING_RESCHEDULE_DATA);
@@ -328,20 +246,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.RESCHEDULED,
                 data: updated
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi đổi lịch' });
-            }
-        }
-    }
+    });
 
     /**
      * POST /api/appointments/check-conflict — Kiểm tra trùng lịch
      */
-    static async checkConflict(req: Request, res: Response) {
-        try {
+    static checkConflict = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { date, slot_id, doctor_id, patient_id, room_id, exclude_appointment_id } = req.body;
             if (!date || !slot_id) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_CONFLICT_DATA', APPOINTMENT_ERRORS.MISSING_CONFLICT_DATA);
@@ -354,20 +264,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.CONFLICT_CHECKED,
                 data: result
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi kiểm tra trùng lịch' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/appointments/:id/visit-reason — Cập nhật mục đích khám
      */
-    static async updateVisitReason(req: Request, res: Response) {
-        try {
+    static updateVisitReason = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { reason_for_visit, symptoms_notes } = req.body;
             if (reason_for_visit === undefined && symptoms_notes === undefined) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_VISIT_REASON', APPOINTMENT_ERRORS.MISSING_VISIT_REASON);
@@ -379,40 +281,24 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.VISIT_REASON_UPDATED,
                 data: updated
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/appointments/:id/visit-reason — Lấy thông tin mục đích khám
      */
-    static async getVisitReason(req: Request, res: Response) {
-        try {
+    static getVisitReason = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await AppointmentService.getVisitReason(req.params.id as string);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: APPOINTMENT_SUCCESS.VISIT_REASON_FETCHED,
                 data: result
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/patients/:patientId/appointments — Lịch khám của bệnh nhân
      */
-    static async getByPatient(req: Request, res: Response) {
-        try {
+    static getByPatient = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const filters = {
                 patient_id: patientId,
@@ -434,20 +320,12 @@ export class AppointmentController {
                     totalPages: Math.ceil(result.total / (filters.limit || 20))
                 }
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * POST /api/patients/:patientId/appointments — Tạo lịch từ hồ sơ BN
      */
-    static async createByPatient(req: Request, res: Response) {
-        try {
+    static createByPatient = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const data = { ...req.body, patient_id: patientId };
             if (!data.booking_channel) data.booking_channel = 'DIRECT_CLINIC';
@@ -458,21 +336,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.CREATED,
                 data: appointment
             });
-        } catch (error: any) {
-            logger.error('[AppointmentController.createByPatient] Error:', error);
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo lịch khám' });
-            }
-        }
-    }
+    });
 
     /**
      * POST /api/appointments/book-by-staff — Lễ tân đặt lịch hộ
      */
-    static async bookByStaff(req: Request, res: Response) {
-        try {
+    static bookByStaff = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patient_id, appointment_date, booking_channel } = req.body;
             if (!patient_id || !appointment_date) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS', APPOINTMENT_ERRORS.MISSING_REQUIRED_FIELDS);
@@ -485,21 +354,12 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.BOOKED_BY_STAFF,
                 data: appointment
             });
-        } catch (error: any) {
-            logger.error('[AppointmentController.bookByStaff] Error:', error);
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi đặt lịch hộ' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/appointments/available-slots-by-department — Slot trống theo khoa
      */
-    static async getAvailableSlotsByDepartment(req: Request, res: Response) {
-        try {
+    static getAvailableSlotsByDepartment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const department_id = req.query.department_id?.toString();
             const facility_id = req.query.facility_id?.toString();
             if (!department_id || !facility_id) {
@@ -517,16 +377,8 @@ export class AppointmentController {
                 message: APPOINTMENT_SUCCESS.DEPARTMENT_SLOTS_FETCHED,
                 data
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy slot theo khoa' });
-            }
-        }
-    }
-    static async submitReview(req: Request, res: Response) {
-        try {
+    });
+    static submitReview = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params;
             const { rating, feedback } = req.body;
 
@@ -541,12 +393,5 @@ export class AppointmentController {
                 message: 'Đánh giá lịch khám thành công',
                 data
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi khi gửi đánh giá' });
-            }
-        }
-    }
+    });
 }

@@ -1,4 +1,5 @@
 import { Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuthenticatedRequest } from '../../middleware/authorizeRoles.middleware';
 import { MenuService } from '../../services/Core/menu.service';
 import { CreateMenuInput, UpdateMenuInput, MenuQueryFilter } from '../../models/Core/menu.model';
@@ -8,8 +9,7 @@ export class MenuController {
     /**
      * Lấy danh sách toàn bộ Menu hệ thống
      */
-    static async getMenus(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getMenus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filter: MenuQueryFilter = {
                 search: req.query.search as string,
                 parent_id: req.query.parent_id as string,
@@ -21,16 +21,12 @@ export class MenuController {
                 success: true,
                 data: menus
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới Menu
      */
-    static async createMenu(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createMenu = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -48,16 +44,12 @@ export class MenuController {
                 message: 'Tạo Menu thành công',
                 data: menu
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật Menu
      */
-    static async updateMenu(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateMenu = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -72,16 +64,12 @@ export class MenuController {
                 message: 'Cập nhật Menu thành công',
                 data: menu
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa mềm Menu
      */
-    static async deleteMenu(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteMenu = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -93,8 +81,5 @@ export class MenuController {
                 success: true,
                 message: 'Xóa Menu thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

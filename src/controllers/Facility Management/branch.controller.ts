@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { BranchService } from '../../services/Facility Management/branch.service';
 import { CreateBranchInput, UpdateBranchInput, BranchQuery } from '../../models/Facility Management/branch.model';
 
@@ -6,23 +7,18 @@ export class BranchController {
     /**
      * Get list of branches for dropdown (ACTIVE only)
      */
-    static async getBranchesForDropdown(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getBranchesForDropdown = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const branches = await BranchService.getBranchesForDropdown();
             res.status(200).json({
                 success: true,
                 data: branches
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Dành cho Admin: Lấy danh sách chi nhánh phân trang bộ lọc
      */
-    static async getBranches(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getBranches = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const query: BranchQuery = {
                 search: req.query.search as string,
                 facility_id: req.query.facility_id as string,
@@ -41,32 +37,24 @@ export class BranchController {
                     total_pages: Math.ceil(result.total / query.limit)
                 }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xem chi tiết 1 chi nhánh
      */
-    static async getBranchById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getBranchById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const branch = await BranchService.getBranchById(id);
             res.status(200).json({
                 success: true,
                 data: branch
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo chi nhánh mới
      */
-    static async createBranch(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createBranch = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const data: CreateBranchInput = req.body;
             const result = await BranchService.createBranch(data);
             res.status(201).json({
@@ -74,16 +62,12 @@ export class BranchController {
                 message: 'Tạo mới chi nhánh thành công',
                 data: result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin chi nhánh
      */
-    static async updateBranch(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateBranch = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const data: UpdateBranchInput = req.body;
             const result = await BranchService.updateBranch(id, data);
@@ -92,16 +76,12 @@ export class BranchController {
                 message: 'Cập nhật chi nhánh thành công',
                 data: result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Đổi trạng thái chi nhánh
      */
-    static async changeBranchStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static changeBranchStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const { status } = req.body;
             await BranchService.changeBranchStatus(id, status);
@@ -109,24 +89,17 @@ export class BranchController {
                 success: true,
                 message: 'Cập nhật trạng thái chi nhánh thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa mềm chi nhánh
      */
-    static async deleteBranch(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteBranch = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             await BranchService.deleteBranch(id);
             res.status(200).json({
                 success: true,
                 message: 'Xóa chi nhánh y tế thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

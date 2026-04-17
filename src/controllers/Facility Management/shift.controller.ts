@@ -1,13 +1,13 @@
 // src/controllers/shift.controller.ts
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { ShiftService } from '../../services/Facility Management/shift.service';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 
 export class ShiftController {
 
     // Lấy Danh sách ca làm việc
-    static async getShifts(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getShifts = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const facilityId = req.query.facility_id as string;
             const status = req.query.status as string;
             const search = req.query.search as string;
@@ -19,14 +19,10 @@ export class ShiftController {
                 message: 'Lấy danh sách ca làm việc thành công',
                 data: shifts
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Chi tiết 1 Ca làm
-    static async getShiftById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getShiftById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const shiftId = req.params.id as string;
             const shift = await ShiftService.getShiftById(shiftId);
 
@@ -35,14 +31,10 @@ export class ShiftController {
                 message: 'Lấy thông tin ca làm việc thành công',
                 data: shift
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Tạo Ca làm việc mới
-    static async createShift(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createShift = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input = req.body;
             const newShift = await ShiftService.createShift(input);
 
@@ -51,14 +43,10 @@ export class ShiftController {
                 message: 'Tạo ca làm việc mới thành công',
                 data: newShift
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Cập nhật cấu hình Ca
-    static async updateShift(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateShift = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const shiftId = req.params.id as string;
             const updateData = req.body;
 
@@ -69,14 +57,10 @@ export class ShiftController {
                 message: 'Cập nhật cấu hình ca làm việc thành công',
                 data: updatedShift
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // Thay đổi trạng thái về INACTIVE (Xóa Mềm Ca Làm Việc)
-    static async deleteShift(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteShift = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const shiftId = req.params.id as string;
             await ShiftService.deleteShift(shiftId);
 
@@ -84,8 +68,5 @@ export class ShiftController {
                 success: true,
                 message: 'Đã tạm ngưng ca làm việc thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

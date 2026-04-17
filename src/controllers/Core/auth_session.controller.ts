@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { SessionService } from "../../services/Core/auth_session.service";
 import { SecurityUtil } from "../../utils/auth-security.util";
 
@@ -6,8 +7,7 @@ export class SessionController {
     /**
      * Lấy danh sách session còn hiệu lực của tài khoản
      */
-    static async getSessions(req: Request, res: Response) {
-        try {
+    static getSessions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { user_id } = (req as any).auth;
 
             const currentSessionId = (req as any).auth.sessionId;
@@ -18,16 +18,12 @@ export class SessionController {
                 success: true,
                 sessions
             });
-        } catch (error: any) {
-            return res.status(500).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /**
      * Đăng xuất khỏi session hiện tại
      */
-    static async logout(req: Request, res: Response) {
-        try {
+    static logout = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { refreshToken } = req.body;
 
             // Bổ sung validate input
@@ -39,16 +35,12 @@ export class SessionController {
             await SessionService.logout(refreshTokenHash);
 
             return res.status(200).json({ success: true, message: "Logged out" });
-        } catch (error: any) {
-            return res.status(400).json({ success: false, message: error.message });
-        }
-    }
+    });
 
     /**
      * Đăng xuất khỏi một session cụ thể
      */
-    static async logoutSession(req: Request, res: Response) {
-        try {
+    static logoutSession = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { user_id } = (req as any).auth;
 
             // FIX LỖI TẠI ĐÂY: Ép kiểu as string
@@ -60,20 +52,12 @@ export class SessionController {
                 success: true,
                 message: "Session revoked successfully"
             });
-        } catch (error: any) {
-            return res.status(error.httpCode || 500).json({
-                success: false,
-                code: error.code,
-                message: error.message
-            });
-        }
-    }
+    });
 
     /**
      * đăng xuất tất cả session
      */
-    static async logoutAll(req: Request, res: Response) {
-        try {
+    static logoutAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { user_id } = (req as any).auth;
             await SessionService.logoutAll(user_id);
 
@@ -81,10 +65,7 @@ export class SessionController {
                 success: true,
                 message: "All sessions revoked"
             });
-        } catch (error: any) {
-            return res.status(500).json({ success: false, message: error.message });
-        }
-    }
+    });
 
 
 }

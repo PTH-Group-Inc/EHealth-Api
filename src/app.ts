@@ -6,8 +6,9 @@ import { initRoutes } from './routes/index.route'
 import { SessionCleanup } from './jobs/SessionCleanup.jobs'
 import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs'
 import { startPaymentOrderExpiryJob } from './jobs/PaymentOrderExpiry.jobs'
+import { startAppointmentNoShowJob } from './jobs/AppointmentNoShow.jobs'
 import morganMiddleware from './middleware/morgan.middleware'
-import logger from './config/logger.config'
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware'
 
 const app = express()
 
@@ -26,22 +27,12 @@ initRoutes(app);
 SessionCleanup.startSessionCleanupJob();
 AppointmentReminderJob.startReminderJob();
 startPaymentOrderExpiryJob();
+startAppointmentNoShowJob();
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.status(404).json({
-    success: false,
-    code: 'NOT_FOUND',
-    message: 'Endpoint API không tồn tại trên hệ thống.'
-  });
-});
+// ─── 404 Handler ─── Đặt sau tất cả routes
+app.use(notFoundHandler);
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  logger.error(`[Global Error]: ${err.message || err}`, { stack: err.stack });
-  res.status(err.status || 500).json({
-    success: false,
-    code: err.code || 'INTERNAL_SERVER_ERROR',
-    message: err.message || 'Lỗi máy chủ nội bộ'
-  });
-});
+// ─── Global Error Handler ─── Luôn đặt cuối cùng
+app.use(errorHandler);
 
 export default app

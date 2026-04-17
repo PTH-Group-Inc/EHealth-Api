@@ -1,4 +1,5 @@
 import { Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuthenticatedRequest } from '../../middleware/authorizeRoles.middleware';
 import { ApiPermissionService } from '../../services/Core/api-permission.service';
 import { CreateApiPermissionInput, UpdateApiPermissionInput, ApiPermissionQueryFilter } from '../../models/Core/api-permission.model';
@@ -8,8 +9,7 @@ export class ApiPermissionController {
     /**
      * Lấy danh sách API Permissions
      */
-    static async getApiPermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getApiPermissions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filter: ApiPermissionQueryFilter = {
                 search: req.query.search as string,
                 module: req.query.module as string,
@@ -22,16 +22,12 @@ export class ApiPermissionController {
                 success: true,
                 data: apis
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới cấu hình API
      */
-    static async createApiPermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createApiPermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -49,16 +45,12 @@ export class ApiPermissionController {
                 message: 'Tạo cấu hình định tuyến API thành công',
                 data: apiParam
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin cấu hình API
      */
-    static async updateApiPermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateApiPermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -74,16 +66,12 @@ export class ApiPermissionController {
                 message: 'Cập nhật API Endpoint thành công',
                 data: apiParam
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa thông tin API
      */
-    static async deleteApiPermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteApiPermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính');
 
@@ -97,8 +85,5 @@ export class ApiPermissionController {
                 success: true,
                 message: 'Đã xóa API Endpoint cấu hình thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

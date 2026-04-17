@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { MedicalRecordService } from '../../services/EMR/medical-record.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { MEDICAL_RECORD_SUCCESS } from '../../constants/medical-record.constant';
 import { pool } from '../../config/postgresdb';
-import logger from '../../config/logger.config';
 
 
 /**
@@ -28,71 +28,38 @@ async function resolvePatientId(patientId: string): Promise<string> {
 export class MedicalRecordController {
 
     /** API 1: GET /api/medical-records/:encounterId — Bệnh án đầy đủ */
-    static async getFullRecord(req: Request, res: Response) {
-        try {
+    static getFullRecord = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const data = await MedicalRecordService.getFullRecord(encounterId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.RECORD_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.getFullRecord] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 2: GET /api/medical-records/:encounterId/completeness — Tính đầy đủ */
-    static async getCompleteness(req: Request, res: Response) {
-        try {
+    static getCompleteness = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const data = await MedicalRecordService.getCompleteness(encounterId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.COMPLETENESS_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.getCompleteness] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 3: POST /api/medical-records/:encounterId/finalize — Hoàn tất & khóa */
-    static async finalize(req: Request, res: Response) {
-        try {
+    static finalize = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const userId = (req as any).auth?.user_id;
             const data = await MedicalRecordService.finalize(encounterId, userId, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.FINALIZED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.finalize] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 4: POST /api/medical-records/:encounterId/sign — Ký số */
-    static async sign(req: Request, res: Response) {
-        try {
+    static sign = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const userId = (req as any).auth?.user_id;
             const clientIp = req.ip || req.socket.remoteAddress || null;
             const data = await MedicalRecordService.sign(encounterId, userId, req.body, clientIp);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.SIGNED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.sign] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 5: GET /api/medical-records/by-patient/:patientId — DS bệnh án theo BN */
-    static async getPatientRecords(req: Request, res: Response) {
-        try {
+    static getPatientRecords = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const rawId = req.params.patientId as string;
             const patientId = await resolvePatientId(rawId);
             const { page, limit, record_type, is_finalized, from_date, to_date } = req.query;
@@ -106,18 +73,10 @@ export class MedicalRecordController {
                 to_date as string
             );
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.PATIENT_RECORDS_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.getPatientRecords] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 6: GET /api/medical-records/by-patient/:patientId/timeline — Dòng thời gian */
-    static async getTimeline(req: Request, res: Response) {
-        try {
+    static getTimeline = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const rawId = req.params.patientId as string;
             const patientId = await resolvePatientId(rawId);
             const { from, to, event_type, limit } = req.query;
@@ -126,64 +85,32 @@ export class MedicalRecordController {
                 event_type as string, Number(limit) || undefined
             );
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.TIMELINE_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.getTimeline] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 7: GET /api/medical-records/by-patient/:patientId/statistics — Thống kê */
-    static async getStatistics(req: Request, res: Response) {
-        try {
+    static getStatistics = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const rawId = req.params.patientId as string;
             const patientId = await resolvePatientId(rawId);
             const data = await MedicalRecordService.getStatistics(patientId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.STATISTICS_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.getStatistics] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 8: GET /api/medical-records/snapshot/:encounterId — Xem snapshot */
-    static async getSnapshot(req: Request, res: Response) {
-        try {
+    static getSnapshot = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const data = await MedicalRecordService.getSnapshot(encounterId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.SNAPSHOT_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.getSnapshot] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 9: GET /api/medical-records/export/:encounterId — Xuất bệnh án */
-    static async exportRecord(req: Request, res: Response) {
-        try {
+    static exportRecord = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const data = await MedicalRecordService.exportRecord(encounterId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.EXPORT_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.exportRecord] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 
     /** API 10: GET /api/medical-records/search — Tìm kiếm nâng cao */
-    static async searchRecords(req: Request, res: Response) {
-        try {
+    static searchRecords = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { keyword, icd10_code, doctor_id, record_type, is_finalized, from_date, to_date, page, limit } = req.query;
             const data = await MedicalRecordService.searchRecords(
                 keyword as string, icd10_code as string, doctor_id as string,
@@ -193,12 +120,5 @@ export class MedicalRecordController {
                 Number(page) || undefined, Number(limit) || undefined
             );
             res.status(HTTP_STATUS.OK).json({ success: true, message: MEDICAL_RECORD_SUCCESS.SEARCH_FETCHED, data });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                return res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            }
-            logger.error('[MedicalRecordController.searchRecords] Error:', error);
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi server' });
-        }
-    }
+    });
 }

@@ -9,30 +9,76 @@ export class AppointmentChangeRepository {
     /**
      * Tạo change log (dùng trong transaction — nhận client)
      */
-    static async createChangeLog(input: CreateChangeLogInput, client?: PoolClient): Promise<void> {
+    static async createChangeLog(input: CreateChangeLogInput, client?: PoolClient): Promise<AppointmentChangeLog> {
         const query = `
             INSERT INTO appointment_change_logs
-            (id, appointment_id, change_type, old_date, old_slot_id, new_date, new_slot_id, reason, changed_by, policy_checked, policy_result)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+            (
+                id, appointment_id, change_type, approval_status,
+                old_date, old_slot_id, new_date, new_slot_id,
+                reason, changed_by, approved_by, approved_by_type, approved_at,
+                policy_checked, policy_result
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING *;
         `;
         const params = [
             input.id,
             input.appointment_id,
             input.change_type,
+            input.approval_status || 'PENDING',
             input.old_date || null,
             input.old_slot_id || null,
             input.new_date || null,
             input.new_slot_id || null,
             input.reason || null,
             input.changed_by || null,
+            input.approved_by || null,
+            input.approved_by_type || null,
+            input.approved_at || null,
             input.policy_checked || false,
             input.policy_result || null,
         ];
+        let result;
         if (client) {
-            await client.query(query, params);
+            result = await client.query(query, params);
         } else {
-            await pool.query(query, params);
+            result = await pool.query(query, params);
         }
+        return result.rows[0];
+    }
+
+    static async updateApprovalStatus(
+        id: string,
+        input: {
+            approval_status: 'PENDING' | 'APPROVED' | 'REJECTED';
+            approved_by?: string | null;
+            approved_by_type?: 'SYSTEM' | 'USER' | null;
+            approved_at?: string | null;
+            policy_result?: string | null;
+        },
+        client?: PoolClient
+    ): Promise<AppointmentChangeLog | null> {
+        const query = `
+            UPDATE appointment_change_logs
+            SET approval_status = $1,
+                approved_by = $2,
+                approved_by_type = $3,
+                approved_at = $4,
+                policy_result = COALESCE($5, policy_result)
+            WHERE id = $6
+            RETURNING *;
+        `;
+        const params = [
+            input.approval_status,
+            input.approved_by || null,
+            input.approved_by_type || null,
+            input.approved_at || null,
+            input.policy_result || null,
+            id,
+        ];
+        const executor = client || pool;
+        const result = await executor.query(query, params);
+        return result.rows[0] || null;
     }
 
     /**
@@ -45,11 +91,16 @@ export class AppointmentChangeRepository {
                 TO_CHAR(cl.old_date, 'YYYY-MM-DD') AS old_date,
                 TO_CHAR(cl.new_date, 'YYYY-MM-DD') AS new_date,
                 up.full_name AS changed_by_name,
+                CASE
+                    WHEN cl.approved_by_type = 'SYSTEM' THEN 'Hệ thống'
+                    ELSE up_approved.full_name
+                END AS approved_by_name,
                 a.appointment_code,
                 CONCAT(sl_old.start_time, ' - ', sl_old.end_time) AS old_slot_time,
                 CONCAT(sl_new.start_time, ' - ', sl_new.end_time) AS new_slot_time
             FROM appointment_change_logs cl
             LEFT JOIN user_profiles up ON cl.changed_by = up.user_id
+            LEFT JOIN user_profiles up_approved ON cl.approved_by = up_approved.user_id
             LEFT JOIN appointments a ON cl.appointment_id = a.appointments_id
             LEFT JOIN appointment_slots sl_old ON cl.old_slot_id = sl_old.slot_id
             LEFT JOIN appointment_slots sl_new ON cl.new_slot_id = sl_new.slot_id
@@ -103,6 +154,10 @@ export class AppointmentChangeRepository {
                 TO_CHAR(cl.old_date, 'YYYY-MM-DD') AS old_date,
                 TO_CHAR(cl.new_date, 'YYYY-MM-DD') AS new_date,
                 up.full_name AS changed_by_name,
+                CASE
+                    WHEN cl.approved_by_type = 'SYSTEM' THEN 'Hệ thống'
+                    ELSE up_approved.full_name
+                END AS approved_by_name,
                 a.appointment_code,
                 p.full_name AS patient_name,
                 CONCAT(sl_old.start_time, ' - ', sl_old.end_time) AS old_slot_time,
@@ -111,6 +166,7 @@ export class AppointmentChangeRepository {
             LEFT JOIN appointments a ON cl.appointment_id = a.appointments_id
             LEFT JOIN patients p ON a.patient_id = p.id::varchar
             LEFT JOIN user_profiles up ON cl.changed_by = up.user_id
+            LEFT JOIN user_profiles up_approved ON cl.approved_by = up_approved.user_id
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
             LEFT JOIN appointment_slots sl_old ON cl.old_slot_id = sl_old.slot_id
             LEFT JOIN appointment_slots sl_new ON cl.new_slot_id = sl_new.slot_id

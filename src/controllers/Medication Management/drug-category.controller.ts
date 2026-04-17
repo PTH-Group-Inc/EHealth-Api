@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { DrugCategoryService } from '../../services/Medication Management/drug-category.service';
 import { CreateDrugCategoryInput, UpdateDrugCategoryInput } from '../../models/Medication Management/drug-category.model';
 
@@ -6,8 +7,7 @@ export class DrugCategoryController {
     /**
      * Lấy danh sách nhóm thuốc
      */
-    static async getCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getCategories = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const search = req.query.search as string | undefined;
             const page = parseInt(req.query.page as string, 10) || 1;
             const limit = parseInt(req.query.limit as string, 10) || 20;
@@ -18,16 +18,12 @@ export class DrugCategoryController {
                 success: true,
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết 1 nhóm thuốc theo ID
      */
-    static async getCategoryById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getCategoryById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await DrugCategoryService.getCategoryById(id);
 
@@ -35,16 +31,12 @@ export class DrugCategoryController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới một nhóm thuốc
      */
-    static async createCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreateDrugCategoryInput = req.body;
             const data = await DrugCategoryService.createCategory(input);
 
@@ -52,16 +44,12 @@ export class DrugCategoryController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin nhóm thuốc
      */
-    static async updateCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdateDrugCategoryInput = req.body;
 
@@ -71,16 +59,12 @@ export class DrugCategoryController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa nhóm thuốc
      */
-    static async deleteCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deleteCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             await DrugCategoryService.deleteCategory(id);
 
@@ -88,32 +72,24 @@ export class DrugCategoryController {
                 success: true,
                 message: 'Đã xóa nhóm danh mục thuốc thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xuất danh sách nhóm thuốc ra file Excel
      */
-    static async exportCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static exportCategories = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const buffer = await DrugCategoryService.exportCategories();
 
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=Pharmacy_DrugCategories.xlsx');
 
             res.status(200).send(buffer);
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Nhập danh sách nhóm thuốc từ file Excel
      */
-    static async importCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static importCategories = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             if (!req.file) {
                 res.status(400).json({
                     success: false,
@@ -130,8 +106,5 @@ export class DrugCategoryController {
                 message: 'Đã xử lý file Excel thành công.',
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

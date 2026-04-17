@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { SupplierService } from '../../services/Medication Management/supplier.service';
 import { SUPPLIER_SUCCESS } from '../../constants/stock-in.constant';
-import logger from '../../config/logger.config';
 
 
 const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
@@ -9,61 +9,25 @@ const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
 
 export class SupplierController {
 
-    static async getAll(req: Request, res: Response) {
-        try {
+    static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const search = req.query.search as string | undefined;
             const activeOnly = req.query.active_only === 'true';
             const result = await SupplierService.getAll(search, activeOnly);
             res.status(HTTP_STATUS.OK).json({ success: true, message: SUPPLIER_SUCCESS.LIST_FETCHED, data: result });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[SupplierController.getAll] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
-    static async getById(req: Request, res: Response) {
-        try {
+    static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await SupplierService.getById(req.params.id as string);
             res.status(HTTP_STATUS.OK).json({ success: true, message: SUPPLIER_SUCCESS.DETAIL_FETCHED, data: result });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[SupplierController.getById] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
-    static async create(req: Request, res: Response) {
-        try {
+    static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await SupplierService.create(req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: SUPPLIER_SUCCESS.CREATED, data: result });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[SupplierController.create] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
-    static async update(req: Request, res: Response) {
-        try {
+    static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await SupplierService.update(req.params.id as string, req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: SUPPLIER_SUCCESS.UPDATED, data: result });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[SupplierController.update] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 }

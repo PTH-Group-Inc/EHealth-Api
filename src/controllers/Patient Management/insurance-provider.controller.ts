@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { InsuranceProviderService } from '../../services/Patient Management/insurance-provider.service';
 import {
     CreateInsuranceProviderInput,
@@ -10,8 +11,7 @@ export class InsuranceProviderController {
     /**
      * Lấy danh sách đơn vị bảo hiểm
      */
-    static async getProviders(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getProviders = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { search, insurance_type, is_active, page, limit } = req.query as Record<string, string>;
 
             const data = await InsuranceProviderService.getProviders(
@@ -23,29 +23,21 @@ export class InsuranceProviderController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Chi tiết 1 đơn vị bảo hiểm
      */
-    static async getProviderById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getProviderById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await InsuranceProviderService.getProviderById(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới đơn vị bảo hiểm
      */
-    static async createProvider(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createProvider = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreateInsuranceProviderInput = req.body;
             const data = await InsuranceProviderService.createProvider(input);
             res.status(201).json({
@@ -53,16 +45,12 @@ export class InsuranceProviderController {
                 message: 'Tạo đơn vị bảo hiểm thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin đơn vị bảo hiểm
      */
-    static async updateProvider(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateProvider = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdateInsuranceProviderInput = req.body;
 
@@ -76,16 +64,12 @@ export class InsuranceProviderController {
                 message: 'Cập nhật đơn vị bảo hiểm thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Vô hiệu hóa đơn vị bảo hiểm (Soft Disable)
      */
-    static async disableProvider(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static disableProvider = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             // Gắn snapshot dữ liệu cũ cho Audit Middleware
@@ -98,8 +82,5 @@ export class InsuranceProviderController {
                 message: 'Đã vô hiệu hóa đơn vị bảo hiểm.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

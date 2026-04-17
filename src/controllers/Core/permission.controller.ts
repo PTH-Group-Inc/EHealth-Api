@@ -1,4 +1,5 @@
 import { Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuthenticatedRequest } from '../../middleware/authorizeRoles.middleware';
 import { PermissionService } from '../../services/Core/permission.service';
 import { CreatePermissionInput, UpdatePermissionInput, PermissionQueryFilter } from '../../models/Core/permission.model';
@@ -8,8 +9,7 @@ export class PermissionController {
     /**
      * Lấy danh sách Quyền hạn
      */
-    static async getPermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPermissions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filter: PermissionQueryFilter = {
                 search: req.query.search as string,
                 module: req.query.module as string
@@ -20,31 +20,23 @@ export class PermissionController {
                 success: true,
                 data: permissions
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết Quyền hạn
      */
-    static async getPermissionById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPermissionById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const permission = await PermissionService.getPermissionById(req.params.permissionId as string);
             res.status(200).json({
                 success: true,
                 data: permission
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo Quyền mới
      */
-    static async createPermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createPermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính người dùng');
 
@@ -63,16 +55,12 @@ export class PermissionController {
                 message: 'Tạo quyền mới thành công',
                 data: newPermission
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật Quyền hạn
      */
-    static async updatePermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updatePermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính người dùng');
 
@@ -90,16 +78,12 @@ export class PermissionController {
                 message: 'Cập nhật quyền thành công',
                 data: updatedPermission
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa Quyền
      */
-    static async deletePermission(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deletePermission = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const adminId = req.auth?.user_id;
             if (!adminId) throw new AppError(401, 'UNAUTHORIZED', 'Không thể xác thực danh tính người dùng');
 
@@ -111,8 +95,5 @@ export class PermissionController {
                 success: true,
                 message: 'Xóa quyền thành công'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

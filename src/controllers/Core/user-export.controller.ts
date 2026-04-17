@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { UserExportService } from "../../services/Facility Management/user-export.service";
 import { UserExportFilter } from "../../models/Core/user-export.model";
 
@@ -6,8 +7,7 @@ export class UserExportController {
     /**
      * Xuất danh sách người dùng thành File Excel
      */
-    static async exportUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static exportUsers = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const payload = (req.body && Object.keys(req.body).length > 0) ? req.body : req.query;
 
             const filter: UserExportFilter = {
@@ -27,8 +27,5 @@ export class UserExportController {
             res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
 
             res.send(buffer);
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

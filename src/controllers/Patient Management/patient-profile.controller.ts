@@ -8,7 +8,8 @@
  * accountId được lấy từ JWT payload (req.auth.user_id).
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { PatientProfileService } from '../../services/Patient Management/patient-profile.service';
 
 function getAccountId(req: Request): string {
@@ -35,8 +36,7 @@ export class PatientProfileController {
      * GET /api/patient/profiles
      * Lấy danh sách tất cả hồ sơ bệnh nhân của tài khoản đang đăng nhập
      */
-    static async getMyProfiles(req: Request, res: Response): Promise<any> {
-        try {
+    static getMyProfiles = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const profiles = await PatientProfileService.getMyProfiles(accountId);
             return res.json({
@@ -44,34 +44,26 @@ export class PatientProfileController {
                 data: profiles,
                 total: profiles.length,
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 
     /**
      * GET /api/patient/profiles/default
      * Lấy hồ sơ mặc định của tài khoản
      */
-    static async getDefaultProfile(req: Request, res: Response): Promise<any> {
-        try {
+    static getDefaultProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const profile = await PatientProfileService.getDefaultProfile(accountId);
             return res.json({
                 success: true,
                 data: profile,
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 
     /**
      * GET /api/patient/profiles/:id
      * Lấy chi tiết 1 hồ sơ bệnh nhân
      */
-    static async getProfileById(req: Request, res: Response): Promise<any> {
-        try {
+    static getProfileById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const id = req.params.id as string;
             const profile = await PatientProfileService.getProfileById(id, accountId);
@@ -79,17 +71,13 @@ export class PatientProfileController {
                 success: true,
                 data: profile,
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 
     /**
      * POST /api/patient/profiles
      * Tạo hồ sơ bệnh nhân mới (cho bản thân hoặc người thân)
      */
-    static async createProfile(req: Request, res: Response): Promise<any> {
-        try {
+    static createProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const profile = await PatientProfileService.createProfile(accountId, req.body);
             return res.status(201).json({
@@ -97,17 +85,13 @@ export class PatientProfileController {
                 data: profile,
                 message: 'Tạo hồ sơ bệnh nhân thành công',
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 
     /**
      * PUT /api/patient/profiles/:id
      * Cập nhật thông tin hồ sơ bệnh nhân
      */
-    static async updateProfile(req: Request, res: Response): Promise<any> {
-        try {
+    static updateProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const id = req.params.id as string;
             const updated = await PatientProfileService.updateProfile(id, accountId, req.body);
@@ -116,17 +100,13 @@ export class PatientProfileController {
                 data: updated,
                 message: 'Cập nhật hồ sơ thành công',
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 
     /**
      * DELETE /api/patient/profiles/:id
      * Ngừng sử dụng hồ sơ (soft delete)
      */
-    static async deleteProfile(req: Request, res: Response): Promise<any> {
-        try {
+    static deleteProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const id = req.params.id as string;
             await PatientProfileService.deleteProfile(id, accountId);
@@ -134,17 +114,13 @@ export class PatientProfileController {
                 success: true,
                 message: 'Đã ngừng sử dụng hồ sơ bệnh nhân',
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 
     /**
      * PATCH /api/patient/profiles/:id/set-default
      * Đặt hồ sơ làm mặc định khi đặt lịch
      */
-    static async setDefault(req: Request, res: Response): Promise<any> {
-        try {
+    static setDefault = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const id = req.params.id as string;
             const updated = await PatientProfileService.setDefaultProfile(id, accountId);
@@ -153,17 +129,13 @@ export class PatientProfileController {
                 data: updated,
                 message: 'Đã đặt làm hồ sơ mặc định',
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 
     /**
      * PUT /api/patient/profiles/:id/relationship
      * Cập nhật quan hệ với chủ tài khoản
      */
-    static async updateRelationship(req: Request, res: Response): Promise<any> {
-        try {
+    static updateRelationship = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const accountId = getAccountId(req);
             const id = req.params.id as string;
             const { relationship } = req.body;
@@ -173,8 +145,5 @@ export class PatientProfileController {
                 data: updated,
                 message: 'Cập nhật quan hệ thành công',
             });
-        } catch (error) {
-            return handleError(res, error);
-        }
-    }
+    });
 }

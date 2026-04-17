@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { ClinicalExamService } from '../../services/EMR/clinical-exam.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
-import logger from '../../config/logger.config';
 import {
     CLINICAL_EXAM_SUCCESS,
     CLINICAL_EXAM_CONFIG,
@@ -14,8 +14,7 @@ export class ClinicalExamController {
     /**
      * POST /api/clinical-examinations/:encounterId — Tạo phiếu khám lâm sàng
      */
-    static async create(req: Request, res: Response) {
-        try {
+    static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const encounterId = req.params.encounterId as string;
             const userId = (req as any).auth?.user_id;
             const record = await ClinicalExamService.create(encounterId, req.body, userId);
@@ -24,105 +23,60 @@ export class ClinicalExamController {
                 message: CLINICAL_EXAM_SUCCESS.CREATED,
                 data: record,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[ClinicalExamController.create] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo phiếu khám lâm sàng' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/clinical-examinations/:encounterId — Chi tiết phiếu khám
      */
-    static async getByEncounterId(req: Request, res: Response) {
-        try {
+    static getByEncounterId = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await ClinicalExamService.getByEncounterId(req.params.encounterId as string);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: CLINICAL_EXAM_SUCCESS.DETAIL_FETCHED,
                 data: record,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[ClinicalExamController.getByEncounterId] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy phiếu khám' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/clinical-examinations/:encounterId — Cập nhật phiếu khám
      */
-    static async update(req: Request, res: Response) {
-        try {
+    static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await ClinicalExamService.update(req.params.encounterId as string, req.body);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: CLINICAL_EXAM_SUCCESS.UPDATED,
                 data: record,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[ClinicalExamController.update] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật phiếu khám' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/clinical-examinations/:encounterId/vitals — Cập nhật riêng sinh hiệu
      */
-    static async updateVitals(req: Request, res: Response) {
-        try {
+    static updateVitals = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await ClinicalExamService.updateVitals(req.params.encounterId as string, req.body);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: CLINICAL_EXAM_SUCCESS.VITALS_UPDATED,
                 data: record,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[ClinicalExamController.updateVitals] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi cập nhật sinh hiệu' });
-            }
-        }
-    }
+    });
 
     /**
      * PATCH /api/clinical-examinations/:encounterId/finalize — Xác nhận phiếu khám
      */
-    static async finalize(req: Request, res: Response) {
-        try {
+    static finalize = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await ClinicalExamService.finalize(req.params.encounterId as string);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: CLINICAL_EXAM_SUCCESS.FINALIZED,
                 data: record,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[ClinicalExamController.finalize] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi xác nhận phiếu khám' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/clinical-examinations/by-patient/:patientId — Lịch sử khám theo BN
      */
-    static async getByPatient(req: Request, res: Response) {
-        try {
+    static getByPatient = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const patientId = req.params.patientId as string;
             const page = req.query.page ? parseInt(req.query.page.toString()) : CLINICAL_EXAM_CONFIG.DEFAULT_PAGE;
             const limit = req.query.limit ? parseInt(req.query.limit.toString()) : CLINICAL_EXAM_CONFIG.DEFAULT_LIMIT;
@@ -141,34 +95,17 @@ export class ClinicalExamController {
                     totalPages: result.totalPages,
                 },
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[ClinicalExamController.getByPatient] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/clinical-examinations/:encounterId/summary — Tóm tắt khám lâm sàng
      */
-    static async getSummary(req: Request, res: Response) {
-        try {
+    static getSummary = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const summary = await ClinicalExamService.getSummary(req.params.encounterId as string);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: CLINICAL_EXAM_SUCCESS.SUMMARY_FETCHED,
                 data: summary,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[ClinicalExamController.getSummary] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 }

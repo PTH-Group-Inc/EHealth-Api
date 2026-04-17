@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { SpecialtyServiceLogic } from '../../services/Facility Management/specialty-service.service';
 import { AssignSpecialtyServicesInput } from '../../models/Facility Management/specialty-service.model';
 
@@ -6,8 +7,7 @@ export class SpecialtyServiceController {
     /**
      * Lấy danh sách dịch vụ gán cho chuyên khoa
      */
-    static async getServicesBySpecialty(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getServicesBySpecialty = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { specialtyId } = req.params as { specialtyId: string };
             const { facilityId } = req.query as { facilityId?: string };
             const data = await SpecialtyServiceLogic.getServicesBySpecialtyId(specialtyId, facilityId);
@@ -16,16 +16,12 @@ export class SpecialtyServiceController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách chuyên khoa gán cho 1 dịch vụ
      */
-    static async getSpecialtiesByService(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getSpecialtiesByService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { serviceId } = req.params as { serviceId: string };
             const data = await SpecialtyServiceLogic.getSpecialtiesByServiceId(serviceId);
 
@@ -33,16 +29,12 @@ export class SpecialtyServiceController {
                 success: true,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gán danh sách dịch vụ vào chuyên khoa (Replace strategy)
      */
-    static async assignServices(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignServices = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { specialtyId } = req.params as { specialtyId: string };
             const input: AssignSpecialtyServicesInput = req.body;
 
@@ -53,16 +45,12 @@ export class SpecialtyServiceController {
                 message: `Đã gán ${result.assigned} dịch vụ cho chuyên khoa thành công.`,
                 ...result
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gỡ 1 dịch vụ khỏi chuyên khoa
      */
-    static async removeService(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeService = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { specialtyId, serviceId } = req.params as { specialtyId: string; serviceId: string };
 
             await SpecialtyServiceLogic.removeService(specialtyId, serviceId);
@@ -71,8 +59,5 @@ export class SpecialtyServiceController {
                 success: true,
                 message: 'Đã gỡ dịch vụ khỏi chuyên khoa thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

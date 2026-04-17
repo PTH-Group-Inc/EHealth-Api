@@ -12,7 +12,12 @@ export class PatientDocumentRepository {
      * Kiểm tra bệnh nhân có tồn tại không (dùng bảng patients, id kiểu UUID)
      */
     static async checkPatientExists(patientId: string): Promise<boolean> {
+        console.log("checkPatientExists patientId:", typeof patientId, `"${patientId}"`);
         const result = await pool.query(`SELECT 1 FROM patients WHERE id = $1`, [patientId]);
+        console.log("checkPatientExists result:", result.rows.length);
+        if (result.rows.length === 0) {
+            console.error("DEBUG: PATIENT NOT FOUND", typeof patientId, `"${patientId}"`);
+        }
         return result.rows.length > 0;
     }
 

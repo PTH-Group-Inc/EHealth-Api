@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { UserFacilityService } from "../../services/Facility Management/user-facility.service";
 import { AssignUserFacilityInput, RemoveUserFacilityInput } from "../../models/Facility Management/facility.model";
 import { AppError } from "../../utils/app-error.util";
@@ -7,8 +8,7 @@ export class UserFacilityController {
     /**
      * Lấy danh sách cơ sở/chi nhánh của người dùng
      */
-    static async getUserFacilities(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getUserFacilities = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.userId as string;
             const facilities = await UserFacilityService.getUserFacilities(userId);
 
@@ -16,16 +16,12 @@ export class UserFacilityController {
                 status: "success",
                 data: facilities
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Gán người dùng vào một Chi nhánh / Phòng ban
      */
-    static async assignUserToFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static assignUserToFacility = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.userId as string;
             const assignData: AssignUserFacilityInput = req.body;
 
@@ -39,16 +35,12 @@ export class UserFacilityController {
                 status: "success",
                 message: "Gán nhân sự vào chi nhánh thành công"
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa người dùng khỏi Chi nhánh
      */
-    static async removeUserFromFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static removeUserFromFacility = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.userId as string;
             const branchId = req.params.facilityId as string;
 
@@ -67,16 +59,12 @@ export class UserFacilityController {
                 status: "success",
                 message: "Đã hủy bổ nhiệm nhân sự tại chi nhánh này"
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Thuyên chuyển nhân sự sang Chi nhánh khác
      */
-    static async transferUserToFacility(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static transferUserToFacility = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = req.params.userId as string;
             const oldBranchId = req.params.facilityId as string;
             const assignData: AssignUserFacilityInput = req.body;
@@ -91,8 +79,5 @@ export class UserFacilityController {
                 status: "success",
                 message: "Thuyên chuyển nhân sự thành công"
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

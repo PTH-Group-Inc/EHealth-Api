@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { InventoryService } from '../../services/Medication Management/inventory.service';
 import { INVENTORY_CONFIG, INVENTORY_SUCCESS } from '../../constants/inventory.constant';
-import logger from '../../config/logger.config';
 
 
 const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
@@ -10,8 +10,7 @@ const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
 export class InventoryController {
 
     /** API 1: GET /api/inventory — Danh sách tồn kho */
-    static async getAll(req: Request, res: Response) {
-        try {
+    static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const page = parseInt(req.query.page as string) || INVENTORY_CONFIG.DEFAULT_PAGE;
             const limit = parseInt(req.query.limit as string) || INVENTORY_CONFIG.DEFAULT_LIMIT;
             const drugId = req.query.drug_id as string | undefined;
@@ -26,19 +25,10 @@ export class InventoryController {
                 message: INVENTORY_SUCCESS.LIST_FETCHED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[InventoryController.getAll] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 2: GET /api/inventory/:batchId — Chi tiết 1 lô */
-    static async getById(req: Request, res: Response) {
-        try {
+    static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const batchId = req.params.batchId as string;
             const result = await InventoryService.getById(batchId);
 
@@ -47,19 +37,10 @@ export class InventoryController {
                 message: INVENTORY_SUCCESS.DETAIL_FETCHED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[InventoryController.getById] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 3: GET /api/inventory/alerts/expiring — Cảnh báo sắp hết hạn */
-    static async getExpiringAlerts(req: Request, res: Response) {
-        try {
+    static getExpiringAlerts = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const days = parseInt(req.query.days as string) || INVENTORY_CONFIG.DEFAULT_EXPIRY_DAYS;
             const result = await InventoryService.getExpiringAlerts(days);
 
@@ -68,19 +49,10 @@ export class InventoryController {
                 message: INVENTORY_SUCCESS.EXPIRING_FETCHED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[InventoryController.getExpiringAlerts] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 4: GET /api/inventory/alerts/low-stock — Cảnh báo tồn kho thấp */
-    static async getLowStockAlerts(req: Request, res: Response) {
-        try {
+    static getLowStockAlerts = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await InventoryService.getLowStockAlerts();
 
             res.status(HTTP_STATUS.OK).json({
@@ -88,19 +60,10 @@ export class InventoryController {
                 message: INVENTORY_SUCCESS.LOW_STOCK_FETCHED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[InventoryController.getLowStockAlerts] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 5: POST /api/inventory — Nhập kho lô mới */
-    static async create(req: Request, res: Response) {
-        try {
+    static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await InventoryService.create(req.body);
 
             res.status(HTTP_STATUS.CREATED).json({
@@ -108,19 +71,10 @@ export class InventoryController {
                 message: INVENTORY_SUCCESS.CREATED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[InventoryController.create] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** API 6: PATCH /api/inventory/:batchId — Cập nhật tồn kho */
-    static async update(req: Request, res: Response) {
-        try {
+    static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const batchId = req.params.batchId as string;
             const result = await InventoryService.update(batchId, req.body);
 
@@ -129,13 +83,5 @@ export class InventoryController {
                 message: INVENTORY_SUCCESS.UPDATED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[InventoryController.update] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 }

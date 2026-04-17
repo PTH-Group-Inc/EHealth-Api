@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { WarehouseService } from '../../services/Medication Management/warehouse.service';
 import { WAREHOUSE_SUCCESS } from '../../constants/warehouse.constant';
-import logger from '../../config/logger.config';
 
 
 const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
@@ -10,8 +10,7 @@ const HTTP_STATUS = { OK: 200, CREATED: 201, INTERNAL_SERVER_ERROR: 500 };
 export class WarehouseController {
 
     /** GET /api/warehouses */
-    static async getAll(req: Request, res: Response) {
-        try {
+    static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const branchId = req.query.branch_id as string | undefined;
             const search = req.query.search as string | undefined;
             const result = await WarehouseService.getAll(branchId, search);
@@ -21,19 +20,10 @@ export class WarehouseController {
                 message: WAREHOUSE_SUCCESS.LIST_FETCHED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[WarehouseController.getAll] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** GET /api/warehouses/:id */
-    static async getById(req: Request, res: Response) {
-        try {
+    static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const result = await WarehouseService.getById(id);
 
@@ -42,19 +32,10 @@ export class WarehouseController {
                 message: WAREHOUSE_SUCCESS.DETAIL_FETCHED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[WarehouseController.getById] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** POST /api/warehouses */
-    static async create(req: Request, res: Response) {
-        try {
+    static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const result = await WarehouseService.create(req.body);
 
             res.status(HTTP_STATUS.CREATED).json({
@@ -62,19 +43,10 @@ export class WarehouseController {
                 message: WAREHOUSE_SUCCESS.CREATED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[WarehouseController.create] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** PATCH /api/warehouses/:id */
-    static async update(req: Request, res: Response) {
-        try {
+    static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const result = await WarehouseService.update(id, req.body);
 
@@ -83,19 +55,10 @@ export class WarehouseController {
                 message: WAREHOUSE_SUCCESS.UPDATED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[WarehouseController.update] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 
     /** PATCH /api/warehouses/:id/toggle */
-    static async toggle(req: Request, res: Response) {
-        try {
+    static toggle = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const result = await WarehouseService.toggle(id);
 
@@ -104,13 +67,5 @@ export class WarehouseController {
                 message: WAREHOUSE_SUCCESS.TOGGLED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error.httpCode) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                logger.error('[WarehouseController.toggle] Error:', error);
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 }

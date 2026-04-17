@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { DoctorAbsenceService } from '../../services/Appointment Management/doctor-absence.service';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -12,8 +13,7 @@ export class DoctorAbsenceController {
     /**
      * POST /api/doctor-absences — Tạo lịch vắng đột xuất
      */
-    static async createAbsence(req: Request, res: Response): Promise<void> {
-        try {
+    static createAbsence = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const createdBy = (req as any).auth?.user_id;
             const { doctor_id, absence_date, shift_id, absence_type, reason } = req.body;
 
@@ -36,20 +36,12 @@ export class DoctorAbsenceController {
             }
 
             res.status(HTTP_STATUS.CREATED).json(response);
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi tạo lịch vắng' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/doctor-absences — Danh sách vắng đột xuất
      */
-    static async getAbsences(req: Request, res: Response): Promise<void> {
-        try {
+    static getAbsences = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
                 doctor_id: req.query.doctor_id as string | undefined,
                 start_date: req.query.start_date as string | undefined,
@@ -64,20 +56,12 @@ export class DoctorAbsenceController {
                 message: DOCTOR_ABSENCE_SUCCESS.LIST_FETCHED,
                 data,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi lấy danh sách vắng' });
-            }
-        }
-    }
+    });
 
     /**
      * DELETE /api/doctor-absences/:absenceId — Huỷ lịch vắng
      */
-    static async deleteAbsence(req: Request, res: Response): Promise<void> {
-        try {
+    static deleteAbsence = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const absenceId = req.params.absenceId as string;
             await DoctorAbsenceService.deleteAbsence(absenceId);
 
@@ -85,20 +69,12 @@ export class DoctorAbsenceController {
                 success: true,
                 message: DOCTOR_ABSENCE_SUCCESS.DELETED,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ khi huỷ lịch vắng' });
-            }
-        }
-    }
+    });
 
     /**
      * GET /api/doctor-absences/affected-appointments — Xem lịch khám bị ảnh hưởng
      */
-    static async getAffectedAppointments(req: Request, res: Response): Promise<void> {
-        try {
+    static getAffectedAppointments = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const doctorId = req.query.doctor_id as string;
             const absenceDate = req.query.absence_date as string;
             const shiftId = req.query.shift_id as string | undefined;
@@ -110,12 +86,5 @@ export class DoctorAbsenceController {
                 message: DOCTOR_ABSENCE_SUCCESS.AFFECTED_FETCHED,
                 data: result,
             });
-        } catch (error: any) {
-            if (error instanceof AppError) {
-                res.status(error.httpCode).json({ success: false, code: error.code, message: error.message });
-            } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Lỗi máy chủ' });
-            }
-        }
-    }
+    });
 }

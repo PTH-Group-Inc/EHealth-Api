@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { PatientContactService } from '../../services/Patient Management/patient-contact.service';
 import {
     CreatePatientContactInput,
@@ -10,8 +11,7 @@ export class PatientContactController {
     /**
      * Lấy danh sách người thân (hỗ trợ lọc theo patientId qua query param)
      */
-    static async getContacts(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getContacts = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patient_id, page, limit } = req.query as Record<string, string>;
 
             const data = await PatientContactService.getContacts(
@@ -21,29 +21,21 @@ export class PatientContactController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết người thân theo ID
      */
-    static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await PatientContactService.getById(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Thêm người thân cho bệnh nhân
      */
-    static async create(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreatePatientContactInput = req.body;
             const data = await PatientContactService.create(input);
             res.status(201).json({
@@ -51,16 +43,12 @@ export class PatientContactController {
                 message: 'Thêm người thân cho bệnh nhân thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin người thân
      */
-    static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdatePatientContactInput = req.body;
             const data = await PatientContactService.update(id, input);
@@ -69,34 +57,26 @@ export class PatientContactController {
                 message: 'Cập nhật thông tin người thân thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa người thân (soft delete)
      */
-    static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static delete = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             await PatientContactService.delete(id);
             res.status(200).json({
                 success: true,
                 message: 'Đã xóa thông tin người thân thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // ==================== MODULE 2.4.3: Liên hệ khẩn cấp ====================
 
     /**
      * Đặt/hủy liên hệ khẩn cấp cho người thân
      */
-    static async setEmergencyContact(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static setEmergencyContact = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const { is_emergency_contact } = req.body as { is_emergency_contact: boolean };
 
@@ -110,18 +90,14 @@ export class PatientContactController {
                 message: PATIENT_CONTACT_MESSAGES.SET_EMERGENCY_SUCCESS,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // ==================== MODULE 2.4.4: Người đại diện pháp lý ====================
 
     /**
      * Chỉ định/hủy người đại diện pháp lý
      */
-    static async setLegalRepresentative(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static setLegalRepresentative = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const { is_legal_representative } = req.body as { is_legal_representative: boolean };
 
@@ -135,18 +111,14 @@ export class PatientContactController {
                 : PATIENT_CONTACT_MESSAGES.UNSET_LEGAL_REP_SUCCESS;
 
             res.status(200).json({ success: true, message, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // ==================== MODULE 2.4.5: Ghi chú quyền quyết định y tế ====================
 
     /**
      * Cập nhật ghi chú quyền quyết định y tế
      */
-    static async updateMedicalDecisionNote(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateMedicalDecisionNote = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const { medical_decision_note } = req.body as { medical_decision_note: string };
 
@@ -160,22 +132,15 @@ export class PatientContactController {
                 message: PATIENT_CONTACT_MESSAGES.UPDATE_MEDICAL_NOTE_SUCCESS,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy ghi chú quyền quyết định y tế
      */
-    static async getMedicalDecisionNote(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getMedicalDecisionNote = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await PatientContactService.getMedicalDecisionNote(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }
 

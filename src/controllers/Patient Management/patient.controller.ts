@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { PatientService } from '../../services/Patient Management/patient.service';
 import { PatientInsuranceService } from '../../services/Patient Management/patient-insurance.service';
 import { PatientContactService } from '../../services/Patient Management/patient-contact.service';
@@ -14,8 +15,7 @@ export class PatientController {
     /**
      * Lấy danh sách hồ sơ bệnh nhân
      */
-    static async getPatients(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatients = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { search, status, gender, page, limit } = req.query as Record<string, string>;
 
             const data = await PatientService.getPatients(
@@ -27,29 +27,21 @@ export class PatientController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết hồ sơ bệnh nhân
      */
-    static async getPatientById(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await PatientService.getPatientById(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tạo mới hồ sơ bệnh nhân
      */
-    static async createPatient(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static createPatient = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const input: CreatePatientInput = req.body;
             const data = await PatientService.createPatient(input);
             res.status(201).json({
@@ -57,16 +49,12 @@ export class PatientController {
                 message: 'Tạo hồ sơ bệnh nhân thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật thông tin hành chính bệnh nhân.
      */
-    static async updatePatient(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updatePatient = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const input: UpdatePatientInput = req.body;
 
@@ -80,17 +68,13 @@ export class PatientController {
                 message: 'Cập nhật hồ sơ bệnh nhân thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật trạng thái hồ sơ bệnh nhân (ACTIVE / INACTIVE).
      * Lưu snapshot dữ liệu cũ trước khi cập nhật để phục vụ audit trail y tế.
      */
-    static async updateStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const { status } = req.body as { status: string };
 
@@ -104,17 +88,13 @@ export class PatientController {
                 message: `Đã cập nhật trạng thái hồ sơ bệnh nhân thành: ${status}.`,
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Liên kết hồ sơ bệnh nhân với tài khoản Mobile App.
      * Lưu snapshot dữ liệu cũ trước khi cập nhật để phục vụ audit trail y tế.
      */
-    static async linkAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static linkAccount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const { account_id } = req.body as { account_id: string };
 
@@ -128,17 +108,13 @@ export class PatientController {
                 message: 'Liên kết tài khoản thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Hủy liên kết tài khoản khỏi hồ sơ bệnh nhân.
      * Lưu snapshot dữ liệu cũ trước khi cập nhật để phục vụ audit trail y tế.
      */
-    static async unlinkAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static unlinkAccount = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             // Lưu dữ liệu cũ trước khi cập nhật để Audit Middleware ghi nhận
@@ -151,17 +127,13 @@ export class PatientController {
                 message: 'Đã hủy liên kết tài khoản.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xóa mềm hồ sơ bệnh nhân.
      * Lưu snapshot dữ liệu cũ trước khi xóa để phục vụ audit trail y tế.
      */
-    static async deletePatient(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static deletePatient = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             // Lưu dữ liệu cũ trước khi xóa để Audit Middleware ghi nhận
@@ -173,17 +145,13 @@ export class PatientController {
                 success: true,
                 message: 'Đã xóa hồ sơ bệnh nhân thành công.'
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tra cứu lịch sử thay đổi hồ sơ của 1 bệnh nhân cụ thể.
      * Phục vụ kiểm tra nội bộ & tuân thủ quy định y tế.
      */
-    static async getPatientAuditTrail(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientAuditTrail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
 
             // Đảm bảo bệnh nhân tồn tại trước khi truy vấn audit trail
@@ -239,16 +207,12 @@ export class PatientController {
                     total_pages: Math.ceil(mergedTotal / limit)
                 }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách thẻ bảo hiểm của 1 bệnh nhân (nested route)
      */
-    static async getPatientInsurances(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientInsurances = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const { page, limit } = req.query as Record<string, string>;
 
@@ -259,16 +223,12 @@ export class PatientController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Thêm thẻ bảo hiểm cho bệnh nhân (nested route, patientId từ params)
      */
-    static async addPatientInsurance(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static addPatientInsurance = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const input = { ...req.body, patient_id: patientId };
 
@@ -278,16 +238,12 @@ export class PatientController {
                 message: 'Thêm thẻ bảo hiểm cho bệnh nhân thành công.',
                 data
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Cập nhật cờ has_insurance cho bệnh nhân
      */
-    static async updateInsuranceStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static updateInsuranceStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const { has_insurance } = req.body as { has_insurance: boolean };
 
@@ -296,16 +252,12 @@ export class PatientController {
                 success: true,
                 message: `Đã cập nhật trạng thái bảo hiểm bệnh nhân thành: ${has_insurance ? 'CÓ' : 'KHÔNG CÓ'} bảo hiểm.`
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Danh sách bệnh nhân CÓ bảo hiểm
      */
-    static async getPatientsWithInsurance(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientsWithInsurance = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { page, limit } = req.query as Record<string, string>;
 
             const data = await PatientService.getPatientsWithInsurance(
@@ -314,16 +266,12 @@ export class PatientController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Danh sách bệnh nhân KHÔNG CÓ bảo hiểm
      */
-    static async getPatientsWithoutInsurance(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientsWithoutInsurance = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { page, limit } = req.query as Record<string, string>;
 
             const data = await PatientService.getPatientsWithoutInsurance(
@@ -332,85 +280,61 @@ export class PatientController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // ==================== MODULE 2.4.3 & 2.4.4: Liên hệ khẩn cấp & Đại diện pháp lý ====================
 
     /**
      * Lấy danh sách liên hệ khẩn cấp của bệnh nhân
      */
-    static async getEmergencyContacts(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getEmergencyContacts = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const data = await PatientContactService.getEmergencyContacts(patientId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy người đại diện pháp lý hiện tại của bệnh nhân
      */
-    static async getLegalRepresentative(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getLegalRepresentative = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const data = await PatientContactService.getLegalRepresentative(patientId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     // 2.4.6: Phân biệt người thân – liên hệ khẩn cấp
 
     /**
      * Lấy tất cả người liên hệ của bệnh nhân
      */
-    static async getAllRelations(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getAllRelations = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const data = await PatientContactService.getAllRelations(patientId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách người thân thông thường (không khẩn cấp, không đại diện pháp lý)
      */
-    static async getNormalRelatives(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getNormalRelatives = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const data = await PatientContactService.getNormalRelatives(patientId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy danh sách người giám hộ
      */
-    static async getGuardians(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getGuardians = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const data = await PatientContactService.getGuardians(patientId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lọc bệnh nhân theo tag(s)
      */
-    static async filterByTags(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static filterByTags = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const tagIdsRaw = req.query.tagIds as string;
             const matchAll = req.query.matchAll === 'true';
             const page = parseInt(req.query.page as string, 10) || PATIENT_CONFIG.DEFAULT_PAGE;
@@ -419,15 +343,11 @@ export class PatientController {
             const tagIds = tagIdsRaw ? tagIdsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
             const data = await PatientService.filterByTags(tagIds, matchAll, page, limit);
             res.status(200).json({ success: true, ...data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
 
     /** Tìm kiếm nâng cao bệnh nhân */
-    static async advancedSearch(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static advancedSearch = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { keyword, status, gender, page, limit } = req.query as Record<string, string>;
             const ageMin = req.query.ageMin ? parseInt(req.query.ageMin as string, 10) : undefined;
             const ageMax = req.query.ageMax ? parseInt(req.query.ageMax as string, 10) : undefined;
@@ -438,41 +358,26 @@ export class PatientController {
                 limit ? parseInt(limit) : PATIENT_CONFIG.DEFAULT_LIMIT
             );
             res.status(200).json({ success: true, ...data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /** Lấy danh sách hồ sơ bệnh nhân qua ID tài khoản (User ID) */
-    static async getPatientsByAccountId(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientsByAccountId = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { accountId } = req.params as { accountId: string };
             const data = await PatientService.getPatientsByAccountId(accountId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /** Tìm kiếm nhanh (Autocomplete) */
-    static async quickSearch(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static quickSearch = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const q = (req.query.q as string) || '';
             const data = await PatientService.quickSearch(q);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /** Tra cứu tóm tắt hồ sơ bệnh nhân */
-    static async getPatientSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientSummary = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const data = await PatientService.getPatientSummary(id);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

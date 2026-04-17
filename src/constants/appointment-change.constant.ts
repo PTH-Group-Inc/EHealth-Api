@@ -10,7 +10,22 @@ export const POLICY_RESULT = {
     ALLOWED: 'ALLOWED',
     LATE_CANCEL: 'LATE_CANCEL',
     BLOCKED: 'BLOCKED',
+    AUTO_APPROVED: 'AUTO_APPROVED',
+    AUTO_REJECTED: 'AUTO_REJECTED',
 } as const;
+
+export const CHANGE_APPROVAL_STATUS = {
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+} as const;
+
+export const CHANGE_APPROVED_BY_TYPE = {
+    SYSTEM: 'SYSTEM',
+    USER: 'USER',
+} as const;
+
+export const SYSTEM_AUTO_APPROVER = 'SYSTEM_AUTO_APPROVER';
 
 /** Trạng thái cho phép hủy */
 export const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED', 'CHECKED_IN'] as const;
@@ -30,6 +45,7 @@ export const CHANGE_ERRORS = {
     MISSING_RESCHEDULE_REASON: 'Vui lòng cung cấp lý do dời lịch (reschedule_reason)',
     NO_CHANGE_HISTORY: 'Không tìm thấy lịch sử thay đổi cho lịch khám này',
     INVALID_DATE_RANGE: 'Khoảng thời gian không hợp lệ (from_date phải trước to_date)',
+    MISSING_RESCHEDULE_DATA: 'Thiếu thông tin dời lịch: appointmentId, newDate, newSlotId',
 } as const;
 
 /** Thông báo thành công */
@@ -39,4 +55,5 @@ export const CHANGE_SUCCESS = {
     POLICY_CHECKED: 'Kiểm tra chính sách hủy hoàn tất',
     RECENT_FETCHED: 'Lấy danh sách thay đổi gần đây thành công',
     CAN_RESCHEDULE_CHECKED: 'Kiểm tra khả năng dời lịch hoàn tất',
+    RESCHEDULE_REQUEST_CREATED: 'Tạo yêu cầu dời lịch và tự động phê duyệt thành công',
 } as const;

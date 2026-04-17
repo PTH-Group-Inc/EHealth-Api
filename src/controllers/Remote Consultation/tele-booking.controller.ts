@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { TeleBookingService } from '../../services/Remote Consultation/tele-booking.service';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import { TELE_BOOKING_SUCCESS, TELE_BOOKING_ERRORS, REMOTE_CONSULTATION_CONFIG } from '../../constants/remote-consultation.constant';
@@ -12,8 +13,7 @@ export class TeleBookingController {
     // ═══ NHÓM 1: Tìm BS & Slot ═══
 
     /** GET /booking/doctors — DS bác sĩ khả dụng */
-    static async getAvailableDoctors(req: Request, res: Response): Promise<void> {
-        try {
+    static getAvailableDoctors = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { specialty_id, facility_id, date, type_id, shift_id } = req.query;
             const doctors = await TeleBookingService.findAvailableDoctors({
                 specialty_id: specialty_id as string,
@@ -23,27 +23,19 @@ export class TeleBookingController {
                 shift_id: shift_id as string | undefined,
             });
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.DOCTORS_FETCHED, data: doctors });
-        } catch (error: any) {
-            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** GET /booking/slots — DS khung giờ trống */
-    static async getAvailableSlots(req: Request, res: Response): Promise<void> {
-        try {
+    static getAvailableSlots = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { date, doctor_id, shift_id } = req.query;
             const slots = await TeleBookingService.findAvailableSlots(
                 date as string, doctor_id as string | undefined, shift_id as string | undefined
             );
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SLOTS_FETCHED, data: slots });
-        } catch (error: any) {
-            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** GET /booking/check-doctor — Kiểm tra chi tiết availability BS */
-    static async checkDoctorAvailability(req: Request, res: Response): Promise<void> {
-        try {
+    static checkDoctorAvailability = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { doctor_id, date } = req.query;
             const data = await TeleBookingService.checkDoctorAvailability(doctor_id as string, date as string);
             if (!data) {
@@ -51,95 +43,63 @@ export class TeleBookingController {
                 return;
             }
             res.status(HTTP_STATUS.OK).json({ success: true, data });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     // ═══ NHÓM 2: Đặt lịch ═══
 
     /** POST /booking — Tạo phiên đặt lịch */
-    static async createBooking(req: Request, res: Response): Promise<void> {
-        try {
+    static createBooking = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).user?.userId;
             const session = await TeleBookingService.createBooking(req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CREATED, data: session });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** PUT /booking/:sessionId — Cập nhật phiên */
-    static async updateBooking(req: Request, res: Response): Promise<void> {
-        try {
+    static updateBooking = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const session = await TeleBookingService.updateBooking(String(req.params.sessionId), req.body);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_UPDATED, data: session });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** POST /booking/:sessionId/confirm — Xác nhận phiên */
-    static async confirmBooking(req: Request, res: Response): Promise<void> {
-        try {
+    static confirmBooking = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).user?.userId;
             const session = await TeleBookingService.confirmBooking(String(req.params.sessionId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CONFIRMED, data: session });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** POST /booking/:sessionId/cancel — Hủy phiên */
-    static async cancelBooking(req: Request, res: Response): Promise<void> {
-        try {
+    static cancelBooking = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).user?.userId;
             const { cancellation_reason } = req.body;
             const session = await TeleBookingService.cancelBooking(String(req.params.sessionId), cancellation_reason || 'Không rõ lý do', userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CANCELLED, data: session });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     // ═══ NHÓM 3: Thanh toán ═══
 
     /** POST /booking/:sessionId/payment — Khởi tạo thanh toán */
-    static async initiatePayment(req: Request, res: Response): Promise<void> {
-        try {
+    static initiatePayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).user?.userId;
             const result = await TeleBookingService.initiatePayment(String(req.params.sessionId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.PAYMENT_INITIATED, data: result });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** POST /booking/:sessionId/payment-callback — Callback thanh toán */
-    static async paymentCallback(req: Request, res: Response): Promise<void> {
-        try {
+    static paymentCallback = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const session = await TeleBookingService.paymentCallback(String(req.params.sessionId));
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.PAYMENT_CONFIRMED, data: session });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     // ═══ NHÓM 4: Tra cứu ═══
 
     /** GET /booking/:sessionId — Chi tiết phiên */
-    static async getBookingDetail(req: Request, res: Response): Promise<void> {
-        try {
+    static getBookingDetail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const session = await TeleBookingService.getBookingById(String(req.params.sessionId));
             res.status(HTTP_STATUS.OK).json({ success: true, data: session });
-        } catch (error: any) {
-            res.status(error.httpCode || error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** GET /booking — Danh sách phiên (ADMIN/DOCTOR) */
-    static async listBookings(req: Request, res: Response): Promise<void> {
-        try {
+    static listBookings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
                 patient_id: req.query.patient_id as string | undefined,
                 doctor_id: req.query.doctor_id as string | undefined,
@@ -156,14 +116,10 @@ export class TeleBookingController {
             };
             const result = await TeleBookingService.listBookings(filters);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page: result.page, limit: result.limit } });
-        } catch (error: any) {
-            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 
     /** GET /booking/my-bookings — Lịch sử của BN đang đăng nhập */
-    static async getMyBookings(req: Request, res: Response): Promise<void> {
-        try {
+    static getMyBookings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).user?.userId;
             // Lấy patientId từ query, nếu không có thì lấy profile mặc định
             let patientId = req.query.patientId as string | undefined;
@@ -189,8 +145,5 @@ export class TeleBookingController {
             };
             const result = await TeleBookingService.getMyBookings(patientId, filters as any);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page: result.page, limit: result.limit } });
-        } catch (error: any) {
-            res.status(error.httpCode || error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, code: error.code, message: error.message });
-        }
-    }
+    });
 }

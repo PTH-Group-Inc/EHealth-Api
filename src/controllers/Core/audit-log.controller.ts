@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { AuditLogRepository } from '../../repository/Core/audit-log.repository';
 import { AppError } from '../../utils/app-error.util';
 import { ExcelUtil } from '../../utils/excel.util';
@@ -7,8 +8,7 @@ export class AuditLogController {
     /**
      * Lấy danh sách Log có phân trang và bộ lọc chuyên sâu
      */
-    static async getLogs(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getLogs = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
                 user_id: req.query.user_id as string | undefined,
                 module_name: req.query.module_name as string | undefined,
@@ -32,16 +32,12 @@ export class AuditLogController {
                     total_pages: Math.ceil(data.total / filters.limit)
                 }
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xem chi tiết 1 dòng Log cũ & mới
      */
-    static async getLogById(req: Request, res: Response, next: NextFunction) {
-        try {
+    static getLogById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const id = req.params.id as string;
             const log = await AuditLogRepository.getLogById(id);
 
@@ -54,16 +50,12 @@ export class AuditLogController {
                 message: 'Lấy chi tiết Audit Log thành công.',
                 data: log
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xuất Excel toàn bộ Logs theo Filter
      */
-    static async exportExcel(req: Request, res: Response, next: NextFunction) {
-        try {
+    static exportExcel = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
                 user_id: req.query.user_id ? String(req.query.user_id) : undefined,
                 module_name: req.query.module_name ? String(req.query.module_name) : undefined,
@@ -93,8 +85,5 @@ export class AuditLogController {
             res.setHeader('Content-Disposition', `attachment; filename="AuditLogs_Export_${Date.now()}.xlsx"`);
             res.send(excelBuffer);
 
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }

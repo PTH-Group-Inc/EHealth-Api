@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.util';
 import { MedicalHistoryService } from '../../services/Patient Management/medical-history.service';
 import { MEDICAL_HISTORY_CONFIG, MEDICAL_HISTORY_SUCCESS } from '../../constants/medical-history.constant';
 
@@ -6,8 +7,7 @@ export class MedicalHistoryController {
     /**
      * Lấy danh sách lượt khám
      */
-    static async getEncounters(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getEncounters = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const {
                 patient_id, doctor_id, type, status,
                 from, to, page, limit
@@ -25,42 +25,30 @@ export class MedicalHistoryController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Lấy chi tiết đầy đủ lượt khám
      */
-    static async getEncounterDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getEncounterDetail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { encounterId } = req.params as { encounterId: string };
             const data = await MedicalHistoryService.getEncounterDetail(encounterId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tra cứu lần khám gần nhất
      */
-    static async getLatestEncounter(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getLatestEncounter = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const data = await MedicalHistoryService.getLatestEncounter(patientId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Xem dòng thời gian sức khỏe
      */
-    static async getTimeline(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getTimeline = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const { from, to, limit } = req.query as Record<string, string>;
 
@@ -70,29 +58,21 @@ export class MedicalHistoryController {
             );
 
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * Tổng hợp lịch sử bệnh nhân
      */
-    static async getPatientSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getPatientSummary = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { patientId } = req.params as { patientId: string };
             const data = await MedicalHistoryService.getPatientSummary(patientId);
             res.status(200).json({ success: true, data });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 
     /**
      * GET /api/medical-history/my-history — Lịch sử khám bệnh của tôi
      */
-    static async getMyHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
+    static getMyHistory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const { type, status, from, to, page, limit } = req.query as Record<string, string>;
 
@@ -118,9 +98,6 @@ export class MedicalHistoryController {
                     totalPages: result.totalPages,
                 },
             });
-        } catch (error) {
-            next(error);
-        }
-    }
+    });
 }
 

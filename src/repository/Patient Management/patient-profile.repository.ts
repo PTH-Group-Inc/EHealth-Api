@@ -20,7 +20,7 @@ export class PatientProfileRepository {
         const query = `
             SELECT p.*,
                    a.email AS account_email,
-                   a.phone AS account_phone
+                   a.phone_number AS account_phone
             FROM patients p
             LEFT JOIN users a ON a.users_id = p.account_id
             WHERE p.account_id = $1
@@ -39,7 +39,7 @@ export class PatientProfileRepository {
         const query = `
             SELECT p.*,
                    a.email AS account_email,
-                   a.phone AS account_phone
+                   a.phone_number AS account_phone
             FROM patients p
             LEFT JOIN users a ON a.users_id = p.account_id
             WHERE p.id = $1
