@@ -1,14 +1,5 @@
-/**
- * Patient Profile Repository (Multi-Profile)
- *
- * Module 1 — Multi-Patient Profiles
- * Cho phép 1 account quản lý nhiều patient profiles (cho gia đình)
- *
- * Reuse cột `account_id` của bảng patients.
- * Thêm 2 cột mới: relationship + is_default.
- */
-
 import { pool } from '../../config/postgresdb';
+import { AvatarImage } from '../../models/Core/profile.model';
 import { Patient, CreatePatientProfileInput, PatientRelationship } from '../../models/Patient Management/patient.model';
 
 export class PatientProfileRepository {
@@ -214,13 +205,69 @@ export class PatientProfileRepository {
      */
     static async getDefault(accountId: string): Promise<Patient | null> {
         const query = `
-            SELECT * FROM patients
-            WHERE account_id = $1
-              AND is_default = TRUE
-              AND deleted_at IS NULL
+            SELECT p.*,
+                   a.email AS account_email,
+                   a.phone_number AS account_phone
+            FROM patients p
+            LEFT JOIN users a ON a.users_id = p.account_id
+            WHERE p.account_id = $1
+              AND p.is_default = TRUE
+              AND p.deleted_at IS NULL
             LIMIT 1
         `;
         const result = await pool.query(query, [accountId]);
         return result.rows[0] || null;
+    }
+
+    /**
+     * Lay danh sach anh ho so hien tai cua patient profile.
+     */
+    static async getAvatarImages(patientId: string): Promise<AvatarImage[]> {
+        const result = await pool.query(
+            `SELECT COALESCE(avatar_url, '[]'::jsonb) AS avatar_url
+             FROM patients
+             WHERE id = $1 AND deleted_at IS NULL`,
+            [patientId],
+        );
+
+        if (result.rowCount === 0) {
+            return [];
+        }
+
+        return result.rows[0].avatar_url as AvatarImage[];
+    }
+
+    /**
+     * Ghi de toan bo mang avatar_url cho patient profile.
+     */
+    static async setAvatarImages(patientId: string, images: AvatarImage[]): Promise<boolean> {
+        const result = await pool.query(
+            `UPDATE patients
+             SET avatar_url = $1::jsonb,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = $2 AND deleted_at IS NULL`,
+            [JSON.stringify(images), patientId],
+        );
+
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /**
+     * Xoa 1 anh khoi mang avatar_url theo public_id.
+     */
+    static async removeAvatarImage(patientId: string, publicId: string): Promise<boolean> {
+        const result = await pool.query(
+            `UPDATE patients
+             SET avatar_url = (
+                 SELECT COALESCE(jsonb_agg(elem), '[]'::jsonb)
+                 FROM jsonb_array_elements(COALESCE(avatar_url, '[]'::jsonb)) AS elem
+                 WHERE elem->>'public_id' != $1
+             ),
+             updated_at = CURRENT_TIMESTAMP
+             WHERE id = $2 AND deleted_at IS NULL`,
+            [publicId, patientId],
+        );
+
+        return (result.rowCount ?? 0) > 0;
     }
 }

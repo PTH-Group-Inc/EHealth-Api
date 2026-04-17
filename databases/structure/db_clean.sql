@@ -342,6 +342,7 @@ CREATE TABLE patients (
     ward_id INT,
     emergency_contact_name VARCHAR(100),
     emergency_contact_phone VARCHAR(20),
+    avatar_url JSONB DEFAULT '[]'::jsonb,
     has_insurance BOOLEAN DEFAULT FALSE,
     status VARCHAR(20) DEFAULT 'ACTIVE',
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

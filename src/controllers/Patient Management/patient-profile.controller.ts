@@ -10,6 +10,10 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler.util';
+import {
+    PATIENT_AVATAR_ERRORS,
+    PATIENT_AVATAR_SUCCESS,
+} from '../../constants/patient.constant';
 import { PatientProfileService } from '../../services/Patient Management/patient-profile.service';
 
 function getAccountId(req: Request): string {
@@ -144,6 +148,58 @@ export class PatientProfileController {
                 success: true,
                 data: updated,
                 message: 'Cập nhật quan hệ thành công',
+            });
+    });
+
+    /**
+     * POST /api/patient/profiles/:id/avatar
+     * Upload anh ho so cho patient profile thuoc tai khoan hien tai
+     */
+    static uploadAvatar = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const accountId = getAccountId(req);
+            const id = req.params.id as string;
+            const file = req.file;
+
+            if (!file) {
+                res.status(PATIENT_AVATAR_ERRORS.FILE_MISSING.httpCode).json({
+                    success: false,
+                    code: PATIENT_AVATAR_ERRORS.FILE_MISSING.code,
+                    message: PATIENT_AVATAR_ERRORS.FILE_MISSING.message,
+                });
+                return;
+            }
+
+            const image = await PatientProfileService.uploadAvatar(id, accountId, file);
+
+            return res.status(200).json({
+                success: true,
+                data: image,
+                message: PATIENT_AVATAR_SUCCESS.UPLOADED,
+            });
+    });
+
+    /**
+     * DELETE /api/patient/profiles/:id/avatar
+     * Xoa anh ho so cua patient profile theo public_id
+     */
+    static deleteAvatar = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const accountId = getAccountId(req);
+            const id = req.params.id as string;
+            const { public_id } = req.body;
+
+            if (!public_id) {
+                return res.status(400).json({
+                    success: false,
+                    code: 'PAT_AVT_MISSING_ID',
+                    message: 'Vui long cung cap public_id cua anh can xoa.',
+                });
+            }
+
+            await PatientProfileService.deleteAvatar(id, accountId, public_id);
+
+            return res.status(200).json({
+                success: true,
+                message: PATIENT_AVATAR_SUCCESS.DELETED,
             });
     });
 }

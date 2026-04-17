@@ -2,6 +2,8 @@
  * Hằng số cho Module 2.1 - Quản lý hồ sơ bệnh nhân (Patient Profile)
  */
 
+import { CLOUDINARY_CONFIG } from './system.constant';
+
 /** Giới tính bệnh nhân */
 export const GENDER = {
     MALE: 'MALE',
@@ -83,6 +85,53 @@ export const PATIENT_CONFIG = {
     DEFAULT_LIMIT: 20,
     MAX_LIMIT: 100,
 };
+
+/** Cau hinh upload anh ho so benh nhan */
+export const PATIENT_AVATAR_CONFIG = {
+    ALLOWED_MIME_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as string[],
+    CLOUDINARY_FOLDER: 'ehealth/patient-profiles/avatars',
+    MAX_IMAGES: 1,
+} as const;
+
+/** Loi lien quan den anh ho so benh nhan */
+export const PATIENT_AVATAR_ERRORS = {
+    FILE_MISSING: {
+        httpCode: 400,
+        code: 'PAT_AVT_001',
+        message: 'Khong tim thay file anh tai len.',
+    },
+    INVALID_FORMAT: {
+        httpCode: 400,
+        code: 'PAT_AVT_002',
+        message: 'Chi chap nhan hinh anh JPG, PNG, WebP.',
+    },
+    FILE_TOO_LARGE: {
+        httpCode: 400,
+        code: 'PAT_AVT_003',
+        message: `File anh vuot qua gioi han ${CLOUDINARY_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB.`,
+    },
+    UPLOAD_FAILED: {
+        httpCode: 500,
+        code: 'PAT_AVT_004',
+        message: 'Khong the tai anh ho so len he thong.',
+    },
+    IMAGE_NOT_FOUND: {
+        httpCode: 404,
+        code: 'PAT_AVT_005',
+        message: 'Anh ho so khong ton tai hoac da bi xoa.',
+    },
+    DELETE_FAILED: {
+        httpCode: 500,
+        code: 'PAT_AVT_006',
+        message: 'Khong the xoa anh ho so khoi he thong.',
+    },
+} as const;
+
+/** Thong bao thanh cong lien quan den anh ho so benh nhan */
+export const PATIENT_AVATAR_SUCCESS = {
+    UPLOADED: 'Tai anh ho so benh nhan thanh cong.',
+    DELETED: 'Xoa anh ho so benh nhan thanh cong.',
+} as const;
 
 /** Regex patterns cho validation */
 export const PATIENT_REGEX = {
