@@ -1,18 +1,11 @@
-[2026-04-18 00:41:43:4143] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
-[2026-04-18 00:41:43:4143] info: ┌──────────────────────────────────────────────┐
-[2026-04-18 00:41:43:4143] info: │  🔧 DEVELOPMENT MODE                        │
-[2026-04-18 00:41:43:4143] info: │  📄 Loaded: .env.development
-[2026-04-18 00:41:43:4143] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
-[2026-04-18 00:41:43:4143] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
-[2026-04-18 00:41:43:4143] info: │  📊 Log level: debug
-[2026-04-18 00:41:43:4143] info: │  💳 SePay: PRODUCTION
-[2026-04-18 00:41:43:4143] info: └──────────────────────────────────────────────┘
-[2026-04-18 00:42:02:422] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
-[2026-04-18 00:42:16:4216] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
-[2026-04-18 00:42:16:4216] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
-[2026-04-18 00:42:16:4216] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
-[2026-04-18 00:42:16:4216] info: ✅ Kết nối PostgreSQL thành công
-[2026-04-18 00:42:16:4216] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
-[2026-04-18 00:42:16:4216] info: 🚀 Server is running on port 3000
-[2026-04-18 00:42:16:4216] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
-[2026-04-18 00:42:16:4216] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-18 00:00:41:041] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 44.233 ms
+[2026-04-18 00:01:41:141] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 79.585 ms
+[2026-04-18 00:03:12:312] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 42.523 ms
+[2026-04-18 00:04:12:412] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 41.035 ms
+[2026-04-18 00:05:10:510] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 38.074 ms
+[2026-04-18 00:05:41:541] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 77.038 ms
+[2026-04-18 00:07:12:712] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 46.232 ms
+[2026-04-18 00:08:12:812] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.891 ms
+[2026-04-18 00:09:12:912] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.753 ms
+[2026-04-18 00:10:12:1012] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 33.694 ms
+[2026-04-18 00:11:12:1112] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.843 ms
