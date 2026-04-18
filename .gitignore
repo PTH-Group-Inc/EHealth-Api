@@ -8,5 +8,6 @@ node_modules
 .agents
 dist
 env
+logs/
 src/config/*.json
 *-firebase-adminsdk-*.json
