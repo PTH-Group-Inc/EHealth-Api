@@ -232,7 +232,7 @@ export class SignOffRepository {
              LEFT JOIN doctors d ON d.doctors_id = e.doctor_id
              LEFT JOIN user_profiles up_doc ON up_doc.user_id = d.user_id
              LEFT JOIN patients pat ON pat.id::text = e.patient_id
-             LEFT JOIN user_profiles up_pat ON up_pat.user_id = pat.user_id
+             LEFT JOIN user_profiles up_pat ON up_pat.user_id = pat.account_id
              WHERE d.user_id = $1
                AND e.status IN ('COMPLETED', 'IN_PROGRESS', 'WAITING_FOR_RESULTS')
                AND NOT EXISTS(
@@ -264,7 +264,7 @@ export class SignOffRepository {
              LEFT JOIN doctors d ON d.doctors_id = e.doctor_id
              LEFT JOIN user_profiles up_doc ON up_doc.user_id = d.user_id
              LEFT JOIN patients pat ON pat.id::text = e.patient_id
-             LEFT JOIN user_profiles up_pat ON up_pat.user_id = pat.user_id
+             LEFT JOIN user_profiles up_pat ON up_pat.user_id = pat.account_id
              WHERE e.status IN ('COMPLETED', 'IN_PROGRESS', 'WAITING_FOR_RESULTS')
                AND NOT EXISTS(
                    SELECT 1 FROM emr_signatures s

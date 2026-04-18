@@ -37,10 +37,10 @@ export class TeleFollowUpRepository {
                    up_doc.full_name AS doctor_name,
                    (SELECT COUNT(*)::int FROM tele_health_updates WHERE plan_id = p.plan_id) AS update_count
             FROM tele_follow_up_plans p
-            LEFT JOIN patients pat ON p.patient_id = pat.id::varchar
+            LEFT JOIN patients pat ON p.patient_id = pat.id
             LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
             LEFT JOIN doctors doc ON p.doctor_id = doc.doctors_id
-            LEFT JOIN user_profiles up_doc ON doc.account_id = up_doc.user_id
+            LEFT JOIN user_profiles up_doc ON doc.user_id = up_doc.user_id
             WHERE p.plan_id = $1
         `, [planId]);
         return r.rows[0] || null;
@@ -158,7 +158,7 @@ export class TeleFollowUpRepository {
         const countR = await pool.query(`
             SELECT COUNT(*)::int AS total
             FROM tele_follow_up_plans p
-            LEFT JOIN patients pat ON p.patient_id = pat.id::varchar
+            LEFT JOIN patients pat ON p.patient_id = pat.id
             LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
             ${where}
         `, params);
@@ -170,10 +170,10 @@ export class TeleFollowUpRepository {
                    up_doc.full_name AS doctor_name,
                    (SELECT COUNT(*)::int FROM tele_health_updates WHERE plan_id = p.plan_id) AS update_count
             FROM tele_follow_up_plans p
-            LEFT JOIN patients pat ON p.patient_id = pat.id::varchar
+            LEFT JOIN patients pat ON p.patient_id = pat.id
             LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
             LEFT JOIN doctors doc ON p.doctor_id = doc.doctors_id
-            LEFT JOIN user_profiles up_doc ON doc.account_id = up_doc.user_id
+            LEFT JOIN user_profiles up_doc ON doc.user_id = up_doc.user_id
             ${where}
             ORDER BY p.created_at DESC
             LIMIT $${idx++} OFFSET $${idx}
@@ -191,7 +191,7 @@ export class TeleFollowUpRepository {
                    (SELECT COUNT(*)::int FROM tele_health_updates WHERE plan_id = p.plan_id) AS update_count
             FROM tele_follow_up_plans p
             LEFT JOIN doctors doc ON p.doctor_id = doc.doctors_id
-            LEFT JOIN user_profiles up_doc ON doc.account_id = up_doc.user_id
+            LEFT JOIN user_profiles up_doc ON doc.user_id = up_doc.user_id
             WHERE p.patient_id = $1
             ORDER BY p.created_at DESC LIMIT $2 OFFSET $3
         `, [patientId, limit, offset]);
@@ -203,7 +203,7 @@ export class TeleFollowUpRepository {
         const r = await pool.query(`
             SELECT p.*, up_pat.full_name AS patient_name
             FROM tele_follow_up_plans p
-            LEFT JOIN patients pat ON p.patient_id = pat.id::varchar
+            LEFT JOIN patients pat ON p.patient_id = pat.id
             LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
             WHERE p.status = 'ACTIVE'
               AND p.next_follow_up_date IS NOT NULL
@@ -238,9 +238,17 @@ export class TeleFollowUpRepository {
     /** Lấy consultation */
     static async getConsultation(consultationId: string): Promise<any> {
         const r = await pool.query(`
-            SELECT tc.*, up_pat.full_name AS patient_name
+            SELECT tc.*,
+                   enc.patient_id,
+                   enc.doctor_id,
+                   up_pat.full_name AS patient_name,
+                   up_doc.full_name AS doctor_name
             FROM tele_consultations tc
-            LEFT JOIN user_profiles up_pat ON tc.patient_id = up_pat.user_id
+            LEFT JOIN encounters enc ON tc.encounter_id = enc.encounters_id
+            LEFT JOIN patients pat ON enc.patient_id = pat.id
+            LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
+            LEFT JOIN doctors doc ON enc.doctor_id = doc.doctors_id
+            LEFT JOIN user_profiles up_doc ON doc.user_id = up_doc.user_id
             WHERE tc.tele_consultations_id = $1
         `, [consultationId]);
         return r.rows[0] || null;

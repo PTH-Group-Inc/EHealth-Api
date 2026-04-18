@@ -14,7 +14,7 @@ export class TelePrescriptionController {
 
     /** POST /prescriptions/:consultationId */
     static createPrescription = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id;
             const result = await TelePrescriptionService.createPrescription(String(req.params.consultationId), userId, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_RX_SUCCESS.PRESCRIPTION_CREATED, data: result });
     });
@@ -67,7 +67,7 @@ export class TelePrescriptionController {
 
     /** POST /prescriptions/:consultationId/lab-orders */
     static createLabOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id;
             const result = await TelePrescriptionService.createLabOrder(String(req.params.consultationId), req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_RX_SUCCESS.LAB_ORDER_CREATED, data: result });
     });

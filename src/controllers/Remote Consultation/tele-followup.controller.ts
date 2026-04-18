@@ -14,7 +14,7 @@ export class TeleFollowUpController {
 
     /** POST /follow-ups/plans/:consultationId */
     static createPlan = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id;
             const result = await TeleFollowUpService.createPlan(String(req.params.consultationId), userId, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_FU_SUCCESS.PLAN_CREATED, data: result });
     });
@@ -47,8 +47,9 @@ export class TeleFollowUpController {
 
     /** POST /follow-ups/plans/:planId/updates */
     static addHealthUpdate = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
-            const role = (req as any).user?.role;
+            const userId = (req as any).auth?.user_id;
+            const roles: string[] = (req as any).auth?.roles || [];
+            const role = roles.includes('PATIENT') ? 'PATIENT' : 'DOCTOR';
             const result = await TeleFollowUpService.addHealthUpdate(String(req.params.planId), userId, role, req.body);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_FU_SUCCESS.UPDATE_ADDED, data: result });
     });
@@ -69,7 +70,7 @@ export class TeleFollowUpController {
 
     /** GET /follow-ups/updates/attention */
     static getAttentionUpdates = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id;
             const page = parseInt(req.query.page as string) || 1;
             const limit = Math.min(parseInt(req.query.limit as string) || 20, REMOTE_CONSULTATION_CONFIG.MAX_LIMIT);
             const result = await TeleFollowUpService.getAttentionUpdates(userId, page, limit);
@@ -86,7 +87,7 @@ export class TeleFollowUpController {
 
     /** GET /follow-ups/plans/upcoming */
     static getUpcomingPlans = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id;
             const result = await TeleFollowUpService.getUpcomingPlans(userId);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
     });

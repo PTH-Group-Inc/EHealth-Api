@@ -262,7 +262,7 @@ export class MedicalChatService {
     /** DS BN đang chat (cho BS) */
     static async getMyPatients(userId: string): Promise<any[]> {
         const docR = await pool.query(`SELECT doctors_id FROM doctors WHERE user_id = $1 LIMIT 1`, [userId]);
-        if (!docR.rows[0]) throw new AppError(HTTP_STATUS.NOT_FOUND, MED_CHAT_ERRORS.DOCTOR_NOT_FOUND.code, MED_CHAT_ERRORS.DOCTOR_NOT_FOUND.message);
+        if (!docR.rows[0]) return [];
         return await MedicalChatRepository.findPatientsByDoctor(docR.rows[0].doctors_id);
     }
 

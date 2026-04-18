@@ -6,6 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
  * Data Access Layer cho kê đơn & chỉ định từ xa
  */
 export class TelePrescriptionRepository {
+    private static isMissingRelationError(error: any, ...relations: string[]): boolean {
+        if (error?.code !== '42P01') return false;
+        const message = String(error?.message || '').toLowerCase();
+        return relations.some(relation => message.includes(relation.toLowerCase()));
+    }
 
     // ═══════════════════════════════════════════════════
     // TELE_PRESCRIPTIONS
@@ -30,10 +35,8 @@ export class TelePrescriptionRepository {
                    up_pat.full_name AS patient_name
             FROM tele_prescriptions tp
             JOIN prescriptions p ON tp.prescription_id = p.prescriptions_id
-            LEFT JOIN users u_doc ON p.doctor_id = u_doc.users_id
-            LEFT JOIN user_profiles up_doc ON u_doc.users_id = up_doc.user_id
-            LEFT JOIN encounters enc ON tp.encounter_id = enc.encounters_id
-            LEFT JOIN patients pat ON enc.patient_id = pat.id::varchar
+            LEFT JOIN user_profiles up_doc ON p.doctor_id = up_doc.user_id
+            LEFT JOIN patients pat ON p.patient_id = pat.id
             LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
             WHERE tp.tele_consultation_id = $1
         `, [consultationId]);
@@ -135,14 +138,21 @@ export class TelePrescriptionRepository {
 
     /** DS tất cả thuốc hạn chế */
     static async getAllRestrictions(): Promise<DrugRestriction[]> {
-        const r = await pool.query(`
-            SELECT tdr.*, d.drug_code, d.brand_name
-            FROM tele_drug_restrictions tdr
-            JOIN drugs d ON tdr.drug_id = d.drugs_id
-            WHERE tdr.is_active = TRUE
-            ORDER BY tdr.restriction_type, d.brand_name
-        `);
-        return r.rows;
+        try {
+            const r = await pool.query(`
+                SELECT tdr.*, d.drug_code, d.brand_name
+                FROM tele_drug_restrictions tdr
+                JOIN drugs d ON tdr.drug_id = d.drugs_id
+                WHERE tdr.is_active = TRUE
+                ORDER BY tdr.restriction_type, d.brand_name
+            `);
+            return r.rows;
+        } catch (error) {
+            if (this.isMissingRelationError(error, 'tele_drug_restrictions')) {
+                return [];
+            }
+            throw error;
+        }
     }
 
     // ═══════════════════════════════════════════════════
@@ -204,33 +214,38 @@ export class TelePrescriptionRepository {
             params.push(`%${filters.keyword}%`); idx++;
         }
 
-        const countR = await pool.query(`
-            SELECT COUNT(*)::int AS total
-            FROM tele_prescriptions tp
-            JOIN prescriptions p ON tp.prescription_id = p.prescriptions_id
-            LEFT JOIN encounters enc ON tp.encounter_id = enc.encounters_id
-            LEFT JOIN patients pat ON enc.patient_id = pat.id::varchar
-            LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
-            ${where}
-        `, params);
+        try {
+            const countR = await pool.query(`
+                SELECT COUNT(*)::int AS total
+                FROM tele_prescriptions tp
+                JOIN prescriptions p ON tp.prescription_id = p.prescriptions_id
+                LEFT JOIN patients pat ON p.patient_id = pat.id
+                LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
+                ${where}
+            `, params);
 
-        const offset = (filters.page - 1) * filters.limit;
-        const r = await pool.query(`
-            SELECT tp.*, p.prescription_code, p.status AS prescription_status,
-                   p.clinical_diagnosis, up_doc.full_name AS doctor_name,
-                   up_pat.full_name AS patient_name
-            FROM tele_prescriptions tp
-            JOIN prescriptions p ON tp.prescription_id = p.prescriptions_id
-            LEFT JOIN user_profiles up_doc ON p.doctor_id = up_doc.user_id
-            LEFT JOIN encounters enc ON tp.encounter_id = enc.encounters_id
-            LEFT JOIN patients pat ON enc.patient_id = pat.id::varchar
-            LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
-            ${where}
-            ORDER BY tp.created_at DESC
-            LIMIT $${idx++} OFFSET $${idx}
-        `, [...params, filters.limit, offset]);
+            const offset = (filters.page - 1) * filters.limit;
+            const r = await pool.query(`
+                SELECT tp.*, p.prescription_code, p.status AS prescription_status,
+                       p.clinical_diagnosis, up_doc.full_name AS doctor_name,
+                       up_pat.full_name AS patient_name
+                FROM tele_prescriptions tp
+                JOIN prescriptions p ON tp.prescription_id = p.prescriptions_id
+                LEFT JOIN user_profiles up_doc ON p.doctor_id = up_doc.user_id
+                LEFT JOIN patients pat ON p.patient_id = pat.id
+                LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
+                ${where}
+                ORDER BY tp.created_at DESC
+                LIMIT $${idx++} OFFSET $${idx}
+            `, [...params, filters.limit, offset]);
 
-        return { data: r.rows, total: countR.rows[0].total };
+            return { data: r.rows, total: countR.rows[0].total };
+        } catch (error) {
+            if (this.isMissingRelationError(error, 'tele_prescriptions')) {
+                return { data: [], total: 0 };
+            }
+            throw error;
+        }
     }
 
     /** Lịch sử đơn BN */
@@ -258,7 +273,20 @@ export class TelePrescriptionRepository {
 
     /** Lấy consultation */
     static async getConsultation(consultationId: string): Promise<any> {
-        const r = await pool.query(`SELECT * FROM tele_consultations WHERE tele_consultations_id = $1`, [consultationId]);
+        const r = await pool.query(`
+            SELECT tc.*,
+                   enc.patient_id,
+                   enc.doctor_id,
+                   up_pat.full_name AS patient_name,
+                   up_doc.full_name AS doctor_name
+            FROM tele_consultations tc
+            LEFT JOIN encounters enc ON tc.encounter_id = enc.encounters_id
+            LEFT JOIN patients pat ON enc.patient_id = pat.id
+            LEFT JOIN user_profiles up_pat ON pat.account_id = up_pat.user_id
+            LEFT JOIN doctors doc ON enc.doctor_id = doc.doctors_id
+            LEFT JOIN user_profiles up_doc ON doc.user_id = up_doc.user_id
+            WHERE tc.tele_consultations_id = $1
+        `, [consultationId]);
         return r.rows[0] || null;
     }
 }
