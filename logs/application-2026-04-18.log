@@ -1189,3 +1189,7 @@
 [2026-04-18 07:59:09:599] http: GET /api/system/working-hours/slot-config 304 - bytes - 6.337 ms
 [2026-04-18 07:59:09:599] http: GET /api/system/working-hours/slot-config 304 - bytes - 6.901 ms
 [2026-04-18 07:59:44:5944] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 45.838 ms
+[2026-04-18 07:59:50:5950] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 22.352 ms
+[2026-04-18 08:00:00:00] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
+[2026-04-18 08:00:00:00] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
+[2026-04-18 08:00:07:07] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.049 ms
