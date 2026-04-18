@@ -1,21 +1,39 @@
 import { Pool } from 'pg';
+import { env } from './env';
+import logger from './logger.config';
+
 
 export const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: String(process.env.DB_PASSWORD),
-  database: process.env.DB_NAME,
+    user: env.db.user,
+    host: env.db.host,
+    database: env.db.name,
+    password: env.db.password,
+    port: env.db.port,
+    max: env.db.poolSize,
+    idleTimeoutMillis: env.db.idleTimeoutMs,
+    connectionTimeoutMillis: env.db.connectionTimeoutMs,
 });
 
-(async () => {
-  try {
-    const client = await pool.connect(); 
-    console.log('✅ Kết nối database thành công');
-    client.release();
-  } catch (error) {
-    console.error('❌ Kết nối database thất bại:', error);
-  }
-})();
+pool.on('error', (err) => {
+    logger.error('❌ Lỗi PostgreSQL Pool ngầm:', err.message);
+});
 
-export default pool;
+export const connectDB = async () => {
+    try {
+        const client = await pool.connect();
+        logger.info('✅ Kết nối PostgreSQL thành công');
+        client.release();
+    } catch (error) {
+        logger.error('❌ Kết nối database thất bại:', error);
+        process.exit(1);
+    }
+};
+
+export const closeDB = async () => {
+    try {
+        await pool.end();
+        logger.info('🔌 Đã đóng kết nối PostgreSQL Pool an toàn.');
+    } catch (error) {
+        logger.error('❌ Lỗi khi đóng kết nối PostgreSQL:', error);
+    }
+};
