@@ -1193,3 +1193,123 @@
 [2026-04-18 08:00:00:00] info: [AppointmentNoShow] Tìm thấy 1 lịch khám quá hạn (chưa check-in). Bắt đầu chuyển NO_SHOW...
 [2026-04-18 08:00:00:00] error: [AppointmentNoShow] Lỗi khi xử lý quét NO_SHOW tự động: insert or update on table "appointment_audit_logs" violates foreign key constraint "appointment_audit_logs_changed_by_fkey"
 [2026-04-18 08:00:07:07] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 26.049 ms
+[2026-04-18 08:01:45:145] warn: ⚠️  Không tìm thấy file D:\WEB\Web He thong quan ly phong kham\src\E-Health_server\.env.development, thử load .env mặc định...
+[2026-04-18 08:01:45:145] info: ┌──────────────────────────────────────────────┐
+[2026-04-18 08:01:45:145] info: │  🔧 DEVELOPMENT MODE                        │
+[2026-04-18 08:01:45:145] info: │  📄 Loaded: .env.development
+[2026-04-18 08:01:45:145] info: │  🔌 DB: 160.250.186.97:5432/ehealthdatabase
+[2026-04-18 08:01:45:145] info: │  🌐 Frontend: dev.thanhhaishopwebsite.id.vn
+[2026-04-18 08:01:45:145] info: │  📊 Log level: debug
+[2026-04-18 08:01:45:145] info: │  💳 SePay: PRODUCTION
+[2026-04-18 08:01:45:145] info: └──────────────────────────────────────────────┘
+[2026-04-18 08:01:51:151] info: ✅ Firebase Admin SDK đã khởi tạo thành công.
+[2026-04-18 08:01:56:156] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-18 08:01:56:156] info: [PaymentOrderExpiry] Cron job đã khởi động (mỗi 1 phút).
+[2026-04-18 08:01:56:156] info: [AppointmentNoShow] Cron job đã khởi động (chạy mỗi 5 phút). Quét NO_SHOW với buffer 10 phút.
+[2026-04-18 08:01:56:156] info: ✅ Kết nối PostgreSQL thành công
+[2026-04-18 08:01:56:156] info: ✅ Load cấu hình Dynamic API Permissions vào Cache thành công!
+[2026-04-18 08:01:56:156] info: 🚀 Server is running on port 3000
+[2026-04-18 08:01:56:156] info: 📅 [CRON] Appointment Reminder Job đã khởi động (mỗi 15 phút).
+[2026-04-18 08:01:56:156] info: 🔍 [CRON] No-Show Detection Job đã khởi động (mỗi 30 phút).
+[2026-04-18 08:02:05:25] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 43.059 ms
+[2026-04-18 08:02:05:25] http: GET /api/staff-schedules?from=2026-04-11&to=2026-05-02&limit=500 304 - bytes - 71.530 ms
+[2026-04-18 08:02:05:25] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 42.451 ms
+[2026-04-18 08:02:05:25] http: GET /api/staff-schedules?from=2026-04-11&to=2026-05-02&limit=500 304 - bytes - 42.735 ms
+[2026-04-18 08:02:07:27] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 20.841 ms
+[2026-04-18 08:02:55:255] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 23.220 ms
+[2026-04-18 08:02:55:255] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 47.494 ms
+[2026-04-18 08:02:55:255] http: GET /api/staff-schedules?from=2026-04-11&to=2026-05-02&limit=500 304 - bytes - 138.997 ms
+[2026-04-18 08:02:55:255] http: GET /api/staff-schedules?from=2026-04-11&to=2026-05-02&limit=500 304 - bytes - 48.215 ms
+[2026-04-18 08:03:02:32] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.772 ms
+[2026-04-18 08:03:07:37] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 24.475 ms
+[2026-04-18 08:03:55:355] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 80.065 ms
+[2026-04-18 08:04:03:43] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.608 ms
+[2026-04-18 08:04:07:47] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 29.576 ms
+[2026-04-18 08:04:17:417] http: GET /api/system/working-hours/slot-config 304 - bytes - 6.989 ms
+[2026-04-18 08:04:17:417] http: GET /api/system/working-hours/slot-config 304 - bytes - 5.335 ms
+[2026-04-18 08:04:55:455] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 54.226 ms
+[2026-04-18 08:05:55:555] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 44.421 ms
+[2026-04-18 08:06:55:655] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 60.549 ms
+[2026-04-18 08:07:07:77] http: GET /api/staff-schedules?from=2026-04-11&to=2026-05-02&limit=500 304 - bytes - 76.156 ms
+[2026-04-18 08:07:07:77] http: GET /api/staff-schedules?from=2026-04-11&to=2026-05-02&limit=500 304 - bytes - 51.022 ms
+[2026-04-18 08:07:55:755] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 80.956 ms
+[2026-04-18 08:07:57:757] http: GET /api/system/working-hours/slot-config 304 - bytes - 17.960 ms
+[2026-04-18 08:07:57:757] http: GET /api/system/working-hours/slot-config 304 - bytes - 4.846 ms
+[2026-04-18 08:08:55:855] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 47.642 ms
+[2026-04-18 08:10:03:103] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.770 ms
+[2026-04-18 08:11:03:113] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 42.471 ms
+[2026-04-18 08:12:03:123] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 41.922 ms
+[2026-04-18 08:13:03:133] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.913 ms
+[2026-04-18 08:13:56:1356] http: GET /api/shifts 200 1067 bytes - 124.908 ms
+[2026-04-18 08:13:56:1356] http: GET /api/slots 200 6671 bytes - 141.100 ms
+[2026-04-18 08:13:56:1356] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 152.803 ms
+[2026-04-18 08:13:56:1356] http: GET /api/shifts 304 - bytes - 29.301 ms
+[2026-04-18 08:13:56:1356] http: GET /api/slots 304 - bytes - 28.532 ms
+[2026-04-18 08:13:56:1356] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 39.030 ms
+[2026-04-18 08:14:25:1425] http: GET /api/shifts 304 - bytes - 17.763 ms
+[2026-04-18 08:14:25:1425] http: GET /api/shifts 304 - bytes - 18.964 ms
+[2026-04-18 08:14:25:1425] http: GET /api/staff-schedules?limit=500 200 905923 bytes - 98.498 ms
+[2026-04-18 08:14:25:1425] http: GET /api/staff-schedules?limit=500 304 - bytes - 52.858 ms
+[2026-04-18 08:14:55:1455] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 25.431 ms
+[2026-04-18 08:15:55:1555] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 53.269 ms
+[2026-04-18 08:15:58:1558] http: GET /api/staff?role=DOCTOR&limit=200 304 - bytes - 35.566 ms
+[2026-04-18 08:15:58:1558] http: GET /api/departments?limit=100 304 - bytes - 47.426 ms
+[2026-04-18 08:15:58:1558] http: GET /api/departments?limit=100 304 - bytes - 8.367 ms
+[2026-04-18 08:15:58:1558] http: GET /api/staff?role=DOCTOR&limit=200 304 - bytes - 25.844 ms
+[2026-04-18 08:16:01:161] http: GET /api/shifts 304 - bytes - 17.334 ms
+[2026-04-18 08:16:01:161] http: GET /api/shifts 304 - bytes - 17.276 ms
+[2026-04-18 08:16:01:161] http: GET /api/staff-schedules?limit=500 304 - bytes - 51.205 ms
+[2026-04-18 08:16:01:161] http: GET /api/staff-schedules?limit=500 304 - bytes - 40.807 ms
+[2026-04-18 08:16:05:165] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 22.228 ms
+[2026-04-18 08:16:05:165] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 26.150 ms
+[2026-04-18 08:16:27:1627] http: GET /api/stock-in?limit=100 304 - bytes - 33.952 ms
+[2026-04-18 08:16:27:1627] http: GET /api/stock-in?limit=100 304 - bytes - 24.422 ms
+[2026-04-18 08:16:31:1631] warn: [404] GET /api/stock-in/1/items — Endpoint không tồn tại
+[2026-04-18 08:16:31:1631] http: GET /api/stock-in/1/items 404 120 bytes - 1.478 ms
+[2026-04-18 08:16:31:1631] warn: [404] GET /api/stock-in/1/items — Endpoint không tồn tại
+[2026-04-18 08:16:31:1631] http: GET /api/stock-in/1/items 404 120 bytes - 1.753 ms
+[2026-04-18 08:16:31:1631] warn: [AppError] ORDER_NOT_FOUND - Không tìm thấy phiếu nhập kho
+[2026-04-18 08:16:31:1631] http: GET /api/stock-in/1 404 92 bytes - 22.047 ms
+[2026-04-18 08:16:31:1631] warn: [AppError] ORDER_NOT_FOUND - Không tìm thấy phiếu nhập kho
+[2026-04-18 08:16:31:1631] http: GET /api/stock-in/1 404 92 bytes - 17.932 ms
+[2026-04-18 08:16:34:1634] http: GET /api/stock-in?limit=100 304 - bytes - 19.489 ms
+[2026-04-18 08:16:34:1634] http: GET /api/stock-in?limit=100 304 - bytes - 19.978 ms
+[2026-04-18 08:16:45:1645] http: GET /api/stock-out?limit=100 304 - bytes - 64.519 ms
+[2026-04-18 08:16:45:1645] http: GET /api/stock-out?limit=100 304 - bytes - 40.344 ms
+[2026-04-18 08:16:55:1655] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 41.658 ms
+[2026-04-18 08:16:56:1656] http: GET /api/inventory?limit=500 304 - bytes - 29.407 ms
+[2026-04-18 08:16:56:1656] http: GET /api/inventory?limit=500 304 - bytes - 24.285 ms
+[2026-04-18 08:17:56:1756] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 37.251 ms
+[2026-04-18 08:18:56:1856] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 51.808 ms
+[2026-04-18 08:19:56:1956] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.880 ms
+[2026-04-18 08:21:03:213] http: GET /api/notifications/inbox?page=1&limit=10 401 100 bytes - 1.088 ms
+[2026-04-18 08:21:03:213] http: POST /api/auth/refresh-token 200 605 bytes - 32.172 ms
+[2026-04-18 08:21:03:213] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 30.478 ms
+[2026-04-18 08:21:45:2145] http: GET /api/stock-out?limit=100 304 - bytes - 62.651 ms
+[2026-04-18 08:21:45:2145] http: GET /api/stock-out?limit=100 304 - bytes - 26.410 ms
+[2026-04-18 08:21:46:2146] http: GET /api/stock-in?limit=100 304 - bytes - 29.089 ms
+[2026-04-18 08:21:47:2147] http: GET /api/stock-in?limit=100 304 - bytes - 30.825 ms
+[2026-04-18 08:21:48:2148] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 38.531 ms
+[2026-04-18 08:21:48:2148] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 29.650 ms
+[2026-04-18 08:21:55:2155] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 31.493 ms
+[2026-04-18 08:22:04:224] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 35.175 ms
+[2026-04-18 08:22:04:224] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 36.289 ms
+[2026-04-18 08:22:56:2256] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 62.144 ms
+[2026-04-18 08:23:19:2319] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 35.738 ms
+[2026-04-18 08:23:19:2319] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.009 ms
+[2026-04-18 08:23:19:2319] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 65.918 ms
+[2026-04-18 08:23:19:2319] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 31.897 ms
+[2026-04-18 08:24:15:2415] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 49.159 ms
+[2026-04-18 08:24:15:2415] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 168.167 ms
+[2026-04-18 08:24:15:2415] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 34.341 ms
+[2026-04-18 08:24:15:2415] http: GET /api/pharmacy/drugs?limit=200 304 - bytes - 24.342 ms
+[2026-04-18 08:24:24:2424] http: GET /api/stock-in?limit=100 304 - bytes - 26.097 ms
+[2026-04-18 08:24:24:2424] http: GET /api/stock-in?limit=100 304 - bytes - 26.804 ms
+[2026-04-18 08:24:31:2431] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 28.996 ms
+[2026-04-18 08:24:31:2431] http: GET /api/notifications/inbox?page=1&limit=10 304 - bytes - 36.706 ms
+[2026-04-18 08:24:32:2432] http: GET /api/reports/dashboard 200 2660 bytes - 80.491 ms
+[2026-04-18 08:24:32:2432] http: GET /api/reports/dashboard 304 - bytes - 34.664 ms
+[2026-04-18 08:24:36:2436] http: GET /api/stock-out?limit=100 304 - bytes - 35.249 ms
+[2026-04-18 08:24:36:2436] http: GET /api/stock-out?limit=100 304 - bytes - 26.901 ms
+[2026-04-18 08:24:37:2437] http: GET /api/inventory?limit=500 304 - bytes - 32.929 ms
+[2026-04-18 08:24:37:2437] http: GET /api/inventory?limit=500 304 - bytes - 25.300 ms
