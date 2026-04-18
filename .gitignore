@@ -1,5 +1,6 @@
 node_modules
 .env
+/src/generated/prisma
 .env.development
 .env.production
 .env.local
@@ -7,5 +8,6 @@ node_modules
 .agents
 dist
 env
+logs/
 src/config/*.json
 *-firebase-adminsdk-*.json
