@@ -337,7 +337,7 @@ export class AuthService {
 
     const userProfileId = SecurityUtil.generateUserProfileId(userCode);
 
-    await AccountRepository.createAccountWithProfileAndRole(newUser, userProfileId, payload.name, "CUSTOMER");
+    await AccountRepository.createAccountWithProfileAndRole(newUser, userProfileId, payload.name, "PATIENT");
 
     return {
       userCode: newUser.users_id,
