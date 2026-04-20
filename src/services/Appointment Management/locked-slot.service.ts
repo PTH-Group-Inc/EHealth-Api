@@ -66,14 +66,13 @@ export class LockedSlotService {
     }
 
     /**
-     * Lấy danh sách slot đã khoá (filter theo ngày, shift, slot)
+     * Lấy danh sách slot đã khoá.
+     * - Nếu có `date`: trả về slot bị khoá đúng ngày đó.
+     * - Nếu không có `date`: trả về tất cả slot bị khoá từ hôm nay trở đi
+     *   (dùng cho trang admin quản lý tổng quan).
      */
     static async getLockedSlots(date: string, shiftId?: string, slotId?: string): Promise<LockedSlot[]> {
-        if (!date) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LOCKED_DATE', LOCKED_SLOT_ERRORS.MISSING_LOCKED_DATE);
-        }
-
-        return await LockedSlotRepository.getLockedSlots(date, shiftId, slotId);
+        return await LockedSlotRepository.getLockedSlots(date || undefined, shiftId, slotId);
     }
 
     /**

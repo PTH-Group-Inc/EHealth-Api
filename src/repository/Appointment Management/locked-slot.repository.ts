@@ -56,19 +56,30 @@ export class LockedSlotRepository {
     }
 
     /**
-     * Lấy danh sách slot đã khoá (filter theo ngày, shift, slot)
+     * Lấy danh sách slot đã khoá.
+     *
+     * - `date` (optional): nếu có → filter `locked_date = date`;
+     *   nếu không có → trả về tất cả slot bị khoá từ hôm nay trở đi
+     *   (loại bỏ dữ liệu cũ để response gọn).
+     * - `shiftId`, `slotId` (optional): filter thêm.
      */
     static async getLockedSlots(
-        date: string,
+        date?: string,
         shiftId?: string,
         slotId?: string
     ): Promise<LockedSlot[]> {
-        const conditions: string[] = [
-            'ls.locked_date = $1',
-            'ls.deleted_at IS NULL',
-        ];
-        const params: any[] = [date];
-        let paramIdx = 2;
+        const conditions: string[] = ['ls.deleted_at IS NULL'];
+        const params: any[] = [];
+        let paramIdx = 1;
+
+        if (date) {
+            conditions.push(`ls.locked_date = $${paramIdx}`);
+            params.push(date);
+            paramIdx++;
+        } else {
+            // Không filter theo ngày cụ thể → chỉ lấy slot khoá từ hôm nay trở đi
+            conditions.push(`ls.locked_date >= CURRENT_DATE`);
+        }
 
         if (shiftId) {
             conditions.push(`sl.shift_id = $${paramIdx}`);
@@ -101,7 +112,8 @@ export class LockedSlotRepository {
             LEFT JOIN users u ON ls.locked_by = u.users_id
             LEFT JOIN user_profiles up ON u.users_id = up.user_id
             WHERE ${conditions.join(' AND ')}
-            ORDER BY sl.start_time ASC
+            ORDER BY ls.locked_date ASC, sl.start_time ASC
+            LIMIT 1000
         `;
 
         const result = await pool.query(query, params);
