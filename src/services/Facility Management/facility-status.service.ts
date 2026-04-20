@@ -104,7 +104,7 @@ export class FacilityStatusService {
         const today = new Date().toISOString().slice(0, 10);
         if (!facilityId) {
             const facilities = await FacilityRepository.getFacilitiesForDropdown();
-            return Promise.all(facilities.map(f => this.determineFacilityStatus(f.id, today)));
+            return Promise.all(facilities.map(f => this.determineFacilityStatus(f.facilities_id, today)));
         }
         return this.determineFacilityStatus(facilityId, today);
     }
@@ -116,7 +116,7 @@ export class FacilityStatusService {
         if (!dateStr) throw new AppError(400, 'MISSING_DATE', 'Bắt buộc phải có date.');
         if (!facilityId) {
             const facilities = await FacilityRepository.getFacilitiesForDropdown();
-            return Promise.all(facilities.map(f => this.determineFacilityStatus(f.id, dateStr)));
+            return Promise.all(facilities.map(f => this.determineFacilityStatus(f.facilities_id, dateStr)));
         }
         return this.determineFacilityStatus(facilityId, dateStr);
     }
@@ -137,10 +137,10 @@ export class FacilityStatusService {
                 const days: FacilityDayStatus[] = [];
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    const status = await this.determineFacilityStatus(facility.id, dateStr);
+                    const status = await this.determineFacilityStatus(facility.facilities_id, dateStr);
                     days.push(status);
                 }
-                result.push({ facility_id: facility.id, facility_name: facility.name, month, year, days });
+                result.push({ facility_id: facility.facilities_id, facility_name: facility.name, month, year, days });
             }
             return result;
         }
