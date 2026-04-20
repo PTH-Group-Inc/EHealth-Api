@@ -11,6 +11,8 @@ const userRoutes = Router();
 userRoutes.use(verifyAccessToken);
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
+userRoutes.post('/:userId/avatar', upload.single('file'), UserController.uploadUserAvatar);
+
 /**
  * @swagger
  * /api/users/import/validate:

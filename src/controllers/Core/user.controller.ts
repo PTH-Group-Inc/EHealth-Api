@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler.util';
 import { UserService } from '../../services/Facility Management/user.service';
 import { CreateUserInput, UpdateUserByAdminInput, UpdateUserStatusInput, ResetPasswordAdminInput, ChangePasswordInput, AssignRoleInput } from '../../models/Core/user.model';
+import { ProfileService } from '../../services/Core/profile.service';
+import { AVATAR_ERRORS, AVATAR_SUCCESS } from '../../constants/system.constant';
 
 export class UserController {
     /**
@@ -93,6 +95,31 @@ export class UserController {
             return res.status(200).json({
                 success: true,
                 message: "Cập nhật tài khoản người dùng thành công"
+            });
+    });
+
+    /**
+     * Tải ảnh đại diện cho user
+     */
+    static uploadUserAvatar = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const userId = req.params.userId as string;
+            const file = req.file;
+
+            if (!file) {
+                res.status(AVATAR_ERRORS.FILE_MISSING.httpCode).json({
+                    success: false,
+                    code: AVATAR_ERRORS.FILE_MISSING.code,
+                    message: AVATAR_ERRORS.FILE_MISSING.message,
+                });
+                return;
+            }
+
+            const image = await ProfileService.uploadAvatar(userId, file);
+
+            res.status(200).json({
+                success: true,
+                message: AVATAR_SUCCESS.UPLOADED,
+                data: image,
             });
     });
 
