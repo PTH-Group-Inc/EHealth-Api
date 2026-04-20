@@ -102,19 +102,23 @@ lockedSlotRoutes.post(
  *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE.
  *
  *       **Mô tả chi tiết:**
- *       - Trả về danh sách slot bị khoá theo ngày, kèm thông tin ca và người khoá.
- *       - Hỗ trợ filter theo `date` (bắt buộc), `shift_id`, `slot_id`.
+ *       - Trả về danh sách slot bị khoá, kèm thông tin ca và người khoá.
+ *       - Nếu truyền `date` → chỉ slot bị khoá đúng ngày đó.
+ *       - Nếu KHÔNG truyền `date` → trả về mọi slot bị khoá từ hôm nay trở đi
+ *         (dùng cho trang admin quản lý tổng quan).
+ *       - Tất cả params (`date`, `shift_id`, `slot_id`) đều là optional.
+ *       - Giới hạn tối đa 1000 bản ghi mỗi lần gọi.
  *     tags: [3.2 Quản lý khung giờ & ca khám]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: date
- *         required: true
+ *         required: false
  *         schema:
  *           type: string
  *           format: date
- *         description: Ngày cần kiểm tra (YYYY-MM-DD)
+ *         description: "Ngày cần kiểm tra (YYYY-MM-DD). Bỏ trống để xem tất cả slot khoá từ hôm nay trở đi."
  *         example: "2026-03-20"
  *       - in: query
  *         name: shift_id
@@ -159,8 +163,6 @@ lockedSlotRoutes.post(
  *                         type: string
  *                       locked_by_name:
  *                         type: string
- *       400:
- *         description: Thiếu tham số date
  *       401:
  *         description: Chưa đăng nhập
  */
