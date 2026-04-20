@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Health — Test Đặt Lịch Trước (Pre-Booking)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #020617 0%, #0f172a 50%, #020617 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            padding: 24px 0;
+            background: linear-gradient(135deg, #0ea5e9, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 span {
+            font-size: 14px;
+            display: block;
+            color: #94a3b8;
+            -webkit-text-fill-color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(14, 165, 233, 0.4);
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #38bdf8;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 8px;
+        }
+
+        .card-title .icon {
+            font-size: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(15, 23, 42, 0.7);
+            color: #f8fafc;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9, #6366f1);
+            color: #fff;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #cbd5e1;
+        }
+
+        .btn-outline:hover {
+            border-color: #38bdf8;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 24px;
+            background: #ffffff;
+            border-radius: 16px;
+            margin: 20px 0;
+            display: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .qr-container img {
+            max-width: 280px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .qr-info {
+            color: #0f172a;
+            font-size: 14px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .qr-info div { margin-bottom: 4px; }
+        .qr-info strong { color: #1e293b; font-size: 15px; }
+        .amount-highlight { color: #0ea5e9 !important; font-size: 18px !important; }
+
+        .timer {
+            font-size: 34px;
+            font-weight: 700;
+            text-align: center;
+            margin: 16px 0;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+        }
+
+        .timer.active { color: #38bdf8; }
+        .timer.expired { color: #ef4444; }
+        .timer.paid { color: #10b981; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-PENDING { background: rgba(251, 191, 36, 0.15); color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .status-PAID, .status-CONFIRMED { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-EXPIRED { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .log {
+            background: #0f172a;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            max-height: 350px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.05);
+            word-wrap: break-word;
+        }
+
+        .log-time { color: #64748b; font-size: 11px; margin-right: 8px;}
+        .log-ok { color: #10b981; }
+        .log-err { color: #ef4444; }
+        .log-info { color: #38bdf8; }
+        .log-warn { color: #fbbf24; }
+        .log-req { color: #a855f7; }
+
+        .order-detail {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 14px;
+            line-height: 1.8;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .order-detail .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        }
+        .order-detail .row:last-child { border-bottom: none; }
+
+        .order-detail .label { color: #94a3b8; }
+        .order-detail .value { color: #f8fafc; font-weight: 500; text-align: right; }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .full-width { grid-column: 1 / -1; }
+        .hidden { display: none !important; }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🩺 E-Health Sandbox Test<span>Đặt lịch Khám trực tuyến (Pre-Booking) tích hợp PayOS / SePay</span></h1>
+
+        <!-- MỤC XÁC THỰC -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-title"><span class="icon">🔐</span> Xác thực Hệ thống</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+                <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
+                    <label>Email Admin / Patient</label>
+                    <input type="email" id="loginEmail" placeholder="admin@ehealth.vn" value="admin@ehealth.vn">
+                </div>
+                <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="loginPassword" placeholder="Admin@123" value="Admin@123">
+                </div>
+                <button class="btn btn-primary" style="width:auto;height:45px;" onclick="doLogin()">🔑 Đăng nhập</button>
+            </div>
+            <div id="authStatus" style="margin-top:12px;font-size:13px;color:#94a3b8;background: rgba(15,23,42,0.5); padding: 8px 12px; border-radius: 8px;">
+                <span id="authLabel">Chưa đăng nhập</span>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- CỘT TRÁI: FORM ĐẶT LỊCH -->
+            <div class="card">
+                <div class="card-title"><span class="icon">📅</span> Khởi tạo Pre-Booking</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Bệnh nhân (patient_id)</label>
+                        <select id="patientId">
+                            <option value="">Đang tải...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Chi nhánh (branch_id)</label>
+                        <select id="branchId" onchange="onBranchChange()">
+                            <option value="">Đang tải...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Bác sĩ (doctor_id) [Tuỳ chọn]</label>
+                        <select id="doctorId">
+                            <option value="">-- Bỏ qua --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ca làm việc (shift_id) [Tuỳ chọn]</label>
+                        <select id="shiftId">
+                            <option value="">-- Bỏ qua --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ngày khám (YYYY-MM-DD)</label>
+                        <input type="date" id="appDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Kênh đặt (booking_channel)</label>
+                        <select id="channel">
+                            <option value="WEB">WEB</option>
+                            <option value="APP">APP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dịch vụ (facility_service_id) [Tuỳ chọn]</label>
+                    <select id="serviceId">
+                        <option value="">-- Vui lòng chọn Chi nhánh trước --</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" onclick="initiatePreBooking()" style="margin-top:10px; font-size: 15px;">
+                    🚀 Đặt Lịch & Tạo Thanh Toán
+                </button>
+            </div>
+
+            <!-- CỘT PHẢI: TRẠNG THÁI & QR -->
+            <div class="card" id="statusCard">
+                <div class="card-title"><span class="icon">💳</span> Thực hiện Thanh Toán</div>
+                
+                <div id="noOrder" style="text-align:center;color:#64748b;padding:60px 0;background: rgba(15,23,42,0.3);border-radius:12px;border: 1px dashed rgba(148,163,184,0.3);">
+                    Chưa có lịch đặt.<br>Vui lòng điền form bên trái.
+                </div>
+
+                <div class="qr-container" id="qrContainer">
+                    <img id="qrImage" src="" alt="QR Code Thanh Toán">
+                    <div class="qr-info">
+                        <div>Nội dung CK: <strong id="qrContent"></strong></div>
+                        <div>Số tiền: <strong class="amount-highlight" id="qrAmount"></strong> VNĐ</div>
+                    </div>
+                </div>
+
+                <div id="orderInfo" class="hidden">
+                    <div class="timer active" id="timerDisplay">--:--</div>
+                    <div style="text-align:center;margin-bottom:16px;">
+                        <span class="status-badge status-PENDING" id="statusBadge">⏳ PENDING</span>
+                    </div>
+                    <div class="order-detail" id="orderDetail"></div>
+                    <div class="actions">
+                        <button class="btn btn-sm btn-outline" onclick="checkOrderStatus()">🔄 Làm Mới Trạng Thái</button>
+                        <button class="btn btn-sm btn-danger" onclick="cancelAppointment()">✖ Hủy Lịch</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD TRẠI DƯỚI: LOG HOẠT ĐỘNG -->
+            <div class="card full-width">
+                <div class="card-title" style="margin-bottom: 0px;"><span class="icon">📡</span> Terminal / Activity Tracker</div>
+                <div class="log" id="activityLog">
+                    <div class="log-entry"><span class="log-time">[HỆ THỐNG]</span> <span class="log-info">Sẵn sàng! Vui lòng Đăng nhập.</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let currentAppointmentId = null;
+        let currentOrderId = null;
+        let pollingInterval = null;
+
+        // Auto-set date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('appDate').valueAsDate = tomorrow;
+
+        function getToken() {
+            const authData = localStorage.getItem('ehealth_auth');
+            if (authData) {
+                try { return JSON.parse(authData).accessToken || ''; } catch (e) { }
+            }
+            return '';
+        }
+        let TOKEN = getToken();
+
+        if (TOKEN) {
+            const authData = JSON.parse(localStorage.getItem('ehealth_auth') || '{}');
+            document.getElementById('authLabel').innerHTML = `✅ Đã đăng nhập — ${authData.user?.email || ''} <a href="#" onclick="clearToken()" style="color:#ef4444;text-decoration:underline;">Xóa</a>`;
+            if (authData.user?.id) {
+                // Not filling the value just yet, handled in fetchInitialData
+            }
+        }
+
+        async function fetchInitialData() {
+            if (!TOKEN) return;
+            try {
+                // 1. Fetch Patients
+                const ptRes = await fetch(`${API_BASE}/patients?limit=100`, { headers: headers() });
+                const ptData = await ptRes.json();
+                if (ptData.success) {
+                    const sel = document.getElementById('patientId');
+                    sel.innerHTML = '<option value="">-- Chọn bệnh nhân --</option>';
+                    const pList = ptData.data?.data || ptData.data || [];
+                    pList.forEach(p => {
+                        sel.innerHTML += `<option value="${p.id}">${p.patient_code || p.id} - ${p.full_name}</option>`;
+                    });
+                }
+                
+                // 2. Fetch Branches
+                const brRes = await fetch(`${API_BASE}/branches`, { headers: headers() });
+                const brData = await brRes.json();
+                if (brData.success) {
+                    const sel = document.getElementById('branchId');
+                    sel.innerHTML = '<option value="">-- Chọn Chi nhánh --</option>';
+                    const bList = brData.data?.data || brData.data || [];
+                    bList.forEach(b => {
+                        sel.innerHTML += `<option value="${b.branches_id}" data-facility="${b.facility_id}">${b.name} (${b.facility_name || 'Hệ thống'})</option>`;
+                    });
+                }
+
+                // 3. Fetch Doctors
+                const docRes = await fetch(`${API_BASE}/doctor-services/active-doctors`, { headers: headers() });
+                const docData = await docRes.json();
+                if (docData.success) {
+                    const sel = document.getElementById('doctorId');
+                    sel.innerHTML = '<option value="">-- Bỏ qua --</option>';
+                    const dList = docData.data?.data || docData.data || [];
+                    dList.forEach(d => {
+                        sel.innerHTML += `<option value="${d.doctors_id}">${d.full_name} - ${d.specialty_name || 'Bác sĩ'}</option>`;
+                    });
+                }
+
+                // 4. Fetch Shifts
+                const shiftRes = await fetch(`${API_BASE}/shifts`, { headers: headers() });
+                const shiftData = await shiftRes.json();
+                if (shiftData.success) {
+                    const sel = document.getElementById('shiftId');
+                    sel.innerHTML = '<option value="">-- Bỏ qua --</option>';
+                    const sList = shiftData.data?.data || shiftData.data || [];
+                    sList.forEach(s => {
+                        sel.innerHTML += `<option value="${s.shifts_id}">${s.name} (${s.start_time} - ${s.end_time})</option>`;
+                    });
+                }
+
+            } catch (err) {
+                console.error("Lỗi khi tải metadata:", err);
+            }
+        }
+
+        async function onBranchChange() {
+            const sel = document.getElementById('branchId');
+            const selectedOpt = sel.options[sel.selectedIndex];
+            const facilityId = selectedOpt ? selectedOpt.getAttribute('data-facility') : null;
+            
+            const srvSel = document.getElementById('serviceId');
+            srvSel.innerHTML = '<option value="">-- Bỏ qua (hoặc đâng tải...) --</option>';
+
+            if (facilityId) {
+                try {
+                    const res = await fetch(`${API_BASE}/medical-services/facilities/${facilityId}/active-services`, { headers: headers() });
+                    const data = await res.json();
+                    if (data.success) {
+                        const sList = data.data?.data || data.data || [];
+                        if (sList.length > 0) {
+                            srvSel.innerHTML = '<option value="">-- Chọn Dịch Vụ --</option>';
+                            sList.forEach(s => {
+                                const price = s.base_price || 0;
+                                srvSel.innerHTML += `<option value="${s.facility_services_id}">${s.service_name} (${parseInt(price).toLocaleString('vi-VN')}đ)</option>`;
+                            });
+                        } else {
+                            srvSel.innerHTML = '<option value="">-- Không có dịch vụ --</option>';
+                        }
+                    }
+                } catch(e) {}
+            }
+        }
+
+        // Tự động fetch data khi token tồn tại
+        if (TOKEN) fetchInitialData();
+
+        async function doLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            if (!email || !password) { log('Nhập email và mật khẩu!', 'err'); return; }
+
+            log(`[AUTH] Requesting login for: ${email}...`, 'req');
+            try {
+                const res = await fetch(`${API_BASE}/auth/login/email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, clientInfo: { deviceId: 'PREBOOK_TEST' } }),
+                });
+                const data = await res.json();
+                if (data.success && data.data?.accessToken) {
+                    TOKEN = data.data.accessToken;
+                    localStorage.setItem('ehealth_auth', JSON.stringify({
+                        accessToken: data.data.accessToken,
+                        user: data.data.user
+                    }));
+                    document.getElementById('authLabel').innerHTML = `✅ Đăng nhập OK — ${data.data.user?.email || email} <a href="#" onclick="clearToken()" style="color:#ef4444;text-decoration:underline;">Xóa</a>`;
+                    log(`[AUTH] Success! Role: ${data.data.user?.role}`, 'ok');
+                    fetchInitialData(); // Load dropdown options
+                } else {
+                    log(`[AUTH] Error: ${data.message}`, 'err');
+                }
+            } catch (e) { log(`[AUTH] Network fail: ${e.message}`, 'err'); }
+        }
+
+        function clearToken() {
+            TOKEN = '';
+            localStorage.removeItem('ehealth_auth');
+            document.getElementById('authLabel').textContent = 'Chưa đăng nhập';
+            log('[AUTH] Logged out.', 'info');
+        }
+
+        function headers() {
+            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` };
+        }
+
+        function log(msg, type = 'info') {
+            const el = document.getElementById('activityLog');
+            const time = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+            el.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span> <span class="log-${type}">${msg}</span></div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function formatMoney(n) {
+            return parseFloat(n).toLocaleString('vi-VN');
+        }
+
+        async function initiatePreBooking() {
+            if(!TOKEN) {
+                log(`[PRE-BOOK] Lỗi: Chưa đăng nhập`, 'err');
+                alert("Vui lòng đăng nhập trước!");
+                return;
+            }
+
+            const patientId = document.getElementById('patientId').value.trim();
+            const branchId = document.getElementById('branchId').value.trim();
+            const date = document.getElementById('appDate').value;
+            const channel = document.getElementById('channel').value;
+            const docId = document.getElementById('doctorId').value.trim();
+            const shiftId = document.getElementById('shiftId').value.trim();
+            const srvId = document.getElementById('serviceId').value.trim();
+
+            if (!patientId || !branchId || !date) { 
+                log('[PRE-BOOK] Lỗi: Thiếu thông tin bắt buộc (Patient, Branch, Date)', 'err'); 
+                return; 
+            }
+
+            const payload = {
+                patient_id: patientId,
+                branch_id: branchId,
+                appointment_date: date,
+                booking_channel: channel,
+                reason_for_visit: "Test Sandbox Đặt lịch từ hệ thống Test"
+            };
+
+            if (docId) payload.doctor_id = docId;
+            if (shiftId) payload.shift_id = shiftId;
+            if (srvId) payload.facility_service_id = srvId;
+
+            log(`[PRE-BOOK] POST /api/appointments/pre-book Payload: ${JSON.stringify(payload)}`, 'req');
+            
+            try {
+                const res = await fetch(`${API_BASE}/appointments/pre-book`, { 
+                    method: 'POST', 
+                    headers: headers(), 
+                    body: JSON.stringify(payload) 
+                });
+                
+                const data = await res.json();
+                if (!data.success) { 
+                    log(`[PRE-BOOK] Thất bại: ${data.message} ${JSON.stringify(data.details || '')}`, 'err'); 
+                    return; 
+                }
+
+                currentAppointmentId = data.data.appointment.appointments_id;
+                currentOrderId = data.data.payment_order.payment_orders_id;
+                const orderCode = data.data.payment_order.order_code;
+                
+                log(`[PRE-BOOK] Thành công! Lịch: ${data.data.appointment.appointment_code} | QR Order: ${orderCode}`, 'ok');
+
+                displayPaymentUI(data.data.appointment, data.data.payment_order);
+
+            } catch (e) {
+                log(`[PRE-BOOK] Exception: ${e.message}`, 'err');
+            }
+        }
+
+        function displayPaymentUI(appointment, order) {
+            document.getElementById('noOrder').classList.add('hidden');
+            
+            // Render QR UI
+            document.getElementById('qrContainer').style.display = 'block';
+            document.getElementById('qrImage').src = order.qr_code_url;
+            document.getElementById('qrContent').textContent = order.order_code;
+            document.getElementById('qrAmount').textContent = formatMoney(order.amount);
+
+            // Render Order Status Details
+            document.getElementById('orderInfo').classList.remove('hidden');
+            updateBadge('PENDING');
+            
+            document.getElementById('orderDetail').innerHTML = `
+                <div class="row"><span class="label">Mã lịch khám</span><span class="value" style="color:#38bdf8">${appointment.appointment_code}</span></div>
+                <div class="row"><span class="label">Mã giao dịch</span><span class="value">${order.order_code}</span></div>
+                <div class="row"><span class="label">Tổng tiền</span><span class="value" style="color:#fcd34d">${formatMoney(order.amount)} đ</span></div>
+            `;
+
+            startPolling();
+        }
+
+        function updateBadge(status) {
+            const badge = document.getElementById('statusBadge');
+            const map = { PENDING: '⏳ PENDING (Đang chờ thanh toán)', PAID: '✅ PAID (Đã Thanh Toán)', CANCELLED: '✖ CANCELLED', CONFIRMED: '🎉 CONFIRMED (Đã Xác nhận Lịch)' };
+            badge.textContent = map[status] || status;
+            badge.className = `status-badge status-${status.replace(/ /g, '')}`;
+        }
+
+        function updateTimerTick(secondsElapsed, maxSeconds = 900) {
+            const el = document.getElementById('timerDisplay');
+            let remain = maxSeconds - secondsElapsed;
+            if (remain <= 0) { el.textContent = '⌛ HẾT HẠN'; el.className = 'timer expired'; stopPolling(); return; }
+            const m = Math.floor(remain / 60);
+            const s = remain % 60;
+            el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        let secondsElapsedGlobal = 0;
+        function startPolling() {
+            stopPolling();
+            secondsElapsedGlobal = 0;
+            log(`[POLL] Bắt đầu ping trạng thái Lịch khám & Thanh toán...`, 'info');
+            pollingInterval = setInterval(() => {
+                secondsElapsedGlobal++;
+                updateTimerTick(secondsElapsedGlobal);
+                if (secondsElapsedGlobal % 5 === 0) {
+                    checkOrderStatus(); // Tránh spam quá mức (Mỗi 5s gọi API 1 lần)
+                }
+            }, 1000);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+        }
+
+        async function checkOrderStatus() {
+            if (!currentAppointmentId) return;
+            try {
+                // Kiểm tra trực tiếp trạng thái Appointment (được Webhook service của backend tự động đổi sang CONFIRMED)
+                const res = await fetch(`${API_BASE}/appointments/${currentAppointmentId}`, { headers: headers() });
+                const data = await res.json();
+                
+                if (!data.success) return;
+
+                const status = data.data.status; 
+                
+                if (status === 'CONFIRMED') {
+                    stopPolling();
+                    document.getElementById('timerDisplay').textContent = '🎉 ĐẶT LỊCH THÀNH CÔNG';
+                    document.getElementById('timerDisplay').className = 'timer paid';
+                    updateBadge('CONFIRMED');
+                    log(`[WEBHOOK/POLL] THÀNH CÔNG! Trạng thái lịch khám đã được cập nhật sang CONFIRMED, giao dịch tiền đã hoàn tất!`, 'ok');
+                    document.getElementById('qrContainer').style.display = 'none'; // Giấu mã QR
+                } else if (status === 'CANCELLED') {
+                    stopPolling();
+                    document.getElementById('timerDisplay').textContent = '✖ LỊCH BỊ HUỶ';
+                    document.getElementById('timerDisplay').className = 'timer expired';
+                    updateBadge('CANCELLED');
+                    log(`[POLL] Lịch khám đã bị hủy (hết thời gian hoặc bị admin đóng).`, 'err');
+                } else if (secondsElapsedGlobal <= 5) {
+                    log(`[POLL] Status: ${status} | Đang đợi người dùng quét mã...`, 'warn');
+                }
+            } catch (e) { log(`[POLL] Error: ${e.message}`, 'err'); }
+        }
+
+        async function cancelAppointment() {
+            if (!currentAppointmentId) return;
+            if (!confirm('Bạn có chắc muốn yêu cầu hủy (Cancel) lịch khám này không?')) return;
+            try {
+                log(`[CANCEL] DELETE /api/appointments/${currentAppointmentId} -> CANCELLED`, 'req');
+                const res = await fetch(`${API_BASE}/appointments/${currentAppointmentId}`, { 
+                    method: 'DELETE', 
+                    headers: headers(),
+                    body: JSON.stringify({ cancellation_reason: 'Người dùng hủy lịch từ màn hình Test' })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    log(`[CANCEL] Đã hủy thành công!`, 'ok');
+                    stopPolling();
+                    document.getElementById('timerDisplay').textContent = '✖ ĐÃ HỦY';
+                    document.getElementById('timerDisplay').className = 'timer expired';
+                    updateBadge('CANCELLED');
+                } else {
+                    log(`[CANCEL] Thất bại: ${data.message}`, 'err');
+                }
+            } catch (e) { log(`[CANCEL] Error: ${e.message}`, 'err'); }
+        }
+
+    </script>
+</body>
+</html>

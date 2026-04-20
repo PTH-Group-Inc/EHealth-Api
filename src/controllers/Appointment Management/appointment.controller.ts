@@ -394,4 +394,51 @@ export class AppointmentController {
                 data
             });
     });
+
+    /**
+     * POST /api/appointments/pre-book
+     */
+    static preBook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const userId = (req as any).auth?.user_id || 'system';
+        const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+        
+        const result = await AppointmentService.preBookAppointment(req.body, userId, clientIP);
+
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: result.warning
+                ? `Tạo lịch và yêu cầu thanh toán thành công. Lưu ý: ${result.warning}`
+                : 'Tạo lịch và yêu cầu thanh toán thành công.',
+            warning: result.warning || undefined,
+            data: result
+        });
+    });
+
+    /**
+     * POST /api/appointments/:id/regenerate-qr
+     */
+    static regenerateQR = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const userId = (req as any).auth?.user_id || 'system';
+        // Note: id is explicitly cast from req.params.id to avoid string | string[] type issues
+        const result = await AppointmentService.regenerateQR(req.params.id as string, userId);
+
+        res.json({
+            success: true,
+            message: 'Tạo lại QR thanh toán thành công.',
+            data: result
+        });
+    });
+
+    /**
+     * GET /api/appointments/:id/payment-status
+     */
+    static getPaymentStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const result = await AppointmentService.getPaymentStatus(req.params.id as string);
+
+        res.json({
+            success: true,
+            message: 'Lấy trạng thái thanh toán thành công.',
+            data: result
+        });
+    });
 }

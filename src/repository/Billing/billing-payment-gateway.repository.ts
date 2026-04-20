@@ -65,6 +65,14 @@ export class PaymentGatewayRepository {
         return result.rows.length > 0 ? result.rows[0] : null;
     }
 
+    /** Lấy lệnh thanh toán để update */
+    static async getOrderForUpdate(orderId: string, client?: PoolClient): Promise<PaymentOrder | null> {
+        const sql = `SELECT * FROM payment_orders WHERE payment_orders_id = $1 FOR UPDATE`;
+        const executor = client || pool;
+        const result = await executor.query(sql, [orderId]);
+        return result.rows.length > 0 ? result.rows[0] : null;
+    }
+
     /** Lấy lệnh PENDING chưa hết hạn cho invoice */
     static async getPendingOrderByInvoice(invoiceId: string): Promise<PaymentOrder | null> {
         const sql = `
@@ -74,6 +82,17 @@ export class PaymentGatewayRepository {
         `;
         const result = await pool.query(sql, [invoiceId]);
         return result.rows.length > 0 ? result.rows[0] : null;
+    }
+
+    /** Lấy danh sách lệnh thanh toán gần nhất cho một invoice */
+    static async getRecentOrdersByInvoice(invoiceId: string, limit: number = 5): Promise<PaymentOrder[]> {
+        const sql = `
+            SELECT * FROM payment_orders
+            WHERE invoice_id = $1
+            ORDER BY created_at DESC LIMIT $2
+        `;
+        const result = await pool.query(sql, [invoiceId, limit]);
+        return result.rows;
     }
 
     /** Cập nhật trạng thái PAID sau khi webhook xác nhận */

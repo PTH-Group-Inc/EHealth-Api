@@ -26,6 +26,8 @@ export interface ResolvedBookingConfig {
     advance_booking_days: number;
     minimum_booking_hours: number;
     cancellation_allowed_hours: number;
+    pre_booking_enabled?: boolean;
+    pre_booking_fee?: number;
     /** Ghi chú nguồn gốc từng field (từ 'branch' hay 'global' hay 'default') */
     sources: Record<string, 'branch' | 'global' | 'default'>;
 }

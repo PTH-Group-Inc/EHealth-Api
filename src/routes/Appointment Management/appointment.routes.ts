@@ -1316,6 +1316,21 @@ appointmentRoutes.post(
 
 /**
  * @swagger
+ * /api/appointments/pre-book:
+ *   post:
+ *     summary: Tạo lịch khám trả trước và tạo mã QR thanh toán
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ */
+appointmentRoutes.post(
+    '/pre-book',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentController.preBook
+);
+
+/**
+ * @swagger
  * /api/appointments/{id}:
  *   get:
  *     summary: Xem chi tiết một lịch khám (kèm Audit Trail)
@@ -1390,3 +1405,35 @@ appointmentRoutes.post(
     [verifyAccessToken, checkSessionStatus],
     AppointmentController.submitReview
 );
+
+/**
+ * @swagger
+ * /api/appointments/{id}/regenerate-qr:
+ *   post:
+ *     summary: Tạo lại QR thanh toán
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ */
+appointmentRoutes.post(
+    '/:id/regenerate-qr',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentController.regenerateQR
+);
+
+/**
+ * @swagger
+ * /api/appointments/{id}/payment-status:
+ *   get:
+ *     summary: Lấy trạng thái thanh toán của lịch đặt trước
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ */
+appointmentRoutes.get(
+    '/:id/payment-status',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentController.getPaymentStatus
+);
+
+

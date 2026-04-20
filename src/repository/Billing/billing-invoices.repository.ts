@@ -38,18 +38,53 @@ export class BillingInvoiceRepository {
             INSERT INTO invoices (
                 invoices_id, invoice_code, patient_id, encounter_id, facility_id,
                 total_amount, discount_amount, insurance_amount, net_amount, paid_amount,
-                status, notes, created_by
-            ) VALUES ($1, $2, $3, $4, $5, 0, 0, 0, 0, 0, 'UNPAID', $6, $7)
+                status, notes, created_by, appointment_id, invoice_type
+            ) VALUES ($1, $2, $3, $4, $5, 0, 0, 0, 0, 0, 'UNPAID', $6, $7, $8, $9)
             RETURNING *
         `;
         const params = [
             invoiceId, invoiceCode, input.patient_id,
             input.encounter_id || null, input.facility_id || null,
             input.notes || null, userId,
+            input.appointment_id || null, input.invoice_type || 'ENCOUNTER'
         ];
         const executor = client || pool;
         const result = await executor.query(sql, params);
         return result.rows[0];
+    }
+
+    /**
+     * Tạo hóa đơn đặt trước (có số tiền và trả lại hóa đơn)
+     */
+    static async createPreBookingInvoice(
+        invoiceId: string,
+        invoiceCode: string,
+        patientId: string,
+        appointmentId: string,
+        amount: number,
+        userId: string,
+        client?: PoolClient
+    ): Promise<Invoice> {
+        const sql = `
+            INSERT INTO invoices (
+                invoices_id, invoice_code, patient_id, total_amount, discount_amount, insurance_amount,
+                net_amount, paid_amount, status, created_by, appointment_id, invoice_type
+            ) VALUES ($1, $2, $3, $4, 0, 0, $4, 0, 'UNPAID', $5, $6, 'PRE_BOOKING')
+            RETURNING *
+        `;
+        const params = [invoiceId, invoiceCode, patientId, amount, userId, appointmentId];
+        const executor = client || pool;
+        const result = await executor.query(sql, params);
+        return result.rows[0];
+    }
+
+    /**
+     * Lấy hóa đơn PRE_BOOKING theo appointment_id
+     */
+    static async getInvoiceByAppointmentId(appointmentId: string): Promise<Invoice | null> {
+        const sql = `SELECT * FROM invoices WHERE appointment_id = $1 AND invoice_type = 'PRE_BOOKING' LIMIT 1`;
+        const result = await pool.query(sql, [appointmentId]);
+        return result.rows[0] || null;
     }
 
     /**
@@ -370,14 +405,15 @@ export class BillingInvoiceRepository {
             INSERT INTO payment_transactions (
                 payment_transactions_id, transaction_code, invoice_id,
                 transaction_type, payment_method, amount,
-                gateway_transaction_id, status, cashier_id, notes
-            ) VALUES ($1, $2, $3, 'PAYMENT', $4, $5, $6, 'SUCCESS', $7, $8)
+                gateway_transaction_id, gateway_response, status, cashier_id, notes
+            ) VALUES ($1, $2, $3, 'PAYMENT', $4, $5, $6, $7, 'SUCCESS', $8, $9)
             RETURNING *
         `;
         const params = [
             paymentId, transactionCode, input.invoice_id,
             input.payment_method, input.amount,
             input.gateway_transaction_id || null,
+            input.gateway_response ? JSON.stringify(input.gateway_response) : null,
             cashierId, input.notes || null,
         ];
         const executor = client || pool;

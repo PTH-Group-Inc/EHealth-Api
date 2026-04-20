@@ -18,6 +18,9 @@ import {
 } from '../../constants/billing-payment-gateway.constant';
 import { INVOICE_STATUS } from '../../constants/billing-invoices.constant';
 import { generateSepayQRUrl } from '../../config/sepay';
+import { AppointmentRepository } from '../../repository/Appointment Management/appointment.repository';
+import { AppointmentAuditLogRepository } from '../../repository/Appointment Management/appointment-audit-log.repository';
+import { APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 
 export class PaymentGatewayService {
 
@@ -142,24 +145,38 @@ export class PaymentGatewayService {
             const txnId = this.generateId('TXN');
             const txnCode = `TXN-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-            const txnSql = `
-                INSERT INTO payment_transactions (
-                    payment_transactions_id, transaction_code, invoice_id,
-                    transaction_type, payment_method, amount,
-                    gateway_transaction_id, gateway_response,
-                    status, notes
-                ) VALUES ($1, $2, $3, 'PAYMENT', 'BANK_TRANSFER', $4, $5, $6, 'SUCCESS', $7)
-            `;
-            await client.query(txnSql, [
-                txnId, txnCode, order.invoice_id,
-                payload.transferAmount,
-                payload.referenceNumber,
-                JSON.stringify(payload),
-                `Thanh toán online qua SePay - ${order.order_code}`,
-            ]);
+            await BillingInvoiceRepository.createPayment(
+                txnId,
+                txnCode,
+                {
+                    invoice_id: order.invoice_id,
+                    payment_method: 'BANK_TRANSFER',
+                    amount: payload.transferAmount,
+                    gateway_transaction_id: payload.referenceNumber,
+                    gateway_response: payload,
+                    notes: `Thanh toán online qua SePay - ${order.order_code}`,
+                },
+                'system',
+                client
+            );
 
             /* Cập nhật paid_amount + status trên invoice */
-            await BillingInvoiceRepository.updatePaidAmount(order.invoice_id, client);
+            const updatedInvoice = await BillingInvoiceRepository.updatePaidAmount(order.invoice_id, client);
+
+            if (updatedInvoice.invoice_type === 'PRE_BOOKING' && 
+                (updatedInvoice.status === 'PAID' || updatedInvoice.status === 'OVERPAID') && 
+                updatedInvoice.appointment_id) {
+                
+                await AppointmentRepository.updateStatusById(updatedInvoice.appointment_id, APPOINTMENT_STATUS.CONFIRMED, client);
+                
+                await AppointmentAuditLogRepository.create({
+                    appointment_id: updatedInvoice.appointment_id,
+                    changed_by: 'system',
+                    old_status: APPOINTMENT_STATUS.PENDING,
+                    new_status: APPOINTMENT_STATUS.CONFIRMED,
+                    action_note: `Thanh toán thành công ${orderAmount} VND. Tự động xác nhận.`
+                }, client);
+            }
 
             await client.query('COMMIT');
         } catch (error) {

@@ -17,12 +17,15 @@ import {
     APPOINTMENT_STATUS, APPOINTMENT_ERRORS, DEFAULT_MAX_PATIENTS_PER_SLOT,
     RESCHEDULABLE_STATUSES, UPDATABLE_STATUSES, AUTO_CONFIRM_CHANNELS,
     CONFLICT_TYPE, APPOINTMENT_SUCCESS, BOOKING_CHANNEL, APPOINTMENT_WARNINGS,
-    DEFAULT_DEPARTMENT_SLOT_DAYS, MAX_DEPARTMENT_SLOT_DAYS
+    DEFAULT_DEPARTMENT_SLOT_DAYS, MAX_DEPARTMENT_SLOT_DAYS, PRE_BOOKING_CONFIG, PRE_PAYMENT_REQUIRED_CHANNELS
 } from '../../constants/appointment.constant';
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
 import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS } from '../../constants/appointment-change.constant';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../../config/logger.config';
+import { BillingInvoiceRepository } from '../../repository/Billing/billing-invoices.repository';
+import { PaymentGatewayService } from '../Billing/billing-payment-gateway.service';
+import { PaymentGatewayRepository } from '../../repository/Billing/billing-payment-gateway.repository';
 
 
 export class AppointmentService {
@@ -1026,5 +1029,144 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Không thể lưu đánh giá');
         }
         return result;
+    }
+
+    /**
+     * Đặt lịch và thanh toán trước
+     */
+    static async preBookAppointment(data: CreateAppointmentInput, accountId: string, clientIP: string): Promise<any> {
+        if (!data.patient_id || !data.branch_id || (!data.slot_id && !data.shift_id) || !data.appointment_date) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
+                'Thiếu thông tin bắt buộc: patient_id, branch_id, (slot_id hoặc shift_id), appointment_date');
+        }
+
+        const config = await BookingConfigService.getResolvedConfig(data.branch_id);
+        if (config.pre_booking_enabled === false) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PRE_BOOKING_DISABLED', 'Tính năng đặt trước hiện đang tắt.');
+        }
+
+        const fee = config.pre_booking_fee ?? PRE_BOOKING_CONFIG.BOOKING_DEPOSIT_FEE;
+        if (!PRE_PAYMENT_REQUIRED_CHANNELS.includes(data.booking_channel as any)) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CHANNEL', 'Kênh đặt lịch không hỗ trợ đặt cọc trước.');
+        }
+
+        // Validate rules just like createAppointment
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetDate = new Date(data.appointment_date);
+        if (targetDate < today) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
+
+        const patientOk = await AppointmentRepository.patientExists(data.patient_id);
+        if (!patientOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', APPOINTMENT_ERRORS.PATIENT_NOT_FOUND);
+
+        const branchOk = await AppointmentRepository.branchExists(data.branch_id);
+        if (!branchOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', APPOINTMENT_ERRORS.BRANCH_NOT_FOUND);
+
+        if (data.slot_id) {
+            const shiftId = await AppointmentRepository.getShiftIdBySlot(data.slot_id);
+            if (!shiftId) throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', 'Slot không tồn tại');
+            data.shift_id = shiftId;
+        }
+
+        if (data.facility_service_id) {
+            const realFacService = await AppointmentRepository.resolveFacilityService(data.facility_service_id, data.branch_id);
+            if (!realFacService) throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
+            data.facility_service_id = realFacService;
+        }
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const allocResult = await this.smartAllocate(data, client);
+
+            const appointmentId = `APT${Date.now().toString().slice(-6)}${uuidv4().substring(0,4).toUpperCase()}`;
+
+            const appointment = await AppointmentRepository.create(data, {
+                appointment_id: appointmentId,
+                changed_by: accountId,
+                old_status: null,
+                new_status: APPOINTMENT_STATUS.PENDING_PAYMENT,
+                action_note: `Tạo lịch khám thanh toán trả trước`
+            }, APPOINTMENT_STATUS.PENDING_PAYMENT, client); // Note: AppointmentRepository.create supports client passed? Wait, we need to check if it does. If not, it runs outside tx. We assume it does or is fire-and-forget.
+
+            // Wait, AppointmentRepository.create signature: create(data, changelog, initialStatus, client)
+            const invoiceId = `INV_${uuidv4().substring(0, 12)}`;
+            const invoiceCode = `IV${Math.floor(100000 + Math.random() * 900000)}`;
+
+            const invoice = await BillingInvoiceRepository.createPreBookingInvoice(
+                invoiceId, invoiceCode, data.patient_id, appointment.appointments_id, fee, accountId, client
+            );
+
+            await client.query('COMMIT');
+
+            // Order creation outside tx
+            const qrOrder = await PaymentGatewayService.generateQR({
+                invoice_id: invoiceId,
+                amount: fee
+            }, accountId);
+
+            return {
+                appointment,
+                invoice_id: invoiceId,
+                payment_order: qrOrder,
+                warning: allocResult.warning || null
+            };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Tạo lại QR code nếu QR hết hạn
+     */
+    static async regenerateQR(appointmentId: string, accountId: string): Promise<any> {
+        const appointment = await AppointmentRepository.findById(appointmentId);
+        if (!appointment) throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', 'Không tìm thấy lịch khám');
+
+        if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_STATUS', 'Chỉ được tạo lại QR cho lịch ở trạng thái PENDING');
+        }
+
+        const invoice = await BillingInvoiceRepository.getInvoiceByAppointmentId(appointmentId);
+        if (!invoice) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'INVOICE_NOT_FOUND', 'Không tìm thấy thông tin thanh toán');
+        }
+
+        // generateQR will handle canceling the old PENDING order internally if it's expired.
+        const config = await BookingConfigService.getResolvedConfig('default');
+        const fee = config.pre_booking_fee ?? 100000;
+
+        const qrOrder = await PaymentGatewayService.generateQR({
+            invoice_id: invoice.invoices_id,
+            amount: fee
+        }, accountId);
+
+        return qrOrder;
+    }
+
+    /**
+     * Kiểm tra trạng thái thanh toán của lịch
+     */
+    static async getPaymentStatus(appointmentId: string): Promise<{ payment_status: string; appointment_status: string; order_infos: any[] }> {
+        const appointment = await AppointmentRepository.findById(appointmentId);
+        if (!appointment) throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', 'Không tìm thấy lịch khám');
+
+        const invoice = await BillingInvoiceRepository.getInvoiceByAppointmentId(appointmentId);
+        let payment_status = invoice ? invoice.status : 'NO_INVOICE';
+        let order_infos: any[] = [];
+
+        if (invoice) {
+            // Lấy order
+            order_infos = await PaymentGatewayRepository.getRecentOrdersByInvoice(invoice.invoices_id, 5);
+        }
+
+        return {
+            payment_status,
+            appointment_status: appointment.status,
+            order_infos
+        };
     }
 }

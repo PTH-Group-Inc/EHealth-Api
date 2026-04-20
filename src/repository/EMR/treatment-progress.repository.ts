@@ -166,6 +166,48 @@ export class TreatmentProgressRepository {
         return { data: dataResult.rows, total: countResult.rows[0].total };
     }
 
+    static async findAllPlans(
+        status?: string,
+        page: number = 1,
+        limit: number = TREATMENT_CONFIG.DEFAULT_LIMIT
+    ): Promise<{ data: PlanListItem[]; total: number }> {
+        const conditions: string[] = [];
+        const values: any[] = [];
+        let paramIndex = 1;
+
+        if (status) {
+            conditions.push(`tp.status = $${paramIndex++}`);
+            values.push(status);
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        const offset = (page - 1) * limit;
+
+        const countResult = await pool.query(
+            `SELECT COUNT(*)::int AS total FROM treatment_plans tp ${whereClause}`,
+            values
+        );
+
+        const dataValues = [...values, limit, offset];
+        const dataResult = await pool.query(
+            `SELECT tp.*,
+                    up.full_name AS creator_name,
+                    p.full_name AS patient_name, p.patient_code,
+                    (SELECT COUNT(*)::int FROM treatment_progress_notes n WHERE n.plan_id = tp.treatment_plans_id) AS total_notes,
+                    (SELECT COUNT(DISTINCT efl.follow_up_encounter_id)::int + 1
+                     FROM encounter_follow_up_links efl WHERE efl.plan_id = tp.treatment_plans_id) AS total_encounters
+             FROM treatment_plans tp
+             LEFT JOIN user_profiles up ON up.user_id = tp.created_by
+             LEFT JOIN patients p ON p.id::text = tp.patient_id
+             ${whereClause}
+             ORDER BY tp.created_at DESC
+             LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+            dataValues
+        );
+
+        return { data: dataResult.rows, total: countResult.rows[0].total };
+    }
+
     //  PROGRESS NOTES 
 
     /** Thêm ghi nhận diễn tiến */

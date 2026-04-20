@@ -6,6 +6,8 @@ export interface Invoice {
     invoice_code: string;
     patient_id: string;
     encounter_id: string | null;
+    appointment_id: string | null;
+    invoice_type: string;
     facility_id: string | null;
     total_amount: string;
     discount_amount: string;
@@ -33,6 +35,8 @@ export interface Invoice {
 export interface CreateInvoiceInput {
     patient_id: string;
     encounter_id?: string;
+    appointment_id?: string;
+    invoice_type?: string;
     facility_id?: string;
     notes?: string;
 }
@@ -107,6 +111,7 @@ export interface CreatePaymentInput {
     payment_method: string;
     amount: number;
     gateway_transaction_id?: string;
+    gateway_response?: any;
     notes?: string;
 }
 

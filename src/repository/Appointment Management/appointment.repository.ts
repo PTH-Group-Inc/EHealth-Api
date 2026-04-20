@@ -412,6 +412,23 @@ export class AppointmentRepository {
     }
 
     /**
+     * Lock lịch khám để update
+     */
+    static async getAppointmentForUpdate(id: string, client?: import('pg').PoolClient): Promise<Appointment | null> {
+        const executor = client || pool;
+        const result = await executor.query(`SELECT * FROM appointments WHERE appointments_id = $1 FOR UPDATE`, [id]);
+        return result.rows[0] || null;
+    }
+
+    /**
+     * Cập nhật status nhanh
+     */
+    static async updateStatusById(id: string, status: string, client?: import('pg').PoolClient): Promise<void> {
+        const executor = client || pool;
+        await executor.query(`UPDATE appointments SET status = $2, updated_at = CURRENT_TIMESTAMP WHERE appointments_id = $1`, [id, status]);
+    }
+
+    /**
      * Lấy chi tiết 1 lịch khám theo ID (kèm JOIN thông tin)
      */
     static async findById(id: string): Promise<Appointment | null> {
@@ -480,10 +497,11 @@ export class AppointmentRepository {
      * Tạo lịch khám mới kèm ghi audit log — chạy trong Transaction
      * @param initialStatus Trạng thái khởi tạo (PENDING hoặc CONFIRMED cho auto-confirm channels)
      */
-    static async create(data: CreateAppointmentInput, auditLog: CreateAuditLogInput, initialStatus: string = 'PENDING'): Promise<Appointment> {
-        const client = await pool.connect();
+    static async create(data: CreateAppointmentInput, auditLog: CreateAuditLogInput, initialStatus: string = 'PENDING', externalClient?: import('pg').PoolClient): Promise<Appointment> {
+        const client = externalClient || await pool.connect();
+        const shouldRelease = !externalClient;
         try {
-            await client.query('BEGIN');
+            if (shouldRelease) await client.query('BEGIN');
 
             const id = this.generateId();
             const code = this.generateAppointmentCode();
@@ -511,13 +529,13 @@ export class AppointmentRepository {
                 client
             );
 
-            await client.query('COMMIT');
+            if (shouldRelease) await client.query('COMMIT');
             return appointment;
         } catch (error) {
-            await client.query('ROLLBACK');
+            if (shouldRelease) await client.query('ROLLBACK');
             throw error;
         } finally {
-            client.release();
+            if (shouldRelease) client.release();
         }
     }
 

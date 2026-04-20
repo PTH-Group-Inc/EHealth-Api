@@ -8,6 +8,13 @@ export const treatmentProgressRoutes = Router();
 // HỖ TRỢ (đặt trước param routes)
 // =====================================================================
 
+treatmentProgressRoutes.get(
+    '/',
+    verifyAccessToken,
+    checkSessionStatus,
+    TreatmentProgressController.getAllPlans
+);
+
 /**
  * @swagger
  * /api/treatment-plans/by-patient/{patientId}:

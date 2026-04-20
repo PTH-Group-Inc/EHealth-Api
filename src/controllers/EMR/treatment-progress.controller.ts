@@ -50,6 +50,16 @@ export class TreatmentProgressController {
             res.status(HTTP_STATUS.OK).json({ success: true, message: TREATMENT_SUCCESS.PATIENT_PLANS_FETCHED, data });
     });
 
+    /** API: GET /api/treatment-plans — Lấy danh sách tất cả các kế hoạch (Aggregate list) */
+    static getAllPlans = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const { status, page, limit } = req.query;
+            const data = await TreatmentProgressService.getAllPlans(
+                status as string,
+                Number(page) || undefined, Number(limit) || undefined
+            );
+            res.status(HTTP_STATUS.OK).json({ success: true, message: TREATMENT_SUCCESS.PATIENT_PLANS_FETCHED, data });
+    });
+
     /** API 6: POST /api/treatment-plans/:planId/notes — Thêm ghi nhận */
     static createNote = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const planId = req.params.planId as string;

@@ -4,6 +4,7 @@
 
 /** Trạng thái lịch khám */
 export const APPOINTMENT_STATUS = {
+    PENDING_PAYMENT: 'PENDING_PAYMENT',
     PENDING: 'PENDING',
     CONFIRMED: 'CONFIRMED',
     CHECKED_IN: 'CHECKED_IN',
@@ -14,8 +15,8 @@ export const APPOINTMENT_STATUS = {
     SKIPPED: 'SKIPPED',
 } as const;
 
-/** Các trạng thái coi là "đang hoạt động" (chưa bị huỷ/hoàn tất) */
 export const ACTIVE_APPOINTMENT_STATUSES = [
+    APPOINTMENT_STATUS.PENDING_PAYMENT,
     APPOINTMENT_STATUS.PENDING,
     APPOINTMENT_STATUS.CONFIRMED,
     APPOINTMENT_STATUS.CHECKED_IN,
@@ -108,6 +109,12 @@ export const APPOINTMENT_ERRORS = {
     DEPARTMENT_NOT_FOUND: 'Khoa/Phòng ban không tồn tại hoặc đã ngừng hoạt động',
     MISSING_DEPARTMENT_FILTER: 'Thiếu thông tin bắt buộc: department_id và facility_id',
     PATIENT_PROFILE_NOT_FOUND: 'Tài khoản của bạn chưa được liên kết với hồ sơ bệnh nhân nào trong hệ thống',
+    SERVICE_PRICE_NOT_FOUND: 'Không thể xác định phí đặt cọc, vui lòng liên hệ hỗ trợ',
+    PAYMENT_TIMEOUT: 'Hết thời gian thanh toán, lịch khám đã bị hủy tự động',
+    PAYMENT_REQUIRED: 'Kênh đặt lịch này yêu cầu thanh toán trước',
+    ALREADY_PENDING_PAYMENT: 'Lịch khám đang chờ thanh toán',
+    GATEWAY_NOT_CONFIGURED: 'Chưa cấu hình cổng thanh toán. Vui lòng liên hệ quản trị viên.',
+    CANNOT_REGENERATE_QR: 'Không thể tạo lại QR vì lịch khám không tồn tại hoặc đã bị hủy'
 } as const;
 
 /** Cảnh báo (warning) — lịch vẫn tạo được nhưng cần staff xử lý */
@@ -134,4 +141,26 @@ export const APPOINTMENT_SUCCESS = {
     PATIENT_APPOINTMENTS_FETCHED: 'Lấy danh sách lịch khám của bệnh nhân thành công',
     DEPARTMENT_SLOTS_FETCHED: 'Lấy danh sách slot trống theo khoa thành công',
     MY_APPOINTMENTS_FETCHED: 'Lấy danh sách lịch khám của tôi thành công',
+    PRE_BOOKED: 'Đặt lịch khám thành công. Vui lòng thanh toán cọc trong 15 phút để xác nhận.',
+    PAYMENT_STATUS_FETCHED: 'Lấy trạng thái thanh toán thành công',
+    PAYMENT_CONFIRMED: 'Thanh toán thành công, lịch khám đã được xác nhận',
+    PAYMENT_EXPIRED: 'Hết thời gian thanh toán, lịch khám đã bị hủy',
+    QR_REGENERATED: 'Tạo lại mã thanh toán thành công',
+} as const;
+
+/** Kênh đặt lịch yêu cầu thanh toán trước */
+export const PRE_PAYMENT_REQUIRED_CHANNELS = [
+    BOOKING_CHANNEL.APP,
+    BOOKING_CHANNEL.WEB,
+    BOOKING_CHANNEL.ZALO,
+] as string[];
+
+/** Cấu hình thanh toán trước */
+export const PRE_BOOKING_CONFIG = {
+    /** Thời gian chờ thanh toán (phút) */
+    PAYMENT_TIMEOUT_MINUTES: 15,
+    /** Phí cọc cố định giữ chỗ (VND) */
+    BOOKING_DEPOSIT_FEE: 50000,
+    /** Loại invoice */
+    INVOICE_TYPE: 'PRE_BOOKING',
 } as const;

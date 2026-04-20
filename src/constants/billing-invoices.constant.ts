@@ -1,3 +1,11 @@
+/** Loại hóa đơn */
+export const INVOICE_TYPE = {
+    PRE_BOOKING: 'PRE_BOOKING',
+    ENCOUNTER: 'ENCOUNTER',
+    MANUAL: 'MANUAL',
+} as const;
+export type InvoiceType = typeof INVOICE_TYPE[keyof typeof INVOICE_TYPE];
+
 /** Trạng thái hóa đơn */
 export const INVOICE_STATUS = {
     UNPAID: 'UNPAID',

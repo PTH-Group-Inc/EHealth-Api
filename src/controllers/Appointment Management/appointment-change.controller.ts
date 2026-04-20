@@ -42,12 +42,18 @@ export class AppointmentChangeController {
 
     /** GET /api/appointment-changes/stats */
     static getStats = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const fromDate = req.query.from_date?.toString();
-            const toDate = req.query.to_date?.toString();
+            let fromDate = req.query.from_date?.toString();
+            let toDate = req.query.to_date?.toString();
             const branchId = req.query.branch_id?.toString();
 
             if (!fromDate || !toDate) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE_RANGE', CHANGE_ERRORS.INVALID_DATE_RANGE);
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                
+                // Format YYYY-MM-DD
+                if (!fromDate) fromDate = firstDay.toISOString().slice(0, 10);
+                if (!toDate) toDate = lastDay.toISOString().slice(0, 10);
             }
 
             const data = await AppointmentChangeService.getStats(fromDate, toDate, branchId);

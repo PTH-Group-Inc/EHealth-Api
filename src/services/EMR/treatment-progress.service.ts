@@ -210,6 +210,12 @@ export class TreatmentProgressService {
         );
     }
 
+    static async getAllPlans(status?: string, page?: number, limit?: number) {
+        return TreatmentProgressRepository.findAllPlans(
+            status, page || TREATMENT_CONFIG.DEFAULT_PAGE, limit || TREATMENT_CONFIG.DEFAULT_LIMIT
+        );
+    }
+
     //  GHI NHẬN DIỄN TIẾN 
 
     /**
