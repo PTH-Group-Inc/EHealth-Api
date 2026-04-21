@@ -26,12 +26,17 @@ export class UserService {
             throw new AppError(400, 'USER_MISSING_ROLE', 'Vui lòng cung cấp ít nhất một vai trò (Role).');
         }
 
-        if (data.roles.length > 20) {
-            throw new AppError(400, 'USER_TOO_MANY_ROLES', 'Số lượng vai trò cung cấp cho một tài khoản vượt quá giới hạn.');
+        if (data.roles.length !== 1) {
+            throw new AppError(400, 'USER_SINGLE_ROLE_REQUIRED', 'Mỗi người dùng chỉ được phép có đúng một vai trò.');
         }
 
-        // Lọc trùng lặp Role
-        data.roles = Array.from(new Set(data.roles.map(r => r.toUpperCase())));
+        data.roles = data.roles.map((role: any) => {
+            if (typeof role === 'string') return role.trim().toUpperCase();
+            if (role && typeof role === 'object') {
+                return String(role.code || role.role || role.name || role.roles_id || '').trim().toUpperCase();
+            }
+            return String(role).trim().toUpperCase();
+        }).filter(Boolean);
 
         if (!data.full_name) {
             throw new AppError(400, 'USER_MISSING_NAME', 'Vui lòng cung cấp họ tên.');
@@ -95,13 +100,49 @@ export class UserService {
 
         // Lọc trùng lặp Role
         if (data.roles) {
-            if (data.roles.length > 20) {
-                throw new AppError(400, 'USER_TOO_MANY_ROLES', 'Số lượng vai trò cung cấp cho một tài khoản vượt quá giới hạn.');
+            if (data.roles.length !== 1) {
+                throw new AppError(400, 'USER_SINGLE_ROLE_REQUIRED', 'Mỗi người dùng chỉ được phép có đúng một vai trò.');
             }
-            data.roles = Array.from(new Set(data.roles.map(r => r.toUpperCase())));
+            data.roles = data.roles.map((role: any) => {
+                if (typeof role === 'string') return role.trim().toUpperCase();
+                if (role && typeof role === 'object') {
+                    return String(role.code || role.role || role.name || role.roles_id || '').trim().toUpperCase();
+                }
+                return String(role).trim().toUpperCase();
+            }).filter(Boolean);
         }
 
         await UserRepository.updateUser(userId, data, adminId, ipAddress, userAgent);
+    }
+
+    /**
+     * Xóa mềm nhiều người dùng cùng lúc (Bulk Soft Delete)
+     */
+    static async bulkDeleteUsers(
+        userIds: string[],
+        adminId: string,
+        ipAddress: string | null = null,
+        userAgent: string | null = null
+    ): Promise<void> {
+        let deletedCount = 0;
+        let errors = [];
+
+        for (const userId of userIds) {
+            try {
+                const isActiveOrBanned = await UserRepository.getUserById(userId);
+                if (isActiveOrBanned) {
+                    await UserRepository.deleteUser(userId, adminId, ipAddress, userAgent);
+                    deletedCount++;
+                }
+            } catch (err: any) {
+                logger.error(`Error bulk deleting user ${userId}: ${err.message}`);
+                errors.push(userId);
+            }
+        }
+
+        if (deletedCount === 0 && errors.length > 0) {
+            throw new AppError(500, 'USER_BULK_DELETE_FAILED', 'Tất cả người dùng đều xóa thất bại.');
+        }
     }
 
     /**

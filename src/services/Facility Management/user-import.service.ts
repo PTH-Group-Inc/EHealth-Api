@@ -70,14 +70,15 @@ export class UserImportService {
             const identity = (row['identity_card_number'] || row['CCCD/CMND'])?.toString().trim() || null;
 
             let rawRoles = row['roles'] || row['Roles'] || row['Vai trò'];
-            const roles: string[] = [];
+            const roles = new Set<string>();
             if (rawRoles) {
                 if (typeof rawRoles === 'string') {
-                    roles.push(...rawRoles.split(',').map(r => r.trim().toUpperCase()));
+                    rawRoles.split(',').map(r => r.trim().toUpperCase()).filter(Boolean).forEach((role) => roles.add(role));
                 } else if (Array.isArray(rawRoles)) {
-                    roles.push(...rawRoles.map(r => String(r).trim().toUpperCase()));
+                    rawRoles.map(r => String(r).trim().toUpperCase()).filter(Boolean).forEach((role) => roles.add(role));
                 }
             }
+            const normalizedRoles = Array.from(roles);
 
             const rowErrors: string[] = [];
 
@@ -87,6 +88,11 @@ export class UserImportService {
             }
             if (!full_name) {
                 rowErrors.push("Họ tên không được để trống.");
+            }
+            if (normalizedRoles.length === 0) {
+                rowErrors.push("Mỗi người dùng import phải có đúng một vai trò.");
+            } else if (normalizedRoles.length > 1) {
+                rowErrors.push("Mỗi người dùng import chỉ được phép có đúng một vai trò.");
             }
 
             // Validations email
@@ -136,7 +142,7 @@ export class UserImportService {
                     gender: gender as any,
                     address,
                     identity_card_number: identity,
-                    roles: roles.length > 0 ? roles : undefined
+                    roles: normalizedRoles.length > 0 ? [normalizedRoles[0]] : undefined
                 });
                 result.valid_count++;
             }

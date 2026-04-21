@@ -183,7 +183,7 @@ const options = {
       { name: '1.1.2 Khóa / mở khóa tài khoản', description: 'Action locking' },
       { name: '1.1.3 Quản lý trạng thái tài khoản', description: 'Vòng đời tài khoản' },
       { name: '1.1.4 Reset mật khẩu người dùng', description: 'Bảo mật mật khẩu' },
-      { name: '1.1.5 Gán vai trò cho người dùng', description: 'Map N-N Role cho User' },
+      { name: '1.1.5 Gán vai trò cho người dùng', description: 'Mỗi user có đúng 1 vai trò hiệu lực' },
       { name: '1.1.6 Gán người dùng vào cơ sở y tế', description: 'Map N-N Facility cho User' },
       { name: '1.1.7 Import người dùng hàng loạt', description: 'Upload file Excel/CSV' },
       { name: '1.1.8 Export danh sách người dùng', description: 'Tải xuống xuất Excel' },

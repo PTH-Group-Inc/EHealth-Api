@@ -1,5 +1,6 @@
 import { pool } from '../../config/postgresdb';
 import { UserProfileResponse, UpdateProfileInput, UpdateSettingsInput, AvatarImage } from '../../models/Core/profile.model';
+import { normalizeRoleCodes } from '../../utils/role-priority.util';
 
 export class ProfileRepository {
     /**
@@ -32,7 +33,10 @@ export class ProfileRepository {
         const result = await pool.query(query, [userId]);
         if (result.rowCount === 0) return null;
 
-        return result.rows[0] as UserProfileResponse;
+        return {
+            ...result.rows[0],
+            roles: normalizeRoleCodes(result.rows[0].roles)
+        } as UserProfileResponse;
     }
 
     /**

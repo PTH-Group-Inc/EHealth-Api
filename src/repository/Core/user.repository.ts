@@ -4,8 +4,32 @@ import { AccountRole } from '../../models/Core/auth_account.model';
 import { SecurityUtil } from '../../utils/auth-security.util';
 import { AppError } from '../../utils/app-error.util';
 import { randomUUID } from 'crypto';
+import { normalizeRoleCodes, pickPrimaryRoleRow } from '../../utils/role-priority.util';
 
 export class UserRepository {
+    private static mapUserDetailRow(row: any): UserDetail {
+        return {
+            users_id: row.users_id,
+            email: row.email,
+            phone: row.phone,
+            roles: normalizeRoleCodes(Array.isArray(row.roles) ? row.roles : []),
+            status: row.status,
+            last_login_at: row.last_login_at,
+            failed_login_count: row.failed_login_count,
+            locked_until: row.locked_until,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            profile: {
+                user_profiles_id: row.user_profiles_id,
+                full_name: row.full_name,
+                dob: row.dob,
+                gender: row.gender,
+                identity_card_number: row.identity_card_number,
+                avatar_url: row.avatar_url,
+                address: row.address
+            }
+        };
+    }
 
     /**
      * Tạo tài khoản người dùng mới (dành cho Admin)
@@ -17,16 +41,24 @@ export class UserRepository {
         userAgent: string | null = null
     ): Promise<string> {
         // Validate Role
-        let validatedRoles: { roles_id: string, code: string }[] = [];
-        if (data.roles && data.roles.length > 0) {
-            const placeholders = data.roles.map((_, i) => `$${i + 1}`).join(',');
-            const roleResult = await pool.query(`SELECT roles_id, code FROM roles WHERE code IN (${placeholders})`, data.roles);
+        const requestedRoles = Array.isArray(data.roles)
+            ? data.roles.map((role) => String(role).trim().toUpperCase()).filter(Boolean)
+            : [];
 
-            if (roleResult.rows.length !== data.roles.length) {
-                throw new AppError(400, 'USER_INVALID_ROLE', 'Một hoặc nhiều vai trò (Role) truyền vào không tồn tại trong hệ thống.');
-            }
-            validatedRoles = roleResult.rows;
+        if (requestedRoles.length !== 1) {
+            throw new AppError(400, 'USER_SINGLE_ROLE_REQUIRED', 'Mỗi người dùng chỉ được phép có đúng một vai trò.');
         }
+
+        const roleResult = await pool.query(
+            `SELECT roles_id, code FROM roles WHERE code = $1`,
+            [requestedRoles[0]]
+        );
+
+        if (roleResult.rowCount !== 1) {
+            throw new AppError(400, 'USER_INVALID_ROLE', 'Vai trò truyền vào không tồn tại trong hệ thống.');
+        }
+
+        const validatedRole = roleResult.rows[0] as { roles_id: string; code: string };
 
         const client = await pool.connect();
 
@@ -34,7 +66,7 @@ export class UserRepository {
             await client.query('BEGIN');
 
             // Generate IDs based on actual Main Role
-            const primaryRole = (data.roles && data.roles.length > 0) ? (data.roles[0] as AccountRole) : 'CUSTOMER';
+            const primaryRole = requestedRoles[0] as AccountRole;
             const userId = await SecurityUtil.generateUsersId(primaryRole);
             const profileId = SecurityUtil.generateUserProfileId(userId);
 
@@ -62,19 +94,11 @@ export class UserRepository {
             ]);
 
             // Assign Roles
-            if (validatedRoles.length > 0) {
-                const values: any[] = [];
-                const insertPlaceholders: string[] = [];
-
-                validatedRoles.forEach((row, index) => {
-                    insertPlaceholders.push(`($${index * 2 + 1}, $${index * 2 + 2})`);
-                    values.push(userId, row.roles_id);
-                });
-
+            if (validatedRole) {
                 await client.query(`
                     INSERT INTO user_roles (user_id, role_id)
-                    VALUES ${insertPlaceholders.join(',')}
-                `, values);
+                    VALUES ($1, $2)
+                `, [userId, validatedRole.roles_id]);
             }
 
             await client.query('COMMIT');
@@ -173,27 +197,7 @@ export class UserRepository {
 
         const result = await pool.query(dataQuery, queryParams);
 
-        const items: UserDetail[] = result.rows.map(row => ({
-            users_id: row.users_id,
-            email: row.email,
-            phone: row.phone,
-            roles: row.roles,
-            status: row.status,
-            last_login_at: row.last_login_at,
-            failed_login_count: row.failed_login_count,
-            locked_until: row.locked_until,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
-            profile: {
-                user_profiles_id: row.user_profiles_id,
-                full_name: row.full_name,
-                dob: row.dob,
-                gender: row.gender,
-                identity_card_number: row.identity_card_number,
-                avatar_url: row.avatar_url,
-                address: row.address
-            }
-        }));
+        const items: UserDetail[] = result.rows.map((row) => this.mapUserDetailRow(row));
 
         return {
             items,
@@ -268,27 +272,7 @@ export class UserRepository {
 
         const result = await pool.query(dataQuery, queryParams);
 
-        return result.rows.map(row => ({
-            users_id: row.users_id,
-            email: row.email,
-            phone: row.phone,
-            roles: row.roles,
-            status: row.status,
-            last_login_at: row.last_login_at,
-            failed_login_count: row.failed_login_count,
-            locked_until: row.locked_until,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
-            profile: {
-                user_profiles_id: row.user_profiles_id,
-                full_name: row.full_name,
-                dob: row.dob,
-                gender: row.gender,
-                identity_card_number: row.identity_card_number,
-                avatar_url: row.avatar_url,
-                address: row.address
-            }
-        }));
+        return result.rows.map((row) => this.mapUserDetailRow(row));
     }
 
     /**
@@ -328,27 +312,7 @@ export class UserRepository {
 
         const row = result.rows[0];
 
-        return {
-            users_id: row.users_id,
-            email: row.email,
-            phone: row.phone,
-            roles: row.roles,
-            status: row.status,
-            last_login_at: row.last_login_at,
-            failed_login_count: row.failed_login_count,
-            locked_until: row.locked_until,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
-            profile: {
-                user_profiles_id: row.user_profiles_id,
-                full_name: row.full_name,
-                dob: row.dob,
-                gender: row.gender,
-                identity_card_number: row.identity_card_number,
-                avatar_url: row.avatar_url,
-                address: row.address
-            }
-        };
+        return this.mapUserDetailRow(row);
     }
 
     /**
@@ -363,15 +327,26 @@ export class UserRepository {
     ): Promise<void> {
 
         // Validate Role
-        let validRolesData: { roles_id: string, code: string }[] = [];
-        if (data.roles && data.roles.length > 0) {
-            const placeholders = data.roles.map((_, i) => `$${i + 1}`).join(',');
-            const roleResult = await pool.query(`SELECT roles_id, code FROM roles WHERE code IN (${placeholders})`, data.roles);
+        let validatedRole: { roles_id: string, code: string } | null = null;
+        if (data.roles !== undefined) {
+            const requestedRoles = Array.isArray(data.roles)
+                ? data.roles.map((role) => String(role).trim().toUpperCase()).filter(Boolean)
+                : [];
 
-            if (roleResult.rows.length !== data.roles.length) {
-                throw new AppError(400, 'USER_INVALID_ROLE', 'Một hoặc nhiều vai trò (Role) bổ sung không tồn tại trong hệ thống.');
+            if (requestedRoles.length !== 1) {
+                throw new AppError(400, 'USER_SINGLE_ROLE_REQUIRED', 'Mỗi người dùng chỉ được phép có đúng một vai trò.');
             }
-            validRolesData = roleResult.rows;
+
+            const roleResult = await pool.query(
+                `SELECT roles_id, code FROM roles WHERE code = $1`,
+                [requestedRoles[0]]
+            );
+
+            if (roleResult.rowCount !== 1) {
+                throw new AppError(400, 'USER_INVALID_ROLE', 'Vai trò bổ sung không tồn tại trong hệ thống.');
+            }
+
+            validatedRole = roleResult.rows[0] as { roles_id: string; code: string };
         }
 
         const client = await pool.connect();
@@ -449,50 +424,16 @@ export class UserRepository {
 
             // Update User Roles 
             if (data.roles !== undefined) {
-                // Lấy mảng role hiện tại
-                const currentRolesResult = await client.query(`
-                    SELECT r.code, ur.role_id 
-                    FROM user_roles ur 
-                    JOIN roles r ON ur.role_id = r.roles_id 
-                    WHERE ur.user_id = $1
+                await client.query(`
+                    DELETE FROM user_roles
+                    WHERE user_id = $1
                 `, [userId]);
 
-                const currentRoleCodes = currentRolesResult.rows.map(r => r.code);
-
-                // Tìm role cần thêm và role cần xóa
-                const rolesToAdd = data.roles.filter(role => !currentRoleCodes.includes(role));
-                const rolesToRemove = currentRoleCodes.filter(role => !data.roles!.includes(role));
-
-                // Xóa các role không còn nằm trong mảng mới
-                if (rolesToRemove.length > 0) {
-                    const removePlaceholders = rolesToRemove.map((_: any, i: number) => `$${i + 2}`).join(',');
+                if (validatedRole) {
                     await client.query(`
-                        DELETE FROM user_roles 
-                        WHERE user_id = $1 
-                        AND role_id IN (SELECT roles_id FROM roles WHERE code IN (${removePlaceholders}))
-                    `, [userId, ...rolesToRemove]);
-                }
-
-                // Thêm các role mới
-                if (rolesToAdd.length > 0) {
-
-                    // Lọc ra các ID
-                    const roleToAddResultRows = validRolesData.filter(r => rolesToAdd.includes(r.code));
-
-                    if (roleToAddResultRows.length > 0) {
-                        const values: any[] = [];
-                        const insertPlaceholders: string[] = [];
-
-                        roleToAddResultRows.forEach((row, index) => {
-                            insertPlaceholders.push(`($${index * 2 + 1}, $${index * 2 + 2})`);
-                            values.push(userId, row.roles_id);
-                        });
-
-                        await client.query(`
-                            INSERT INTO user_roles (user_id, role_id)
-                            VALUES ${insertPlaceholders.join(',')}
-                        `, values);
-                    }
+                        INSERT INTO user_roles (user_id, role_id)
+                        VALUES ($1, $2)
+                    `, [userId, validatedRole.roles_id]);
                 }
             }
 
@@ -655,7 +596,7 @@ export class UserRepository {
             WHERE ur.user_id = $1
         `;
         const result = await pool.query(query, [userId]);
-        return result.rows;
+        return pickPrimaryRoleRow(result.rows);
     }
 
     /**
@@ -674,13 +615,25 @@ export class UserRepository {
 
         if (roleResult.rowCount === 0) return false;
         const roleId = roleResult.rows[0].roles_id;
+        const client = await pool.connect();
 
-        const query = `
-            INSERT INTO user_roles (user_id, role_id)
-            VALUES ($1, $2)
-            ON CONFLICT (user_id, role_id) DO NOTHING
-        `;
-        await pool.query(query, [userId, roleId]);
+        try {
+            await client.query('BEGIN');
+            await client.query(`
+                DELETE FROM user_roles
+                WHERE user_id = $1
+            `, [userId]);
+            await client.query(`
+                INSERT INTO user_roles (user_id, role_id)
+                VALUES ($1, $2)
+            `, [userId, roleId]);
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
 
         return true;
     }
@@ -739,6 +692,14 @@ export class UserRepository {
             await client.query('BEGIN');
 
             for (const data of usersData) {
+                const requestedRoles = Array.isArray(data.roles)
+                    ? data.roles.map((role) => String(role).trim().toUpperCase()).filter(Boolean)
+                    : [];
+
+                if (requestedRoles.length !== 1) {
+                    throw new AppError(400, 'USER_SINGLE_ROLE_REQUIRED', 'Mỗi người dùng import chỉ được phép có đúng một vai trò.');
+                }
+
                 // Insert User
                 await client.query(`
                     INSERT INTO users (users_id, email, phone_number, password_hash, status)
@@ -756,17 +717,19 @@ export class UserRepository {
                 ]);
 
                 // Insert Roles
-                if (data.roles && data.roles.length > 0) {
-                    // Fetch role IDs
-                    const rolePlaceholders = data.roles.map((_, i) => `$${i + 1}`).join(',');
-                    const rolesResult = await client.query(`SELECT roles_id, code FROM roles WHERE code IN (${rolePlaceholders})`, data.roles);
+                const roleResult = await client.query(
+                    `SELECT roles_id FROM roles WHERE code = $1`,
+                    [requestedRoles[0]]
+                );
 
-                    if (rolesResult.rows.length > 0) {
-                        for (const roleRow of rolesResult.rows) {
-                            await client.query(`INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)`, [data.users_id, roleRow.roles_id]);
-                        }
-                    }
+                if (roleResult.rowCount !== 1) {
+                    throw new AppError(400, 'USER_INVALID_ROLE', 'Vai trò import không tồn tại trong hệ thống.');
                 }
+
+                await client.query(
+                    `INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)`,
+                    [data.users_id, roleResult.rows[0].roles_id]
+                );
             }
 
             await client.query('COMMIT');

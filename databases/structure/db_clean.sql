@@ -171,7 +171,7 @@ CREATE TABLE role_api_permissions (
     FOREIGN KEY (api_id) REFERENCES api_permissions(api_id) ON DELETE CASCADE
 );
 
--- Bảng N/N: Người dùng - Vai trò
+-- Bảng vai trò hiệu lực của người dùng (mỗi user tối đa 1 vai trò)
 CREATE TABLE user_roles (
     user_id VARCHAR(50) NOT NULL,
     role_id VARCHAR(50) NOT NULL,
@@ -179,6 +179,7 @@ CREATE TABLE user_roles (
     FOREIGN KEY (user_id) REFERENCES users(users_id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES roles(roles_id) ON DELETE CASCADE
 );
+CREATE UNIQUE INDEX idx_user_roles_unique_user ON user_roles(user_id);
 
 -- *********************************************************************
 -- DANH MỤC NỀN (MASTER DATA)
