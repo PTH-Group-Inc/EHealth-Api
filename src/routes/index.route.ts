@@ -106,6 +106,8 @@ import { teleConfigRoutes } from './Remote Consultation/tele-config.routes';
 import { verifySepayWebhook } from '../middleware/verifyWebhook.middleware';
 import { sepayWebhook } from '../controllers/Billing/billing-payment-gateway.controller';
 import { auditMiddleware } from '../middleware/audit.middleware';
+import { aiHealthChatRoutes } from './AI Health/ai-health-chat.routes';
+import { aiRagRoutes } from './AI Health/ai-rag.routes';
 
 export const initRoutes = (app: Express) => {
     // Audit Middleware
@@ -392,6 +394,12 @@ export const initRoutes = (app: Express) => {
     app.use('/api/teleconsultation', teleQualityRoutes);
     // Module 8.9 – Cấu hình & quản trị hệ thống
     app.use('/api/teleconsultation', teleConfigRoutes);
+
+    // ═══ MODULE 7: TRÍ TUỆ NHÂN TẠO Y TẾ (AI Health Agent) ═══
+    // Module 7.1 – AI Tư vấn sức khỏe ban đầu
+    app.use('/api/ai/health-chat', aiHealthChatRoutes);
+    // Module 7.2 – AI Knowledge Base (RAG)
+    app.use('/api/ai/rag', aiRagRoutes);
 
     // Webhook alias — Nginx strip /api/ nên SePay gọi /api/hooks/sepay-payment → Express nhận /hooks/sepay-payment
     app.post('/hooks/sepay-payment', verifySepayWebhook, sepayWebhook);
