@@ -29,7 +29,7 @@ export class DoctorRepository {
                 is_active = TRUE
         `;
         const params = [
-            doctorId, userId, data.specialty_id, data.title || null, data.biography || null, data.consultation_fee || null
+            doctorId, userId, data.specialty_id || null, data.title || null, data.biography || null, data.consultation_fee || null
         ];
         await pool.query(query, params);
     }
