@@ -24,6 +24,13 @@ function getAccountId(req: Request): string {
     return accountId;
 }
 
+function canBypassOwnership(req: Request): boolean {
+    const rawRoles = (req as any).auth?.roles;
+    const roles = Array.isArray(rawRoles) ? rawRoles : rawRoles ? [rawRoles] : [];
+    const normalized = roles.map((r) => String(r).trim().toUpperCase()).filter(Boolean);
+    return normalized.includes('ADMIN') || normalized.includes('STAFF') || normalized.includes('SYSTEM');
+}
+
 function handleError(res: Response, error: any) {
     const message = error?.message || 'Có lỗi xảy ra';
     const status =
@@ -159,6 +166,7 @@ export class PatientProfileController {
             const accountId = getAccountId(req);
             const id = req.params.id as string;
             const file = req.file;
+            const bypassOwnership = canBypassOwnership(req);
 
             if (!file) {
                 res.status(PATIENT_AVATAR_ERRORS.FILE_MISSING.httpCode).json({
@@ -169,7 +177,7 @@ export class PatientProfileController {
                 return;
             }
 
-            const image = await PatientProfileService.uploadAvatar(id, accountId, file);
+            const image = await PatientProfileService.uploadAvatar(id, accountId, file, { bypassOwnership });
 
             return res.status(200).json({
                 success: true,
@@ -186,6 +194,7 @@ export class PatientProfileController {
             const accountId = getAccountId(req);
             const id = req.params.id as string;
             const { public_id } = req.body;
+            const bypassOwnership = canBypassOwnership(req);
 
             if (!public_id) {
                 return res.status(400).json({
@@ -195,7 +204,7 @@ export class PatientProfileController {
                 });
             }
 
-            await PatientProfileService.deleteAvatar(id, accountId, public_id);
+            await PatientProfileService.deleteAvatar(id, accountId, public_id, { bypassOwnership });
 
             return res.status(200).json({
                 success: true,

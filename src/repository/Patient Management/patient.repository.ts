@@ -123,9 +123,10 @@ export class PatientRepository {
                 id, patient_code, full_name, date_of_birth, gender,
                 phone_number, email, id_card_number,
                 address, province_id, district_id, ward_id,
-                emergency_contact_name, emergency_contact_phone
+                emergency_contact_name, emergency_contact_phone,
+                relationship, is_default
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING *
         `;
         const result = await pool.query(query, [
@@ -143,6 +144,8 @@ export class PatientRepository {
             input.ward_id || null,
             input.emergency_contact_name || null,
             input.emergency_contact_phone || null,
+            input.relationship || 'SELF',
+            input.is_default || false,
         ]);
         return result.rows[0];
     }
@@ -167,6 +170,8 @@ export class PatientRepository {
         if (input.ward_id !== undefined) { fields.push(`ward_id = $${paramIndex++}`); params.push(input.ward_id); }
         if (input.emergency_contact_name !== undefined) { fields.push(`emergency_contact_name = $${paramIndex++}`); params.push(input.emergency_contact_name); }
         if (input.emergency_contact_phone !== undefined) { fields.push(`emergency_contact_phone = $${paramIndex++}`); params.push(input.emergency_contact_phone); }
+        if (input.relationship !== undefined) { fields.push(`relationship = $${paramIndex++}`); params.push(input.relationship); }
+        if (input.is_default !== undefined) { fields.push(`is_default = $${paramIndex++}`); params.push(input.is_default); }
 
         fields.push(`updated_at = CURRENT_TIMESTAMP`);
         params.push(id);

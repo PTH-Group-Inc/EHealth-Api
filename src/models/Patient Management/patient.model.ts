@@ -39,10 +39,7 @@ export interface Patient {
 export type PatientRelationship = 'SELF' | 'PARENT' | 'CHILD' | 'SPOUSE' | 'SIBLING' | 'OTHER';
 
 /** Input tạo profile bệnh nhân từ tài khoản đăng nhập (multi-profile) */
-export interface CreatePatientProfileInput extends CreatePatientInput {
-    relationship?: PatientRelationship;
-    is_default?: boolean;
-}
+export interface CreatePatientProfileInput extends CreatePatientInput {}
 
 /** Input tạo mới hồ sơ bệnh nhân */
 export interface CreatePatientInput {
@@ -58,6 +55,8 @@ export interface CreatePatientInput {
     ward_id?: number;
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
+    relationship?: PatientRelationship;
+    is_default?: boolean;
 }
 
 /** Input cập nhật thông tin hành chính bệnh nhân */
@@ -74,6 +73,8 @@ export interface UpdatePatientInput {
     ward_id?: number;
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
+    relationship?: PatientRelationship;
+    is_default?: boolean;
 }
 
 /** Kết quả phân trang hồ sơ bệnh nhân */
