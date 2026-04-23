@@ -27,6 +27,24 @@ cloudinary.config({
     api_secret: CLOUDINARY_CONFIG.API_SECRET,
 });
 
+import { CircuitBreakerWrapper } from '../../utils/circuit-breaker.util';
+
+const cloudinaryUploadBreaker = new CircuitBreakerWrapper(
+    async (buffer: Buffer, options: any) => {
+        return new Promise<{ secure_url: string }>((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                options,
+                (error, result) => {
+                    if (error || !result) reject(error || PATIENT_DOCUMENT_ERRORS.UPLOAD_FAILED);
+                    else resolve(result as any);
+                }
+            );
+            uploadStream.end(buffer);
+        });
+    },
+    'CloudinaryUpload'
+);
+
 export class PatientDocumentService {
     /**
      * Sinh ID theo format: DOC_YYMMDD_8charUUID
@@ -84,21 +102,12 @@ export class PatientDocumentService {
         const isPdf = file.mimetype === 'application/pdf';
         const resourceType = isPdf ? 'raw' : 'image';
 
-        // Upload lên Cloudinary bằng stream từ buffer
-        const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                    folder: `${DOCUMENT_CLOUDINARY_FOLDER}/${input.patient_id}`,
-                    public_id: `doc_${newId}`,
-                    overwrite: true,
-                    resource_type: resourceType,
-                },
-                (error, result) => {
-                    if (error || !result) reject(PATIENT_DOCUMENT_ERRORS.UPLOAD_FAILED);
-                    else resolve(result);
-                }
-            );
-            uploadStream.end(file.buffer);
+        // Upload lên Cloudinary bằng stream từ buffer qua CircuitBreaker
+        const uploadResult = await cloudinaryUploadBreaker.fire(file.buffer, {
+            folder: `${DOCUMENT_CLOUDINARY_FOLDER}/${input.patient_id}`,
+            public_id: `doc_${newId}`,
+            overwrite: true,
+            resource_type: resourceType,
         });
 
         const extension = file.originalname.split('.').pop() || file.mimetype.split('/')[1];
@@ -218,20 +227,11 @@ export class PatientDocumentService {
         const resourceType = isPdf ? 'raw' : 'image';
         const newVersionNum = existing.version_number + 1;
 
-        const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                    folder: `${DOCUMENT_CLOUDINARY_FOLDER}/${existing.patient_id}`,
-                    public_id: `doc_${documentId}_v${newVersionNum}`,
-                    overwrite: true,
-                    resource_type: resourceType,
-                },
-                (error, result) => {
-                    if (error || !result) reject(PATIENT_DOCUMENT_ERRORS.UPLOAD_FAILED);
-                    else resolve(result);
-                }
-            );
-            uploadStream.end(file.buffer);
+        const uploadResult = await cloudinaryUploadBreaker.fire(file.buffer, {
+            folder: `${DOCUMENT_CLOUDINARY_FOLDER}/${existing.patient_id}`,
+            public_id: `doc_${documentId}_v${newVersionNum}`,
+            overwrite: true,
+            resource_type: resourceType,
         });
 
         const extension = file.originalname.split('.').pop() || file.mimetype.split('/')[1];

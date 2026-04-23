@@ -8,6 +8,7 @@ import { ApiPermissionCacheService } from './services/Core/api-permission-cache.
 import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs';
 import { NoShowDetectionJob } from './jobs/NoShowDetection.jobs';
 import { AutoApproveAppointmentJob } from './jobs/AutoApproveAppointment.jobs';
+import { SessionCleanup } from './jobs/SessionCleanup.jobs';
 import logger from './config/logger.config';
 
 const PORT = env.PORT;
@@ -25,6 +26,7 @@ const startServer = async () => {
         AppointmentReminderJob.startReminderJob();
         NoShowDetectionJob.startJob();
         AutoApproveAppointmentJob.startJob();
+        SessionCleanup.startSessionCleanupJob();
     });
 };
 

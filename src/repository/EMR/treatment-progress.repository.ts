@@ -11,6 +11,7 @@ import {
     PrescriptionHistoryItem,
 } from '../../models/EMR/treatment-progress.model';
 import { TREATMENT_CONFIG } from '../../constants/treatment-progress.constant';
+import { EncryptionUtil } from '../../utils/encryption.util';
 
 type QueryExecutor = Pool | PoolClient;
 
@@ -53,6 +54,28 @@ function generateLinkId(): string {
 
 
 export class TreatmentProgressRepository {
+
+    /**
+     * Helper: Giải mã ProgressNote
+     */
+    private static decryptNote<T extends Partial<ProgressNote>>(note: T): T {
+        if (!note) return note;
+        if (note.content) {
+            note.content = EncryptionUtil.decrypt(note.content);
+        }
+        return note;
+    }
+
+    /**
+     * Helper: Giải mã FollowUpLink
+     */
+    private static decryptLink<T extends Partial<FollowUpLink>>(link: T): T {
+        if (!link) return link;
+        if (link.notes) {
+            link.notes = EncryptionUtil.decrypt(link.notes);
+        }
+        return link;
+    }
 
     //  TREATMENT PLANS 
 
@@ -185,9 +208,9 @@ export class TreatmentProgressRepository {
              (treatment_progress_notes_id, plan_id, encounter_id, note_type, title, content, severity, recorded_by)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
              RETURNING *`,
-            [id, planId, encounterId, noteType, title, content, severity, recordedBy]
+            [id, planId, encounterId, noteType, title, EncryptionUtil.encrypt(content), severity, recordedBy]
         );
-        return result.rows[0];
+        return this.decryptNote(result.rows[0]);
     }
 
     /** DS ghi nhận theo plan */
@@ -245,7 +268,7 @@ export class TreatmentProgressRepository {
             dataValues
         );
 
-        return { data: dataResult.rows, total: countResult.rows[0].total };
+        return { data: dataResult.rows.map(row => this.decryptNote(row)), total: countResult.rows[0].total };
     }
 
     /** Lấy note theo ID */
@@ -257,7 +280,7 @@ export class TreatmentProgressRepository {
              WHERE n.treatment_progress_notes_id = $1`,
             [noteId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptNote(result.rows[0]) : null;
     }
 
     /** Cập nhật note */
@@ -265,6 +288,10 @@ export class TreatmentProgressRepository {
         const setClauses: string[] = [];
         const values: any[] = [];
         let idx = 1;
+
+        if (fields.content !== undefined) {
+            fields.content = EncryptionUtil.encrypt(fields.content);
+        }
 
         for (const [key, value] of Object.entries(fields)) {
             setClauses.push(`${key} = $${idx++}`);
@@ -277,7 +304,7 @@ export class TreatmentProgressRepository {
              WHERE treatment_progress_notes_id = $${idx} RETURNING *`,
             values
         );
-        return result.rows[0];
+        return this.decryptNote(result.rows[0]);
     }
 
     /** Xóa note (hard delete) */
@@ -298,7 +325,7 @@ export class TreatmentProgressRepository {
              ORDER BY n.created_at DESC LIMIT $2`,
             [planId, limit]
         );
-        return result.rows;
+        return result.rows.map(row => this.decryptNote(row));
     }
 
     /** Đếm notes theo type */
@@ -356,9 +383,9 @@ export class TreatmentProgressRepository {
               follow_up_reason, scheduled_date, notes, created_by)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
              RETURNING *`,
-            [id, planId, previousEncounterId, followUpEncounterId, reason, scheduledDate, notes, createdBy]
+            [id, planId, previousEncounterId, followUpEncounterId, reason, scheduledDate, notes ? EncryptionUtil.encrypt(notes) : null, createdBy]
         );
-        return result.rows[0];
+        return this.decryptLink(result.rows[0]);
     }
 
     /** Kiểm tra link đã tồn tại */

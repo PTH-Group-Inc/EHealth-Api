@@ -9,7 +9,17 @@ import { MailService } from './auth_mail.service';
 import { fcmAdmin, isFirebaseReady } from '../../config/firebase';
 import { FcmTokenRepository } from '../../repository/Core/fcm-token.repository';
 import logger from '../../config/logger.config';
+import { CircuitBreakerWrapper } from '../../utils/circuit-breaker.util';
 
+const mailBreaker = new CircuitBreakerWrapper(
+    (options: any) => MailService.send(options),
+    'MailService'
+);
+
+const fcmBreaker = new CircuitBreakerWrapper(
+    (message: any) => fcmAdmin.messaging().sendEachForMulticast(message),
+    'FirebaseCloudMessaging'
+);
 
 export class NotificationEngineService {
     /**
@@ -27,7 +37,7 @@ export class NotificationEngineService {
      * Gửi Email 
      */
     private static async sendEmail(email: string, subject: string, htmlContent: string) {
-        await MailService.send({
+        await mailBreaker.fire({
             to: email,
             subject: subject,
             html: htmlContent
@@ -66,7 +76,7 @@ export class NotificationEngineService {
 
         try {
             // BẤM NÚT GỬI FIREBASE !!
-            const response = await fcmAdmin.messaging().sendEachForMulticast(message);
+            const response = await fcmBreaker.fire(message);
 
             logger.info(`[FIREBASE] Đã gửi ${response.successCount} tin, Thất bại ${response.failureCount} tin`);
 
@@ -74,7 +84,7 @@ export class NotificationEngineService {
             // Ta phải XÓA token đó khỏi DB để lần sau code không bị gửi thừa.
             if (response.failureCount > 0) {
                 const failedTokens: string[] = [];
-                response.responses.forEach((resp, idx) => {
+                response.responses.forEach((resp: any, idx: number) => {
                     if (!resp.success) {
                         failedTokens.push(tokens[idx]);
                     }

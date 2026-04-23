@@ -18,6 +18,18 @@ import {
 } from '../../constants/billing-payment-gateway.constant';
 import { INVOICE_STATUS } from '../../constants/billing-invoices.constant';
 import { generateSepayQRUrl } from '../../config/sepay';
+import { CircuitBreakerWrapper } from '../../utils/circuit-breaker.util';
+
+const sepayFetchBreaker = new CircuitBreakerWrapper(
+    async (url: string, options: any) => {
+        const response = await fetch(url, options);
+        if (!response.ok && response.status >= 500) {
+            throw new Error(`SePay API Error: ${response.status}`);
+        }
+        return response;
+    },
+    'SePayAPI'
+);
 
 export class PaymentGatewayService {
 
@@ -254,7 +266,7 @@ export class PaymentGatewayService {
         if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
 
         try {
-            const response = await fetch(
+            const response = await sepayFetchBreaker.fire(
                 `${PAYMENT_GATEWAY_CONFIG.SEPAY_API_BASE_URL}/transactions/list?limit=20&account_number=${config.va_account || config.bank_account_number}`,
                 {
                     headers: {
@@ -334,7 +346,7 @@ export class PaymentGatewayService {
         if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
 
         try {
-            const response = await fetch(
+            const response = await sepayFetchBreaker.fire(
                 `${PAYMENT_GATEWAY_CONFIG.SEPAY_API_BASE_URL}/transactions/list?limit=1&account_number=${config.va_account || config.bank_account_number}`,
                 {
                     headers: {

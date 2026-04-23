@@ -1,6 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
 import swaggerUi from 'swagger-ui-express'
+import { env } from './config/env'
 import { swaggerSpec } from './config/swagger'
 import { initRoutes } from './routes/index.route'
 import { SessionCleanup } from './jobs/SessionCleanup.jobs'
@@ -11,9 +13,20 @@ import morganMiddleware from './middleware/morgan.middleware'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware'
 import { globalApiRateLimiter } from './middleware/rate_limit.middleware'
 
+import { metricsMiddleware } from './middleware/metrics.middleware'
+
 const app = express()
 
-app.use(cors())
+app.use(metricsMiddleware)
+
+app.use(helmet({
+  contentSecurityPolicy: false, // For Swagger UI
+  hsts: env.isProd ? true : false,
+}))
+app.use(cors({
+  origin: env.corsOrigins,
+  credentials: true
+}))
 app.use(express.json({
   verify: (req: any, res, buf) => {
     req.rawBody = buf.toString('utf8');

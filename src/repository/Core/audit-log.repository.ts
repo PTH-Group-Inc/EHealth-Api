@@ -13,8 +13,8 @@ export class AuditLogRepository {
             const logId = `AUDIT_${Date.now()}_${randomUUID().substring(0, 8)}`;
             const query = `
                 INSERT INTO audit_logs 
-                (log_id, user_id, action_type, module_name, target_id, old_value, new_value, ip_address, user_agent) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                (log_id, user_id, action_type, module_name, target_id, old_value, new_value, ip_address, user_agent, status_code, is_success) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             `;
 
             const values = [
@@ -26,7 +26,9 @@ export class AuditLogRepository {
                 logData.old_value ? JSON.stringify(logData.old_value) : null,
                 logData.new_value ? JSON.stringify(logData.new_value) : null,
                 logData.ip_address || null,
-                logData.user_agent || null
+                logData.user_agent || null,
+                logData.status_code || null,
+                logData.is_success !== undefined ? logData.is_success : true
             ];
 
             await pool.query(query, values);

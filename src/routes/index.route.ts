@@ -107,293 +107,309 @@ import { verifySepayWebhook } from '../middleware/verifyWebhook.middleware';
 import { sepayWebhook } from '../controllers/Billing/billing-payment-gateway.controller';
 import { auditMiddleware } from '../middleware/audit.middleware';
 
+import healthRoutes from './Core/health.routes';
+
+import { Router } from 'express';
+
+const v1Routes = Router();
+v1Routes.use((req, res, next) => {
+    res.setHeader('X-API-Version', 'v1');
+    next();
+});
+
 export const initRoutes = (app: Express) => {
+    // Health checks and metrics (Before Audit Middleware to avoid logging)
+    app.use('/', healthRoutes);
+
     // Audit Middleware
     app.use(auditMiddleware);
 
     //test product routes
-    app.use('/api/test', productRouter)
+    v1Routes.use('/test', productRouter)
 
     //auth routes
-    app.use('/api/auth', authRoutes);
+    v1Routes.use('/auth', authRoutes);
 
     //user management routes
-    app.use('/api/users', userRoutes);
+    v1Routes.use('/users', userRoutes);
 
     //medical staff management routes
-    app.use('/api/staff', staffRoutes);
+    v1Routes.use('/staff', staffRoutes);
 
     //shift management routes
-    app.use('/api/shifts', shiftRoutes);
+    v1Routes.use('/shifts', shiftRoutes);
 
     //appointment slot routes
-    app.use('/api/slots', slotRoutes);
+    v1Routes.use('/slots', slotRoutes);
 
     //staff schedule routes
-    app.use('/api/staff-schedules', staffScheduleRoutes);
+    v1Routes.use('/staff-schedules', staffScheduleRoutes);
 
     //leave management routes
-    app.use('/api/leaves', leaveRoutes);
+    v1Routes.use('/leaves', leaveRoutes);
 
     //shift swap routes
-    app.use('/api/shift-swaps', shiftSwapRoutes);
+    v1Routes.use('/shift-swaps', shiftSwapRoutes);
 
     //license management routes
-    app.use('/api/licenses', licenseRoutes);
+    v1Routes.use('/licenses', licenseRoutes);
 
     //operating hours management routes
-    app.use('/api/operating-hours', operatingHourRoutes);
+    v1Routes.use('/operating-hours', operatingHourRoutes);
 
     //closed days management routes
-    app.use('/api/closed-days', closedDayRoutes);
+    v1Routes.use('/closed-days', closedDayRoutes);
 
     //holidays management routes
-    app.use('/api/holidays', holidayRoutes);
+    v1Routes.use('/holidays', holidayRoutes);
 
     //facility status & calendar routes
-    app.use('/api/facility-status', facilityStatusRoutes);
+    v1Routes.use('/facility-status', facilityStatusRoutes);
 
     //role dropdowns routes
-    app.use('/api/roles', roleRoutes);
+    v1Routes.use('/roles', roleRoutes);
 
     //facility dropdown routes
-    app.use('/api/facilities', facilityRoutes);
+    v1Routes.use('/facilities', facilityRoutes);
 
     //branch management routes
-    app.use('/api/branches', branchRoutes);
+    v1Routes.use('/branches', branchRoutes);
 
     //department management routes
-    app.use('/api/departments', departmentRoutes);
+    v1Routes.use('/departments', departmentRoutes);
 
     //medical rooms management routes
-    app.use('/api/medical-rooms', medicalRoomRoutes);
+    v1Routes.use('/medical-rooms', medicalRoomRoutes);
 
     //permissions routes
-    app.use('/api/permissions', permissionRoutes);
+    v1Routes.use('/permissions', permissionRoutes);
 
     // feature modules routes
-    app.use('/api/modules', moduleRoutes);
+    v1Routes.use('/modules', moduleRoutes);
 
     // system menus routes
-    app.use('/api/menus', menuRoutes);
+    v1Routes.use('/menus', menuRoutes);
 
     // api permission settings
-    app.use('/api/api-permissions', apiPermissionRoutes);
+    v1Routes.use('/api-permissions', apiPermissionRoutes);
 
     // system settings routes
-    app.use('/api/system', systemRoutes);
+    v1Routes.use('/system', systemRoutes);
 
     // specialty routes
-    app.use('/api/specialties', specialtyRouter);
+    v1Routes.use('/specialties', specialtyRouter);
 
     // master data routes
-    app.use('/api/master-data', masterDataRoutes);
+    v1Routes.use('/master-data', masterDataRoutes);
 
     // Module 5.1 – Medication Management (Danh mục thuốc & Dữ liệu chuẩn)
-    app.use('/api/pharmacy/categories', drugCategoryRoutes);
-    app.use('/api/pharmacy/drugs', drugRoutes);
+    v1Routes.use('/pharmacy/categories', drugCategoryRoutes);
+    v1Routes.use('/pharmacy/drugs', drugRoutes);
 
     // Module 5.5 – Dispensing Management (Cấp phát thuốc & xuất kho)
-    app.use('/api/dispensing', dispensingRoutes);
+    v1Routes.use('/dispensing', dispensingRoutes);
 
     // Module 5.6 – Drug Inventory Tracking (Theo dõi tồn kho)
-    app.use('/api/inventory', inventoryRoutes);
+    v1Routes.use('/inventory', inventoryRoutes);
 
     // Warehouse Management (Quản lý kho thuốc)
-    app.use('/api/warehouses', warehouseRoutes);
+    v1Routes.use('/warehouses', warehouseRoutes);
 
     // Module 5.7/5.8 – Stock-In Management (Nhập kho & NCC)
-    app.use('/api/suppliers', supplierRoutes);
-    app.use('/api/stock-in', stockInRoutes);
+    v1Routes.use('/suppliers', supplierRoutes);
+    v1Routes.use('/stock-in', stockInRoutes);
 
     // Module 5.9 – Stock-Out Management (Xuất kho & Hủy hàng)
-    app.use('/api/stock-out', stockOutRoutes);
+    v1Routes.use('/stock-out', stockOutRoutes);
 
     // Module 5.10 – Medication Instructions (Hướng dẫn sử dụng thuốc)
-    app.use('/api/medication-instructions', medInstructionRoutes);
+    v1Routes.use('/medication-instructions', medInstructionRoutes);
 
     // medical services
-    app.use('/api/medical-services', medicalServiceRoutes);
+    v1Routes.use('/medical-services', medicalServiceRoutes);
 
     // specialty-service mapping (2.9.1)
-    app.use('/api/specialty-services', specialtyServiceRoutes);
+    v1Routes.use('/specialty-services', specialtyServiceRoutes);
 
     // Gán chuyên khoa - Phòng ban (2.3.1)
-    app.use('/api/department-specialties', departmentSpecialtyRoutes);
+    v1Routes.use('/department-specialties', departmentSpecialtyRoutes);
 
     //doctor services routes
-    app.use('/api/doctor-services', doctorServiceRoutes);
+    v1Routes.use('/doctor-services', doctorServiceRoutes);
 
     // medical equipment management (2.10)
-    app.use('/api/equipments', medicalEquipmentRoutes);
+    v1Routes.use('/equipments', medicalEquipmentRoutes);
 
     // bed management (2.11)
-    app.use('/api/beds', bedRoutes);
+    v1Routes.use('/beds', bedRoutes);
 
     // booking configurations (2.12)
-    app.use('/api/booking-configs', bookingConfigRoutes);
+    v1Routes.use('/booking-configs', bookingConfigRoutes);
 
     // profile routes
-    app.use('/api/profile', profileRoutes);
+    v1Routes.use('/profile', profileRoutes);
 
     // Notification Core Module Routes
-    app.use('/api/notifications/categories', notificationCategoryRoutes);
-    app.use('/api/notifications/templates', notificationTemplateRoutes);
-    app.use('/api/notifications/role-configs', notificationRoleConfigRoutes);
-    app.use('/api/notifications/inbox', userNotificationRoutes);
+    v1Routes.use('/notifications/categories', notificationCategoryRoutes);
+    v1Routes.use('/notifications/templates', notificationTemplateRoutes);
+    v1Routes.use('/notifications/role-configs', notificationRoleConfigRoutes);
+    v1Routes.use('/notifications/inbox', userNotificationRoutes);
 
     // Patient Management (2.1)
-    app.use('/api/patient/profiles', patientProfileRoutes);
-    app.use('/api/patients', patientRoutes);
+    v1Routes.use('/patient/profiles', patientProfileRoutes);
+    v1Routes.use('/patients', patientRoutes);
 
     // Medical History (2.2 )
-    app.use('/api/medical-history', medicalHistoryRoutes);
+    v1Routes.use('/medical-history', medicalHistoryRoutes);
 
     // Insurance Providers & Patient Insurances (2.3)
-    app.use('/api/insurance-providers', insuranceProviderRoutes);
-    app.use('/api/patient-insurances', patientInsuranceRoutes);
-    app.use('/api/insurance-coverage', insuranceCoverageRoutes);
+    v1Routes.use('/insurance-providers', insuranceProviderRoutes);
+    v1Routes.use('/patient-insurances', patientInsuranceRoutes);
+    v1Routes.use('/insurance-coverage', insuranceCoverageRoutes);
 
     // Patient Relations & Relation Types (2.4)
-    app.use('/api/relation-types', relationTypeRoutes);
-    app.use('/api/patient-relations', patientContactRoutes);
+    v1Routes.use('/relation-types', relationTypeRoutes);
+    v1Routes.use('/patient-relations', patientContactRoutes);
 
     // Document Types & Patient Documents (2.5)
-    app.use('/api/document-types', documentTypeRoutes);
-    app.use('/api/patient-documents', patientDocumentRoutes);
+    v1Routes.use('/document-types', documentTypeRoutes);
+    v1Routes.use('/patient-documents', patientDocumentRoutes);
 
     // Patient Tags (2.6)
-    app.use('/api/patient-tags', patientTagRoutes);
+    v1Routes.use('/patient-tags', patientTagRoutes);
 
     // Classification Rules (2.6.5)
-    app.use('/api/patient-classification-rules', classificationRuleRoutes);
+    v1Routes.use('/patient-classification-rules', classificationRuleRoutes);
 
     // Appointment Management (3.1)
-    app.use('/api/appointments', appointmentRoutes);
+    v1Routes.use('/appointments', appointmentRoutes);
 
     // Module 3.2 – Quản lý khung giờ & ca khám
-    app.use('/api/facilities', consultationDurationRoutes);
-    app.use('/api/locked-slots', lockedSlotRoutes);
-    app.use('/api/shift-services', shiftServiceRoutes);
+    v1Routes.use('/facilities', consultationDurationRoutes);
+    v1Routes.use('/locked-slots', lockedSlotRoutes);
+    v1Routes.use('/shift-services', shiftServiceRoutes);
 
     // Module 3.3 – Quản lý lịch bác sĩ
-    app.use('/api/doctor-availability', doctorAvailabilityRoutes);
-    app.use('/api/doctor-absences', doctorAbsenceRoutes);
+    v1Routes.use('/doctor-availability', doctorAvailabilityRoutes);
+    v1Routes.use('/doctor-absences', doctorAbsenceRoutes);
 
     // Module 3.4 – Quản lý phòng khám & tài nguyên
-    app.use('/api/room-maintenance', roomMaintenanceRoutes);
+    v1Routes.use('/room-maintenance', roomMaintenanceRoutes);
 
     // Module 3.6 – Xác nhận & Nhắc lịch khám
-    app.use('/api/appointment-confirmations', appointmentConfirmationRoutes);
+    v1Routes.use('/appointment-confirmations', appointmentConfirmationRoutes);
 
     // Module 3.7 – Check-in & Trạng thái lịch khám
-    app.use('/api/appointment-status', appointmentStatusRoutes);
+    v1Routes.use('/appointment-status', appointmentStatusRoutes);
 
     // Module 3.8 – Quản lý thay đổi & dời lịch
-    app.use('/api/appointment-changes', appointmentChangeRoutes);
+    v1Routes.use('/appointment-changes', appointmentChangeRoutes);
 
     // Module 3.9 – Điều phối & tối ưu lịch khám
-    app.use('/api/appointment-coordination', appointmentCoordinationRoutes);
+    v1Routes.use('/appointment-coordination', appointmentCoordinationRoutes);
 
     // MODULE 4: KHÁM BỆNH & HỒ SƠ BỆNH ÁN (EMR)
     // Module 4.1 – Encounter Management
-    app.use('/api/encounters', encounterRoutes);
+    v1Routes.use('/encounters', encounterRoutes);
 
     // Module 4.2 – Clinical Examination
-    app.use('/api/clinical-examinations', clinicalExamRoutes);
+    v1Routes.use('/clinical-examinations', clinicalExamRoutes);
 
     // Module 4.3 – Diagnosis Management
-    app.use('/api/diagnoses', diagnosisRoutes);
+    v1Routes.use('/diagnoses', diagnosisRoutes);
 
     // Module 4.4 – Medical Orders (Chỉ định dịch vụ y tế)
-    app.use('/api/medical-orders', medicalOrderRoutes);
+    v1Routes.use('/medical-orders', medicalOrderRoutes);
 
     // Module 4.5 – Prescription Management (Kê đơn thuốc)
-    app.use('/api/prescriptions', prescriptionRoutes);
+    v1Routes.use('/prescriptions', prescriptionRoutes);
 
     // Module 4.6 – Medical Records (Hồ sơ Bệnh án Điện tử)
-    app.use('/api/medical-records', medicalRecordRoutes);
+    v1Routes.use('/medical-records', medicalRecordRoutes);
 
     // Module 4.7 – Treatment Progress (Theo dõi Tiến trình Điều trị)
-    app.use('/api/treatment-plans', treatmentProgressRoutes);
+    v1Routes.use('/treatment-plans', treatmentProgressRoutes);
 
     // Module 4.8 – Medical Sign-off (Ký số & Xác nhận Hồ sơ Y khoa)
-    app.use('/api/sign-off', signOffRoutes);
+    v1Routes.use('/sign-off', signOffRoutes);
 
     // ═══ MODULE 6: HỒ SƠ SỨC KHỎE ĐIỆN TỬ (EHR) ═══
     // Module 6.1 – Patient Health Profile (Hồ sơ sức khỏe tổng hợp)
-    app.use('/api/ehr', healthProfileRoutes);
+    v1Routes.use('/ehr', healthProfileRoutes);
 
     // Module 6.2 – Health Timeline (Dòng thời gian sức khỏe)
-    app.use('/api/ehr', healthTimelineRoutes);
+    v1Routes.use('/ehr', healthTimelineRoutes);
 
     // Module 6.3 – Medical History & Risk Factors (Tiền sử bệnh & yếu tố nguy cơ)
-    app.use('/api/ehr', medicalHistoryEhrRoutes);
+    v1Routes.use('/ehr', medicalHistoryEhrRoutes);
 
     // Module 6.4 – Clinical Results (Kết quả xét nghiệm & cận lâm sàng)
-    app.use('/api/ehr', clinicalResultsRoutes);
+    v1Routes.use('/ehr', clinicalResultsRoutes);
 
     // Module 6.5 – Medication & Treatment Records (Hồ sơ đơn thuốc & điều trị)
-    app.use('/api/ehr', medicationTreatmentRoutes);
+    v1Routes.use('/ehr', medicationTreatmentRoutes);
 
     // Module 6.6 – Vital Signs & Health Metrics (Chỉ số sức khỏe & sinh hiệu)
-    app.use('/api/ehr', vitalSignsRoutes);
+    v1Routes.use('/ehr', vitalSignsRoutes);
 
     // Module 6.8 – Data Integration (Đồng bộ dữ liệu & tích hợp bên ngoài)
-    app.use('/api/ehr', dataIntegrationRoutes);
+    v1Routes.use('/ehr', dataIntegrationRoutes);
 
     // ═══ MODULE 9: THANH TOÁN (BILLING) ═══
     // Module 9.1 – Quản lý danh mục dịch vụ & bảng giá
-    app.use('/api/billing/pricing', billingPricingRoutes);
+    v1Routes.use('/billing/pricing', billingPricingRoutes);
 
     // Module 9.2 – Thu phí khám & dịch vụ y tế
-    app.use('/api/billing', billingInvoiceRoutes);
+    v1Routes.use('/billing', billingInvoiceRoutes);
 
     // Module 9.3 – Thanh toán trực tuyến (SePay)
-    app.use('/api/billing/payments', billingPaymentGatewayRoutes);
+    v1Routes.use('/billing/payments', billingPaymentGatewayRoutes);
 
     // Module 9.4 – Thanh toán tại quầy (Offline Payment)
-    app.use('/api/billing', billingOfflinePaymentRoutes);
+    v1Routes.use('/billing', billingOfflinePaymentRoutes);
 
     // Module 9.5 – Quản lý hóa đơn & chứng từ thanh toán
-    app.use('/api/billing', billingDocumentRoutes);
+    v1Routes.use('/billing', billingDocumentRoutes);
 
     // Module 9.6 – Đối soát & quyết toán thanh toán
-    app.use('/api/billing', billingReconciliationRoutes);
+    v1Routes.use('/billing', billingReconciliationRoutes);
 
     // Module 9.7 – Hoàn tiền & điều chỉnh giao dịch
-    app.use('/api/billing', billingRefundRoutes);
+    v1Routes.use('/billing', billingRefundRoutes);
 
     // Module 9.8 – Quản lý chính sách giá & ưu đãi
-    app.use('/api/billing', billingPricingPolicyRoutes);
+    v1Routes.use('/billing', billingPricingPolicyRoutes);
 
     // Module 9.9 – Quản lý phân quyền thu ngân
-    app.use('/api/billing', billingCashierAuthRoutes);
+    v1Routes.use('/billing', billingCashierAuthRoutes);
 
     // Admin reporting
-    app.use('/api/reports', reportsRoutes);
+    v1Routes.use('/reports', reportsRoutes);
 
     // ═══ MODULE 8: KHÁM TỪ XA (REMOTE CONSULTATION) ═══
     // Module 8.1 – Quản lý hình thức khám từ xa
-    app.use('/api/teleconsultation', teleConsultationTypeRoutes);
+    v1Routes.use('/teleconsultation', teleConsultationTypeRoutes);
     // Module 8.2 – Đặt lịch tư vấn & khám từ xa
-    app.use('/api/teleconsultation', teleBookingRoutes);
+    v1Routes.use('/teleconsultation', teleBookingRoutes);
     // Module 8.3 – Phòng khám trực tuyến
-    app.use('/api/teleconsultation', teleRoomRoutes);
+    v1Routes.use('/teleconsultation', teleRoomRoutes);
     // Module 8.4 – Trao đổi thông tin y tế trực tuyến
-    app.use('/api/teleconsultation', medicalChatRoutes);
+    v1Routes.use('/teleconsultation', medicalChatRoutes);
     // Module 8.5 – Ghi nhận kết quả khám từ xa
-    app.use('/api/teleconsultation', teleResultRoutes);
+    v1Routes.use('/teleconsultation', teleResultRoutes);
     // Module 8.6 – Kê đơn & chỉ định từ xa
-    app.use('/api/teleconsultation', telePrescriptionRoutes);
+    v1Routes.use('/teleconsultation', telePrescriptionRoutes);
     // Module 8.7 – Theo dõi sau tư vấn & tái khám
-    app.use('/api/teleconsultation', teleFollowUpRoutes);
+    v1Routes.use('/teleconsultation', teleFollowUpRoutes);
     // Module 8.8 – Quản lý chất lượng & đánh giá
-    app.use('/api/teleconsultation', teleQualityRoutes);
+    v1Routes.use('/teleconsultation', teleQualityRoutes);
     // Module 8.9 – Cấu hình & quản trị hệ thống
-    app.use('/api/teleconsultation', teleConfigRoutes);
+    v1Routes.use('/teleconsultation', teleConfigRoutes);
 
     // Webhook alias — Nginx strip /api/ nên SePay gọi /api/hooks/sepay-payment → Express nhận /hooks/sepay-payment
+    app.use('/api/v1', v1Routes);
+    app.use('/api', v1Routes);
+
     app.post('/hooks/sepay-payment', verifySepayWebhook, sepayWebhook);
 }
 

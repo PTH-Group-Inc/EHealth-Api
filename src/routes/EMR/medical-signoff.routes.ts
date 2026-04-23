@@ -492,3 +492,59 @@ signOffRoutes.get(
     checkSessionStatus,
     SignOffController.getLockStatus
 );
+
+// =====================================================================
+// COSIGN FLOW
+// =====================================================================
+
+/**
+ * @swagger
+ * /api/sign-off/{encounterId}/cosign-status:
+ *   get:
+ *     summary: Xem trạng thái đồng ký
+ *     tags:
+ *       - "4.8 Medical Sign-off"
+ *     security:
+ *       - bearerAuth: []
+ */
+signOffRoutes.get(
+    '/:encounterId/cosign-status',
+    verifyAccessToken,
+    checkSessionStatus,
+    SignOffController.getCosignStatus
+);
+
+/**
+ * @swagger
+ * /api/sign-off/{encounterId}/cosign/{cosignId}:
+ *   post:
+ *     summary: Ký đồng ký
+ *     tags:
+ *       - "4.8 Medical Sign-off"
+ *     security:
+ *       - bearerAuth: []
+ */
+signOffRoutes.post(
+    '/:encounterId/cosign/:cosignId',
+    verifyAccessToken,
+    checkSessionStatus,
+    SignOffController.cosign
+);
+
+/**
+ * @swagger
+ * /api/sign-off/{encounterId}/waive-cosign/{cosignId}:
+ *   post:
+ *     summary: Miễn đồng ký (Chỉ ADMIN)
+ *     tags:
+ *       - "4.8 Medical Sign-off"
+ *     security:
+ *       - bearerAuth: []
+ */
+signOffRoutes.post(
+    '/:encounterId/waive-cosign/:cosignId',
+    verifyAccessToken,
+    checkSessionStatus,
+    SignOffController.waiveCosign
+);
+

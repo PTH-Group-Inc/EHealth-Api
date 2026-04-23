@@ -11,6 +11,8 @@ import { AuthMailUtil } from "../../utils/auth-mail.util";
 import { AccountVerificationRepository } from "../../repository/Core/auth_verification.repository";
 import { AUTH_CONSTANTS } from "../../constants/auth.constant";
 import { PermissionRepository } from "../../repository/Core/permission.repository";
+import { AuditLogRepository } from "../../repository/Core/audit-log.repository";
+import { AuditActionType } from "../../models/Core/audit-log.model";
 import logger from '../../config/logger.config';
 
 
@@ -25,7 +27,7 @@ export class AuthService {
 
     if (!user) throw AUTH_ERRORS.INVALID_CREDENTIAL;
 
-    await this.handleLoginAttempt(user, password);
+    await this.handleLoginAttempt(user, password, clientInfo);
 
     return this.processLoginSuccess(user, clientInfo);
   }
@@ -42,7 +44,7 @@ export class AuthService {
       throw AUTH_ERRORS.INVALID_CREDENTIAL;
     }
 
-    await this.handleLoginAttempt(user, password);
+    await this.handleLoginAttempt(user, password, clientInfo);
 
     return this.processLoginSuccess(user, clientInfo);
   }
@@ -50,7 +52,7 @@ export class AuthService {
   /**
    * Xử lý kiểm tra khóa và xác thực mật khẩu
    */
-  private static async handleLoginAttempt(user: User, passwordInput: string) {
+  private static async handleLoginAttempt(user: User, passwordInput: string, clientInfo: ClientInfo) {
 
     if (user.locked_until && new Date() < new Date(user.locked_until)) {
       throw AUTH_ERRORS.ACCOUNT_LOCKED;
@@ -64,7 +66,26 @@ export class AuthService {
       if (newFailedCount >= AUTH_CONSTANTS.LOGIN_LIMIT.MAX_ATTEMPTS) {
         const lockUntil = new Date(Date.now() + AUTH_CONSTANTS.LOGIN_LIMIT.LOCK_DURATION_MS);
         await AccountRepository.lockAccount(user.users_id, lockUntil);
+        await AuditLogRepository.createLog({
+            user_id: user.users_id,
+            action_type: AuditActionType.ACCOUNT_LOCK,
+            module_name: 'AUTH',
+            ip_address: clientInfo.ipAddress,
+            user_agent: clientInfo.userAgent,
+            status_code: 423,
+            is_success: false
+        });
       }
+
+      await AuditLogRepository.createLog({
+          user_id: user.users_id,
+          action_type: AuditActionType.FAILED_ATTEMPT,
+          module_name: 'AUTH',
+          ip_address: clientInfo.ipAddress,
+          user_agent: clientInfo.userAgent,
+          status_code: 401,
+          is_success: false
+      });
 
       throw AUTH_ERRORS.INVALID_CREDENTIAL;
     }

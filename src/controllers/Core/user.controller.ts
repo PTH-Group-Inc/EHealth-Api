@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler.util';
 import { UserService } from '../../services/Facility Management/user.service';
 import { CreateUserInput, UpdateUserByAdminInput, UpdateUserStatusInput, ResetPasswordAdminInput, ChangePasswordInput, AssignRoleInput } from '../../models/Core/user.model';
+import { AuditActionType } from '../../models/Core/audit-log.model';
 import { ProfileService } from '../../services/Core/profile.service';
 import { AVATAR_ERRORS, AVATAR_SUCCESS } from '../../constants/system.constant';
 
@@ -200,6 +201,7 @@ export class UserController {
         const ipAddress = req.ip || req.connection.remoteAddress || null;
         const userAgent = req.get('User-Agent') || null;
 
+        (req as any).auditActionType = AuditActionType.ACCOUNT_LOCK;
         await UserService.lockUser(userId, adminId, ipAddress, userAgent);
 
         return res.status(200).json({
@@ -218,6 +220,7 @@ export class UserController {
         const ipAddress = req.ip || req.connection.remoteAddress || null;
         const userAgent = req.get('User-Agent') || null;
 
+        (req as any).auditActionType = AuditActionType.ACCOUNT_LOCK;
         await UserService.unlockUser(userId, adminId, ipAddress, userAgent);
 
         return res.status(200).json({
@@ -276,6 +279,7 @@ export class UserController {
         const userId = req.params.userId as string;
         const data: ResetPasswordAdminInput = req.body;
 
+        (req as any).auditActionType = AuditActionType.PASSWORD_RESET;
         await UserService.resetPasswordByAdmin(userId, data);
 
         return res.status(200).json({
@@ -343,6 +347,7 @@ export class UserController {
         const ipAddress = req.ip || req.connection.remoteAddress || null;
         const userAgent = req.get('User-Agent') || null;
 
+        (req as any).auditActionType = AuditActionType.ROLE_CHANGE;
         await UserService.assignRole(userId, data, adminId, ipAddress, userAgent);
 
         return res.status(200).json({
@@ -362,6 +367,7 @@ export class UserController {
         const ipAddress = req.ip || req.connection.remoteAddress || null;
         const userAgent = req.get('User-Agent') || null;
 
+        (req as any).auditActionType = AuditActionType.ROLE_CHANGE;
         await UserService.removeRole(userId, roleId, adminId, ipAddress, userAgent);
 
         return res.status(200).json({

@@ -48,9 +48,9 @@ export const env = {
         user: required('DB_USER'),
         password: required('DB_PASSWORD'),
         // Production: pool lớn hơn, timeout dài hơn
-        poolSize: NODE_ENV === 'production' ? 30 : 10,
-        idleTimeoutMs: NODE_ENV === 'production' ? 60000 : 30000,
-        connectionTimeoutMs: NODE_ENV === 'production' ? 5000 : 2000,
+        poolSize: parseInt(optional('DB_POOL_SIZE', NODE_ENV === 'production' ? '15' : '5'), 10),
+        idleTimeoutMs: parseInt(optional('DB_IDLE_TIMEOUT_MS', NODE_ENV === 'production' ? '60000' : '30000'), 10),
+        connectionTimeoutMs: parseInt(optional('DB_CONNECTION_TIMEOUT_MS', NODE_ENV === 'production' ? '5000' : '2000'), 10),
     },
 
     // ── JWT ──
@@ -59,8 +59,9 @@ export const env = {
         refreshSecret: required('JWT_REFRESH_SECRET'),
     },
 
-    // ── Frontend ──
+    // ── Frontend & CORS ──
     frontendUrl: optional('FRONTEND_URL', 'http://localhost:3000'),
+    corsOrigins: optional('CORS_ORIGINS', 'http://localhost:3000').split(','),
 
     // ── Email ──
     email: {
@@ -91,6 +92,12 @@ export const env = {
         bankName: optional('SEPAY_BANK_NAME'),
         accountHolder: optional('SEPAY_ACCOUNT_HOLDER'),
         vaAccount: optional('SEPAY_VA_ACCOUNT'),
+    },
+
+    // ── Data Encryption At-Rest ──
+    encryption: {
+        currentKey: optional('DATA_ENCRYPTION_KEY', ''),
+        previousKey: optional('DATA_ENCRYPTION_KEY_PREVIOUS', ''),
     },
 
 } as const;

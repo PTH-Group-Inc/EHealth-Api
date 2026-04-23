@@ -2,6 +2,7 @@ import { pool } from '../../config/postgresdb';
 import { v4 as uuidv4 } from 'uuid';
 import { ClinicalExamination, CreateClinicalExamInput, UpdateVitalsInput } from '../../models/EMR/clinical-exam.model';
 import { CLINICAL_EXAM_CONFIG } from '../../constants/clinical-exam.constant';
+import { EncryptionUtil } from '../../utils/encryption.util';
 
 /**
  * Tạo ID phiếu khám lâm sàng theo format: CEXAM_yymmdd_uuid
@@ -15,6 +16,19 @@ function generateClinicalExamId(): string {
 }
 
 export class ClinicalExamRepository {
+
+    /**
+     * Giải mã các trường văn bản của phiếu khám
+     */
+    private static decryptFields(doc: ClinicalExamination): ClinicalExamination {
+        if (!doc) return doc;
+        if (doc.chief_complaint) doc.chief_complaint = EncryptionUtil.decrypt(doc.chief_complaint);
+        if (doc.physical_examination) doc.physical_examination = EncryptionUtil.decrypt(doc.physical_examination);
+        if (doc.medical_history_notes) doc.medical_history_notes = EncryptionUtil.decrypt(doc.medical_history_notes);
+        if (doc.relevant_history) doc.relevant_history = EncryptionUtil.decrypt(doc.relevant_history);
+        if (doc.clinical_notes) doc.clinical_notes = EncryptionUtil.decrypt(doc.clinical_notes);
+        return doc;
+    }
 
     /**
      * Tạo phiếu khám lâm sàng mới (1:1 với encounter)
@@ -50,16 +64,16 @@ export class ClinicalExamRepository {
                 data.height ?? null,
                 data.weight && data.height ? +(data.weight / ((data.height / 100) ** 2)).toFixed(2) : null,
                 data.blood_glucose ?? null,
-                data.chief_complaint ?? null,
-                data.physical_examination ?? null,
-                data.medical_history_notes ?? null,
-                data.relevant_history ?? null,
-                data.clinical_notes ?? null,
+                data.chief_complaint ? EncryptionUtil.encrypt(data.chief_complaint) : null,
+                data.physical_examination ? EncryptionUtil.encrypt(data.physical_examination) : null,
+                data.medical_history_notes ? EncryptionUtil.encrypt(data.medical_history_notes) : null,
+                data.relevant_history ? EncryptionUtil.encrypt(data.relevant_history) : null,
+                data.clinical_notes ? EncryptionUtil.encrypt(data.clinical_notes) : null,
                 data.severity_level ?? null,
                 recordedBy,
             ]
         );
-        return result.rows[0];
+        return this.decryptFields(result.rows[0]);
     }
 
     /**
@@ -74,7 +88,7 @@ export class ClinicalExamRepository {
              WHERE ce.encounter_id = $1`,
             [encounterId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptFields(result.rows[0]) : null;
     }
 
     /**
@@ -105,10 +119,20 @@ export class ClinicalExamRepository {
             'clinical_notes', 'severity_level',
         ];
 
+        const encryptedFields = [
+            'chief_complaint', 'physical_examination',
+            'medical_history_notes', 'relevant_history',
+            'clinical_notes'
+        ];
+
         for (const field of allowedFields) {
             if (data[field] !== undefined) {
                 setClauses.push(`${field} = $${paramIndex++}`);
-                values.push(data[field]);
+                let value = data[field];
+                if (value && encryptedFields.includes(field)) {
+                    value = EncryptionUtil.encrypt(value);
+                }
+                values.push(value);
             }
         }
 
@@ -174,7 +198,7 @@ export class ClinicalExamRepository {
             `UPDATE clinical_examinations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE encounter_id = $2 RETURNING *`,
             [status, encounterId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptFields(result.rows[0]) : null;
     }
 
     /**
@@ -234,7 +258,7 @@ export class ClinicalExamRepository {
         );
 
         return {
-            data: dataResult.rows,
+            data: dataResult.rows.map(row => this.decryptFields(row)),
             total: countResult.rows[0].total,
         };
     }

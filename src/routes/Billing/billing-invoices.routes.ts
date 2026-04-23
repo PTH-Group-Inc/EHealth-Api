@@ -2,6 +2,16 @@ import { Router } from 'express';
 import { BillingInvoiceController } from '../../controllers/Billing/billing-invoices.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { validate } from '../../middleware/validate.middleware';
+import {
+    createInvoiceSchema,
+    updateInvoiceSchema,
+    cancelInvoiceSchema,
+    addItemSchema,
+    updateItemSchema,
+    createPaymentSchema,
+    refundPaymentSchema
+} from '../../schemas/billing.schema';
 
 const router = Router();
 
@@ -46,7 +56,7 @@ const router = Router();
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-router.post('/invoices', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.createInvoice);
+router.post('/invoices', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), validate(createInvoiceSchema), BillingInvoiceController.createInvoice);
 
 /**
  * @swagger
@@ -327,7 +337,7 @@ router.get('/invoices/:invoiceId', verifyAccessToken, authorizeRoles('ADMIN', 'S
  *       400:
  *         description: HĐ đã thanh toán hoặc đã hủy
  */
-router.put('/invoices/:invoiceId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.updateInvoice);
+router.put('/invoices/:invoiceId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), validate(updateInvoiceSchema), BillingInvoiceController.updateInvoice);
 
 /**
  * @swagger
@@ -366,7 +376,7 @@ router.put('/invoices/:invoiceId', verifyAccessToken, authorizeRoles('ADMIN', 'S
  *       400:
  *         description: Không thể hủy HĐ đã thanh toán
  */
-router.patch('/invoices/:invoiceId/cancel', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.cancelInvoice);
+router.patch('/invoices/:invoiceId/cancel', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), validate(cancelInvoiceSchema), BillingInvoiceController.cancelInvoice);
 
 // ═══════════════════════════════════════════════════════
 // NHÓM 2: CHI TIẾT HÓA ĐƠN (Invoice Items)
@@ -428,7 +438,7 @@ router.patch('/invoices/:invoiceId/cancel', verifyAccessToken, authorizeRoles('A
  *       201:
  *         description: Thêm dòng chi tiết thành công
  */
-router.post('/invoices/:invoiceId/items', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.addItem);
+router.post('/invoices/:invoiceId/items', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), validate(addItemSchema), BillingInvoiceController.addItem);
 
 /**
  * @swagger
@@ -479,7 +489,7 @@ router.post('/invoices/:invoiceId/items', verifyAccessToken, authorizeRoles('ADM
  *       200:
  *         description: Cập nhật dòng chi tiết thành công
  */
-router.put('/invoices/:invoiceId/items/:itemId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.updateItem);
+router.put('/invoices/:invoiceId/items/:itemId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), validate(updateItemSchema), BillingInvoiceController.updateItem);
 
 /**
  * @swagger
@@ -583,7 +593,7 @@ router.post('/invoices/:invoiceId/recalculate', verifyAccessToken, authorizeRole
  *       400:
  *         description: Số tiền không hợp lệ hoặc overpayment
  */
-router.post('/payments', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.createPayment);
+router.post('/payments', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), validate(createPaymentSchema), BillingInvoiceController.createPayment);
 
 /**
  * @swagger
@@ -655,7 +665,7 @@ router.get('/payments/by-invoice/:invoiceId', verifyAccessToken, authorizeRoles(
  *       400:
  *         description: GD chưa thành công hoặc số tiền hoàn vượt quá
  */
-router.post('/payments/:paymentId/refund', verifyAccessToken, authorizeRoles('ADMIN'), BillingInvoiceController.refund);
+router.post('/payments/:paymentId/refund', verifyAccessToken, authorizeRoles('ADMIN'), validate(refundPaymentSchema), BillingInvoiceController.refund);
 
 /**
  * @swagger

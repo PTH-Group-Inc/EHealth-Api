@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { AppointmentController } from '../../controllers/Appointment Management/appointment.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
+import { idempotencyMiddleware } from '../../middleware/idempotency.middleware';
+import { validate } from '../../middleware/validate.middleware';
+import { createAppointmentSchema } from '../../schemas/appointment.schema';
 export const appointmentRoutes = Router();
 
 // =====================================================================
@@ -146,7 +149,7 @@ export const appointmentRoutes = Router();
  */
 appointmentRoutes.post(
     '/',
-    [verifyAccessToken],
+    [verifyAccessToken, idempotencyMiddleware, validate(createAppointmentSchema)],
     AppointmentController.create
 );
 

@@ -3,6 +3,7 @@ import { Pool, PoolClient } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 import { DiagnosisRecord, CreateDiagnosisInput, UpdateDiagnosisInput, ICDSearchResult, EncounterConclusion } from '../../models/EMR/diagnosis.model';
 import { DIAGNOSIS_CONFIG } from '../../constants/diagnosis.constant';
+import { EncryptionUtil } from '../../utils/encryption.util';
 
 /** Type cho query executor — dùng chung cho pool và client trong transaction */
 type QueryExecutor = Pool | PoolClient;
@@ -21,10 +22,36 @@ function generateDiagnosisId(): string {
 export class DiagnosisRepository {
 
     /**
+     * Helper: Giải mã các trường dữ liệu nhạy cảm
+     */
+    private static decryptFields(record: DiagnosisRecord): DiagnosisRecord {
+        if (!record) return record;
+        if (record.notes) {
+            record.notes = EncryptionUtil.decrypt(record.notes);
+        }
+        return record;
+    }
+
+    /**
+     * Helper: Giải mã conclusion
+     */
+    private static decryptConclusion(record: EncounterConclusion): EncounterConclusion {
+        if (!record) return record;
+        if (record.conclusion) {
+            record.conclusion = EncryptionUtil.decrypt(record.conclusion);
+        }
+        return record;
+    }
+
+    /**
      * Thêm chẩn đoán mới cho encounter
      */
     static async create(encounterId: string, data: CreateDiagnosisInput, diagnosedBy: string, client: QueryExecutor = pool): Promise<DiagnosisRecord> {
         const id = generateDiagnosisId();
+        
+        // Encrypt notes if provided
+        const encryptedNotes = data.notes ? EncryptionUtil.encrypt(data.notes) : null;
+
         const result = await client.query(
             `INSERT INTO encounter_diagnoses (
                 encounter_diagnoses_id, encounter_id,
@@ -38,11 +65,11 @@ export class DiagnosisRepository {
                 data.icd10_code,
                 data.diagnosis_name,
                 data.diagnosis_type || 'PRELIMINARY',
-                data.notes ?? null,
+                encryptedNotes,
                 diagnosedBy,
             ]
         );
-        return result.rows[0];
+        return this.decryptFields(result.rows[0]);
     }
 
     /**
@@ -65,7 +92,7 @@ export class DiagnosisRepository {
                 ed.created_at ASC`,
             [encounterId]
         );
-        return result.rows;
+        return result.rows.map(row => this.decryptFields(row));
     }
 
     /**
@@ -80,7 +107,7 @@ export class DiagnosisRepository {
              WHERE ed.encounter_diagnoses_id = $1`,
             [diagnosisId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptFields(result.rows[0]) : null;
     }
 
     /**
@@ -92,7 +119,7 @@ export class DiagnosisRepository {
              WHERE encounter_id = $1 AND diagnosis_type = 'PRIMARY' AND is_active = TRUE`,
             [encounterId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptFields(result.rows[0]) : null;
     }
 
     /**
@@ -113,7 +140,7 @@ export class DiagnosisRepository {
         }
         if (data.notes !== undefined) {
             setClauses.push(`notes = $${paramIndex++}`);
-            values.push(data.notes);
+            values.push(data.notes ? EncryptionUtil.encrypt(data.notes) : null);
         }
 
         if (values.length === 0) return this.findById(diagnosisId);
@@ -123,7 +150,7 @@ export class DiagnosisRepository {
             `UPDATE encounter_diagnoses SET ${setClauses.join(', ')} WHERE encounter_diagnoses_id = $${paramIndex} RETURNING *`,
             values
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptFields(result.rows[0]) : null;
     }
 
     /**
@@ -144,16 +171,17 @@ export class DiagnosisRepository {
             `UPDATE encounter_diagnoses SET diagnosis_type = $1, updated_at = CURRENT_TIMESTAMP WHERE encounter_diagnoses_id = $2 RETURNING *`,
             [newType, diagnosisId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptFields(result.rows[0]) : null;
     }
 
     /**
      * Lưu kết luận khám vào bảng encounters
      */
     static async updateConclusion(encounterId: string, conclusion: string): Promise<void> {
+        const encryptedConclusion = conclusion ? EncryptionUtil.encrypt(conclusion) : null;
         await pool.query(
             `UPDATE encounters SET conclusion = $1, updated_at = CURRENT_TIMESTAMP WHERE encounters_id = $2`,
-            [conclusion, encounterId]
+            [encryptedConclusion, encounterId]
         );
     }
 
@@ -170,7 +198,7 @@ export class DiagnosisRepository {
              WHERE e.encounters_id = $1`,
             [encounterId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptConclusion(result.rows[0]) : null;
     }
 
     /**
@@ -234,7 +262,7 @@ export class DiagnosisRepository {
         );
 
         return {
-            data: dataResult.rows,
+            data: dataResult.rows.map(row => this.decryptFields(row)),
             total: countResult.rows[0].total,
         };
     }

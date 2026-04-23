@@ -83,4 +83,35 @@ export class SignOffController {
             const data = await SignOffService.getPendingForDoctor(userId, roles);
             res.status(HTTP_STATUS.OK).json({ success: true, message: SIGNOFF_SUCCESS.PENDING_FETCHED, data });
     });
+
+    /** API 10: GET /api/sign-off/:encounterId/cosign-status */
+    static getCosignStatus = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const encounterId = req.params.encounterId as string;
+        const data = await SignOffService.getCosignStatus(encounterId);
+        res.status(HTTP_STATUS.OK).json({ success: true, message: 'Lấy trạng thái đồng ký thành công', data });
+    });
+
+    /** API 11: POST /api/sign-off/:encounterId/cosign/:cosignId */
+    static cosign = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const encounterId = req.params.encounterId as string;
+        const cosignId = req.params.cosignId as string;
+        const userId = (req as any).auth?.user_id;
+        const roles = (req as any).auth?.roles || [];
+        const clientIp = req.ip || req.socket.remoteAddress || null;
+        const data = await SignOffService.cosign(encounterId, cosignId, userId, roles, clientIp);
+        res.status(HTTP_STATUS.OK).json({ success: true, message: 'Đồng ký thành công', data });
+    });
+
+    /** API 12: POST /api/sign-off/:encounterId/waive-cosign/:cosignId */
+    static waiveCosign = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const encounterId = req.params.encounterId as string;
+        const cosignId = req.params.cosignId as string;
+        const userId = (req as any).auth?.user_id;
+        const roles = (req as any).auth?.roles || [];
+        const clientIp = req.ip || req.socket.remoteAddress || null;
+        const reason = req.body.reason;
+        if (!reason) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REASON', 'Vui lòng cung cấp lý do miễn đồng ký');
+        const data = await SignOffService.waiveCosign(encounterId, cosignId, userId, roles, clientIp, reason);
+        res.status(HTTP_STATUS.OK).json({ success: true, message: 'Miễn đồng ký thành công', data });
+    });
 }
