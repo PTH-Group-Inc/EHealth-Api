@@ -73,7 +73,7 @@ export class BillingRefundRepository {
             LEFT JOIN user_profiles up2 ON rr.approved_by = up2.user_id
             LEFT JOIN user_profiles up3 ON rr.rejected_by = up3.user_id
             LEFT JOIN user_profiles up4 ON rr.processed_by = up4.user_id
-            LEFT JOIN patients p ON rr.patient_id = p.patients_id
+            LEFT JOIN patients p ON rr.patient_id = p.id
             LEFT JOIN invoices i ON rr.invoice_id = i.invoices_id
             LEFT JOIN payment_transactions pt ON rr.transaction_id = pt.payment_transactions_id
             WHERE rr.request_id = $1
@@ -113,7 +113,7 @@ export class BillingRefundRepository {
                    pt.transaction_code
             FROM refund_requests rr
             LEFT JOIN user_profiles up1 ON rr.requested_by = up1.user_id
-            LEFT JOIN patients p ON rr.patient_id = p.patients_id
+            LEFT JOIN patients p ON rr.patient_id = p.id
             LEFT JOIN invoices i ON rr.invoice_id = i.invoices_id
             LEFT JOIN payment_transactions pt ON rr.transaction_id = pt.payment_transactions_id
             ${where}
@@ -347,7 +347,7 @@ export class BillingRefundRepository {
                    p.full_name as patient_name, i.invoice_code
             FROM refund_requests rr
             LEFT JOIN user_profiles up ON rr.requested_by = up.user_id
-            LEFT JOIN patients p ON rr.patient_id = p.patients_id
+            LEFT JOIN patients p ON rr.patient_id = p.id
             LEFT JOIN invoices i ON rr.invoice_id = i.invoices_id
             WHERE rr.status = 'PENDING'
             ORDER BY rr.requested_at DESC LIMIT $1

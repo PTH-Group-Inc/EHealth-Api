@@ -9,7 +9,20 @@ import { BookingConfigService } from '../Facility Management/booking-config.serv
 import { NotificationEngineService } from '../Core/notification-engine.service';
 import { AppointmentCoordinationService } from './appointment-coordination.service';
 import { BranchRepository } from '../../repository/Facility Management/branch.repository';
+import { PaymentGatewayRepository } from '../../repository/Billing/billing-payment-gateway.repository';
+import { BillingInvoiceRepository } from '../../repository/Billing/billing-invoices.repository';
+import { BillingInvoiceService } from '../Billing/billing-invoices.service';
+import { BillingRefundService } from '../Billing/billing-refund.service';
 import { pool } from '../../config/postgresdb';
+
+interface CascadeBillingResult {
+    invoice_id: string;
+    invoice_code: string;
+    cancelled_orders: number;
+    invoice_cancelled: boolean;
+    refund_requests_created: number;
+}
+
 import { CreateAppointmentInput, UpdateAppointmentInput, Appointment } from '../../models/Appointment Management/appointment.model';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
@@ -314,6 +327,20 @@ export class AppointmentService {
             logger.error('[CANCEL_APPOINTMENT] Lỗi dọn dẹp encounter:', err.message);
         }
 
+        /** Cascade: Xử lý invoice + payment orders + refund */
+        try {
+            const cascadeResult = await this.cascadeBillingOnCancel(
+                id, cancellationReason, userId
+            );
+            if (cascadeResult) {
+                logger.info('[CANCEL_APPOINTMENT] Cascade billing:', cascadeResult);
+            }
+        } catch (err: any) {
+            // Cascade billing thất bại KHÔNG rollback appointment cancel
+            // → ghi log error để staff xử lý manual
+            logger.error('[CANCEL_APPOINTMENT] Cascade billing failed:', err.message);
+        }
+
         // Ghi change log
         await AppointmentChangeRepository.createChangeLog({
             id: `ACHG_${uuidv4().substring(0, 12)}`,
@@ -339,6 +366,69 @@ export class AppointmentService {
         );
 
         return cancelled;
+    }
+
+    /**
+     * Cascade xử lý billing khi cancel appointment:
+     * 1. Tìm invoice liên kết (qua encounter)
+     * 2. Cancel tất cả PENDING payment orders
+     * 3. Nếu invoice có transactions SUCCESS → tạo refund request
+     * 4. Nếu invoice chưa có payment → cancel invoice
+     */
+    private static async cascadeBillingOnCancel(
+        appointmentId: string,
+        cancellationReason: string,
+        userId?: string
+    ): Promise<CascadeBillingResult | null> {
+        // 1. Tìm invoice
+        const invoice = await AppointmentRepository.findInvoiceByAppointmentId(appointmentId);
+        if (!invoice) return null;
+
+        // 2. Cancel PENDING payment orders
+        const cancelledOrders = await PaymentGatewayRepository.cancelPendingOrdersByInvoice(invoice.invoices_id);
+
+        // 3. Kiểm tra SUCCESS transactions
+        const successTxns = await BillingInvoiceRepository.getSuccessPaymentsByInvoice(invoice.invoices_id);
+
+        if (successTxns.length === 0) {
+            // Không có payment SUCCESS → cancel luôn invoice
+            await BillingInvoiceService.cancelInvoice(
+                invoice.invoices_id, 
+                `Hoàn tiền do huỷ lịch khám: ${cancellationReason}`, 
+                userId || 'SYSTEM'
+            );
+            return {
+                invoice_id: invoice.invoices_id,
+                invoice_code: invoice.invoice_code,
+                cancelled_orders: cancelledOrders,
+                invoice_cancelled: true,
+                refund_requests_created: 0
+            };
+        }
+
+        // Có payment SUCCESS → tạo refund request cho TỪNG txn
+        let refundRequestsCreated = 0;
+        for (const txn of successTxns) {
+            try {
+                await BillingRefundService.createRefundRequest({
+                    transaction_id: txn.payment_transactions_id,
+                    refund_type: 'FULL',
+                    reason_category: 'SERVICE_CANCELLED',
+                    reason_detail: `Hoàn tiền do huỷ lịch khám: ${cancellationReason}`,
+                }, userId as string);
+                refundRequestsCreated++;
+            } catch (err: any) {
+                logger.error(`[CASCADE_BILLING] Lỗi tạo refund request cho txn ${txn.payment_transactions_id}:`, err);
+            }
+        }
+
+        return {
+            invoice_id: invoice.invoices_id,
+            invoice_code: invoice.invoice_code,
+            cancelled_orders: cancelledOrders,
+            invoice_cancelled: false,
+            refund_requests_created: refundRequestsCreated
+        };
     }
 
     /**

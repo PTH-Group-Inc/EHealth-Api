@@ -132,6 +132,24 @@ export class PaymentGatewayRepository {
         return result.rows;
     }
 
+    /**
+     * Cancel tất cả payment orders PENDING của 1 invoice (batch)
+     * Trả về số orders đã cancel
+     */
+    static async cancelPendingOrdersByInvoice(
+        invoiceId: string, 
+        client?: PoolClient
+    ): Promise<number> {
+        const query = `
+            UPDATE payment_orders 
+            SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP
+            WHERE invoice_id = $1 AND status = 'PENDING'
+        `;
+        const executor = client || pool;
+        const result = await executor.query(query, [invoiceId]);
+        return result.rowCount ?? 0;
+    }
+
     /** Tìm order dựa trên nội dung chuyển khoản (content match) */
     static async findOrderByTransferContent(content: string): Promise<PaymentOrder | null> {
 

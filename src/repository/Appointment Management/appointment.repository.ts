@@ -1291,5 +1291,28 @@ export class AppointmentRepository {
         );
         return result.rows;
     }
+
+    /**
+     * Tìm invoice liên kết với appointment thông qua encounter
+     * appointment → encounter → invoice
+     */
+    static async findInvoiceByAppointmentId(appointmentId: string): Promise<{
+        invoices_id: string;
+        invoice_code: string;
+        status: string;
+        net_amount: string;
+        paid_amount: string;
+    } | null> {
+        const query = `
+            SELECT i.invoices_id, i.invoice_code, i.status, i.net_amount, i.paid_amount
+            FROM invoices i
+            INNER JOIN encounters e ON i.encounter_id = e.encounters_id
+            WHERE e.appointment_id = $1
+              AND i.status != 'CANCELLED'
+            LIMIT 1
+        `;
+        const result = await pool.query(query, [appointmentId]);
+        return result.rows[0] || null;
+    }
 }
 

@@ -218,6 +218,22 @@ export class BillingInvoiceRepository {
         return result.rows.length > 0 ? result.rows[0] : null;
     }
 
+    /**
+     * Lấy tất cả payment transactions SUCCESS của invoice
+     * Dùng cho cascade refund khi cancel appointment
+     */
+    static async getSuccessPaymentsByInvoice(invoiceId: string): Promise<PaymentTransaction[]> {
+        const sql = `
+            SELECT * FROM payment_transactions 
+            WHERE invoice_id = $1 
+              AND status = 'SUCCESS' 
+              AND transaction_type = 'PAYMENT'
+            ORDER BY paid_at ASC
+        `;
+        const result = await pool.query(sql, [invoiceId]);
+        return result.rows;
+    }
+
     /** Tính lại tổng tiền hóa đơn */
     static async recalculateInvoice(invoiceId: string, client?: PoolClient): Promise<Invoice> {
         const sql = `
