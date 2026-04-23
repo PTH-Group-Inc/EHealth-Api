@@ -95,6 +95,16 @@ export const env = {
 
 } as const;
 
+// ─── 4.1 Security Validation ──────────────────────────────────────
+const insecureSecrets = ['your_access_secret', 'your_refresh_secret', 'your_secret_key', 'secret'];
+if (insecureSecrets.includes(env.jwt.accessSecret) || insecureSecrets.includes(env.jwt.refreshSecret)) {
+    logger.error('🚨 CRITICAL SECURITY ERROR: Vui lòng thay đổi JWT_ACCESS_SECRET và JWT_REFRESH_SECRET trong file .env. Không sử dụng giá trị mặc định!');
+    if (env.isProd) {
+        logger.error('🛑 Server đang bị dừng vì lý do bảo mật.');
+        process.exit(1); // Force exit in production
+    }
+}
+
 // ─── 5. Log thông tin khởi động ─────────────────────────────────
 if (env.isDev) {
     logger.info('┌──────────────────────────────────────────────┐');

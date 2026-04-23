@@ -3,6 +3,7 @@ import { createHash, randomBytes, randomInt, randomUUID } from 'crypto';
 import { TOKEN_CONFIG } from '../constants/auth_token.constant';
 import { TokenUtil } from './token.util';
 import { User, AccountRole } from '../models/Core/auth_account.model';
+import { AUTH_CONSTANTS } from '../constants/auth.constant';
 
 export class SecurityUtil {
     /*
@@ -39,7 +40,7 @@ export class SecurityUtil {
      * Hash password (bcrypt)
      */
     static async hashPassword(password: string): Promise<string> {
-        return bcrypt.hash(password, 10);
+        return bcrypt.hash(password, AUTH_CONSTANTS.SECURITY.BCRYPT_ROUNDS);
     }
 
     /**

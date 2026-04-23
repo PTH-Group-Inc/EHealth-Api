@@ -45,7 +45,7 @@ export interface UpdateStaffInput {
 }
 
 export interface UpdateDoctorInfoInput {
-    specialty_id: string;
+    specialty_id?: string;
     title?: string;
     biography?: string;
     consultation_fee?: number;

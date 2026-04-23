@@ -63,8 +63,9 @@ export class DispensingRepository {
     }
 
     /** Kiểm tra đơn thuốc đã có phiếu cấp phát chưa */
-    static async hasDispenseOrder(prescriptionId: string): Promise<boolean> {
-        const result = await pool.query(
+    static async hasDispenseOrder(prescriptionId: string, client?: PoolClient): Promise<boolean> {
+        const target = client || pool;
+        const result = await target.query(
             `SELECT EXISTS(
                 SELECT 1 FROM drug_dispense_orders
                 WHERE prescription_id = $1 AND status = 'COMPLETED'
@@ -111,6 +112,54 @@ export class DispensingRepository {
             stock_quantity: result.rows[0].stock_quantity,
             expiry_date: result.rows[0].expiry_date,
         };
+    }
+
+    /**
+     * Lock + lấy thông tin lô kho trong transaction.
+     * Đảm bảo không có luồng khác trừ stock cùng lúc.
+     */
+    static async lockAndGetInventoryBatch(
+        client: PoolClient, inventoryId: string
+    ): Promise<{
+        exists: boolean;
+        drug_id?: string;
+        stock_quantity?: number;
+        expiry_date?: string;
+        drug_code?: string;
+        brand_name?: string;
+        dispensing_unit?: string;
+    }> {
+        const result = await client.query(
+            `SELECT pi.drug_id, pi.stock_quantity, pi.expiry_date, d.drug_code, d.brand_name, d.dispensing_unit
+             FROM pharmacy_inventory pi
+             LEFT JOIN drugs d ON d.drugs_id = pi.drug_id
+             WHERE pi.pharmacy_inventory_id = $1
+             FOR UPDATE`,
+            [inventoryId]
+        );
+        if (result.rows.length === 0) return { exists: false };
+        return { exists: true, ...result.rows[0] };
+    }
+
+    /**
+     * Lấy danh sách lô tồn kho theo FEFO (First Expired First Out) + lock tất cả lô.
+     * Dùng khi cần auto-allocate batch.
+     */
+    static async getInventoryByDrugIdForUpdate(
+        client: PoolClient, drugId: string
+    ): Promise<InventoryBatch[]> {
+        const result = await client.query(
+            `SELECT pi.*, d.drug_code, d.brand_name, d.dispensing_unit
+             FROM pharmacy_inventory pi
+             LEFT JOIN drugs d ON d.drugs_id = pi.drug_id
+             WHERE pi.drug_id = $1
+               AND pi.stock_quantity > 0
+               AND pi.expiry_date > CURRENT_DATE
+             ORDER BY pi.expiry_date ASC
+             FOR UPDATE`,
+            [drugId]
+        );
+        return result.rows;
     }
 
     /** Kiểm tra dược sĩ tồn tại */

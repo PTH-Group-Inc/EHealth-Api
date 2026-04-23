@@ -4,6 +4,7 @@ import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware
 import { SessionController } from '../../controllers/Core/auth_session.controller';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { AuthCheckController } from '../../controllers/Core/auth-check.controller';
+import { loginRateLimiter, authSensitiveRateLimiter } from '../../middleware/rate_limit.middleware';
 
 const authRoutes = Router()
 
@@ -56,7 +57,7 @@ const authRoutes = Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post("/login/email", AuthController.loginByEmail);
+authRoutes.post("/login/email", loginRateLimiter, AuthController.loginByEmail);
 
 /**
  * @swagger
@@ -113,7 +114,7 @@ authRoutes.post("/login/email", AuthController.loginByEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post("/login/phone", AuthController.loginByPhone);
+authRoutes.post("/login/phone", loginRateLimiter, AuthController.loginByPhone);
 
 /**
  * @swagger
@@ -140,7 +141,7 @@ authRoutes.post("/login/phone", AuthController.loginByPhone);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/register/email', AuthController.registerByEmail);
+authRoutes.post('/register/email', authSensitiveRateLimiter, AuthController.registerByEmail);
 
 /**
  * @swagger
@@ -177,7 +178,7 @@ authRoutes.post('/register/email', AuthController.registerByEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/register/phone', AuthController.registerByPhone);
+authRoutes.post('/register/phone', authSensitiveRateLimiter, AuthController.registerByPhone);
 
 /**
  * @swagger
@@ -245,7 +246,7 @@ authRoutes.post('/verify-email', AuthController.verifyEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/forgot-password', AuthController.forgotPassword);
+authRoutes.post('/forgot-password', authSensitiveRateLimiter, AuthController.forgotPassword);
 
 /**
  * @swagger

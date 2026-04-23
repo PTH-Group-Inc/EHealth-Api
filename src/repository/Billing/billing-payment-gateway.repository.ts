@@ -145,6 +145,27 @@ export class PaymentGatewayRepository {
         return await this.getOrderByCode(orderCode);
     }
 
+    /**
+     * Tìm + LOCK order dựa trên nội dung CK (dùng trong transaction).
+     * Đảm bảo chỉ 1 webhook xử lý tại 1 thời điểm.
+     */
+    static async findAndLockOrderByTransferContent(
+        content: string, client: PoolClient
+    ): Promise<PaymentOrder | null> {
+        const normalized = content.toUpperCase();
+        const match = normalized.match(/EHEALTH(\d{5})/);
+        if (!match) return null;
+
+        const orderCode = `EHealth${match[1]}`;
+        const sql = `
+            SELECT * FROM payment_orders 
+            WHERE order_code = $1 
+            FOR UPDATE
+        `;
+        const result = await client.query(sql, [orderCode]);
+        return result.rows.length > 0 ? result.rows[0] : null;
+    }
+
     // LỊCH SỬ & THỐNG KÊ
 
     /** Lịch sử thanh toán online với filter + phân trang */

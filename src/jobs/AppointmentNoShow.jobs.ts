@@ -21,10 +21,9 @@ export const startAppointmentNoShowJob = (): void => {
                     const auditLog = {
                         appointment_audit_logs_id: uuidv4(),
                         appointment_id: appt.appointments_id,
-                        changed_by: 'System', 
                         old_status: appt.status,
                         new_status: 'NO_SHOW',
-                        action_note: `Tự động đánh dấu NO_SHOW vì bệnh nhân không có mặt sau khi ca khám kết thúc ${bufferMinutes} phút.`
+                        action_note: `System Auto: Tự động đánh dấu NO_SHOW vì bệnh nhân không có mặt sau khi ca khám kết thúc ${bufferMinutes} phút.`
                     };
                     
                     await AppointmentStatusRepository.markNoShow(appt.appointments_id, auditLog);

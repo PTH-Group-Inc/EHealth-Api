@@ -9,6 +9,7 @@ import { startPaymentOrderExpiryJob } from './jobs/PaymentOrderExpiry.jobs'
 import { startAppointmentNoShowJob } from './jobs/AppointmentNoShow.jobs'
 import morganMiddleware from './middleware/morgan.middleware'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware'
+import { globalApiRateLimiter } from './middleware/rate_limit.middleware'
 
 const app = express()
 
@@ -21,6 +22,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { background-color: #4a90e2; }',
   customSiteTitle: 'E-Health API Documentation',
 }))
+
+// Apply global rate limiting to all /api routes
+app.use('/api', globalApiRateLimiter)
 
 initRoutes(app);
 

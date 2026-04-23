@@ -100,35 +100,38 @@ export class PaymentGatewayService {
             return { processed: false, message: 'Bỏ qua: không phải giao dịch tiền vào.' };
         }
 
-        /* 2. Tìm order từ nội dung chuyển khoản */
-        const order = await PaymentGatewayRepository.findOrderByTransferContent(payload.content);
-        if (!order) {
-            return { processed: false, message: 'Không tìm thấy lệnh thanh toán phù hợp.' };
-        }
-
-        /* 3. Idempotent check — đã xử lý rồi thì skip */
-        if (order.status === PAYMENT_ORDER_STATUS.PAID) {
-            return { processed: false, message: 'Lệnh thanh toán đã được xử lý trước đó.' };
-        }
-
-        /* 4. Kiểm tra order còn hợp lệ */
-        if (order.status === PAYMENT_ORDER_STATUS.EXPIRED) {
-            return { processed: false, message: 'Lệnh thanh toán đã hết hạn.' };
-        }
-        if (order.status === PAYMENT_ORDER_STATUS.CANCELLED) {
-            return { processed: false, message: 'Lệnh thanh toán đã bị hủy.' };
-        }
-
-        /* 5. Kiểm tra số tiền */
-        const orderAmount = parseFloat(order.amount);
-        if (payload.transferAmount < orderAmount) {
-            return { processed: false, message: `Số tiền chuyển (${payload.transferAmount}) nhỏ hơn yêu cầu (${orderAmount}).` };
-        }
-
-        /* 6. Transaction: cập nhật order + tạo payment + update invoice */
+        /* 2. Mở transaction NGAY TỪ ĐẦU */
         const client = await PaymentGatewayRepository.getClient();
         try {
             await client.query('BEGIN');
+
+            /* 3. Tìm order + LOCK (chặn webhook khác) */
+            const order = await PaymentGatewayRepository.findAndLockOrderByTransferContent(
+                payload.content, client
+            );
+            if (!order) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: 'Không tìm thấy lệnh thanh toán phù hợp.' };
+            }
+
+            /* 4. Idempotent check — BÊN TRONG lock → 100% chính xác */
+            if (order.status === PAYMENT_ORDER_STATUS.PAID) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: 'Lệnh thanh toán đã được xử lý trước đó.' };
+            }
+
+            /* 5. Kiểm tra order còn hợp lệ */
+            if (order.status === PAYMENT_ORDER_STATUS.EXPIRED || order.status === PAYMENT_ORDER_STATUS.CANCELLED) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: 'Lệnh thanh toán đã hết hạn/hủy.' };
+            }
+
+            /* 6. Kiểm tra số tiền */
+            const orderAmount = parseFloat(order.amount);
+            if (payload.transferAmount < orderAmount) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: `Số tiền chuyển (${payload.transferAmount}) nhỏ hơn yêu cầu (${orderAmount}).` };
+            }
 
             /* Cập nhật order → PAID */
             await PaymentGatewayRepository.markOrderPaid(
@@ -162,14 +165,13 @@ export class PaymentGatewayService {
             await BillingInvoiceRepository.updatePaidAmount(order.invoice_id, client);
 
             await client.query('COMMIT');
+            return { processed: true, message: 'Giao dịch đã được ghi nhận thành công.' };
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;
         } finally {
             client.release();
         }
-
-        return { processed: true, message: 'Giao dịch đã được ghi nhận thành công.' };
     }
 
     // ORDER MANAGEMENT

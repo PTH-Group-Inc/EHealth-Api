@@ -193,19 +193,52 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_UPDATE_STATUS', APPOINTMENT_ERRORS.CANNOT_UPDATE_STATUS);
         }
 
-        // Nếu đổi slot, validate lại sức chứa
+        // Mô tả thay đổi cho audit
+        const changes: string[] = [];
+        if (data.appointment_date && data.appointment_date !== existing.appointment_date) changes.push(`Đổi ngày khám: ${existing.appointment_date} → ${data.appointment_date}`);
+        if (data.doctor_id && data.doctor_id !== existing.doctor_id) changes.push(`Đổi bác sĩ`);
+        if (data.slot_id && data.slot_id !== existing.slot_id) changes.push(`Đổi khung giờ`);
+        if (data.reason_for_visit !== undefined) changes.push(`Cập nhật lý do khám`);
+
+        let updated;
         if (data.slot_id && data.slot_id !== existing.slot_id) {
-            const slotOk = await AppointmentRepository.slotExists(data.slot_id);
-            if (!slotOk) {
-                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
+                const slotOk = await AppointmentRepository.slotExists(data.slot_id);
+                if (!slotOk) {
+                    throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+                }
+                const targetDate = data.appointment_date || existing.appointment_date;
+                const currentCount = await AppointmentRepository.countActiveBySlotAndDate(data.slot_id, targetDate, client);
+                const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+                const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+                if (currentCount >= maxPatients) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+                }
+                
+                updated = await AppointmentRepository.update(id, data, {
+                    appointment_id: id,
+                    changed_by: userId,
+                    old_status: existing.status,
+                    new_status: existing.status,
+                    action_note: changes.length > 0 ? changes.join('; ') : 'Cập nhật thông tin lịch khám'
+                }, client);
+                await client.query('COMMIT');
+            } catch (error) {
+                await client.query('ROLLBACK');
+                throw error;
+            } finally {
+                client.release();
             }
-            const targetDate = data.appointment_date || existing.appointment_date;
-            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(data.slot_id, targetDate);
-            const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
-            const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
-            if (currentCount >= maxPatients) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
-            }
+        } else {
+            updated = await AppointmentRepository.update(id, data, {
+                appointment_id: id,
+                changed_by: userId,
+                old_status: existing.status,
+                new_status: existing.status,
+                action_note: changes.length > 0 ? changes.join('; ') : 'Cập nhật thông tin lịch khám'
+            });
         }
 
         // Nếu đổi bác sĩ, validate
@@ -216,20 +249,7 @@ export class AppointmentService {
             }
         }
 
-        // Mô tả thay đổi cho audit
-        const changes: string[] = [];
-        if (data.appointment_date && data.appointment_date !== existing.appointment_date) changes.push(`Đổi ngày khám: ${existing.appointment_date} → ${data.appointment_date}`);
-        if (data.doctor_id && data.doctor_id !== existing.doctor_id) changes.push(`Đổi bác sĩ`);
-        if (data.slot_id && data.slot_id !== existing.slot_id) changes.push(`Đổi khung giờ`);
-        if (data.reason_for_visit !== undefined) changes.push(`Cập nhật lý do khám`);
 
-        const updated = await AppointmentRepository.update(id, data, {
-            appointment_id: id,
-            changed_by: userId,
-            old_status: existing.status,
-            new_status: existing.status,
-            action_note: changes.length > 0 ? changes.join('; ') : 'Cập nhật thông tin lịch khám'
-        });
 
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi cập nhật CSDL');
         return updated;
@@ -621,80 +641,96 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
         }
 
-        // Kiểm tra sức chứa slot mới
-        const currentCount = await AppointmentRepository.countActiveBySlotAndDate(newSlotId, newDate);
-        const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
-        const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
-        if (currentCount >= maxPatients) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
-        }
+        // Cần bọc lại logic thay đổi slot vào transaction để tránh race condition
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        // Kiểm tra trùng bệnh nhân ở slot mới (loại trừ appointment hiện tại)
-        const patientConflict = await AppointmentRepository.findPatientConflict(existing.patient_id, newDate, newSlotId, id);
-        if (patientConflict) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PATIENT_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_PATIENT);
-        }
+            // Lock slot mới
+            await client.query('SELECT slot_id FROM appointment_slots WHERE slot_id = $1 FOR UPDATE', [newSlotId]);
 
-        // Kiểm tra bác sĩ có lịch làm việc ở ngày/ca mới (nếu đã gán BS)
-        if (existing.doctor_id) {
-            const shiftId = await AppointmentRepository.getShiftIdBySlot(newSlotId);
-            if (shiftId) {
-                const doctorAvailable = await AppointmentRepository.isDoctorAvailableOnDate(existing.doctor_id, newDate, shiftId);
-                if (!doctorAvailable) {
-                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_NOT_AVAILABLE', APPOINTMENT_ERRORS.DOCTOR_NOT_AVAILABLE);
+            // Kiểm tra sức chứa slot mới (an toàn với lock)
+            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(newSlotId, newDate, client);
+            const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+            const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+            if (currentCount >= maxPatients) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+            }
+
+            // Kiểm tra trùng bệnh nhân ở slot mới (loại trừ appointment hiện tại)
+            const patientConflict = await AppointmentRepository.findPatientConflict(existing.patient_id, newDate, newSlotId, id);
+            if (patientConflict) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PATIENT_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_PATIENT);
+            }
+
+            // Kiểm tra bác sĩ có lịch làm việc ở ngày/ca mới (nếu đã gán BS)
+            if (existing.doctor_id) {
+                const shiftId = await AppointmentRepository.getShiftIdBySlot(newSlotId);
+                if (shiftId) {
+                    const doctorAvailable = await AppointmentRepository.isDoctorAvailableOnDate(existing.doctor_id, newDate, shiftId);
+                    if (!doctorAvailable) {
+                        throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_NOT_AVAILABLE', APPOINTMENT_ERRORS.DOCTOR_NOT_AVAILABLE);
+                    }
+                }
+
+                // Kiểm tra trùng bác sĩ ở slot mới
+                const doctorConflict = await AppointmentRepository.findDoctorConflict(existing.doctor_id, newDate, newSlotId, id);
+                if (doctorConflict) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_DOCTOR);
                 }
             }
 
-            // Kiểm tra trùng bác sĩ ở slot mới
-            const doctorConflict = await AppointmentRepository.findDoctorConflict(existing.doctor_id, newDate, newSlotId, id);
-            if (doctorConflict) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_DOCTOR);
-            }
-        }
+            // Lưu thông tin cũ trước khi update
+            const oldDate = existing.appointment_date;
+            const oldSlotId = existing.slot_id;
+            const oldSlotInfo = existing.slot_id || 'chưa chọn';
 
-        // Lưu thông tin cũ trước khi update
-        const oldDate = existing.appointment_date;
-        const oldSlotId = existing.slot_id;
-        const oldSlotInfo = existing.slot_id || 'chưa chọn';
-
-        const updated = await AppointmentRepository.reschedule(id, newDate, newSlotId, {
-            appointment_id: id,
-            changed_by: userId,
-            old_status: existing.status,
-            new_status: existing.status,
-            action_note: `Đổi lịch: ${existing.appointment_date} (slot ${oldSlotInfo}) → ${newDate} (slot ${newSlotId})${rescheduleReason ? `. Lý do: ${rescheduleReason}` : ''}`
-        });
-
-        if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống khi đổi lịch');
-
-        if (!options?.skipChangeLog) {
-            await AppointmentChangeRepository.createChangeLog({
-                id: `ACHG_${uuidv4().substring(0, 12)}`,
+            const updated = await AppointmentRepository.reschedule(id, newDate, newSlotId, {
                 appointment_id: id,
-                change_type: CHANGE_TYPE.RESCHEDULE,
-                approval_status: 'APPROVED',
-                old_date: oldDate,
-                old_slot_id: oldSlotId,
-                new_date: newDate,
-                new_slot_id: newSlotId,
-                reason: rescheduleReason,
                 changed_by: userId,
-                approved_by: userId || null,
-                approved_by_type: 'USER',
-                approved_at: new Date().toISOString(),
-                policy_checked: false,
-                policy_result: POLICY_RESULT.ALLOWED,
-            });
+                old_status: existing.status,
+                new_status: existing.status,
+                action_note: `Đổi lịch: ${existing.appointment_date} (slot ${oldSlotInfo}) → ${newDate} (slot ${newSlotId})${rescheduleReason ? `. Lý do: ${rescheduleReason}` : ''}`
+            }, client);
+
+            if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống khi đổi lịch');
+
+            if (!options?.skipChangeLog) {
+                await AppointmentChangeRepository.createChangeLog({
+                    id: `ACHG_${uuidv4().substring(0, 12)}`,
+                    appointment_id: id,
+                    change_type: CHANGE_TYPE.RESCHEDULE,
+                    approval_status: 'APPROVED',
+                    old_date: oldDate,
+                    old_slot_id: oldSlotId,
+                    new_date: newDate,
+                    new_slot_id: newSlotId,
+                    reason: rescheduleReason,
+                    changed_by: userId,
+                    approved_by: userId || null,
+                    approved_by_type: 'USER',
+                    approved_at: new Date().toISOString(),
+                    policy_checked: false,
+                    policy_result: POLICY_RESULT.ALLOWED,
+                }, client);
+            }
+
+            await client.query('COMMIT');
+
+            // Gửi thông báo đổi lịch tới bệnh nhân (fire-and-forget)
+            this.sendAppointmentNotification(
+                id,
+                APPOINTMENT_TEMPLATE_CODES.RESCHEDULED,
+                { new_date: newDate, new_slot_id: newSlotId }
+            );
+
+            return updated;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
         }
-
-        // Gửi thông báo đổi lịch tới bệnh nhân (fire-and-forget)
-        this.sendAppointmentNotification(
-            id,
-            APPOINTMENT_TEMPLATE_CODES.RESCHEDULED,
-            { new_date: newDate, new_slot_id: newSlotId }
-        );
-
-        return updated;
     }
 
     /**

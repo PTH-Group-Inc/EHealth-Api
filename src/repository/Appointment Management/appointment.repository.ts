@@ -130,7 +130,8 @@ export class AppointmentRepository {
                     AND apt.status IN (${statusPlaceholders})
               ) < $3
             ORDER BY sl.start_time ASC
-            LIMIT 1;
+            LIMIT 1
+            FOR UPDATE OF sl SKIP LOCKED;
         `;
         const values = [shiftId, date, maxPerSlot, ...ACTIVE_APPOINTMENT_STATUSES];
         const executor = client || pool;
@@ -195,6 +196,14 @@ export class AppointmentRepository {
      * Đếm số lịch khám đang hoạt động trên 1 slot trong 1 ngày cụ thể
      */
     static async countActiveBySlotAndDate(slotId: string, appointmentDate: string, client?: import('pg').PoolClient): Promise<number> {
+        if (client) {
+            // Lock the slot row to prevent concurrent reading of active appointments count
+            await client.query(
+                `SELECT slot_id FROM appointment_slots WHERE slot_id = $1 FOR UPDATE`,
+                [slotId]
+            );
+        }
+
         const placeholders = ACTIVE_APPOINTMENT_STATUSES.map((_, i) => `$${i + 3}`).join(', ');
         const query = `
             SELECT COUNT(*)::int AS cnt
@@ -524,10 +533,10 @@ export class AppointmentRepository {
     /**
      * Cập nhật thông tin lịch khám kèm ghi audit log — chạy trong Transaction
      */
-    static async update(id: string, data: UpdateAppointmentInput, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
-        const client = await pool.connect();
+    static async update(id: string, data: UpdateAppointmentInput, auditLog: CreateAuditLogInput, extClient?: import('pg').PoolClient): Promise<Appointment | null> {
+        const client = extClient || await pool.connect();
         try {
-            await client.query('BEGIN');
+            if (!extClient) await client.query('BEGIN');
 
             const setClauses: string[] = [];
             const values: any[] = [];
@@ -557,13 +566,13 @@ export class AppointmentRepository {
             // Ghi audit log trong cùng transaction
             await AppointmentAuditLogRepository.create(auditLog, client);
 
-            await client.query('COMMIT');
+            if (!extClient) await client.query('COMMIT');
             return updated;
         } catch (error) {
-            await client.query('ROLLBACK');
+            if (!extClient) await client.query('ROLLBACK');
             throw error;
         } finally {
-            client.release();
+            if (!extClient) client.release();
         }
     }
 
@@ -907,10 +916,10 @@ export class AppointmentRepository {
     /**
      * Đổi lịch (ngày + slot) kèm ghi audit log — Transaction
      */
-    static async reschedule(id: string, newDate: string, newSlotId: string, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
-        const client = await pool.connect();
+    static async reschedule(id: string, newDate: string, newSlotId: string, auditLog: CreateAuditLogInput, extClient?: import('pg').PoolClient): Promise<Appointment | null> {
+        const client = extClient || await pool.connect();
         try {
-            await client.query('BEGIN');
+            if (!extClient) await client.query('BEGIN');
 
             const query = `
                 UPDATE appointments
@@ -926,13 +935,13 @@ export class AppointmentRepository {
 
             await AppointmentAuditLogRepository.create(auditLog, client);
 
-            await client.query('COMMIT');
+            if (!extClient) await client.query('COMMIT');
             return updated;
         } catch (error) {
-            await client.query('ROLLBACK');
+            if (!extClient) await client.query('ROLLBACK');
             throw error;
         } finally {
-            client.release();
+            if (!extClient) client.release();
         }
     }
 
