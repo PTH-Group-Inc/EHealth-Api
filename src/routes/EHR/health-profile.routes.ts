@@ -3,6 +3,8 @@ import { HealthProfileController } from '../../controllers/EHR/health-profile.co
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { checkEHRAuthorization } from '../../middleware/checkEHRAuthorization.middleware';
+
 
 export const healthProfileRoutes = Router();
 
@@ -100,7 +102,7 @@ export const healthProfileRoutes = Router();
 healthProfileRoutes.get(
     '/patients/:patientId/profile',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getFullProfile
 );
 
@@ -140,7 +142,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/health-summary',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getHealthSummary
 );
 
@@ -199,7 +201,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/latest-vitals',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getLatestVitals
 );
 
@@ -238,7 +240,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/active-conditions',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getActiveConditions
 );
 
@@ -299,7 +301,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/allergy-list',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getAllergies
 );
 
@@ -339,7 +341,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/current-medications',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getCurrentMedications
 );
 
@@ -401,7 +403,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/diagnosis-history',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getDiagnosisHistory
 );
 
@@ -441,7 +443,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/insurance-status',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getInsuranceStatus
 );
 
@@ -493,7 +495,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.get(
     '/patients/:patientId/alerts',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.getAlerts
 );
 
@@ -560,7 +562,7 @@ healthProfileRoutes.get(
 healthProfileRoutes.post(
     '/patients/:patientId/alerts',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.createAlert
 );
 
@@ -628,7 +630,7 @@ healthProfileRoutes.post(
 healthProfileRoutes.put(
     '/patients/:patientId/alerts/:alertId',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.updateAlert
 );
 
@@ -673,7 +675,7 @@ healthProfileRoutes.put(
 healthProfileRoutes.delete(
     '/patients/:patientId/alerts/:alertId',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.deleteAlert
 );
 
@@ -736,7 +738,7 @@ healthProfileRoutes.delete(
 healthProfileRoutes.put(
     '/patients/:patientId/notes',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthProfileController.updateNotes
 );
 

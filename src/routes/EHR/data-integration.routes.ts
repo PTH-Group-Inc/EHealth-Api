@@ -3,6 +3,8 @@ import { DataIntegrationController } from '../../controllers/EHR/data-integratio
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { checkEHRAuthorization } from '../../middleware/checkEHRAuthorization.middleware';
+
 
 export const dataIntegrationRoutes = Router();
 
@@ -77,13 +79,13 @@ export const dataIntegrationRoutes = Router();
  */
 dataIntegrationRoutes.get(
     '/patients/:patientId/data-sources',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.getDataSources
 );
 
 dataIntegrationRoutes.post(
     '/patients/:patientId/data-sources',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.createDataSource
 );
 
@@ -130,7 +132,7 @@ dataIntegrationRoutes.post(
  */
 dataIntegrationRoutes.patch(
     '/patients/:patientId/data-sources/:sourceId',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.updateDataSource
 );
 
@@ -223,13 +225,13 @@ dataIntegrationRoutes.patch(
  */
 dataIntegrationRoutes.get(
     '/patients/:patientId/external-records',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.getExternalRecords
 );
 
 dataIntegrationRoutes.post(
     '/patients/:patientId/external-records',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.createExternalRecord
 );
 
@@ -261,7 +263,7 @@ dataIntegrationRoutes.post(
  */
 dataIntegrationRoutes.get(
     '/patients/:patientId/external-records/:recordId',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.getExternalRecordDetail
 );
 
@@ -310,7 +312,7 @@ dataIntegrationRoutes.get(
  */
 dataIntegrationRoutes.patch(
     '/patients/:patientId/external-records/:recordId/status',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.updateSyncStatus
 );
 
@@ -385,13 +387,13 @@ dataIntegrationRoutes.patch(
  */
 dataIntegrationRoutes.post(
     '/patients/:patientId/device-sync',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.createDeviceSyncLog
 );
 
 dataIntegrationRoutes.get(
     '/patients/:patientId/device-sync',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.getDeviceSyncLogs
 );
 
@@ -421,7 +423,7 @@ dataIntegrationRoutes.get(
  */
 dataIntegrationRoutes.get(
     '/patients/:patientId/integration-summary',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     DataIntegrationController.getIntegrationSummary
 );
 

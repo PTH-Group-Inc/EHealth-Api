@@ -3,6 +3,7 @@ import { VitalSignsController } from '../../controllers/EHR/vital-signs.controll
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { checkEHRAuthorization } from '../../middleware/checkEHRAuthorization.middleware';
 
 export const vitalSignsRoutes = Router();
 
@@ -42,8 +43,7 @@ export const vitalSignsRoutes = Router();
  */
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.getVitals
 );
 
@@ -71,8 +71,7 @@ vitalSignsRoutes.get(
  */
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/latest',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.getLatestVitals
 );
 
@@ -110,8 +109,7 @@ vitalSignsRoutes.get(
  */
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/trends',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.getTrends
 );
 
@@ -139,8 +137,7 @@ vitalSignsRoutes.get(
  */
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/abnormal',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.getAbnormalVitals
 );
 
@@ -168,8 +165,7 @@ vitalSignsRoutes.get(
  */
 vitalSignsRoutes.get(
     '/patients/:patientId/vitals/summary',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.getSummary
 );
 
@@ -265,15 +261,13 @@ vitalSignsRoutes.get(
  */
 vitalSignsRoutes.get(
     '/patients/:patientId/health-metrics',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.getHealthMetrics
 );
 
 vitalSignsRoutes.post(
     '/patients/:patientId/health-metrics',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.createHealthMetric
 );
 
@@ -301,8 +295,7 @@ vitalSignsRoutes.post(
  */
 vitalSignsRoutes.get(
     '/patients/:patientId/health-metrics/timeline',
-    verifyAccessToken, checkSessionStatus,
-
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     VitalSignsController.getTimeline
 );
 

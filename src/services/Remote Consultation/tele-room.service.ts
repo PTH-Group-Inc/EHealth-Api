@@ -28,6 +28,10 @@ export class TeleRoomService {
     static async openRoom(consultationId: string, userId: string): Promise<any> {
         const consultation = await this.getConsultationOrThrow(consultationId);
 
+        if (consultation.doctor_user_id !== userId) {
+            throw new AppError(HTTP_STATUS.FORBIDDEN, TELE_ROOM_ERRORS.NOT_PARTICIPANT.code, 'Only the assigned doctor can open this consultation room.');
+        }
+
         if (consultation.room_status && consultation.room_status !== TELE_ROOM_STATUS.SCHEDULED) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, TELE_ROOM_ERRORS.ROOM_ALREADY_OPEN.code, TELE_ROOM_ERRORS.ROOM_ALREADY_OPEN.message);
         }
@@ -233,8 +237,8 @@ export class TeleRoomService {
     }
 
     /** Chi tiết phòng */
-    static async getRoomDetail(consultationId: string): Promise<any> {
-        const detail = await this.getConsultationOrThrow(consultationId);
+    static async getRoomDetail(consultationId: string, userId: string, isAdmin: boolean): Promise<any> {
+        const detail = await this.assertUserCanAccessRoom(consultationId, userId, isAdmin);
         const participants = await TeleRoomRepository.findParticipants(consultationId);
         return { ...detail, participants };
     }
@@ -268,8 +272,8 @@ export class TeleRoomService {
     }
 
     /** Lịch sử chat */
-    static async getMessages(consultationId: string, page: number = 1, limit: number = 50): Promise<any> {
-        await this.getConsultationOrThrow(consultationId);
+    static async getMessages(consultationId: string, page: number = 1, limit: number = 50, userId: string, isAdmin: boolean): Promise<any> {
+        await this.assertUserCanAccessRoom(consultationId, userId, isAdmin);
         const offset = (page - 1) * limit;
         return await TeleRoomRepository.findMessages(consultationId, limit, offset);
     }
@@ -317,8 +321,8 @@ export class TeleRoomService {
     }
 
     /** DS file */
-    static async getFiles(consultationId: string): Promise<any[]> {
-        await this.getConsultationOrThrow(consultationId);
+    static async getFiles(consultationId: string, userId: string, isAdmin: boolean): Promise<any[]> {
+        await this.assertUserCanAccessRoom(consultationId, userId, isAdmin);
         return await TeleRoomRepository.findFiles(consultationId);
     }
 
@@ -370,8 +374,8 @@ export class TeleRoomService {
     }
 
     /** DS participants */
-    static async getParticipants(consultationId: string): Promise<any[]> {
-        await this.getConsultationOrThrow(consultationId);
+    static async getParticipants(consultationId: string, userId: string, isAdmin: boolean): Promise<any[]> {
+        await this.assertUserCanAccessRoom(consultationId, userId, isAdmin);
         return await TeleRoomRepository.findParticipants(consultationId);
     }
 
@@ -412,8 +416,8 @@ export class TeleRoomService {
     // ═══════════════════════════════════════════════════
 
     /** Activity log */
-    static async getEvents(consultationId: string, page: number = 1, limit: number = 100): Promise<any> {
-        await this.getConsultationOrThrow(consultationId);
+    static async getEvents(consultationId: string, page: number = 1, limit: number = 100, userId: string, isAdmin: boolean): Promise<any> {
+        await this.assertUserCanAccessRoom(consultationId, userId, isAdmin);
         const offset = (page - 1) * limit;
         return await TeleRoomRepository.findEvents(consultationId, limit, offset);
     }
@@ -440,8 +444,8 @@ export class TeleRoomService {
     }
 
     /** Tổng kết phiên */
-    static async getRoomSummary(consultationId: string): Promise<any> {
-        const detail = await this.getConsultationOrThrow(consultationId);
+    static async getRoomSummary(consultationId: string, userId: string, isAdmin: boolean): Promise<any> {
+        const detail = await this.assertUserCanAccessRoom(consultationId, userId, isAdmin);
         const summary = await TeleRoomRepository.getRoomSummary(consultationId);
         const participants = await TeleRoomRepository.findParticipants(consultationId);
         return { consultation: detail, summary, participants };
@@ -460,6 +464,16 @@ export class TeleRoomService {
         const c = await TeleRoomRepository.getConsultationDetail(consultationId);
         if (!c) throw new AppError(HTTP_STATUS.NOT_FOUND, TELE_ROOM_ERRORS.CONSULTATION_NOT_FOUND.code, TELE_ROOM_ERRORS.CONSULTATION_NOT_FOUND.message);
         return c;
+    }
+
+    private static async assertUserCanAccessRoom(consultationId: string, userId: string, isAdmin: boolean): Promise<any> {
+        const consultation = await this.getConsultationOrThrow(consultationId);
+        if (isAdmin) return consultation;
+        
+        if (consultation.doctor_user_id !== userId && consultation.patient_user_id !== userId) {
+            throw new AppError(HTTP_STATUS.FORBIDDEN, TELE_ROOM_ERRORS.NOT_PARTICIPANT.code, 'Access denied. You are not a participant in this consultation.');
+        }
+        return consultation;
     }
 
     private static assertRoomOpen(consultation: any): void {

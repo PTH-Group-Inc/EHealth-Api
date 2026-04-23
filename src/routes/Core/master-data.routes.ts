@@ -3,7 +3,7 @@ import { MasterDataController } from '../../controllers/Core/master-data.control
 import { MasterDataItemController } from '../../controllers/Core/master-data-item.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { uploadExcel } from '../../middleware/upload.middleware';
+import { uploadExcel, verifyFileSignature } from '../../middleware/upload.middleware';
 
 const masterDataRoutes = Router();
 
@@ -219,7 +219,7 @@ masterDataRoutes.get('/categories/export', MasterDataController.exportCategories
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-masterDataRoutes.post('/categories/import', uploadExcel.single('file'), MasterDataController.importCategories);
+masterDataRoutes.post('/categories/import', uploadExcel.single('file'), verifyFileSignature, MasterDataController.importCategories);
 
 /**
  * @swagger
@@ -439,7 +439,7 @@ masterDataRoutes.get('/categories/:categoryCode/items/export', MasterDataItemCon
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-masterDataRoutes.post('/categories/:categoryCode/items/import', uploadExcel.single('file'), MasterDataItemController.importItems);
+masterDataRoutes.post('/categories/:categoryCode/items/import', uploadExcel.single('file'), verifyFileSignature, MasterDataItemController.importItems);
 
 /**
  * @swagger

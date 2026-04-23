@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { ProfileController } from '../../controllers/Core/profile.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { uploadImage } from '../../middleware/upload.middleware';
+import { uploadImage, verifyFileSignature } from '../../middleware/upload.middleware';
 
 const profileRoutes = Router();
 
@@ -359,7 +359,7 @@ profileRoutes.put('/settings', ProfileController.updateMySettings);
  *         description: |
  *           - `AVT_004`: Lỗi upload lên Cloudinary
  */
-profileRoutes.post('/avatar', uploadImage.single('avatar'), ProfileController.uploadAvatar);
+profileRoutes.post('/avatar', uploadImage.single('avatar'), verifyFileSignature, ProfileController.uploadAvatar);
 
 /**
  * @swagger

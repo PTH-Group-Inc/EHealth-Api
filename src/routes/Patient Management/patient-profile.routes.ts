@@ -21,7 +21,7 @@ import { Router } from 'express';
 import { PatientProfileController } from '../../controllers/Patient Management/patient-profile.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { uploadImage } from '../../middleware/upload.middleware';
+import { uploadImage, verifyFileSignature } from '../../middleware/upload.middleware';
 
 const router = Router();
 
@@ -226,7 +226,7 @@ router.put('/:id/relationship', PatientProfileController.updateRelationship);
  *       500:
  *         description: Loi upload Cloudinary hoac luu metadata
  */
-router.post('/:id/avatar', uploadImage.single('avatar'), PatientProfileController.uploadAvatar);
+router.post('/:id/avatar', uploadImage.single('avatar'), verifyFileSignature, PatientProfileController.uploadAvatar);
 
 /**
  * @swagger

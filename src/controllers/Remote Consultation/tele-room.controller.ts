@@ -42,7 +42,9 @@ export class TeleRoomController {
 
     /** GET /room/:consultationId */
     static getRoomDetail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const result = await TeleRoomService.getRoomDetail(String(req.params.consultationId));
+            const userId = (req as any).user?.userId;
+            const isAdmin = ((req as any).user?.roles || []).includes('ADMIN');
+            const result = await TeleRoomService.getRoomDetail(String(req.params.consultationId), userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
     });
 
@@ -58,9 +60,11 @@ export class TeleRoomController {
 
     /** GET /room/:consultationId/messages */
     static getMessages = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const userId = (req as any).user?.userId;
+            const isAdmin = ((req as any).user?.roles || []).includes('ADMIN');
             const page = parseInt(req.query.page as string) || REMOTE_CONSULTATION_CONFIG.DEFAULT_PAGE;
             const limit = Math.min(parseInt(req.query.limit as string) || 50, REMOTE_CONSULTATION_CONFIG.MAX_LIMIT);
-            const result = await TeleRoomService.getMessages(String(req.params.consultationId), page, limit);
+            const result = await TeleRoomService.getMessages(String(req.params.consultationId), page, limit, userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
     });
 
@@ -82,7 +86,9 @@ export class TeleRoomController {
 
     /** GET /room/:consultationId/files */
     static getFiles = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const result = await TeleRoomService.getFiles(String(req.params.consultationId));
+            const userId = (req as any).user?.userId;
+            const isAdmin = ((req as any).user?.roles || []).includes('ADMIN');
+            const result = await TeleRoomService.getFiles(String(req.params.consultationId), userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
     });
 
@@ -105,7 +111,9 @@ export class TeleRoomController {
 
     /** GET /room/:consultationId/participants */
     static getParticipants = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const result = await TeleRoomService.getParticipants(String(req.params.consultationId));
+            const userId = (req as any).user?.userId;
+            const isAdmin = ((req as any).user?.roles || []).includes('ADMIN');
+            const result = await TeleRoomService.getParticipants(String(req.params.consultationId), userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
     });
 
@@ -120,9 +128,11 @@ export class TeleRoomController {
 
     /** GET /room/:consultationId/events */
     static getEvents = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const userId = (req as any).user?.userId;
+            const isAdmin = ((req as any).user?.roles || []).includes('ADMIN');
             const page = parseInt(req.query.page as string) || 1;
             const limit = Math.min(parseInt(req.query.limit as string) || 100, REMOTE_CONSULTATION_CONFIG.MAX_LIMIT);
-            const result = await TeleRoomService.getEvents(String(req.params.consultationId), page, limit);
+            const result = await TeleRoomService.getEvents(String(req.params.consultationId), page, limit, userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
     });
 
@@ -135,7 +145,9 @@ export class TeleRoomController {
 
     /** GET /room/:consultationId/summary */
     static getRoomSummary = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const result = await TeleRoomService.getRoomSummary(String(req.params.consultationId));
+            const userId = (req as any).user?.userId;
+            const isAdmin = ((req as any).user?.roles || []).includes('ADMIN');
+            const result = await TeleRoomService.getRoomSummary(String(req.params.consultationId), userId, isAdmin);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
     });
 

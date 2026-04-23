@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { StaffController } from '../../controllers/Facility Management/staff.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { uploadImage as upload } from '../../middleware/upload.middleware';
+import { uploadImage as upload, verifyFileSignature } from '../../middleware/upload.middleware';
 
 const staffRoutes = Router();
 
@@ -253,7 +253,7 @@ staffRoutes.put('/:staffId', [verifyAccessToken, checkSessionStatus], StaffContr
  *       200:
  *         description: Cập nhật chữ ký thành công
  */
-staffRoutes.patch('/:staffId/signature', [verifyAccessToken, checkSessionStatus, upload.single('file')], StaffController.updateSignature);
+staffRoutes.patch('/:staffId/signature', [verifyAccessToken, checkSessionStatus, upload.single('file'), verifyFileSignature], StaffController.updateSignature);
 
 // ==========================================
 // THÔNG TIN CHUYÊN MÔN BÁC SĨ (Dành cho DOCTOR)

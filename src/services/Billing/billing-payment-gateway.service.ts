@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID, createHmac } from 'crypto';
 import { PaymentGatewayRepository } from '../../repository/Billing/billing-payment-gateway.repository';
 import { BillingInvoiceRepository } from '../../repository/Billing/billing-invoices.repository';
 import {
@@ -94,7 +94,29 @@ export class PaymentGatewayService {
     /**
      * Xử lý webhook callback từ SePay
      */
-    static async handleWebhook(payload: SepayWebhookPayload): Promise<{ processed: boolean; message: string }> {
+    static async handleWebhook(payload: SepayWebhookPayload, signature?: string, rawBody?: string): Promise<{ processed: boolean; message: string }> {
+        /* 0. Xác thực chữ ký webhook (HMAC hoặc Apikey) */
+        const config = await PaymentGatewayRepository.getGatewayConfig(GATEWAY_NAME.SEPAY);
+        if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
+
+        if (!signature) {
+            throw { status: 401, message: 'Unauthorized - Missing signature' };
+        }
+
+        if (signature.startsWith('Apikey ')) {
+            const token = signature.substring(7);
+            if (token !== config.api_key && token !== config.webhook_secret) {
+                throw { status: 401, message: 'Unauthorized - Invalid API Key' };
+            }
+        } else if (config.webhook_secret && rawBody) {
+            const expectedSignature = createHmac('sha256', config.webhook_secret).update(rawBody).digest('hex');
+            if (signature !== expectedSignature) {
+                throw { status: 401, message: 'Unauthorized - Invalid HMAC signature' };
+            }
+        } else {
+            throw { status: 401, message: 'Unauthorized - Could not verify signature' };
+        }
+
         /* 1. Chỉ xử lý giao dịch tiền vào */
         if (payload.transferType !== 'in') {
             return { processed: false, message: 'Bỏ qua: không phải giao dịch tiền vào.' };
@@ -270,7 +292,7 @@ export class PaymentGatewayService {
                     referenceNumber: matchedTxn.reference_number || `MANUAL_${Date.now()}`,
                     description: matchedTxn.description || '',
                 };
-                await this.handleWebhook(webhookPayload);
+                await this.handleWebhook(webhookPayload, `Apikey ${config.api_key}`);
                 return (await PaymentGatewayRepository.getOrderById(orderId))!;
             }
         } catch (error: any) {
