@@ -70,7 +70,7 @@ export class AuthService {
             user_id: user.users_id,
             action_type: AuditActionType.ACCOUNT_LOCK,
             module_name: 'AUTH',
-            ip_address: clientInfo.ipAddress,
+            ip_address: clientInfo.ip,
             user_agent: clientInfo.userAgent,
             status_code: 423,
             is_success: false
@@ -81,7 +81,7 @@ export class AuthService {
           user_id: user.users_id,
           action_type: AuditActionType.FAILED_ATTEMPT,
           module_name: 'AUTH',
-          ip_address: clientInfo.ipAddress,
+          ip_address: clientInfo.ip,
           user_agent: clientInfo.userAgent,
           status_code: 401,
           is_success: false

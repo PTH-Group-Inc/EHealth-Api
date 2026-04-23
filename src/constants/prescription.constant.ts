@@ -64,6 +64,7 @@ export const PRESCRIPTION_ERRORS = {
     PATIENT_NOT_FOUND: 'Bệnh nhân không tồn tại trong hệ thống',
     DOCTOR_NOT_FOUND: 'Bác sĩ không tồn tại trong hệ thống',
     MISSING_SEARCH_QUERY: 'Thiếu từ khóa tìm kiếm (q)',
+    ALLERGY_ALERT: '⚠️ CẢNH BÁO DỊ ỨNG: Bệnh nhân có tiền sử dị ứng với thuốc này. Kê đơn bị chặn vì lý do an toàn.',
 } as const;
 
 /** Thông báo thành công */

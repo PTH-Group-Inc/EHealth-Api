@@ -244,6 +244,25 @@ export class PrescriptionService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'DRUG_NOT_FOUND', PRESCRIPTION_ERRORS.DRUG_NOT_FOUND);
         }
 
+        // === MEDICATION SAFETY VALIDATION ===
+        const patientId = prescription.patient_id;
+
+        // 1. CHECK DỊ ỨNG
+        const allergyCheck = await PrescriptionRepository.checkPatientDrugAllergy(patientId, data.drug_id);
+        if (allergyCheck.has_allergy) {
+            const names = allergyCheck.details.map(d => d.allergen_name).join(', ');
+            throw new AppError(
+                HTTP_STATUS.CONFLICT,
+                'ALLERGY_ALERT',
+                `${PRESCRIPTION_ERRORS.ALLERGY_ALERT} [Dị ứng: ${names}]`,
+                true,
+                { data: { allergy_details: allergyCheck.details } }
+            );
+        }
+
+
+        // === END SAFETY VALIDATION ===
+
         const detail = await PrescriptionRepository.createDetail(prescriptionId, data);
         return (await PrescriptionRepository.findDetailById(detail.prescription_details_id))!;
     }

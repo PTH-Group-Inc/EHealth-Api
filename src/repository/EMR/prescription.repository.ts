@@ -11,6 +11,8 @@ import {
     DrugSearchResult,
     PrescriptionSummary,
     PrescriptionSummaryItem,
+    AllergyMatchResult,
+    DrugInteractionResult,
 } from '../../models/EMR/prescription.model';
 import { PRESCRIPTION_CONFIG } from '../../constants/prescription.constant';
 import { EncryptionUtil } from '../../utils/encryption.util';
@@ -732,4 +734,46 @@ export class PrescriptionRepository {
         }
         return stats;
     }
+
+    // === MEDICATION SAFETY VALIDATION ===
+
+    /**
+     * Kiểm tra bệnh nhân có dị ứng với thuốc sắp kê không.
+     * Match: allergen_name so sánh với brand_name + active_ingredients.
+     */
+    static async checkPatientDrugAllergy(
+        patientId: string,
+        drugId: string,
+        client: QueryExecutor = pool
+    ): Promise<{ has_allergy: boolean; details: AllergyMatchResult[] }> {
+        const query = `
+            SELECT pa.patient_allergies_id as allergy_id, pa.allergen_name, pa.severity, pa.reaction,
+                   d.brand_name as drug_brand_name, d.active_ingredients as drug_active_ingredients,
+                   CASE 
+                       WHEN LOWER(d.active_ingredients) LIKE '%' || LOWER(pa.allergen_name) || '%' THEN 'active_ingredients'
+                       WHEN LOWER(d.brand_name) LIKE '%' || LOWER(pa.allergen_name) || '%' THEN 'brand_name'
+                       ELSE 'active_ingredients'
+                   END as matched_field
+            FROM patient_allergies pa
+            CROSS JOIN drugs d
+            WHERE pa.patient_id = $1
+              AND d.drugs_id = $2
+              AND pa.allergen_type = 'DRUG'
+              AND pa.deleted_at IS NULL
+              AND (
+                LOWER(d.active_ingredients) LIKE '%' || LOWER(pa.allergen_name) || '%'
+                OR
+                LOWER(d.brand_name) LIKE '%' || LOWER(pa.allergen_name) || '%'
+                OR
+                LOWER(pa.allergen_name) LIKE '%' || LOWER(d.brand_name) || '%'
+              )
+        `;
+        const result = await client.query(query, [patientId, drugId]);
+        return {
+            has_allergy: result.rows.length > 0,
+            details: result.rows
+        };
+    }
+
+
 }

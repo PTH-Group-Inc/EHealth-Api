@@ -1025,6 +1025,23 @@ CREATE TABLE drugs (
     FOREIGN KEY (category_id) REFERENCES drug_categories(drug_categories_id)
 );
 
+-- Tương tác thuốc (Drug Interactions)
+CREATE TABLE drug_interactions (
+    drug_interactions_id VARCHAR(50) PRIMARY KEY,
+    drug_id_1 VARCHAR(50) NOT NULL,
+    drug_id_2 VARCHAR(50) NOT NULL,
+    severity VARCHAR(50) NOT NULL, -- SEVERE, MODERATE, MILD
+    interaction_type VARCHAR(100),
+    description TEXT,
+    clinical_effect TEXT,
+    recommendation TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (drug_id_1) REFERENCES drugs(drugs_id) ON DELETE CASCADE,
+    FOREIGN KEY (drug_id_2) REFERENCES drugs(drugs_id) ON DELETE CASCADE,
+    UNIQUE (drug_id_1, drug_id_2)
+);
+
 -- Don thuoc (Prescriptions Header)
 CREATE TABLE prescriptions (
     prescriptions_id VARCHAR(50) PRIMARY KEY,
