@@ -124,3 +124,36 @@ export interface PrescriptionSummaryItem {
     dispensing_unit: string;
     notes: string | null;
 }
+
+/** Kết quả match dị ứng */
+export interface AllergyMatchResult {
+    allergy_id: string;
+    allergen_name: string;
+    severity: string;
+    reaction: string | null;
+    matched_field: 'brand_name' | 'active_ingredients';
+    drug_brand_name: string;
+    drug_active_ingredients: string;
+}
+
+/** Kết quả tương tác thuốc */
+export interface DrugInteractionResult {
+    interaction_id: string;
+    drug_id_1: string;
+    drug_id_2: string;
+    drug_name_1: string;
+    drug_name_2: string;
+    severity: 'SEVERE' | 'MODERATE' | 'MILD';
+    interaction_type: string | null;
+    description: string | null;
+    clinical_effect: string | null;
+    recommendation: string | null;
+}
+
+/** Kết quả validation an toàn thuốc (trả về cho frontend) */
+export interface MedicationSafetyResult {
+    safe: boolean;
+    allergy_alerts: AllergyMatchResult[];
+    interaction_alerts: DrugInteractionResult[];
+    warnings: DrugInteractionResult[];   // MODERATE level
+}

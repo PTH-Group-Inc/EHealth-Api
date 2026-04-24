@@ -13,6 +13,7 @@ import {
     RevenueSummary,
     PaginatedResult,
 } from '../../models/Billing/billing-invoices.model';
+import { INVOICE_STATUS } from '../../constants/billing-invoices.constant';
 
 export class BillingInvoiceRepository {
 
@@ -39,7 +40,7 @@ export class BillingInvoiceRepository {
                 invoices_id, invoice_code, patient_id, encounter_id, facility_id,
                 total_amount, discount_amount, insurance_amount, net_amount, paid_amount,
                 status, notes, created_by, appointment_id, invoice_type
-            ) VALUES ($1, $2, $3, $4, $5, 0, 0, 0, 0, 0, 'UNPAID', $6, $7, $8, $9)
+            ) VALUES ($1, $2, $3, $4, $5, 0, 0, 0, 0, 0, '${INVOICE_STATUS.UNPAID}', $6, $7, $8, $9)
             RETURNING *
         `;
         const params = [
@@ -197,6 +198,23 @@ export class BillingInvoiceRepository {
     }
 
     /**
+     * Lấy chi tiết 1 hóa đơn kèm khóa dòng (FOR UPDATE)
+     * Dùng trong transaction để tránh race condition
+     */
+    static async getInvoiceByIdWithLock(invoiceId: string, client: PoolClient): Promise<Invoice | null> {
+        const sql = `
+            SELECT i.*
+            FROM invoices i
+            WHERE i.invoices_id = $1
+            FOR UPDATE
+        `;
+        const result = await client.query(sql, [invoiceId]);
+        if (result.rows.length === 0) return null;
+
+        return result.rows[0] as Invoice;
+    }
+
+    /**
      * Cập nhật hóa đơn (discount, notes)
      */
     static async updateInvoice(
@@ -253,6 +271,22 @@ export class BillingInvoiceRepository {
         return result.rows.length > 0 ? result.rows[0] : null;
     }
 
+    /**
+     * Lấy tất cả payment transactions SUCCESS của invoice
+     * Dùng cho cascade refund khi cancel appointment
+     */
+    static async getSuccessPaymentsByInvoice(invoiceId: string): Promise<PaymentTransaction[]> {
+        const sql = `
+            SELECT * FROM payment_transactions 
+            WHERE invoice_id = $1 
+              AND status = 'SUCCESS' 
+              AND transaction_type = 'PAYMENT'
+            ORDER BY paid_at ASC
+        `;
+        const result = await pool.query(sql, [invoiceId]);
+        return result.rows;
+    }
+
     /** Tính lại tổng tiền hóa đơn */
     static async recalculateInvoice(invoiceId: string, client?: PoolClient): Promise<Invoice> {
         const sql = `
@@ -285,18 +319,18 @@ export class BillingInvoiceRepository {
                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status = 'SUCCESS'
-                    ), 0) > net_amount THEN 'OVERPAID'
+                    ), 0) > net_amount THEN '${INVOICE_STATUS.OVERPAID}'
                     WHEN COALESCE((
                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status = 'SUCCESS'
-                    ), 0) >= net_amount THEN 'PAID'
+                    ), 0) >= net_amount THEN '${INVOICE_STATUS.PAID}'
                     WHEN COALESCE((
                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status = 'SUCCESS'
-                    ), 0) > 0 THEN 'PARTIAL'
-                    ELSE 'UNPAID'
+                    ), 0) > 0 THEN '${INVOICE_STATUS.PARTIALLY_PAID}'
+                    ELSE '${INVOICE_STATUS.UNPAID}'
                 END,
                 updated_at = CURRENT_TIMESTAMP
             WHERE invoices_id = $1

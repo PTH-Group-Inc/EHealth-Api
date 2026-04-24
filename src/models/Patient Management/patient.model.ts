@@ -26,6 +26,8 @@ export interface Patient {
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
+    no_show_count?: number;
+    is_blacklisted?: boolean;
 
     // Multi-profile support (Module 1 — 1 account → nhiều patient profiles)
     relationship?: 'SELF' | 'PARENT' | 'CHILD' | 'SPOUSE' | 'SIBLING' | 'OTHER';
@@ -39,10 +41,7 @@ export interface Patient {
 export type PatientRelationship = 'SELF' | 'PARENT' | 'CHILD' | 'SPOUSE' | 'SIBLING' | 'OTHER';
 
 /** Input tạo profile bệnh nhân từ tài khoản đăng nhập (multi-profile) */
-export interface CreatePatientProfileInput extends CreatePatientInput {
-    relationship?: PatientRelationship;
-    is_default?: boolean;
-}
+export interface CreatePatientProfileInput extends CreatePatientInput {}
 
 /** Input tạo mới hồ sơ bệnh nhân */
 export interface CreatePatientInput {
@@ -58,6 +57,9 @@ export interface CreatePatientInput {
     ward_id?: number;
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
+    relationship?: PatientRelationship;
+    is_default?: boolean;
+    force_create?: boolean;
 }
 
 /** Input cập nhật thông tin hành chính bệnh nhân */
@@ -74,6 +76,8 @@ export interface UpdatePatientInput {
     ward_id?: number;
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
+    relationship?: PatientRelationship;
+    is_default?: boolean;
 }
 
 /** Kết quả phân trang hồ sơ bệnh nhân */
@@ -113,4 +117,6 @@ export interface PatientSummary {
     insurance_count: number;
     medical_history_count: number;
     allergy_count: number;
+    no_show_count?: number;
+    is_blacklisted?: boolean;
 }

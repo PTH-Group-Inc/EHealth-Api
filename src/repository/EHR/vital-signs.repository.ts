@@ -26,6 +26,39 @@ export class VitalSignsRepository {
         return r.rows[0].exists;
     }
 
+    static async isPatientAccount(userId: string, patientId: string): Promise<boolean> {
+        const r = await pool.query(
+            `SELECT EXISTS(
+                SELECT 1 FROM patients 
+                WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL
+             ) AS is_owner`,
+            [patientId, userId]
+        );
+        return r.rows[0].is_owner;
+    }
+
+    static async hasDoctorPatientRelationship(doctorId: string, patientId: string): Promise<boolean> {
+        const r = await pool.query(
+            `SELECT EXISTS(
+                SELECT 1 FROM encounters e 
+                JOIN doctors d ON e.doctor_id = d.doctors_id
+                WHERE e.patient_id = $1 AND d.user_id = $2 AND e.deleted_at IS NULL
+             ) AS has_encounter`,
+            [patientId, doctorId]
+        );
+        if (r.rows[0].has_encounter) return true;
+
+        const r2 = await pool.query(
+            `SELECT EXISTS(
+                SELECT 1 FROM appointments a
+                JOIN doctors d ON a.doctor_id = d.doctors_id
+                WHERE a.patient_id = $1 AND d.user_id = $2 AND a.deleted_at IS NULL
+             ) AS has_appointment`,
+            [patientId, doctorId]
+        );
+        return r2.rows[0].has_appointment;
+    }
+
     /** Lấy tất cả reference ranges đang active */
     static async getReferenceRanges(): Promise<ReferenceRange[]> {
         const r = await pool.query(

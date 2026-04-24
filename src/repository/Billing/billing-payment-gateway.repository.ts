@@ -128,14 +128,15 @@ export class PaymentGatewayRepository {
         return result.rows[0];
     }
 
-    /** Chuyển các order hết hạn sang EXPIRED — chạy bởi cron job */
-    static async expirePendingOrders(): Promise<number> {
+    /** Chuyển các order hết hạn sang EXPIRED — chạy bởi cron job và trả về danh sách đã hết hạn */
+    static async expirePendingOrders(): Promise<PaymentOrder[]> {
         const sql = `
             UPDATE payment_orders SET status = 'EXPIRED', updated_at = CURRENT_TIMESTAMP
             WHERE status = 'PENDING' AND expires_at <= CURRENT_TIMESTAMP
+            RETURNING *
         `;
         const result = await pool.query(sql);
-        return result.rowCount || 0;
+        return result.rows;
     }
 
     /** Danh sách lệnh thanh toán theo invoice */
@@ -151,6 +152,24 @@ export class PaymentGatewayRepository {
         return result.rows;
     }
 
+    /**
+     * Cancel tất cả payment orders PENDING của 1 invoice (batch)
+     * Trả về số orders đã cancel
+     */
+    static async cancelPendingOrdersByInvoice(
+        invoiceId: string, 
+        client?: PoolClient
+    ): Promise<number> {
+        const query = `
+            UPDATE payment_orders 
+            SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP
+            WHERE invoice_id = $1 AND status = 'PENDING'
+        `;
+        const executor = client || pool;
+        const result = await executor.query(query, [invoiceId]);
+        return result.rowCount ?? 0;
+    }
+
     /** Tìm order dựa trên nội dung chuyển khoản (content match) */
     static async findOrderByTransferContent(content: string): Promise<PaymentOrder | null> {
 
@@ -162,6 +181,27 @@ export class PaymentGatewayRepository {
 
         const orderCode = `EHealth${match[1]}`;
         return await this.getOrderByCode(orderCode);
+    }
+
+    /**
+     * Tìm + LOCK order dựa trên nội dung CK (dùng trong transaction).
+     * Đảm bảo chỉ 1 webhook xử lý tại 1 thời điểm.
+     */
+    static async findAndLockOrderByTransferContent(
+        content: string, client: PoolClient
+    ): Promise<PaymentOrder | null> {
+        const normalized = content.toUpperCase();
+        const match = normalized.match(/EHEALTH(\d{5})/);
+        if (!match) return null;
+
+        const orderCode = `EHealth${match[1]}`;
+        const sql = `
+            SELECT * FROM payment_orders 
+            WHERE order_code = $1 
+            FOR UPDATE
+        `;
+        const result = await client.query(sql, [orderCode]);
+        return result.rows.length > 0 ? result.rows[0] : null;
     }
 
     // LỊCH SỬ & THỐNG KÊ

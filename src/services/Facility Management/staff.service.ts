@@ -2,6 +2,7 @@ import { StaffRepository } from '../../repository/Facility Management/staff.repo
 import { CreateStaffInput, UpdateStaffInput } from '../../models/Facility Management/staff.model';
 import { UserService } from './user.service';
 import { UserFacilityService } from './user-facility.service';
+import { DoctorInfoService } from './doctor-info.service';
 import { AppError } from '../../utils/app-error.util';
 
 export class StaffService {
@@ -54,6 +55,16 @@ export class StaffService {
             );
         }
 
+        // Nếu là Bác sĩ và có truyền nội dung chuyên khoa, lưu thông tin bác sĩ
+        if (data.roles?.includes('DOCTOR') && data.specialty_id) {
+            await DoctorInfoService.updateDoctorInfo(newUserId, {
+                specialty_id: data.specialty_id,
+                title: data.title,
+                biography: data.biography,
+                consultation_fee: data.consultation_fee
+            });
+        }
+
         return { userId: newUserId };
     }
 
@@ -89,6 +100,20 @@ export class StaffService {
                 },
                 adminId, ipAddress, userAgent
             );
+        }
+
+        // Cập nhật record Doctor nếu có
+        const staff = await this.getStaffById(userId);
+        if (staff.roles?.includes('DOCTOR')) {
+            const hasDoctorInfo = data.specialty_id || data.title || data.biography || data.consultation_fee !== undefined;
+            if (hasDoctorInfo) {
+                await DoctorInfoService.updateDoctorInfo(userId, {
+                    specialty_id: data.specialty_id,
+                    title: data.title,
+                    biography: data.biography,
+                    consultation_fee: data.consultation_fee
+                });
+            }
         }
     }
 

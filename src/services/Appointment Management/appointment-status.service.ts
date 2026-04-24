@@ -4,6 +4,7 @@ import { AppointmentRepository } from '../../repository/Appointment Management/a
 import { AppointmentStatusRepository } from '../../repository/Appointment Management/appointment-status.repository';
 import { EncounterRepository } from '../../repository/EMR/encounter.repository';
 import { NotificationEngineService } from '../Core/notification-engine.service';
+import { PatientRepository } from '../../repository/Patient Management/patient.repository';
 import { v4 as uuidv4 } from 'uuid';
 import {
     CHECK_IN_METHOD,
@@ -380,6 +381,11 @@ export class AppointmentStatusService {
             throw new AppError(400, 'NO_SHOW_FAILED', STATUS_ERRORS.NO_SHOW_NOT_ALLOWED);
         }
 
+        // Tăng đếm no-show và tự động cảnh báo (blacklist)
+        if (appointment.patient_id) {
+            await PatientRepository.incrementNoShowCount(appointment.patient_id);
+        }
+
         /** Fix #5: Dọn dẹp encounter đang mở nếu có (edge case) */
         try {
             const encounter = await EncounterRepository.findActiveByAppointmentId(appointmentId);
@@ -432,6 +438,11 @@ export class AppointmentStatusService {
                 };
 
                 await AppointmentStatusRepository.markNoShow(apt.appointments_id, auditLog);
+
+                // Tăng đếm no-show và tự động cảnh báo
+                if (apt.patient_id) {
+                    await PatientRepository.incrementNoShowCount(apt.patient_id);
+                }
 
                 /** B3: Dọn dẹp encounter + giải phóng phòng (tương tự markNoShow thủ công) */
                 try {

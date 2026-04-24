@@ -142,6 +142,27 @@ export class AuthController {
     });
 
     /**
+     * Gửi lại mã OTP xác thực Email
+     */
+    static resendVerifyEmail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const { email } = req.body;
+
+            if (!email) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Vui lòng cung cấp Email",
+                });
+            }
+
+            await AuthService.resendVerifyEmailOTP(email);
+
+            return res.status(200).json({
+                success: true,
+                message: "Mã OTP mới đã được gửi đến email của bạn",
+            });
+    });
+
+    /**
      * Xác thực OTP Email
      */
     static verifyEmail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

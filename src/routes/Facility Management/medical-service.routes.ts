@@ -3,7 +3,7 @@ import { MasterServiceController } from '../../controllers/Core/service.controll
 import { FacilityServiceController } from '../../controllers/Facility Management/facility-service.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { uploadExcel } from '../../middleware/upload.middleware';
+import { uploadExcel, verifyFileSignature } from '../../middleware/upload.middleware';
 
 const router = Router();
 
@@ -115,7 +115,7 @@ router.get('/master/export', verifyAccessToken, checkSessionStatus, MasterServic
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-router.post('/master/import', verifyAccessToken, checkSessionStatus, uploadExcel.single('file'), MasterServiceController.importServices);
+router.post('/master/import', verifyAccessToken, checkSessionStatus, uploadExcel.single('file'), verifyFileSignature, MasterServiceController.importServices);
 
 /**
  * @swagger
@@ -430,7 +430,7 @@ router.get('/facilities/:facilityId/services/export', verifyAccessToken, checkSe
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-router.post('/facilities/:facilityId/services/import', verifyAccessToken, checkSessionStatus, uploadExcel.single('file'), FacilityServiceController.importFacilityServices);
+router.post('/facilities/:facilityId/services/import', verifyAccessToken, checkSessionStatus, uploadExcel.single('file'), verifyFileSignature, FacilityServiceController.importFacilityServices);
 
 /**
  * @swagger

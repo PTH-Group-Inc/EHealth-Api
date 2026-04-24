@@ -7,6 +7,7 @@ import {
     DIAGNOSIS_ERRORS,
     DIAGNOSIS_CONFIG,
     VALID_TYPE_TRANSITIONS,
+    ICD10_REGEX,
 } from '../../constants/diagnosis.constant';
 import { ENCOUNTER_EDITABLE_STATUSES } from '../../constants/encounter.constant';
 import {
@@ -33,6 +34,17 @@ export class DiagnosisService {
         if (!data.icd10_code?.trim()) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_ICD_CODE', DIAGNOSIS_ERRORS.MISSING_ICD_CODE);
         }
+
+        const trimmedCode = data.icd10_code.trim();
+        if (!ICD10_REGEX.test(trimmedCode)) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ICD_FORMAT', DIAGNOSIS_ERRORS.INVALID_ICD_FORMAT);
+        }
+
+        const isCodeValid = await DiagnosisRepository.isICD10CodeValid(trimmedCode);
+        if (!isCodeValid) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'ICD_CODE_NOT_FOUND', DIAGNOSIS_ERRORS.ICD_CODE_NOT_FOUND);
+        }
+
         if (!data.diagnosis_name?.trim()) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DIAGNOSIS_NAME', DIAGNOSIS_ERRORS.MISSING_DIAGNOSIS_NAME);
         }
@@ -84,6 +96,17 @@ export class DiagnosisService {
     static async update(diagnosisId: string, data: UpdateDiagnosisInput): Promise<DiagnosisRecord> {
         const record = await this.getActiveDiagnosis(diagnosisId);
         await this.validateEncounterEditable(record.encounter_id);
+
+        if (data.icd10_code) {
+            const trimmedCode = data.icd10_code.trim();
+            if (!ICD10_REGEX.test(trimmedCode)) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ICD_FORMAT', DIAGNOSIS_ERRORS.INVALID_ICD_FORMAT);
+            }
+            const isCodeValid = await DiagnosisRepository.isICD10CodeValid(trimmedCode);
+            if (!isCodeValid) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'ICD_CODE_NOT_FOUND', DIAGNOSIS_ERRORS.ICD_CODE_NOT_FOUND);
+            }
+        }
 
         const updated = await DiagnosisRepository.update(diagnosisId, data);
         return (await DiagnosisRepository.findById(diagnosisId))!;

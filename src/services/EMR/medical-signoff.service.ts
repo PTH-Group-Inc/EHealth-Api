@@ -75,6 +75,14 @@ export class SignOffService {
                 encounterId, 'encounters', client
             );
 
+            /** Generate Cosign Requirements based on encounter_type */
+            if (encounter.encounter_type === 'INPATIENT' || encounter.encounter_type === 'EMERGENCY') {
+                await SignOffRepository.addCosignRequirement(encounterId, 'DEPARTMENT_HEAD', null, client);
+            } else if (encounter.encounter_type === 'SURGERY') {
+                await SignOffRepository.addCosignRequirement(encounterId, 'DEPARTMENT_HEAD', null, client);
+                await SignOffRepository.addCosignRequirement(encounterId, 'ATTENDING_DOCTOR', null, client);
+            }
+
             await client.query('COMMIT');
 
             return {
@@ -152,6 +160,14 @@ export class SignOffService {
 
         const scope = input.sign_scope || SIGN_SCOPE.ENCOUNTER;
         this.validateScope(scope);
+
+        /** Kiểm tra cosign requirements */
+        if (scope === SIGN_SCOPE.ENCOUNTER) {
+            const isReady = await SignOffRepository.isReadyForOfficialSign(encounterId);
+            if (!isReady) {
+                throw new AppError(HTTP_STATUS.FORBIDDEN, 'PENDING_COSIGNATURE', 'Không thể ký chính thức khi chưa hoàn tất đồng ký (cosign)');
+            }
+        }
 
         /** Kiểm tra chưa có OFFICIAL sign ở scope này */
         const alreadySigned = await SignOffRepository.hasOfficialSign(encounterId, scope);
@@ -250,6 +266,85 @@ export class SignOffService {
         const encounter = await SignOffRepository.getEncounter(encounterId);
         if (!encounter) throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', SIGNOFF_ERRORS.ENCOUNTER_NOT_FOUND);
         return SignOffRepository.getSignatures(encounterId);
+    }
+
+    //  COSIGN FLOW 
+
+    static async getCosignStatus(encounterId: string) {
+        const encounter = await SignOffRepository.getEncounter(encounterId);
+        if (!encounter) throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', SIGNOFF_ERRORS.ENCOUNTER_NOT_FOUND);
+        return SignOffRepository.getCosignRequirements(encounterId);
+    }
+
+    static async cosign(encounterId: string, cosignId: string, userId: string, roles: string[], clientIp: string | null) {
+        const requirement = await SignOffRepository.getCosignRequirementById(cosignId);
+        if (!requirement || requirement.encounter_id !== encounterId) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', 'Không tìm thấy yêu cầu đồng ký');
+        }
+        if (requirement.status !== 'PENDING') {
+            throw new AppError(HTTP_STATUS.CONFLICT, 'ALREADY_PROCESSED', 'Yêu cầu đồng ký đã được xử lý');
+        }
+
+        // Validate role (đơn giản, trong thực tế cần map role chính xác hơn)
+        if (requirement.required_role === 'DEPARTMENT_HEAD' && !roles.includes('DEPARTMENT_HEAD') && !roles.includes('ADMIN')) {
+            throw new AppError(HTTP_STATUS.FORBIDDEN, 'FORBIDDEN', 'Bạn không có quyền Trưởng khoa để ký');
+        }
+
+        const client = await pool.connect() as PoolClient;
+        try {
+            await client.query('BEGIN');
+            
+            await SignOffRepository.updateCosignStatus(cosignId, 'SIGNED', userId, client);
+
+            await SignOffRepository.addAuditLog(
+                encounterId, 'COSIGNED', userId, null,
+                { cosign_id: cosignId, role: requirement.required_role },
+                clientIp, client
+            );
+
+            await client.query('COMMIT');
+            return { success: true, cosign_id: cosignId, status: 'SIGNED' };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    static async waiveCosign(encounterId: string, cosignId: string, userId: string, roles: string[], clientIp: string | null, reason: string) {
+        if (!roles.includes('ADMIN')) {
+            throw new AppError(HTTP_STATUS.FORBIDDEN, 'FORBIDDEN', 'Chỉ ADMIN mới có quyền miễn đồng ký');
+        }
+
+        const requirement = await SignOffRepository.getCosignRequirementById(cosignId);
+        if (!requirement || requirement.encounter_id !== encounterId) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', 'Không tìm thấy yêu cầu đồng ký');
+        }
+        if (requirement.status !== 'PENDING') {
+            throw new AppError(HTTP_STATUS.CONFLICT, 'ALREADY_PROCESSED', 'Yêu cầu đồng ký đã được xử lý');
+        }
+
+        const client = await pool.connect() as PoolClient;
+        try {
+            await client.query('BEGIN');
+            
+            await SignOffRepository.updateCosignStatus(cosignId, 'WAIVED', userId, client);
+
+            await SignOffRepository.addAuditLog(
+                encounterId, 'COSIGN_WAIVED', userId, null,
+                { cosign_id: cosignId, role: requirement.required_role, reason },
+                clientIp, client
+            );
+
+            await client.query('COMMIT');
+            return { success: true, cosign_id: cosignId, status: 'WAIVED' };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 
     //  XÁC MINH 

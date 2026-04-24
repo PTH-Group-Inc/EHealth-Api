@@ -52,6 +52,7 @@ export const VS_ERRORS = {
     METRIC_VALUE_REQUIRED: 'Giá trị chỉ số (metric_value) là bắt buộc',
     UNIT_REQUIRED: 'Đơn vị (unit) là bắt buộc',
     MEASURED_AT_REQUIRED: 'Thời gian đo (measured_at) là bắt buộc',
+    FORBIDDEN: 'Bạn không có quyền truy cập dữ liệu sức khỏe của bệnh nhân này',
 } as const;
 
 /** Thành công */

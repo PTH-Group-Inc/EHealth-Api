@@ -82,6 +82,18 @@ export class AppointmentChangeRepository {
     }
 
     /**
+     * Lấy số lần dời lịch (đã duyệt) của một cuộc hẹn
+     */
+    static async getRescheduleCount(appointmentId: string): Promise<number> {
+        const query = `
+            SELECT COUNT(*) FROM appointment_change_logs
+            WHERE appointment_id = $1 AND change_type = 'RESCHEDULE' AND approval_status = 'APPROVED'
+        `;
+        const result = await pool.query(query, [appointmentId]);
+        return parseInt(result.rows[0].count, 10) || 0;
+    }
+
+    /**
      * Lấy lịch sử thay đổi theo appointment_id
      */
     static async getHistoryByAppointmentId(appointmentId: string): Promise<AppointmentChangeLog[]> {

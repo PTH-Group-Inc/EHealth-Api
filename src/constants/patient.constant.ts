@@ -37,6 +37,12 @@ export const PATIENT_ERRORS = {
         code: 'PAT_002',
         message: 'Số CMND/CCCD đã tồn tại trong hệ thống.',
     },
+    DUPLICATE_PATIENT_DETECTED: {
+        success: false,
+        code: 'PAT_011',
+        message: 'Phát hiện bệnh nhân có thể bị trùng lặp (trùng họ tên và số điện thoại). Vui lòng kiểm tra kỹ hoặc gộp hồ sơ nếu cần.',
+        status: 409
+    },
     INVALID_GENDER: {
         success: false,
         code: 'PAT_003',

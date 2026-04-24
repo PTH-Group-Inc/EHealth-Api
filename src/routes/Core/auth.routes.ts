@@ -4,6 +4,19 @@ import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware
 import { SessionController } from '../../controllers/Core/auth_session.controller';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { AuthCheckController } from '../../controllers/Core/auth-check.controller';
+import { loginRateLimiter, authSensitiveRateLimiter } from '../../middleware/rate_limit.middleware';
+import { validate } from '../../middleware/validate.middleware';
+import { 
+    loginEmailSchema, 
+    loginPhoneSchema, 
+    registerEmailSchema, 
+    registerPhoneSchema, 
+    verifyEmailSchema, 
+    forgotPasswordSchema, 
+    resetPasswordSchema, 
+    unlockAccountSchema, 
+    refreshTokenSchema 
+} from '../../schemas/auth.schema';
 
 const authRoutes = Router()
 
@@ -56,7 +69,7 @@ const authRoutes = Router()
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post("/login/email", AuthController.loginByEmail);
+authRoutes.post("/login/email", [loginRateLimiter, validate(loginEmailSchema)], AuthController.loginByEmail);
 
 /**
  * @swagger
@@ -113,7 +126,7 @@ authRoutes.post("/login/email", AuthController.loginByEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post("/login/phone", AuthController.loginByPhone);
+authRoutes.post("/login/phone", [loginRateLimiter, validate(loginPhoneSchema)], AuthController.loginByPhone);
 
 /**
  * @swagger
@@ -140,7 +153,7 @@ authRoutes.post("/login/phone", AuthController.loginByPhone);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/register/email', AuthController.registerByEmail);
+authRoutes.post('/register/email', [authSensitiveRateLimiter, validate(registerEmailSchema)], AuthController.registerByEmail);
 
 /**
  * @swagger
@@ -177,7 +190,37 @@ authRoutes.post('/register/email', AuthController.registerByEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/register/phone', AuthController.registerByPhone);
+authRoutes.post('/register/phone', [authSensitiveRateLimiter, validate(registerPhoneSchema)], AuthController.registerByPhone);
+
+/**
+ * @swagger
+ * /api/auth/resend-verify-email:
+ *   post:
+ *     summary: Gửi lại mã OTP xác thực Email
+ *     description: |
+ *       **Vai trò được phép:** Tất cả
+ *
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: ['email']
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Mã OTP mới đã được gửi
+ *       400:
+ *         description: Email không hợp lệ
+ *       404:
+ *         description: Tài khoản không tồn tại hoặc đã được xác thực
+ */
+authRoutes.post('/resend-verify-email', [authSensitiveRateLimiter, validate(forgotPasswordSchema)], AuthController.resendVerifyEmail);
 
 /**
  * @swagger
@@ -208,12 +251,14 @@ authRoutes.post('/register/phone', AuthController.registerByPhone);
  *         description: Xác thực tài khoản thành công, tài khoản đã được Active
  *       400:
  *         description: Mã OTP không đúng hoặc đã hết hạn
+ *       404:
+ *         description: Tài khoản không tồn tại
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/verify-email', AuthController.verifyEmail);
+authRoutes.post('/verify-email', [validate(verifyEmailSchema)], AuthController.verifyEmail);
 
 /**
  * @swagger
@@ -245,7 +290,7 @@ authRoutes.post('/verify-email', AuthController.verifyEmail);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/forgot-password', AuthController.forgotPassword);
+authRoutes.post('/forgot-password', [authSensitiveRateLimiter, validate(forgotPasswordSchema)], AuthController.forgotPassword);
 
 /**
  * @swagger
@@ -279,7 +324,7 @@ authRoutes.post('/forgot-password', AuthController.forgotPassword);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/reset-password', AuthController.resetPassword);
+authRoutes.post('/reset-password', [validate(resetPasswordSchema)], AuthController.resetPassword);
 
 /**
  * @swagger
@@ -326,7 +371,7 @@ authRoutes.post('/reset-password', AuthController.resetPassword);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/unlock-account', AuthController.unlockAccount);
+authRoutes.post('/unlock-account', [validate(unlockAccountSchema)], AuthController.unlockAccount);
 
 /**
  * @swagger
@@ -373,7 +418,7 @@ authRoutes.post('/unlock-account', AuthController.unlockAccount);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/refresh-token', AuthController.refreshToken);
+authRoutes.post('/refresh-token', [validate(refreshTokenSchema)], AuthController.refreshToken);
 
 /**
  * @swagger
@@ -416,7 +461,7 @@ authRoutes.post('/refresh-token', AuthController.refreshToken);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-authRoutes.post('/logout', AuthController.logout);
+authRoutes.post('/logout', [validate(refreshTokenSchema)], AuthController.logout);
 
 /**
  * @swagger

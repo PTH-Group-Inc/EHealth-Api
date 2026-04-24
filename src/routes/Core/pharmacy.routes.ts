@@ -3,7 +3,7 @@ import { DrugCategoryController } from '../../controllers/Core/drug-category.con
 import { DrugController } from '../../controllers/Core/drug.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { uploadExcel } from '../../middleware/upload.middleware';
+import { uploadExcel, verifyFileSignature } from '../../middleware/upload.middleware';
 const pharmacyRoutes = Router();
 
 // Middleware quyền truy cập
@@ -133,7 +133,7 @@ pharmacyRoutes.get('/categories/export', DrugCategoryController.exportCategories
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-pharmacyRoutes.post('/categories/import', uploadExcel.single('file'), DrugCategoryController.importCategories);
+pharmacyRoutes.post('/categories/import', uploadExcel.single('file'), verifyFileSignature, DrugCategoryController.importCategories);
 
 /**
  * @swagger
@@ -296,7 +296,7 @@ pharmacyRoutes.get('/drugs/export', DrugController.exportDrugs);
  *       400:
  *         description: Thiếu file hoặc sai định dạng
  */
-pharmacyRoutes.post('/drugs/import', uploadExcel.single('file'), DrugController.importDrugs);
+pharmacyRoutes.post('/drugs/import', uploadExcel.single('file'), verifyFileSignature, DrugController.importDrugs);
 
 /**
  * @swagger

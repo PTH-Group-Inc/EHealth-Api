@@ -18,6 +18,8 @@ import {
     DrugSearchResult,
     PrescriptionSummary,
 } from '../../models/EMR/prescription.model';
+import { ClinicalExamRepository } from '../../repository/EMR/clinical-exam.repository';
+import { DiagnosisRepository } from '../../repository/EMR/diagnosis.repository';
 
 
 export class PrescriptionService {
@@ -155,6 +157,18 @@ export class PrescriptionService {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'NO_DETAILS', PRESCRIPTION_ERRORS.NO_DETAILS_FOR_CONFIRM);
         }
 
+        /** KIỂM TRA ĐIỀU KIỆN LÂM SÀNG: Clinical Exam phải FINALIZED */
+        const clinicalExam = await ClinicalExamRepository.findByEncounterId(prescription.encounter_id);
+        if (!clinicalExam || clinicalExam.status !== 'FINAL') {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CLINICAL_EXAM_NOT_FINALIZED', PRESCRIPTION_ERRORS.CLINICAL_EXAM_NOT_FINALIZED);
+        }
+
+        /** KIỂM TRA ĐIỀU KIỆN LÂM SÀNG: Phải có chẩn đoán PRIMARY */
+        const primaryDiagnosis = await DiagnosisRepository.findPrimaryByEncounterId(prescription.encounter_id);
+        if (!primaryDiagnosis) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_PRIMARY_DIAGNOSIS', PRESCRIPTION_ERRORS.MISSING_PRIMARY_DIAGNOSIS);
+        }
+
         await PrescriptionRepository.confirm(prescriptionId);
         return (await PrescriptionRepository.findById(prescriptionId))!;
     }
@@ -243,6 +257,25 @@ export class PrescriptionService {
         if (!drugExists) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'DRUG_NOT_FOUND', PRESCRIPTION_ERRORS.DRUG_NOT_FOUND);
         }
+
+        // === MEDICATION SAFETY VALIDATION ===
+        const patientId = prescription.patient_id;
+
+        // 1. CHECK DỊ ỨNG
+        const allergyCheck = await PrescriptionRepository.checkPatientDrugAllergy(patientId, data.drug_id);
+        if (allergyCheck.has_allergy) {
+            const names = allergyCheck.details.map(d => d.allergen_name).join(', ');
+            throw new AppError(
+                HTTP_STATUS.CONFLICT,
+                'ALLERGY_ALERT',
+                `${PRESCRIPTION_ERRORS.ALLERGY_ALERT} [Dị ứng: ${names}]`,
+                true,
+                { data: { allergy_details: allergyCheck.details } }
+            );
+        }
+
+
+        // === END SAFETY VALIDATION ===
 
         const detail = await PrescriptionRepository.createDetail(prescriptionId, data);
         return (await PrescriptionRepository.findDetailById(detail.prescription_details_id))!;

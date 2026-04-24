@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { BillingOfflinePaymentController } from '../../controllers/Billing/billing-offline-payment.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { validate } from '../../middleware/validate.middleware';
+import { processOfflinePaymentSchema } from '../../schemas/billing.schema';
 
 const router = Router();
 
@@ -81,7 +83,7 @@ const router = Router();
  *           - OFP_007: Phương thức không hợp lệ
  *           - OFP_023: Thanh toán POS yêu cầu approval_code
  */
-router.post('/offline/pay', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingOfflinePaymentController.processPayment);
+router.post('/offline/pay', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), validate(processOfflinePaymentSchema), BillingOfflinePaymentController.processPayment);
 
 /**
  * @swagger

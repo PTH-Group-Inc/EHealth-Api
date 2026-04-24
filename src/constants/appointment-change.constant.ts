@@ -27,6 +27,12 @@ export const CHANGE_APPROVED_BY_TYPE = {
 
 export const SYSTEM_AUTO_APPROVER = 'SYSTEM_AUTO_APPROVER';
 
+/** Giới hạn Dời lịch */
+export const RESCHEDULE_LIMITS = {
+    MAX_RESCHEDULE_COUNT: 4,
+    PENALTY_HOURS: 2,
+} as const;
+
 /** Trạng thái cho phép hủy */
 export const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED', 'CHECKED_IN'] as const;
 

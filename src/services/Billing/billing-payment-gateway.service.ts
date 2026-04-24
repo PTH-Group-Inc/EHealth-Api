@@ -1,4 +1,5 @@
-import { randomUUID } from 'crypto';
+import { randomUUID, createHmac } from 'crypto';
+import { AppError } from '../../utils/app-error.util';
 import { PaymentGatewayRepository } from '../../repository/Billing/billing-payment-gateway.repository';
 import { BillingInvoiceRepository } from '../../repository/Billing/billing-invoices.repository';
 import {
@@ -21,6 +22,18 @@ import { generateSepayQRUrl } from '../../config/sepay';
 import { AppointmentRepository } from '../../repository/Appointment Management/appointment.repository';
 import { AppointmentAuditLogRepository } from '../../repository/Appointment Management/appointment-audit-log.repository';
 import { APPOINTMENT_STATUS } from '../../constants/appointment.constant';
+import { CircuitBreakerWrapper } from '../../utils/circuit-breaker.util';
+
+const sepayFetchBreaker = new CircuitBreakerWrapper(
+    async (url: string, options: any) => {
+        const response = await fetch(url, options);
+        if (!response.ok && response.status >= 500) {
+            throw new Error(`SePay API Error: ${response.status}`);
+        }
+        return response;
+    },
+    'SePayAPI'
+);
 
 export class PaymentGatewayService {
 
@@ -97,41 +110,66 @@ export class PaymentGatewayService {
     /**
      * Xử lý webhook callback từ SePay
      */
-    static async handleWebhook(payload: SepayWebhookPayload): Promise<{ processed: boolean; message: string }> {
+    static async handleWebhook(payload: SepayWebhookPayload, signature?: string, rawBody?: string): Promise<{ processed: boolean; message: string }> {
+        /* 0. Xác thực chữ ký webhook (HMAC hoặc Apikey) */
+        const config = await PaymentGatewayRepository.getGatewayConfig(GATEWAY_NAME.SEPAY);
+        if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
+
+        if (!signature) {
+            throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Missing signature');
+        }
+
+        if (signature.startsWith('Apikey ')) {
+            const token = signature.substring(7);
+            if (token !== config.api_key && token !== config.webhook_secret) {
+                throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Invalid API Key');
+            }
+        } else if (config.webhook_secret && rawBody) {
+            const expectedSignature = createHmac('sha256', config.webhook_secret).update(rawBody).digest('hex');
+            if (signature !== expectedSignature) {
+                throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Invalid HMAC signature');
+            }
+        } else {
+            throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Could not verify signature');
+        }
+
         /* 1. Chỉ xử lý giao dịch tiền vào */
         if (payload.transferType !== 'in') {
             return { processed: false, message: 'Bỏ qua: không phải giao dịch tiền vào.' };
         }
 
-        /* 2. Tìm order từ nội dung chuyển khoản */
-        const order = await PaymentGatewayRepository.findOrderByTransferContent(payload.content);
-        if (!order) {
-            return { processed: false, message: 'Không tìm thấy lệnh thanh toán phù hợp.' };
-        }
-
-        /* 3. Idempotent check — đã xử lý rồi thì skip */
-        if (order.status === PAYMENT_ORDER_STATUS.PAID) {
-            return { processed: false, message: 'Lệnh thanh toán đã được xử lý trước đó.' };
-        }
-
-        /* 4. Kiểm tra order còn hợp lệ */
-        if (order.status === PAYMENT_ORDER_STATUS.EXPIRED) {
-            return { processed: false, message: 'Lệnh thanh toán đã hết hạn.' };
-        }
-        if (order.status === PAYMENT_ORDER_STATUS.CANCELLED) {
-            return { processed: false, message: 'Lệnh thanh toán đã bị hủy.' };
-        }
-
-        /* 5. Kiểm tra số tiền */
-        const orderAmount = parseFloat(order.amount);
-        if (payload.transferAmount < orderAmount) {
-            return { processed: false, message: `Số tiền chuyển (${payload.transferAmount}) nhỏ hơn yêu cầu (${orderAmount}).` };
-        }
-
-        /* 6. Transaction: cập nhật order + tạo payment + update invoice */
+        /* 2. Mở transaction NGAY TỪ ĐẦU */
         const client = await PaymentGatewayRepository.getClient();
         try {
             await client.query('BEGIN');
+
+            /* 3. Tìm order + LOCK (chặn webhook khác) */
+            const order = await PaymentGatewayRepository.findAndLockOrderByTransferContent(
+                payload.content, client
+            );
+            if (!order) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: 'Không tìm thấy lệnh thanh toán phù hợp.' };
+            }
+
+            /* 4. Idempotent check — BÊN TRONG lock → 100% chính xác */
+            if (order.status === PAYMENT_ORDER_STATUS.PAID) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: 'Lệnh thanh toán đã được xử lý trước đó.' };
+            }
+
+            /* 5. Kiểm tra order còn hợp lệ */
+            if (order.status === PAYMENT_ORDER_STATUS.EXPIRED || order.status === PAYMENT_ORDER_STATUS.CANCELLED) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: 'Lệnh thanh toán đã hết hạn/hủy.' };
+            }
+
+            /* 6. Kiểm tra số tiền */
+            const orderAmount = parseFloat(order.amount);
+            if (payload.transferAmount < orderAmount) {
+                await client.query('ROLLBACK');
+                return { processed: false, message: `Số tiền chuyển (${payload.transferAmount}) nhỏ hơn yêu cầu (${orderAmount}).` };
+            }
 
             /* Cập nhật order → PAID */
             await PaymentGatewayRepository.markOrderPaid(
@@ -178,15 +216,40 @@ export class PaymentGatewayService {
                 }, client);
             }
 
+            /* ── AUTO-CONFIRM APPOINTMENT nếu đây là deposit invoice ── */
+            try {
+                const depositCheck = await client.query(
+                    `SELECT reference_id FROM invoice_details
+                     WHERE invoice_id = $1 AND reference_type = 'APPOINTMENT'
+                     LIMIT 1`,
+                    [order.invoice_id]
+                );
+                if (depositCheck.rows.length > 0) {
+                    const appointmentId = depositCheck.rows[0].reference_id;
+                    // Import động để tránh circular dependency
+                    const { AppointmentService } = require('../Appointment Management/appointment.service');
+                    await AppointmentService.confirmDepositPayment(appointmentId, order.invoice_id);
+                }
+            } catch (confirmErr: any) {
+                // Không throw — thanh toán đã ghi nhận, appointment confirm lỗi sẽ log
+                console.error(`[Webhook] Auto-confirm deposit failed for invoice ${order.invoice_id}:`, confirmErr.message);
+            }
+
             await client.query('COMMIT');
-        } catch (error) {
+            return { processed: true, message: 'Giao dịch đã được ghi nhận thành công.' };
+        } catch (error: any) {
             await client.query('ROLLBACK');
+            
+            // Handle database unique constraint violation for idempotent webhook processing
+            if (error.code === '23505') {
+                console.warn(`[Webhook Idempotency] Ignored duplicate gateway_transaction_id: ${payload.referenceNumber}`);
+                return { processed: false, message: 'Giao dịch đã được ghi nhận trước đó (trùng lặp hệ thống).' };
+            }
+
             throw error;
         } finally {
             client.release();
         }
-
-        return { processed: true, message: 'Giao dịch đã được ghi nhận thành công.' };
     }
 
     // ORDER MANAGEMENT
@@ -247,7 +310,7 @@ export class PaymentGatewayService {
         if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
 
         try {
-            const response = await fetch(
+            const response = await sepayFetchBreaker.fire(
                 `${PAYMENT_GATEWAY_CONFIG.SEPAY_API_BASE_URL}/transactions/list?limit=20&account_number=${config.va_account || config.bank_account_number}`,
                 {
                     headers: {
@@ -285,7 +348,7 @@ export class PaymentGatewayService {
                     referenceNumber: matchedTxn.reference_number || `MANUAL_${Date.now()}`,
                     description: matchedTxn.description || '',
                 };
-                await this.handleWebhook(webhookPayload);
+                await this.handleWebhook(webhookPayload, `Apikey ${config.api_key}`);
                 return (await PaymentGatewayRepository.getOrderById(orderId))!;
             }
         } catch (error: any) {
@@ -327,7 +390,7 @@ export class PaymentGatewayService {
         if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
 
         try {
-            const response = await fetch(
+            const response = await sepayFetchBreaker.fire(
                 `${PAYMENT_GATEWAY_CONFIG.SEPAY_API_BASE_URL}/transactions/list?limit=1&account_number=${config.va_account || config.bank_account_number}`,
                 {
                     headers: {

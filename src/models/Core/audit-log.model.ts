@@ -4,6 +4,13 @@ export enum AuditActionType {
     DELETE = 'DELETE',
     LOGIN = 'LOGIN',
     EXPORT = 'EXPORT',
+    FAILED_ATTEMPT = 'FAILED_ATTEMPT',
+    ADMIN_ACTION = 'ADMIN_ACTION',
+    PERMISSION_CHANGE = 'PERMISSION_CHANGE',
+    ROLE_CHANGE = 'ROLE_CHANGE',
+    PASSWORD_RESET = 'PASSWORD_RESET',
+    ACCOUNT_LOCK = 'ACCOUNT_LOCK',
+    CONFIG_CHANGE = 'CONFIG_CHANGE',
     OTHER = 'OTHER'
 }
 
@@ -17,6 +24,8 @@ export interface AuditLog {
     new_value?: any;
     ip_address?: string;
     user_agent?: string;
+    status_code?: number;
+    is_success?: boolean;
     created_at: Date;
 }
 

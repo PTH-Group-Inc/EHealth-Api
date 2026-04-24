@@ -9,23 +9,34 @@ import { BookingConfigService } from '../Facility Management/booking-config.serv
 import { NotificationEngineService } from '../Core/notification-engine.service';
 import { AppointmentCoordinationService } from './appointment-coordination.service';
 import { BranchRepository } from '../../repository/Facility Management/branch.repository';
+import { PaymentGatewayRepository } from '../../repository/Billing/billing-payment-gateway.repository';
+import { BillingInvoiceRepository } from '../../repository/Billing/billing-invoices.repository';
+import { BillingInvoiceService } from '../Billing/billing-invoices.service';
+import { BillingRefundService } from '../Billing/billing-refund.service';
 import { pool } from '../../config/postgresdb';
+
+interface CascadeBillingResult {
+    invoice_id: string;
+    invoice_code: string;
+    cancelled_orders: number;
+    invoice_cancelled: boolean;
+    refund_requests_created: number;
+}
+
+import { PaymentGatewayService } from '../Billing/billing-payment-gateway.service';
 import { CreateAppointmentInput, UpdateAppointmentInput, Appointment } from '../../models/Appointment Management/appointment.model';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
 import {
-    APPOINTMENT_STATUS, APPOINTMENT_ERRORS, DEFAULT_MAX_PATIENTS_PER_SLOT,
+    APPOINTMENT_STATUS, APPOINTMENT_ERRORS, DEFAULT_MAX_PATIENTS_PER_SLOT, PRE_BOOK_DEPOSIT_AMOUNT,
     RESCHEDULABLE_STATUSES, UPDATABLE_STATUSES, AUTO_CONFIRM_CHANNELS,
     CONFLICT_TYPE, APPOINTMENT_SUCCESS, BOOKING_CHANNEL, APPOINTMENT_WARNINGS,
     DEFAULT_DEPARTMENT_SLOT_DAYS, MAX_DEPARTMENT_SLOT_DAYS, PRE_BOOKING_CONFIG, PRE_PAYMENT_REQUIRED_CHANNELS
 } from '../../constants/appointment.constant';
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
-import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS } from '../../constants/appointment-change.constant';
+import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS, RESCHEDULE_LIMITS } from '../../constants/appointment-change.constant';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../../config/logger.config';
-import { BillingInvoiceRepository } from '../../repository/Billing/billing-invoices.repository';
-import { PaymentGatewayService } from '../Billing/billing-payment-gateway.service';
-import { PaymentGatewayRepository } from '../../repository/Billing/billing-payment-gateway.repository';
 
 
 export class AppointmentService {
@@ -40,11 +51,18 @@ export class AppointmentService {
                 'Thiếu thông tin bắt buộc: patient_id, branch_id, (slot_id hoặc shift_id), appointment_date, booking_channel');
         }
 
-        // Validate ngày khám >= hôm nay
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Validate ngày khám >= hôm nay (tính theo múi giờ VN)
+        const now = new Date();
+        const vnDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+        const todayVN = new Date(vnDateStr); // YYYY-MM-DD
         const targetDate = new Date(data.appointment_date);
-        if (targetDate < today) {
+        
+        if (isNaN(targetDate.getTime())) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
+        }
+        targetDate.setUTCHours(0, 0, 0, 0);
+
+        if (targetDate < todayVN) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
         }
 
@@ -55,11 +73,20 @@ export class AppointmentService {
                 `Kênh đặt lịch không hợp lệ. Các giá trị cho phép: ${validChannels.join(', ')}`);
         }
 
-        // Validate bệnh nhân
-        const patientOk = await AppointmentRepository.patientExists(data.patient_id);
-        if (!patientOk) {
+        // Validate bệnh nhân và kiểm tra blacklist
+        const patientStatus = await AppointmentRepository.getPatientStatus(data.patient_id);
+        if (!patientStatus.exists) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', APPOINTMENT_ERRORS.PATIENT_NOT_FOUND);
         }
+        let blacklistWarning: string | null = null;
+        if (patientStatus.is_blacklisted) {
+            if (data.booking_channel === 'DIRECT_CLINIC' || data.booking_channel === 'HOTLINE') {
+                blacklistWarning = 'CẢNH BÁO: Bệnh nhân nằm trong danh sách đen (vắng mặt >= 3 lần).';
+            } else {
+                throw new AppError(HTTP_STATUS.FORBIDDEN, 'PATIENT_BLACKLISTED', 'Bệnh nhân đã bị đưa vào danh sách đen do vắng mặt quá 3 lần. Không thể đặt lịch khám trực tuyến.');
+            }
+        }
+
 
         // Validate chi nhánh
         const branchOk = await AppointmentRepository.branchExists(data.branch_id);
@@ -98,10 +125,15 @@ export class AppointmentService {
             // Xếp hàng: tìm slot tiếp theo + gán BS (theo chuyên khoa) + phòng
             const allocResult = await this.smartAllocate(data, client);
 
-            /** Auto-confirm cho kênh DIRECT_CLINIC / HOTLINE */
-            const initialStatus = AUTO_CONFIRM_CHANNELS.includes(data.booking_channel)
-                ? APPOINTMENT_STATUS.CONFIRMED
-                : APPOINTMENT_STATUS.PENDING;
+            /** Auto-confirm cho kênh DIRECT_CLINIC / HOTLINE nếu không truyền status */
+            let initialStatus: string = APPOINTMENT_STATUS.PENDING;
+            if (data.status && Object.values(APPOINTMENT_STATUS).includes(data.status as any)) {
+                initialStatus = data.status;
+            } else {
+                initialStatus = AUTO_CONFIRM_CHANNELS.includes(data.booking_channel)
+                    ? APPOINTMENT_STATUS.CONFIRMED
+                    : APPOINTMENT_STATUS.PENDING;
+            }
 
             const appointment = await AppointmentRepository.create(data, {
                 appointment_id: '',
@@ -115,14 +147,23 @@ export class AppointmentService {
 
             await client.query('COMMIT');
 
+            const notificationTemplate = initialStatus === APPOINTMENT_STATUS.CONFIRMED
+                ? APPOINTMENT_TEMPLATE_CODES.CONFIRMED
+                : APPOINTMENT_TEMPLATE_CODES.CREATED;
+
             // Gửi thông báo (fire-and-forget, ngoài transaction)
             this.sendAppointmentNotification(
                 appointment.appointments_id,
-                APPOINTMENT_TEMPLATE_CODES.CREATED,
+                notificationTemplate,
                 {}
             );
 
-            return { ...appointment, warning: allocResult.warning || null };
+            let finalWarning = allocResult.warning || null;
+            if (blacklistWarning) {
+                finalWarning = finalWarning ? `${finalWarning}. ${blacklistWarning}` : blacklistWarning;
+            }
+
+            return { ...appointment, warning: finalWarning };
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;
@@ -196,19 +237,52 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_UPDATE_STATUS', APPOINTMENT_ERRORS.CANNOT_UPDATE_STATUS);
         }
 
-        // Nếu đổi slot, validate lại sức chứa
+        // Mô tả thay đổi cho audit
+        const changes: string[] = [];
+        if (data.appointment_date && data.appointment_date !== existing.appointment_date) changes.push(`Đổi ngày khám: ${existing.appointment_date} → ${data.appointment_date}`);
+        if (data.doctor_id && data.doctor_id !== existing.doctor_id) changes.push(`Đổi bác sĩ`);
+        if (data.slot_id && data.slot_id !== existing.slot_id) changes.push(`Đổi khung giờ`);
+        if (data.reason_for_visit !== undefined) changes.push(`Cập nhật lý do khám`);
+
+        let updated;
         if (data.slot_id && data.slot_id !== existing.slot_id) {
-            const slotOk = await AppointmentRepository.slotExists(data.slot_id);
-            if (!slotOk) {
-                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
+                const slotOk = await AppointmentRepository.slotExists(data.slot_id);
+                if (!slotOk) {
+                    throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+                }
+                const targetDate = data.appointment_date || existing.appointment_date;
+                const currentCount = await AppointmentRepository.countActiveBySlotAndDate(data.slot_id, targetDate, client);
+                const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+                const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+                if (currentCount >= maxPatients) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+                }
+                
+                updated = await AppointmentRepository.update(id, data, {
+                    appointment_id: id,
+                    changed_by: userId,
+                    old_status: existing.status,
+                    new_status: existing.status,
+                    action_note: changes.length > 0 ? changes.join('; ') : 'Cập nhật thông tin lịch khám'
+                }, client);
+                await client.query('COMMIT');
+            } catch (error) {
+                await client.query('ROLLBACK');
+                throw error;
+            } finally {
+                client.release();
             }
-            const targetDate = data.appointment_date || existing.appointment_date;
-            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(data.slot_id, targetDate);
-            const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
-            const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
-            if (currentCount >= maxPatients) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
-            }
+        } else {
+            updated = await AppointmentRepository.update(id, data, {
+                appointment_id: id,
+                changed_by: userId,
+                old_status: existing.status,
+                new_status: existing.status,
+                action_note: changes.length > 0 ? changes.join('; ') : 'Cập nhật thông tin lịch khám'
+            });
         }
 
         // Nếu đổi bác sĩ, validate
@@ -219,20 +293,7 @@ export class AppointmentService {
             }
         }
 
-        // Mô tả thay đổi cho audit
-        const changes: string[] = [];
-        if (data.appointment_date && data.appointment_date !== existing.appointment_date) changes.push(`Đổi ngày khám: ${existing.appointment_date} → ${data.appointment_date}`);
-        if (data.doctor_id && data.doctor_id !== existing.doctor_id) changes.push(`Đổi bác sĩ`);
-        if (data.slot_id && data.slot_id !== existing.slot_id) changes.push(`Đổi khung giờ`);
-        if (data.reason_for_visit !== undefined) changes.push(`Cập nhật lý do khám`);
 
-        const updated = await AppointmentRepository.update(id, data, {
-            appointment_id: id,
-            changed_by: userId,
-            old_status: existing.status,
-            new_status: existing.status,
-            action_note: changes.length > 0 ? changes.join('; ') : 'Cập nhật thông tin lịch khám'
-        });
 
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi cập nhật CSDL');
         return updated;
@@ -297,6 +358,20 @@ export class AppointmentService {
             logger.error('[CANCEL_APPOINTMENT] Lỗi dọn dẹp encounter:', err.message);
         }
 
+        /** Cascade: Xử lý invoice + payment orders + refund */
+        try {
+            const cascadeResult = await this.cascadeBillingOnCancel(
+                id, cancellationReason, userId
+            );
+            if (cascadeResult) {
+                logger.info('[CANCEL_APPOINTMENT] Cascade billing:', cascadeResult);
+            }
+        } catch (err: any) {
+            // Cascade billing thất bại KHÔNG rollback appointment cancel
+            // → ghi log error để staff xử lý manual
+            logger.error('[CANCEL_APPOINTMENT] Cascade billing failed:', err.message);
+        }
+
         // Ghi change log
         await AppointmentChangeRepository.createChangeLog({
             id: `ACHG_${uuidv4().substring(0, 12)}`,
@@ -322,6 +397,69 @@ export class AppointmentService {
         );
 
         return cancelled;
+    }
+
+    /**
+     * Cascade xử lý billing khi cancel appointment:
+     * 1. Tìm invoice liên kết (qua encounter)
+     * 2. Cancel tất cả PENDING payment orders
+     * 3. Nếu invoice có transactions SUCCESS → tạo refund request
+     * 4. Nếu invoice chưa có payment → cancel invoice
+     */
+    private static async cascadeBillingOnCancel(
+        appointmentId: string,
+        cancellationReason: string,
+        userId?: string
+    ): Promise<CascadeBillingResult | null> {
+        // 1. Tìm invoice
+        const invoice = await AppointmentRepository.findInvoiceByAppointmentId(appointmentId);
+        if (!invoice) return null;
+
+        // 2. Cancel PENDING payment orders
+        const cancelledOrders = await PaymentGatewayRepository.cancelPendingOrdersByInvoice(invoice.invoices_id);
+
+        // 3. Kiểm tra SUCCESS transactions
+        const successTxns = await BillingInvoiceRepository.getSuccessPaymentsByInvoice(invoice.invoices_id);
+
+        if (successTxns.length === 0) {
+            // Không có payment SUCCESS → cancel luôn invoice
+            await BillingInvoiceService.cancelInvoice(
+                invoice.invoices_id, 
+                `Hoàn tiền do huỷ lịch khám: ${cancellationReason}`, 
+                userId || 'SYSTEM'
+            );
+            return {
+                invoice_id: invoice.invoices_id,
+                invoice_code: invoice.invoice_code,
+                cancelled_orders: cancelledOrders,
+                invoice_cancelled: true,
+                refund_requests_created: 0
+            };
+        }
+
+        // Có payment SUCCESS → tạo refund request cho TỪNG txn
+        let refundRequestsCreated = 0;
+        for (const txn of successTxns) {
+            try {
+                await BillingRefundService.createRefundRequest({
+                    transaction_id: txn.payment_transactions_id,
+                    refund_type: 'FULL',
+                    reason_category: 'SERVICE_CANCELLED',
+                    reason_detail: `Hoàn tiền do huỷ lịch khám: ${cancellationReason}`,
+                }, userId as string);
+                refundRequestsCreated++;
+            } catch (err: any) {
+                logger.error(`[CASCADE_BILLING] Lỗi tạo refund request cho txn ${txn.payment_transactions_id}:`, err);
+            }
+        }
+
+        return {
+            invoice_id: invoice.invoices_id,
+            invoice_code: invoice.invoice_code,
+            cancelled_orders: cancelledOrders,
+            invoice_cancelled: false,
+            refund_requests_created: refundRequestsCreated
+        };
     }
 
     /**
@@ -380,7 +518,7 @@ export class AppointmentService {
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống');
 
         /** Fix #6: Sync BS sang encounter nếu appointment đang IN_PROGRESS */
-        if (existing.status === 'IN_PROGRESS') {
+        if (existing.status === APPOINTMENT_STATUS.IN_PROGRESS) {
             try {
                 const encounter = await EncounterRepository.findActiveByAppointmentId(id);
                 if (encounter) {
@@ -419,7 +557,7 @@ export class AppointmentService {
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống');
 
         /** Fix #6: Sync phòng sang encounter nếu appointment đang IN_PROGRESS */
-        if (existing.status === 'IN_PROGRESS') {
+        if (existing.status === APPOINTMENT_STATUS.IN_PROGRESS) {
             try {
                 const encounter = await EncounterRepository.findActiveByAppointmentId(id);
                 if (encounter) {
@@ -470,6 +608,256 @@ export class AppointmentService {
      */
     static async getAppointmentsByDoctor(doctorId: string, filters?: { fromDate?: string; toDate?: string }): Promise<Appointment[]> {
         return await AppointmentRepository.findByDoctorId(doctorId, filters);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  PRE-BOOK (ĐẶT CỌC) FLOW
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Pre-book lịch khám: tạo lịch với trạng thái PENDING_DEPOSIT,
+     * tự động tạo hóa đơn đặt cọc + khởi tạo thanh toán QR.
+     * 
+     * Flow:
+     *  1. Validate đầu vào (giống createAppointment)
+     *  2. Smart allocate (slot, BS, phòng)
+     *  3. Insert appointment với status = PENDING_DEPOSIT
+     *  4. Tạo deposit invoice (reference_type = 'APPOINTMENT')
+     *  5. Gọi PaymentGatewayService.generateQR → trả về QR + link thanh toán
+     *  6. Trả về appointment + payment_order cho FE hiển thị
+     *
+     * Khi BN thanh toán xong → webhook sẽ gọi confirmDepositPayment
+     * Nếu hết hạn → cron job PaymentOrderExpiry tự hủy appointment
+     */
+    static async preBookAppointment(
+        data: CreateAppointmentInput, userId?: string
+    ): Promise<Appointment & { warning?: string | null; deposit_invoice?: any; payment_order?: any }> {
+
+        // ── 1. VALIDATION (tái sử dụng logic từ createAppointment) ──
+
+        if (!data.patient_id || !data.branch_id || (!data.slot_id && !data.shift_id) || !data.appointment_date || !data.booking_channel) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
+                'Thiếu thông tin bắt buộc: patient_id, branch_id, (slot_id hoặc shift_id), appointment_date, booking_channel');
+        }
+
+        // Validate ngày khám >= hôm nay (timezone VN)
+        const now = new Date();
+        const vnDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+        const todayVN = new Date(vnDateStr);
+        const targetDate = new Date(data.appointment_date);
+
+        if (isNaN(targetDate.getTime())) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
+        }
+        targetDate.setUTCHours(0, 0, 0, 0);
+
+        if (targetDate < todayVN) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
+        }
+
+        // Validate booking_channel
+        const validChannels = Object.values(BOOKING_CHANNEL);
+        if (!validChannels.includes(data.booking_channel as any)) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_BOOKING_CHANNEL',
+                `Kênh đặt lịch không hợp lệ. Các giá trị cho phép: ${validChannels.join(', ')}`);
+        }
+
+        // Validate bệnh nhân + blacklist
+        const patientStatus = await AppointmentRepository.getPatientStatus(data.patient_id);
+        if (!patientStatus.exists) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', APPOINTMENT_ERRORS.PATIENT_NOT_FOUND);
+        }
+        let blacklistWarning: string | null = null;
+        if (patientStatus.is_blacklisted) {
+            if (data.booking_channel === 'DIRECT_CLINIC' || data.booking_channel === 'HOTLINE') {
+                blacklistWarning = 'CẢNH BÁO: Bệnh nhân nằm trong danh sách đen (vắng mặt >= 3 lần).';
+            } else {
+                throw new AppError(HTTP_STATUS.FORBIDDEN, 'PATIENT_BLACKLISTED',
+                    'Bệnh nhân đã bị đưa vào danh sách đen do vắng mặt quá 3 lần. Không thể đặt lịch khám trực tuyến.');
+            }
+        }
+
+        // Validate chi nhánh
+        const branchOk = await AppointmentRepository.branchExists(data.branch_id);
+        if (!branchOk) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', APPOINTMENT_ERRORS.BRANCH_NOT_FOUND);
+        }
+
+        // Validate slot / shift
+        if (data.slot_id) {
+            const shiftId = await AppointmentRepository.getShiftIdBySlot(data.slot_id);
+            if (!shiftId) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', 'Slot không tồn tại hoặc đã bị xoá');
+            }
+            data.shift_id = shiftId;
+        } else if (data.shift_id) {
+            const shiftOk = await AppointmentRepository.shiftExists(data.shift_id);
+            if (!shiftOk) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SHIFT_NOT_FOUND', 'Ca khám không tồn tại hoặc đã bị xoá');
+            }
+        }
+
+        // Validate dịch vụ (nếu có)
+        if (data.facility_service_id) {
+            const realFacilityServiceId = await AppointmentRepository.resolveFacilityService(data.facility_service_id, data.branch_id);
+            if (!realFacilityServiceId) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
+            }
+            data.facility_service_id = realFacilityServiceId;
+        }
+
+        // ── 2. SMART ALLOCATE + INSERT (trong transaction) ──
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const allocResult = await this.smartAllocate(data, client);
+
+            // Luôn dùng PENDING_DEPOSIT cho pre-book (không auto-confirm)
+            const initialStatus = APPOINTMENT_STATUS.PENDING_DEPOSIT;
+
+            const appointment = await AppointmentRepository.create(data, {
+                appointment_id: '',
+                changed_by: userId,
+                old_status: null,
+                new_status: initialStatus,
+                action_note: `Pre-book lịch khám (đặt cọc) qua kênh ${data.booking_channel}`
+            }, initialStatus);
+
+            // ── 3. TẠO DEPOSIT INVOICE ──
+
+            const invoiceId = `INV_${uuidv4().substring(0, 12)}`;
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const invoiceCode = `INV-${dateStr}-${rand}`;
+
+            const depositAmount = PRE_BOOK_DEPOSIT_AMOUNT;
+
+            // Tạo invoice cho đặt cọc
+            await client.query(`
+                INSERT INTO invoices (
+                    invoices_id, invoice_code, patient_id,
+                    total_amount, discount_amount, insurance_amount,
+                    net_amount, paid_amount, status,
+                    notes, created_by
+                ) VALUES ($1, $2, $3, $4, 0, 0, $4, 0, 'UNPAID',
+                    $5, $6)
+            `, [
+                invoiceId, invoiceCode, data.patient_id,
+                depositAmount,
+                `Đặt cọc lịch khám ${appointment.appointment_code}`,
+                userId || null
+            ]);
+
+            // Tạo invoice_detail với reference_type = 'APPOINTMENT'
+            const itemId = `IDT_${uuidv4().substring(0, 12)}`;
+            await client.query(`
+                INSERT INTO invoice_details (
+                    invoice_details_id, invoice_id, reference_type, reference_id,
+                    item_name, quantity, unit_price, subtotal,
+                    discount_amount, insurance_covered, patient_pays
+                ) VALUES ($1, $2, 'APPOINTMENT', $3, $4, 1, $5, $5, 0, 0, $5)
+            `, [
+                itemId, invoiceId, appointment.appointments_id,
+                `Tiền cọc đặt lịch khám - ${appointment.appointment_code}`,
+                depositAmount
+            ]);
+
+            await client.query('COMMIT');
+
+            // ── 4. SINH QR THANH TOÁN (ngoài transaction chính) ──
+
+            let paymentOrder: any = null;
+            try {
+                paymentOrder = await PaymentGatewayService.generateQR({
+                    invoice_id: invoiceId,
+                    amount: depositAmount,
+                    description: `Đặt cọc lịch khám ${appointment.appointment_code}`,
+                }, userId || 'SYSTEM');
+            } catch (err: any) {
+                // Payment gateway lỗi → appointment vẫn tạo được, BN thanh toán thủ công
+                logger.error(`[PRE_BOOK] Lỗi tạo QR thanh toán:`, err.message);
+            }
+
+            // ── 5. NOTIFICATION ──
+
+            this.sendAppointmentNotification(
+                appointment.appointments_id,
+                APPOINTMENT_TEMPLATE_CODES.CREATED,
+                { deposit_amount: depositAmount }
+            );
+
+            let finalWarning = allocResult.warning || null;
+            if (blacklistWarning) {
+                finalWarning = finalWarning ? `${finalWarning}. ${blacklistWarning}` : blacklistWarning;
+            }
+
+            return {
+                ...appointment,
+                warning: finalWarning,
+                deposit_invoice: {
+                    invoice_id: invoiceId,
+                    invoice_code: invoiceCode,
+                    deposit_amount: depositAmount,
+                },
+                payment_order: paymentOrder ? {
+                    payment_order_id: paymentOrder.payment_orders_id,
+                    order_code: paymentOrder.order_code,
+                    qr_code_url: paymentOrder.qr_code_url,
+                    amount: paymentOrder.amount,
+                    expires_at: paymentOrder.expires_at,
+                    remaining_seconds: paymentOrder.remaining_seconds,
+                } : null,
+            };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Xác nhận đặt cọc thành công → chuyển PENDING_DEPOSIT → CONFIRMED.
+     * Được gọi từ webhook handler khi phát hiện invoice liên kết với appointment.
+     * 
+     * @param appointmentId ID lịch khám
+     * @param invoiceId ID hóa đơn đặt cọc đã thanh toán
+     */
+    static async confirmDepositPayment(appointmentId: string, invoiceId: string): Promise<void> {
+        const appointment = await AppointmentRepository.findById(appointmentId);
+        if (!appointment) {
+            logger.warn(`[CONFIRM_DEPOSIT] Appointment ${appointmentId} không tồn tại`);
+            return;
+        }
+
+        // Chỉ xử lý khi đang ở PENDING_DEPOSIT
+        if (appointment.status !== APPOINTMENT_STATUS.PENDING_DEPOSIT) {
+            logger.info(`[CONFIRM_DEPOSIT] Appointment ${appointmentId} đã ở trạng thái ${appointment.status}, bỏ qua`);
+            return;
+        }
+
+        // Cập nhật trạng thái → CONFIRMED
+        const auditLog = {
+            appointment_audit_logs_id: `ALOG_${uuidv4().substring(0, 12)}`,
+            appointment_id: appointmentId,
+            changed_by: null as any, // SYSTEM
+            old_status: APPOINTMENT_STATUS.PENDING_DEPOSIT,
+            new_status: APPOINTMENT_STATUS.CONFIRMED,
+            action_note: `[HỆ THỐNG] Tự động xác nhận sau khi nhận đặt cọc thành công (Invoice: ${invoiceId})`,
+        };
+
+        await AppointmentRepository.confirmAppointment(appointmentId, null as any, auditLog);
+
+        // Gửi notification xác nhận
+        this.sendAppointmentNotification(
+            appointmentId,
+            APPOINTMENT_TEMPLATE_CODES.CONFIRMED,
+            { deposit_confirmed: true }
+        );
+
+        logger.info(`[CONFIRM_DEPOSIT] Appointment ${appointmentId} → CONFIRMED (deposit paid via invoice ${invoiceId})`);
     }
 
     /**
@@ -529,11 +917,20 @@ export class AppointmentService {
                 'Vui lòng truyền branch_id hoặc facility_id để xác định cơ sở');
         }
 
+        // Lấy thời gian hiện tại theo múi giờ VN (Asia/Ho_Chi_Minh)
+        const now = new Date();
+        const vnDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+        const vnTimeStr = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
+
         // Validate ngày >= hôm nay
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayVN = new Date(vnDateStr); // YYYY-MM-DD
         const targetDate = new Date(date);
-        if (targetDate < today) {
+        if (isNaN(targetDate.getTime())) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
+        }
+        targetDate.setUTCHours(0, 0, 0, 0);
+
+        if (targetDate < todayVN) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
         }
 
@@ -555,11 +952,9 @@ export class AppointmentService {
         const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
 
         // Lọc slot theo giờ hoạt động cơ sở (chỉ trả slot nằm trong open_time–close_time)
-        const now = new Date();
-        const isToday = targetDate.toDateString() === now.toDateString();
-        const currentHour = now.getHours();
-        const currentMinute = now.getMinutes();
-        const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+        const targetDateStr = targetDate.toISOString().split('T')[0];
+        const isToday = targetDateStr === vnDateStr;
+        const currentTimeStr = vnTimeStr;
 
         if (openTime && closeTime) {
             slots = slots.filter(slot => {
@@ -624,80 +1019,126 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
         }
 
-        // Kiểm tra sức chứa slot mới
-        const currentCount = await AppointmentRepository.countActiveBySlotAndDate(newSlotId, newDate);
-        const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
-        const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
-        if (currentCount >= maxPatients) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+        // Kiểm tra số lần dời lịch tối đa
+        const rescheduleCount = await AppointmentChangeRepository.getRescheduleCount(id);
+        if (rescheduleCount >= RESCHEDULE_LIMITS.MAX_RESCHEDULE_COUNT) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_LIMIT_EXCEEDED', APPOINTMENT_ERRORS.RESCHEDULE_LIMIT_EXCEEDED);
         }
 
-        // Kiểm tra trùng bệnh nhân ở slot mới (loại trừ appointment hiện tại)
-        const patientConflict = await AppointmentRepository.findPatientConflict(existing.patient_id, newDate, newSlotId, id);
-        if (patientConflict) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PATIENT_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_PATIENT);
+        // Kiểm tra dời lịch dưới 2 tiếng
+        if (existing.slot_start_time) {
+            const now = new Date();
+            // Xác định ngày chính xác
+            let dateStr = "";
+            const appDate: any = existing.appointment_date;
+            if (appDate instanceof Date) {
+                dateStr = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(appDate);
+            } else if (typeof appDate === 'string') {
+                dateStr = appDate.split('T')[0];
+            }
+            
+            // Lấy thời điểm chính xác theo giờ VN
+            const slotTime = new Date(`${dateStr}T${existing.slot_start_time}:00+07:00`);
+
+            const diffMs = slotTime.getTime() - now.getTime();
+            const diffHours = diffMs / (1000 * 60 * 60);
+
+            // Nếu khoảng thời gian < limit và cuộc hẹn chưa diễn ra
+            if (diffHours >= 0 && diffHours < RESCHEDULE_LIMITS.PENALTY_HOURS) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_PENALTY_REQUIRED', APPOINTMENT_ERRORS.RESCHEDULE_PENALTY_REQUIRED);
+            }
         }
 
-        // Kiểm tra bác sĩ có lịch làm việc ở ngày/ca mới (nếu đã gán BS)
-        if (existing.doctor_id) {
-            const shiftId = await AppointmentRepository.getShiftIdBySlot(newSlotId);
-            if (shiftId) {
-                const doctorAvailable = await AppointmentRepository.isDoctorAvailableOnDate(existing.doctor_id, newDate, shiftId);
-                if (!doctorAvailable) {
-                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_NOT_AVAILABLE', APPOINTMENT_ERRORS.DOCTOR_NOT_AVAILABLE);
+        // Cần bọc lại logic thay đổi slot vào transaction để tránh race condition
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Lock slot mới
+            await client.query('SELECT slot_id FROM appointment_slots WHERE slot_id = $1 FOR UPDATE', [newSlotId]);
+
+            // Kiểm tra sức chứa slot mới (an toàn với lock)
+            const currentCount = await AppointmentRepository.countActiveBySlotAndDate(newSlotId, newDate, client);
+            const configMax = await AppointmentRepository.getMaxPatientsPerSlot();
+            const maxPatients = configMax ?? DEFAULT_MAX_PATIENTS_PER_SLOT;
+            if (currentCount >= maxPatients) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'SLOT_FULL', APPOINTMENT_ERRORS.SLOT_FULL);
+            }
+
+            // Kiểm tra trùng bệnh nhân ở slot mới (loại trừ appointment hiện tại)
+            const patientConflict = await AppointmentRepository.findPatientConflict(existing.patient_id, newDate, newSlotId, id);
+            if (patientConflict) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PATIENT_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_PATIENT);
+            }
+
+            // Kiểm tra bác sĩ có lịch làm việc ở ngày/ca mới (nếu đã gán BS)
+            if (existing.doctor_id) {
+                const shiftId = await AppointmentRepository.getShiftIdBySlot(newSlotId);
+                if (shiftId) {
+                    const doctorAvailable = await AppointmentRepository.isDoctorAvailableOnDate(existing.doctor_id, newDate, shiftId);
+                    if (!doctorAvailable) {
+                        throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_NOT_AVAILABLE', APPOINTMENT_ERRORS.DOCTOR_NOT_AVAILABLE);
+                    }
+                }
+
+                // Kiểm tra trùng bác sĩ ở slot mới
+                const doctorConflict = await AppointmentRepository.findDoctorConflict(existing.doctor_id, newDate, newSlotId, id);
+                if (doctorConflict) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_DOCTOR);
                 }
             }
 
-            // Kiểm tra trùng bác sĩ ở slot mới
-            const doctorConflict = await AppointmentRepository.findDoctorConflict(existing.doctor_id, newDate, newSlotId, id);
-            if (doctorConflict) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DOCTOR_CONFLICT', APPOINTMENT_ERRORS.CONFLICT_DOCTOR);
-            }
-        }
+            // Lưu thông tin cũ trước khi update
+            const oldDate = existing.appointment_date;
+            const oldSlotId = existing.slot_id;
+            const oldSlotInfo = existing.slot_id || 'chưa chọn';
 
-        // Lưu thông tin cũ trước khi update
-        const oldDate = existing.appointment_date;
-        const oldSlotId = existing.slot_id;
-        const oldSlotInfo = existing.slot_id || 'chưa chọn';
-
-        const updated = await AppointmentRepository.reschedule(id, newDate, newSlotId, {
-            appointment_id: id,
-            changed_by: userId,
-            old_status: existing.status,
-            new_status: existing.status,
-            action_note: `Đổi lịch: ${existing.appointment_date} (slot ${oldSlotInfo}) → ${newDate} (slot ${newSlotId})${rescheduleReason ? `. Lý do: ${rescheduleReason}` : ''}`
-        });
-
-        if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống khi đổi lịch');
-
-        if (!options?.skipChangeLog) {
-            await AppointmentChangeRepository.createChangeLog({
-                id: `ACHG_${uuidv4().substring(0, 12)}`,
+            const updated = await AppointmentRepository.reschedule(id, newDate, newSlotId, {
                 appointment_id: id,
-                change_type: CHANGE_TYPE.RESCHEDULE,
-                approval_status: 'APPROVED',
-                old_date: oldDate,
-                old_slot_id: oldSlotId,
-                new_date: newDate,
-                new_slot_id: newSlotId,
-                reason: rescheduleReason,
                 changed_by: userId,
-                approved_by: userId || null,
-                approved_by_type: 'USER',
-                approved_at: new Date().toISOString(),
-                policy_checked: false,
-                policy_result: POLICY_RESULT.ALLOWED,
-            });
+                old_status: existing.status,
+                new_status: existing.status,
+                action_note: `Đổi lịch: ${existing.appointment_date} (slot ${oldSlotInfo}) → ${newDate} (slot ${newSlotId})${rescheduleReason ? `. Lý do: ${rescheduleReason}` : ''}`
+            }, client);
+
+            if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống khi đổi lịch');
+
+            if (!options?.skipChangeLog) {
+                await AppointmentChangeRepository.createChangeLog({
+                    id: `ACHG_${uuidv4().substring(0, 12)}`,
+                    appointment_id: id,
+                    change_type: CHANGE_TYPE.RESCHEDULE,
+                    approval_status: 'APPROVED',
+                    old_date: oldDate,
+                    old_slot_id: oldSlotId,
+                    new_date: newDate,
+                    new_slot_id: newSlotId,
+                    reason: rescheduleReason,
+                    changed_by: userId,
+                    approved_by: userId || null,
+                    approved_by_type: 'USER',
+                    approved_at: new Date().toISOString(),
+                    policy_checked: false,
+                    policy_result: POLICY_RESULT.ALLOWED,
+                }, client);
+            }
+
+            await client.query('COMMIT');
+
+            // Gửi thông báo đổi lịch tới bệnh nhân (fire-and-forget)
+            this.sendAppointmentNotification(
+                id,
+                APPOINTMENT_TEMPLATE_CODES.RESCHEDULED,
+                { new_date: newDate, new_slot_id: newSlotId }
+            );
+
+            return updated;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
         }
-
-        // Gửi thông báo đổi lịch tới bệnh nhân (fire-and-forget)
-        this.sendAppointmentNotification(
-            id,
-            APPOINTMENT_TEMPLATE_CODES.RESCHEDULED,
-            { new_date: newDate, new_slot_id: newSlotId }
-        );
-
-        return updated;
     }
 
     /**
@@ -907,10 +1348,12 @@ export class AppointmentService {
 
         // Xác định ngày bắt đầu (default = hôm nay, timezone VN)
         const now = new Date();
+        const vnDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+        
         const startDate = filters.start_date
             ? new Date(filters.start_date)
-            : now;
-        startDate.setHours(0, 0, 0, 0);
+            : new Date(vnDateStr);
+        startDate.setUTCHours(0, 0, 0, 0);
 
         // Clamp số ngày trong giới hạn cho phép
         const days = Math.min(
@@ -929,11 +1372,8 @@ export class AppointmentService {
         const result: any[] = [];
         for (let i = 0; i < days; i++) {
             const targetDate = new Date(startDate);
-            targetDate.setDate(targetDate.getDate() + i);
-            const year = targetDate.getFullYear();
-            const month = (targetDate.getMonth() + 1).toString().padStart(2, '0');
-            const day = targetDate.getDate().toString().padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
+            targetDate.setUTCDate(targetDate.getUTCDate() + i);
+            const dateStr = targetDate.toISOString().split('T')[0];
 
             // Kiểm tra cơ sở có mở cửa không
             let isFacilityOpen = true;
@@ -1020,7 +1460,7 @@ export class AppointmentService {
         if (!appointment) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
-        if (appointment.status !== 'COMPLETED') {
+        if (appointment.status !== APPOINTMENT_STATUS.COMPLETED) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'APPOINTMENT_NOT_COMPLETED', 'Cuộc hẹn phải hoàn thành mới được đánh giá.');
         }
 
@@ -1032,141 +1472,68 @@ export class AppointmentService {
     }
 
     /**
-     * Đặt lịch và thanh toán trước
-     */
-    static async preBookAppointment(data: CreateAppointmentInput, accountId: string, clientIP: string): Promise<any> {
-        if (!data.patient_id || !data.branch_id || (!data.slot_id && !data.shift_id) || !data.appointment_date) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
-                'Thiếu thông tin bắt buộc: patient_id, branch_id, (slot_id hoặc shift_id), appointment_date');
-        }
-
-        const config = await BookingConfigService.getResolvedConfig(data.branch_id);
-        if (config.pre_booking_enabled === false) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PRE_BOOKING_DISABLED', 'Tính năng đặt trước hiện đang tắt.');
-        }
-
-        const fee = config.pre_booking_fee ?? PRE_BOOKING_CONFIG.BOOKING_DEPOSIT_FEE;
-        if (!PRE_PAYMENT_REQUIRED_CHANNELS.includes(data.booking_channel as any)) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CHANNEL', 'Kênh đặt lịch không hỗ trợ đặt cọc trước.');
-        }
-
-        // Validate rules just like createAppointment
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const targetDate = new Date(data.appointment_date);
-        if (targetDate < today) throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', APPOINTMENT_ERRORS.INVALID_DATE);
-
-        const patientOk = await AppointmentRepository.patientExists(data.patient_id);
-        if (!patientOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', APPOINTMENT_ERRORS.PATIENT_NOT_FOUND);
-
-        const branchOk = await AppointmentRepository.branchExists(data.branch_id);
-        if (!branchOk) throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', APPOINTMENT_ERRORS.BRANCH_NOT_FOUND);
-
-        if (data.slot_id) {
-            const shiftId = await AppointmentRepository.getShiftIdBySlot(data.slot_id);
-            if (!shiftId) throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', 'Slot không tồn tại');
-            data.shift_id = shiftId;
-        }
-
-        if (data.facility_service_id) {
-            const realFacService = await AppointmentRepository.resolveFacilityService(data.facility_service_id, data.branch_id);
-            if (!realFacService) throw new AppError(HTTP_STATUS.NOT_FOUND, 'SERVICE_NOT_FOUND', APPOINTMENT_ERRORS.SERVICE_NOT_FOUND);
-            data.facility_service_id = realFacService;
-        }
-
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-            const allocResult = await this.smartAllocate(data, client);
-
-            const appointmentId = `APT${Date.now().toString().slice(-6)}${uuidv4().substring(0,4).toUpperCase()}`;
-
-            const appointment = await AppointmentRepository.create(data, {
-                appointment_id: appointmentId,
-                changed_by: accountId,
-                old_status: null,
-                new_status: APPOINTMENT_STATUS.PENDING_PAYMENT,
-                action_note: `Tạo lịch khám thanh toán trả trước`
-            }, APPOINTMENT_STATUS.PENDING_PAYMENT, client); // Note: AppointmentRepository.create supports client passed? Wait, we need to check if it does. If not, it runs outside tx. We assume it does or is fire-and-forget.
-
-            // Wait, AppointmentRepository.create signature: create(data, changelog, initialStatus, client)
-            const invoiceId = `INV_${uuidv4().substring(0, 12)}`;
-            const invoiceCode = `IV${Math.floor(100000 + Math.random() * 900000)}`;
-
-            const invoice = await BillingInvoiceRepository.createPreBookingInvoice(
-                invoiceId, invoiceCode, data.patient_id, appointment.appointments_id, fee, accountId, client
-            );
-
-            await client.query('COMMIT');
-
-            // Order creation outside tx
-            const qrOrder = await PaymentGatewayService.generateQR({
-                invoice_id: invoiceId,
-                amount: fee
-            }, accountId);
-
-            return {
-                appointment,
-                invoice_id: invoiceId,
-                payment_order: qrOrder,
-                warning: allocResult.warning || null
-            };
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
-    }
-
-    /**
-     * Tạo lại QR code nếu QR hết hạn
+     * Tạo lại QR code thanh toán cọc nếu QR cũ hết hạn hoặc bị lỗi
      */
     static async regenerateQR(appointmentId: string, accountId: string): Promise<any> {
         const appointment = await AppointmentRepository.findById(appointmentId);
-        if (!appointment) throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', 'Không tìm thấy lịch khám');
+        if (!appointment) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
 
-        if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_STATUS', 'Chỉ được tạo lại QR cho lịch ở trạng thái PENDING');
+        // Chỉ cho phép tạo lại QR khi đang chờ cọc
+        if (appointment.status !== APPOINTMENT_STATUS.PENDING_DEPOSIT) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_STATUS', 'Chỉ được tạo lại mã thanh toán cho lịch đang chờ đặt cọc.');
         }
 
         const invoice = await BillingInvoiceRepository.getInvoiceByAppointmentId(appointmentId);
         if (!invoice) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'INVOICE_NOT_FOUND', 'Không tìm thấy thông tin thanh toán');
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'INVOICE_NOT_FOUND', 'Không tìm thấy thông tin hóa đơn đặt cọc.');
         }
 
-        // generateQR will handle canceling the old PENDING order internally if it's expired.
-        const config = await BookingConfigService.getResolvedConfig('default');
-        const fee = config.pre_booking_fee ?? 100000;
+        // Lấy số tiền từ invoice hoặc dùng hằng số mặc định
+        const amount = Number(invoice.total_amount || PRE_BOOK_DEPOSIT_AMOUNT);
 
         const qrOrder = await PaymentGatewayService.generateQR({
             invoice_id: invoice.invoices_id,
-            amount: fee
+            amount: amount,
+            description: `Đặt cọc lịch khám ${appointment.appointment_code} (Tạo lại)`,
         }, accountId);
 
         return qrOrder;
     }
 
     /**
-     * Kiểm tra trạng thái thanh toán của lịch
+     * Kiểm tra trạng thái thanh toán và thông tin order của lịch khám
      */
-    static async getPaymentStatus(appointmentId: string): Promise<{ payment_status: string; appointment_status: string; order_infos: any[] }> {
+    static async getPaymentStatus(appointmentId: string): Promise<{
+        payment_status: string;
+        appointment_status: string;
+        invoice_details: any;
+        recent_orders: any[];
+    }> {
         const appointment = await AppointmentRepository.findById(appointmentId);
-        if (!appointment) throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', 'Không tìm thấy lịch khám');
+        if (!appointment) {
+            throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
+        }
 
         const invoice = await BillingInvoiceRepository.getInvoiceByAppointmentId(appointmentId);
-        let payment_status = invoice ? invoice.status : 'NO_INVOICE';
-        let order_infos: any[] = [];
-
+        
+        let recent_orders: any[] = [];
         if (invoice) {
-            // Lấy order
-            order_infos = await PaymentGatewayRepository.getRecentOrdersByInvoice(invoice.invoices_id, 5);
+            // Lấy 5 order gần nhất liên quan đến invoice này
+            recent_orders = await PaymentGatewayRepository.getRecentOrdersByInvoice(invoice.invoices_id, 5);
         }
 
         return {
-            payment_status,
+            payment_status: invoice ? invoice.status : 'NO_INVOICE',
             appointment_status: appointment.status,
-            order_infos
+            invoice_details: invoice ? {
+                invoice_id: invoice.invoices_id,
+                invoice_code: invoice.invoice_code,
+                total_amount: invoice.total_amount,
+                paid_amount: invoice.paid_amount
+            } : null,
+            recent_orders
         };
     }
 }

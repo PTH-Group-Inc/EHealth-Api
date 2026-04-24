@@ -11,8 +11,11 @@ import {
     DrugSearchResult,
     PrescriptionSummary,
     PrescriptionSummaryItem,
+    AllergyMatchResult,
+    DrugInteractionResult,
 } from '../../models/EMR/prescription.model';
 import { PRESCRIPTION_CONFIG } from '../../constants/prescription.constant';
+import { EncryptionUtil } from '../../utils/encryption.util';
 
 type QueryExecutor = Pool | PoolClient;
 
@@ -52,6 +55,34 @@ function generateDetailId(): string {
 
 export class PrescriptionRepository {
 
+    /**
+     * Helper: Giải mã các trường nhạy cảm trong Prescription
+     */
+    private static decryptPrescription<T extends Partial<PrescriptionRecord>>(record: T): T {
+        if (!record) return record;
+        if (record.clinical_diagnosis) {
+            record.clinical_diagnosis = EncryptionUtil.decrypt(record.clinical_diagnosis);
+        }
+        if (record.doctor_notes) {
+            record.doctor_notes = EncryptionUtil.decrypt(record.doctor_notes);
+        }
+        return record;
+    }
+
+    /**
+     * Helper: Giải mã các trường nhạy cảm trong PrescriptionDetail
+     */
+    private static decryptDetail<T extends Partial<PrescriptionDetailRecord>>(record: T): T {
+        if (!record) return record;
+        if (record.usage_instruction) {
+            record.usage_instruction = EncryptionUtil.decrypt(record.usage_instruction);
+        }
+        if (record.notes) {
+            record.notes = EncryptionUtil.decrypt(record.notes);
+        }
+        return record;
+    }
+
     //  ĐƠN THUỐC 
 
     /**
@@ -77,12 +108,12 @@ export class PrescriptionRepository {
             [
                 id, code, encounterId,
                 doctorId, patientId,
-                data.clinical_diagnosis || null,
-                data.doctor_notes || null,
+                data.clinical_diagnosis ? EncryptionUtil.encrypt(data.clinical_diagnosis) : null,
+                data.doctor_notes ? EncryptionUtil.encrypt(data.doctor_notes) : null,
                 data.primary_diagnosis_id || null,
             ]
         );
-        return result.rows[0];
+        return this.decryptPrescription(result.rows[0]);
     }
 
     /**
@@ -102,7 +133,7 @@ export class PrescriptionRepository {
              WHERE p.encounter_id = $1`,
             [encounterId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptPrescription(result.rows[0]) : null;
     }
 
     /**
@@ -122,7 +153,7 @@ export class PrescriptionRepository {
              WHERE p.prescriptions_id = $1`,
             [prescriptionId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptPrescription(result.rows[0]) : null;
     }
 
     /**
@@ -135,11 +166,11 @@ export class PrescriptionRepository {
 
         if (data.clinical_diagnosis !== undefined) {
             setClauses.push(`clinical_diagnosis = $${paramIndex++}`);
-            values.push(data.clinical_diagnosis);
+            values.push(data.clinical_diagnosis ? EncryptionUtil.encrypt(data.clinical_diagnosis) : null);
         }
         if (data.doctor_notes !== undefined) {
             setClauses.push(`doctor_notes = $${paramIndex++}`);
-            values.push(data.doctor_notes);
+            values.push(data.doctor_notes ? EncryptionUtil.encrypt(data.doctor_notes) : null);
         }
         if (data.primary_diagnosis_id !== undefined) {
             setClauses.push(`primary_diagnosis_id = $${paramIndex++}`);
@@ -235,7 +266,7 @@ export class PrescriptionRepository {
             dataValues
         );
 
-        return { data: dataResult.rows, total: countResult.rows[0].total };
+        return { data: dataResult.rows.map(row => this.decryptPrescription(row)), total: countResult.rows[0].total };
     }
 
     // DÒNG THUỐC (DETAILS)
@@ -265,11 +296,13 @@ export class PrescriptionRepository {
             [
                 id, prescriptionId, data.drug_id,
                 data.quantity, data.dosage, data.frequency, data.duration_days || null,
-                data.usage_instruction || null, data.route_of_administration || null, data.notes || null,
+                data.usage_instruction ? EncryptionUtil.encrypt(data.usage_instruction) : null,
+                data.route_of_administration || null,
+                data.notes ? EncryptionUtil.encrypt(data.notes) : null,
                 maxSort.rows[0].next_sort,
             ]
         );
-        return result.rows[0];
+        return this.decryptDetail(result.rows[0]);
     }
 
     /**
@@ -298,7 +331,7 @@ export class PrescriptionRepository {
         }
         if (data.usage_instruction !== undefined) {
             setClauses.push(`usage_instruction = $${paramIndex++}`);
-            values.push(data.usage_instruction);
+            values.push(data.usage_instruction ? EncryptionUtil.encrypt(data.usage_instruction) : null);
         }
         if (data.route_of_administration !== undefined) {
             setClauses.push(`route_of_administration = $${paramIndex++}`);
@@ -306,7 +339,7 @@ export class PrescriptionRepository {
         }
         if (data.notes !== undefined) {
             setClauses.push(`notes = $${paramIndex++}`);
-            values.push(data.notes);
+            values.push(data.notes ? EncryptionUtil.encrypt(data.notes) : null);
         }
 
         if (values.length === 0) return this.findDetailById(detailId);
@@ -346,7 +379,7 @@ export class PrescriptionRepository {
              WHERE pd.prescription_details_id = $1`,
             [detailId]
         );
-        return result.rows[0] || null;
+        return result.rows[0] ? this.decryptDetail(result.rows[0]) : null;
     }
 
     /**
@@ -365,7 +398,7 @@ export class PrescriptionRepository {
              ORDER BY pd.sort_order ASC`,
             [prescriptionId]
         );
-        return result.rows;
+        return result.rows.map(row => this.decryptDetail(row));
     }
 
     /**
@@ -457,10 +490,13 @@ export class PrescriptionRepository {
             [presc.prescriptions_id]
         );
 
+        const decryptedPresc = this.decryptPrescription(presc);
+        const decryptedDetails = detailsResult.rows.map(row => this.decryptDetail(row));
+
         return {
-            ...presc,
-            total_items: detailsResult.rows.length,
-            items: detailsResult.rows,
+            ...decryptedPresc,
+            total_items: decryptedDetails.length,
+            items: decryptedDetails,
         };
     }
 
@@ -582,7 +618,7 @@ export class PrescriptionRepository {
             dataValues
         );
 
-        return { data: dataResult.rows, total: countResult.rows[0].total };
+        return { data: dataResult.rows.map(row => this.decryptPrescription(row)), total: countResult.rows[0].total };
     }
 
     /**
@@ -649,7 +685,7 @@ export class PrescriptionRepository {
             dataValues
         );
 
-        return { data: dataR.rows, total: countR.rows[0].total };
+        return { data: dataR.rows.map(row => this.decryptPrescription(row)), total: countR.rows[0].total };
     }
 
     /**
@@ -667,7 +703,7 @@ export class PrescriptionRepository {
              LEFT JOIN encounter_diagnoses ed ON ed.encounter_diagnoses_id = p.primary_diagnosis_id
              WHERE p.prescription_code = $1`, [code]
         );
-        return r.rows[0] || null;
+        return r.rows[0] ? this.decryptPrescription(r.rows[0]) : null;
     }
 
     /**
@@ -698,4 +734,46 @@ export class PrescriptionRepository {
         }
         return stats;
     }
+
+    // === MEDICATION SAFETY VALIDATION ===
+
+    /**
+     * Kiểm tra bệnh nhân có dị ứng với thuốc sắp kê không.
+     * Match: allergen_name so sánh với brand_name + active_ingredients.
+     */
+    static async checkPatientDrugAllergy(
+        patientId: string,
+        drugId: string,
+        client: QueryExecutor = pool
+    ): Promise<{ has_allergy: boolean; details: AllergyMatchResult[] }> {
+        const query = `
+            SELECT pa.patient_allergies_id as allergy_id, pa.allergen_name, pa.severity, pa.reaction,
+                   d.brand_name as drug_brand_name, d.active_ingredients as drug_active_ingredients,
+                   CASE 
+                       WHEN LOWER(d.active_ingredients) LIKE '%' || LOWER(pa.allergen_name) || '%' THEN 'active_ingredients'
+                       WHEN LOWER(d.brand_name) LIKE '%' || LOWER(pa.allergen_name) || '%' THEN 'brand_name'
+                       ELSE 'active_ingredients'
+                   END as matched_field
+            FROM patient_allergies pa
+            CROSS JOIN drugs d
+            WHERE pa.patient_id = $1
+              AND d.drugs_id = $2
+              AND pa.allergen_type = 'DRUG'
+              AND pa.deleted_at IS NULL
+              AND (
+                LOWER(d.active_ingredients) LIKE '%' || LOWER(pa.allergen_name) || '%'
+                OR
+                LOWER(d.brand_name) LIKE '%' || LOWER(pa.allergen_name) || '%'
+                OR
+                LOWER(pa.allergen_name) LIKE '%' || LOWER(d.brand_name) || '%'
+              )
+        `;
+        const result = await client.query(query, [patientId, drugId]);
+        return {
+            has_allergy: result.rows.length > 0,
+            details: result.rows
+        };
+    }
+
+
 }

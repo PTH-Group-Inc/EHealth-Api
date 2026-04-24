@@ -276,6 +276,67 @@ export class SignOffRepository {
         return result.rows;
     }
 
+    //  COSIGN REQUIREMENTS 
+
+    static async addCosignRequirement(
+        encounterId: string,
+        requiredRole: string,
+        requiredUserId: string | null = null,
+        client: QueryExecutor = pool
+    ): Promise<void> {
+        const id = `CS_${uuidv4().substring(0, 8)}`;
+        await client.query(
+            `INSERT INTO emr_cosign_requirements (cosign_id, encounter_id, required_role, required_user_id)
+             VALUES ($1, $2, $3, $4)`,
+            [id, encounterId, requiredRole, requiredUserId]
+        );
+    }
+
+    static async getCosignRequirements(encounterId: string): Promise<any[]> {
+        const result = await pool.query(
+            `SELECT c.*, up.full_name AS signed_by_name
+             FROM emr_cosign_requirements c
+             LEFT JOIN user_profiles up ON up.user_id = c.signed_by
+             WHERE c.encounter_id = $1
+             ORDER BY c.created_at ASC`,
+            [encounterId]
+        );
+        return result.rows;
+    }
+
+    static async getCosignRequirementById(cosignId: string): Promise<any | null> {
+        const result = await pool.query(
+            `SELECT * FROM emr_cosign_requirements WHERE cosign_id = $1`,
+            [cosignId]
+        );
+        return result.rows[0] || null;
+    }
+
+    static async updateCosignStatus(
+        cosignId: string,
+        status: string,
+        signedBy: string,
+        client: QueryExecutor = pool
+    ): Promise<void> {
+        await client.query(
+            `UPDATE emr_cosign_requirements 
+             SET status = $1, signed_by = $2, signed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+             WHERE cosign_id = $3`,
+            [status, signedBy, cosignId]
+        );
+    }
+
+    static async isReadyForOfficialSign(encounterId: string): Promise<boolean> {
+        const result = await pool.query(
+            `SELECT EXISTS(
+                SELECT 1 FROM emr_cosign_requirements
+                WHERE encounter_id = $1 AND status = 'PENDING'
+            ) AS has_pending`,
+            [encounterId]
+        );
+        return !result.rows[0].has_pending;
+    }
+
     //  HASH HELPERS 
 
     /** Tạo SHA-256 hash từ data */

@@ -37,67 +37,74 @@ export class DispensingService {
         if (!rxInfo.exists) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'PRESCRIPTION_NOT_FOUND', DISPENSE_ERRORS.PRESCRIPTION_NOT_FOUND);
         }
-        if (rxInfo.status !== 'PRESCRIBED') {
+        if (rxInfo.status !== 'PRESCRIBED' && rxInfo.status !== 'PARTIALLY_DISPENSED') {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PRESCRIPTION_NOT_PRESCRIBED', DISPENSE_ERRORS.PRESCRIPTION_NOT_PRESCRIBED);
         }
 
-        // 2. Kiểm tra chưa cấp phát
-        const alreadyDispensed = await DispensingRepository.hasDispenseOrder(prescriptionId);
-        if (alreadyDispensed) {
-            throw new AppError(HTTP_STATUS.CONFLICT, 'ALREADY_DISPENSED', DISPENSE_ERRORS.ALREADY_DISPENSED);
-        }
-
-        // 3. Validate items
+        // 2. Validate items
         if (!input.items || input.items.length === 0) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_ITEMS', DISPENSE_ERRORS.MISSING_ITEMS);
         }
 
-        // 4. Pre-validate từng dòng (trước khi bắt đầu transaction)
-        for (const item of input.items) {
-            if (!item.prescription_detail_id || !item.inventory_id || !item.dispensed_quantity || item.dispensed_quantity <= 0) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ITEM', DISPENSE_ERRORS.INVALID_ITEM);
-            }
-
-            // Check dòng thuốc thuộc đơn
-            const detail = await DispensingRepository.getPrescriptionDetail(item.prescription_detail_id, prescriptionId);
-            if (!detail.exists) {
-                throw new AppError(HTTP_STATUS.NOT_FOUND, 'DETAIL_NOT_FOUND', DISPENSE_ERRORS.DETAIL_NOT_FOUND);
-            }
-
-            // Check lô tồn kho
-            const batch = await DispensingRepository.getInventoryBatch(item.inventory_id);
-            if (!batch.exists) {
-                throw new AppError(HTTP_STATUS.NOT_FOUND, 'INVENTORY_NOT_FOUND', DISPENSE_ERRORS.INVENTORY_NOT_FOUND);
-            }
-
-            // Check drug match
-            if (batch.drug_id !== detail.drug_id) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DRUG_MISMATCH', DISPENSE_ERRORS.DRUG_MISMATCH);
-            }
-
-            // Check hết hạn
-            if (new Date(batch.expiry_date!) <= new Date()) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'BATCH_EXPIRED', DISPENSE_ERRORS.BATCH_EXPIRED);
-            }
-
-            // Check tồn kho đủ
-            if (batch.stock_quantity! < item.dispensed_quantity) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INSUFFICIENT_STOCK', DISPENSE_ERRORS.INSUFFICIENT_STOCK);
-            }
-
-            // Check facility match: lô kho phải cùng branch với lượt khám
-            const rxBranch = await DispensingRepository.getBranchFromPrescription(prescriptionId);
-            const invBranch = await DispensingRepository.getBranchFromInventory(item.inventory_id);
-            if (rxBranch && invBranch && rxBranch !== invBranch) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'FACILITY_MISMATCH', DISPENSE_ERRORS.FACILITY_MISMATCH);
-            }
-        }
-
-        // 5. Transaction: tạo phiếu + trừ kho + đổi status đơn thuốc
+        // 3. Transaction: lock prescription + validate stock + create order + deduct
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
+            // Lock đơn thuốc (chặn concurrent dispensing)
+            await client.query(
+                `SELECT prescriptions_id FROM prescriptions WHERE prescriptions_id = $1 FOR UPDATE`,
+                [prescriptionId]
+            );
+
+            // Kiểm tra chưa cấp phát (an toàn trong transaction)
+            const alreadyDispensed = await DispensingRepository.hasDispenseOrder(prescriptionId, client);
+            if (alreadyDispensed) {
+                throw new AppError(HTTP_STATUS.CONFLICT, 'ALREADY_DISPENSED', DISPENSE_ERRORS.ALREADY_DISPENSED);
+            }
+
+            // 4. Validate từng dòng
+            for (const item of input.items) {
+                if (!item.prescription_detail_id || !item.inventory_id || !item.dispensed_quantity || item.dispensed_quantity <= 0) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ITEM', DISPENSE_ERRORS.INVALID_ITEM);
+                }
+
+                // Check dòng thuốc thuộc đơn
+                const detail = await DispensingRepository.getPrescriptionDetail(item.prescription_detail_id, prescriptionId);
+                if (!detail.exists) {
+                    throw new AppError(HTTP_STATUS.NOT_FOUND, 'DETAIL_NOT_FOUND', DISPENSE_ERRORS.DETAIL_NOT_FOUND);
+                }
+
+                // Check lô tồn kho + LOCK
+                const batch = await DispensingRepository.lockAndGetInventoryBatch(client, item.inventory_id);
+                if (!batch.exists) {
+                    throw new AppError(HTTP_STATUS.NOT_FOUND, 'INVENTORY_NOT_FOUND', DISPENSE_ERRORS.INVENTORY_NOT_FOUND);
+                }
+
+                // Check drug match
+                if (batch.drug_id !== detail.drug_id) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DRUG_MISMATCH', DISPENSE_ERRORS.DRUG_MISMATCH);
+                }
+
+                // Check hết hạn
+                if (new Date(batch.expiry_date!) <= new Date()) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'BATCH_EXPIRED', DISPENSE_ERRORS.BATCH_EXPIRED);
+                }
+
+                // Check tồn kho đủ
+                if (batch.stock_quantity! < item.dispensed_quantity) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INSUFFICIENT_STOCK', DISPENSE_ERRORS.INSUFFICIENT_STOCK);
+                }
+
+                // Check facility match: lô kho phải cùng branch với lượt khám
+                const rxBranch = await DispensingRepository.getBranchFromPrescription(prescriptionId);
+                const invBranch = await DispensingRepository.getBranchFromInventory(item.inventory_id);
+                if (rxBranch && invBranch && rxBranch !== invBranch) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'FACILITY_MISMATCH', DISPENSE_ERRORS.FACILITY_MISMATCH);
+                }
+            }
+
+            // 5. Tạo phiếu
             const orderId = DispensingRepository.generateOrderId();
             const code = DispensingRepository.generateDispenseCode();
 
@@ -106,7 +113,6 @@ export class DispensingService {
             );
 
             const details = [];
-            let totalCost = 0;
 
             for (const item of input.items) {
                 const detailId = DispensingRepository.generateDetailId();
@@ -118,14 +124,36 @@ export class DispensingService {
                 if (!deducted) {
                     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INSUFFICIENT_STOCK', DISPENSE_ERRORS.INSUFFICIENT_STOCK);
                 }
-
-                // Tính tổng chi phí (lấy unit_price từ inventory)
-                const batchInfo = await DispensingRepository.getInventoryBatch(item.inventory_id);
-                // totalCost sẽ được tính khi đọc lại
             }
 
-            // Cập nhật trạng thái đơn thuốc → DISPENSED
-            await DispensingRepository.updatePrescriptionStatus(client, prescriptionId, 'DISPENSED');
+            // Xác định trạng thái cấp phát (PARTIALLY_DISPENSED hay DISPENSED)
+            const allRxDetails = await DispensingRepository.getAllPrescriptionDetails(prescriptionId);
+            const totalRequested = allRxDetails.reduce((sum, d) => sum + Number(d.quantity), 0);
+
+            // Lấy tổng số lượng đã cấp phát trước đó
+            const prevDispenses = await client.query(
+                `SELECT SUM(dispensed_quantity) as total_prev 
+                 FROM drug_dispense_details ddd
+                 JOIN drug_dispense_orders ddo ON ddo.drug_dispense_orders_id = ddd.dispense_order_id
+                 WHERE ddo.prescription_id = $1 AND ddo.status IN ('COMPLETED', 'PARTIALLY_DISPENSED')`,
+                [prescriptionId]
+            );
+            const prevDispensed = Number(prevDispenses.rows[0].total_prev || 0);
+            const currentDispensed = input.items.reduce((sum, item) => sum + Number(item.dispensed_quantity), 0);
+            const totalDispensed = prevDispensed + currentDispensed;
+
+            const finalStatus = (totalDispensed < totalRequested) 
+                ? DISPENSE_STATUS.PARTIALLY_DISPENSED 
+                : DISPENSE_STATUS.COMPLETED;
+
+            // Cập nhật trạng thái phiếu cấp phát nếu là PARTIALLY_DISPENSED (do createOrder mặc định là COMPLETED)
+            if (finalStatus === DISPENSE_STATUS.PARTIALLY_DISPENSED) {
+                await client.query(`UPDATE drug_dispense_orders SET status = $1 WHERE drug_dispense_orders_id = $2`, [finalStatus, orderId]);
+            }
+
+            // Cập nhật trạng thái đơn thuốc → DISPENSED hoặc PARTIALLY_DISPENSED
+            const rxFinalStatus = (totalDispensed < totalRequested) ? 'PARTIALLY_DISPENSED' : 'DISPENSED';
+            await DispensingRepository.updatePrescriptionStatus(client, prescriptionId, rxFinalStatus);
 
             await client.query('COMMIT');
 
@@ -243,19 +271,27 @@ export class DispensingService {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_CANCEL_REASON', DISPENSE_ERRORS.MISSING_CANCEL_REASON);
         }
 
-        const order = await DispensingRepository.getOrderById(dispenseOrderId);
-        if (!order) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'DISPENSE_ORDER_NOT_FOUND', DISPENSE_ERRORS.DISPENSE_ORDER_NOT_FOUND);
-        }
-        if (order.status === DISPENSE_STATUS.CANCELLED) {
-            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DISPENSE_ALREADY_CANCELLED', DISPENSE_ERRORS.DISPENSE_ALREADY_CANCELLED);
-        }
-
-        const details = await DispensingRepository.getDetailsByOrderId(dispenseOrderId);
-
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
+
+            // Lock order
+            const orderResult = await client.query(
+                `SELECT status, prescription_id FROM drug_dispense_orders WHERE drug_dispense_orders_id = $1 FOR UPDATE`,
+                [dispenseOrderId]
+            );
+
+            if (orderResult.rows.length === 0) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'DISPENSE_ORDER_NOT_FOUND', DISPENSE_ERRORS.DISPENSE_ORDER_NOT_FOUND);
+            }
+
+            const order = orderResult.rows[0];
+
+            if (order.status === DISPENSE_STATUS.CANCELLED) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'DISPENSE_ALREADY_CANCELLED', DISPENSE_ERRORS.DISPENSE_ALREADY_CANCELLED);
+            }
+
+            const details = await DispensingRepository.getDetailsByOrderId(dispenseOrderId);
 
             // Hoàn kho từng dòng
             for (const detail of details) {

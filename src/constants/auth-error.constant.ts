@@ -20,7 +20,7 @@ export const AUTH_ERRORS = {
     INVALID_PASSWORD_FORMAT: {
         httpCode: 400,
         code: 'AUTH_001',
-        message: 'Mật khẩu không hợp lệ',
+        message: 'Mật khẩu phải dài ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt',
     },
     INVALID_CREDENTIAL: {
         httpCode: 401,

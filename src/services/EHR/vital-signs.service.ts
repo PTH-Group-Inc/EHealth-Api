@@ -13,6 +13,24 @@ export class VitalSignsService {
         if (!exists) throw new Error(VS_ERRORS.PATIENT_NOT_FOUND);
     }
 
+    static async validateDoctorPatientAccess(userId: string, roles: string[], patientId: string): Promise<void> {
+        if (roles.includes('ADMIN')) return; // ADMIN has full access
+        
+        // Check if user is the patient
+        const isOwner = await VitalSignsRepository.isPatientAccount(userId, patientId);
+        if (isOwner) return;
+
+        // Check if user is a doctor treating the patient
+        if (roles.includes('DOCTOR')) {
+             const hasRelation = await VitalSignsRepository.hasDoctorPatientRelationship(userId, patientId);
+             if (hasRelation) return;
+        }
+
+        const error: any = new Error(VS_ERRORS.FORBIDDEN);
+        error.statusCode = 403;
+        throw error;
+    }
+
     /** API 1: Lịch sử sinh hiệu */
     static async getVitals(patientId: string, filters: VitalFilters): Promise<{ data: VitalSignRecord[]; total: number; page: number; limit: number }> {
         await this.validatePatient(patientId);

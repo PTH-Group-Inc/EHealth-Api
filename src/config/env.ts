@@ -48,9 +48,9 @@ export const env = {
         user: required('DB_USER'),
         password: required('DB_PASSWORD'),
         // Production: pool lớn hơn, timeout dài hơn
-        poolSize: NODE_ENV === 'production' ? 30 : 10,
-        idleTimeoutMs: NODE_ENV === 'production' ? 60000 : 30000,
-        connectionTimeoutMs: NODE_ENV === 'production' ? 5000 : 2000,
+        poolSize: parseInt(optional('DB_POOL_SIZE', NODE_ENV === 'production' ? '15' : '5'), 10),
+        idleTimeoutMs: parseInt(optional('DB_IDLE_TIMEOUT_MS', NODE_ENV === 'production' ? '60000' : '30000'), 10),
+        connectionTimeoutMs: parseInt(optional('DB_CONNECTION_TIMEOUT_MS', NODE_ENV === 'production' ? '5000' : '2000'), 10),
     },
 
     // ── JWT ──
@@ -59,8 +59,9 @@ export const env = {
         refreshSecret: required('JWT_REFRESH_SECRET'),
     },
 
-    // ── Frontend ──
+    // ── Frontend & CORS ──
     frontendUrl: optional('FRONTEND_URL', 'http://localhost:3000'),
+    corsOrigins: optional('CORS_ORIGINS', 'http://localhost:3000').split(','),
 
     // ── Email ──
     email: {
@@ -93,7 +94,23 @@ export const env = {
         vaAccount: optional('SEPAY_VA_ACCOUNT'),
     },
 
+    // ── Data Encryption At-Rest ──
+    encryption: {
+        currentKey: optional('DATA_ENCRYPTION_KEY', ''),
+        previousKey: optional('DATA_ENCRYPTION_KEY_PREVIOUS', ''),
+    },
+
 } as const;
+
+// ─── 4.1 Security Validation ──────────────────────────────────────
+const insecureSecrets = ['your_access_secret', 'your_refresh_secret', 'your_secret_key', 'secret'];
+if (insecureSecrets.includes(env.jwt.accessSecret) || insecureSecrets.includes(env.jwt.refreshSecret)) {
+    logger.error('🚨 CRITICAL SECURITY ERROR: Vui lòng thay đổi JWT_ACCESS_SECRET và JWT_REFRESH_SECRET trong file .env. Không sử dụng giá trị mặc định!');
+    if (env.isProd) {
+        logger.error('🛑 Server đang bị dừng vì lý do bảo mật.');
+        process.exit(1); // Force exit in production
+    }
+}
 
 // ─── 5. Log thông tin khởi động ─────────────────────────────────
 if (env.isDev) {

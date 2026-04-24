@@ -1,4 +1,5 @@
 import { pool } from '../../config/postgresdb';
+import { NO_SHOW_LIMITS } from '../../constants/appointment-status.constant';
 import {
     Patient,
     CreatePatientInput,
@@ -25,7 +26,8 @@ export class PatientRepository {
         status?: string,
         gender?: string,
         page: number = 1,
-        limit: number = 20
+        limit: number = 20,
+        isBlacklisted?: boolean
     ): Promise<PaginatedPatients> {
         let whereClause = 'WHERE p.deleted_at IS NULL';
         const params: any[] = [];
@@ -43,6 +45,10 @@ export class PatientRepository {
             whereClause += ` AND (p.full_name ILIKE $${paramIndex} OR p.patient_code ILIKE $${paramIndex} OR p.phone_number ILIKE $${paramIndex} OR p.id_card_number ILIKE $${paramIndex})`;
             params.push(`%${search}%`);
             paramIndex++;
+        }
+        if (isBlacklisted !== undefined) {
+            whereClause += ` AND p.is_blacklisted = $${paramIndex++}`;
+            params.push(isBlacklisted);
         }
 
         // Count
@@ -101,7 +107,26 @@ export class PatientRepository {
             params.push(excludeId);
         }
         const result = await pool.query(query, params);
-        return result.rows.length > 0;
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    /**
+     * Tìm kiếm bệnh nhân trùng lặp (trùng tên và số điện thoại)
+     */
+    static async findDuplicatesByNameAndPhone(fullName: string, phoneNumber: string, excludeId?: string): Promise<{ id: string; patient_code: string }[]> {
+        let query = `
+            SELECT id, patient_code
+            FROM patients
+            WHERE full_name ILIKE $1 AND phone_number = $2 AND deleted_at IS NULL
+        `;
+        const params: any[] = [fullName, phoneNumber];
+
+        if (excludeId) {
+            query += ' AND id != $3';
+            params.push(excludeId);
+        }
+        const result = await pool.query(query, params);
+        return result.rows;
     }
 
     /**
@@ -123,9 +148,10 @@ export class PatientRepository {
                 id, patient_code, full_name, date_of_birth, gender,
                 phone_number, email, id_card_number,
                 address, province_id, district_id, ward_id,
-                emergency_contact_name, emergency_contact_phone
+                emergency_contact_name, emergency_contact_phone,
+                relationship, is_default
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING *
         `;
         const result = await pool.query(query, [
@@ -143,6 +169,8 @@ export class PatientRepository {
             input.ward_id || null,
             input.emergency_contact_name || null,
             input.emergency_contact_phone || null,
+            input.relationship || 'SELF',
+            input.is_default || false,
         ]);
         return result.rows[0];
     }
@@ -167,6 +195,8 @@ export class PatientRepository {
         if (input.ward_id !== undefined) { fields.push(`ward_id = $${paramIndex++}`); params.push(input.ward_id); }
         if (input.emergency_contact_name !== undefined) { fields.push(`emergency_contact_name = $${paramIndex++}`); params.push(input.emergency_contact_name); }
         if (input.emergency_contact_phone !== undefined) { fields.push(`emergency_contact_phone = $${paramIndex++}`); params.push(input.emergency_contact_phone); }
+        if (input.relationship !== undefined) { fields.push(`relationship = $${paramIndex++}`); params.push(input.relationship); }
+        if (input.is_default !== undefined) { fields.push(`is_default = $${paramIndex++}`); params.push(input.is_default); }
 
         fields.push(`updated_at = CURRENT_TIMESTAMP`);
         params.push(id);
@@ -465,6 +495,8 @@ export class PatientRepository {
                 p.id, p.patient_code, p.full_name, p.date_of_birth, p.gender,
                 p.phone_number, p.email, p.id_card_number, p.address, p.status,
                 COALESCE(p.has_insurance, false) AS has_insurance,
+                COALESCE(p.no_show_count, 0) AS no_show_count,
+                COALESCE(p.is_blacklisted, false) AS is_blacklisted,
                 EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth))::int AS age,
                 (SELECT COUNT(*) FROM patient_tags pt WHERE pt.patient_id = p.id)::int AS tag_count,
                 (SELECT COUNT(*) FROM patient_insurances pi2 WHERE pi2.patient_id = p.id::varchar)::int AS insurance_count,
@@ -475,6 +507,20 @@ export class PatientRepository {
         `;
         const result = await pool.query(query, [id]);
         return result.rows[0] || null;
+    }
+
+    /**
+     * Increment no_show_count and auto-flag is_blacklisted if >= NO_SHOW_LIMITS.BLACKLIST_THRESHOLD
+     */
+    static async incrementNoShowCount(id: string): Promise<void> {
+        const query = `
+            UPDATE patients 
+            SET no_show_count = COALESCE(no_show_count, 0) + 1,
+                is_blacklisted = CASE WHEN COALESCE(no_show_count, 0) + 1 >= $2 THEN true ELSE is_blacklisted END,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1 AND deleted_at IS NULL
+        `;
+        await pool.query(query, [id, NO_SHOW_LIMITS.BLACKLIST_THRESHOLD]);
     }
 }
 

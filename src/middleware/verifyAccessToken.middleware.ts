@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { TokenUtil } from "../utils/token.util";
 import { AUTH_ERRORS } from "../constants/auth-error.constant";
+import { UserSessionRepository } from "../repository/Core/auth_user-session.repository";
 
 /**
  * Logic lõi dùng chung để xác thực token
@@ -33,6 +34,12 @@ function _verifyToken(req: Request, res: Response, next: NextFunction, required:
       roles: payload.roles,
       sessionId: payload.sessionId,
     };
+
+    if (payload.sessionId) {
+        UserSessionRepository.updateLastUsed(payload.sessionId).catch(err => {
+            console.error("Failed to update session last_used_at:", err);
+        });
+    }
 
     next();
   } catch (error) {

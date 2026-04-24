@@ -1,4 +1,6 @@
 import { pool } from '../../config/postgresdb';
+import logger from '../../config/logger.config';
+import { EncryptionUtil } from '../../utils/encryption.util';
 import {
     PatientDocument,
     DocumentVersion,
@@ -12,11 +14,9 @@ export class PatientDocumentRepository {
      * Kiểm tra bệnh nhân có tồn tại không (dùng bảng patients, id kiểu UUID)
      */
     static async checkPatientExists(patientId: string): Promise<boolean> {
-        console.log("checkPatientExists patientId:", typeof patientId, `"${patientId}"`);
         const result = await pool.query(`SELECT 1 FROM patients WHERE id = $1`, [patientId]);
-        console.log("checkPatientExists result:", result.rows.length);
         if (result.rows.length === 0) {
-            console.error("DEBUG: PATIENT NOT FOUND", typeof patientId, `"${patientId}"`);
+            logger.warn(`PATIENT NOT FOUND: ${typeof patientId} "${patientId}"`);
         }
         return result.rows.length > 0;
     }
@@ -43,6 +43,7 @@ export class PatientDocumentRepository {
         fileSizeBytes: number,
         uploadedBy: string | null
     ): Promise<PatientDocument> {
+        const encryptedFileUrl = EncryptionUtil.encrypt(fileUrl);
         const query = `
             INSERT INTO patient_documents
                 (patient_documents_id, patient_id, document_type_id, document_type, title, file_url, file_format, file_size_bytes, notes, uploaded_by)
@@ -58,13 +59,17 @@ export class PatientDocumentRepository {
             input.patient_id,
             input.document_type_id,
             input.document_name,
-            fileUrl,
+            encryptedFileUrl,
             fileFormat,
             fileSizeBytes,
             input.notes || null,
             uploadedBy,
         ]);
-        return result.rows[0];
+        const doc = result.rows[0];
+        if (doc && doc.file_url) {
+            doc.file_url = EncryptionUtil.decrypt(doc.file_url);
+        }
+        return doc;
     }
 
     /**
@@ -107,8 +112,13 @@ export class PatientDocumentRepository {
         params.push(offset, limit);
         const dataResult = await pool.query(dataQuery, params);
 
+        const rows = dataResult.rows.map(doc => {
+            if (doc.file_url) doc.file_url = EncryptionUtil.decrypt(doc.file_url);
+            return doc;
+        });
+
         return {
-            data: dataResult.rows,
+            data: rows,
             total,
             page,
             limit,
@@ -129,7 +139,11 @@ export class PatientDocumentRepository {
             WHERE pd.patient_documents_id = $1 AND pd.deleted_at IS NULL
         `;
         const result = await pool.query(query, [id]);
-        return result.rows[0] || null;
+        const doc = result.rows[0] || null;
+        if (doc && doc.file_url) {
+            doc.file_url = EncryptionUtil.decrypt(doc.file_url);
+        }
+        return doc;
     }
 
     /**
@@ -204,6 +218,7 @@ export class PatientDocumentRepository {
         fileSizeBytes: number,
         uploadedBy: string | null
     ): Promise<PatientDocument> {
+        const encryptedFileUrl = EncryptionUtil.encrypt(fileUrl);
         const query = `
             UPDATE patient_documents
             SET file_url = $1,
@@ -215,8 +230,12 @@ export class PatientDocumentRepository {
             WHERE patient_documents_id = $5 AND deleted_at IS NULL
             RETURNING *
         `;
-        const result = await pool.query(query, [fileUrl, fileFormat, fileSizeBytes, uploadedBy, id]);
-        return result.rows[0];
+        const result = await pool.query(query, [encryptedFileUrl, fileFormat, fileSizeBytes, uploadedBy, id]);
+        const doc = result.rows[0];
+        if (doc && doc.file_url) {
+            doc.file_url = EncryptionUtil.decrypt(doc.file_url);
+        }
+        return doc;
     }
 
     /**
@@ -227,7 +246,10 @@ export class PatientDocumentRepository {
             `SELECT * FROM patient_document_versions WHERE document_id = $1 ORDER BY version_number DESC`,
             [documentId]
         );
-        return result.rows;
+        return result.rows.map(version => {
+            if (version.file_url) version.file_url = EncryptionUtil.decrypt(version.file_url);
+            return version;
+        });
     }
 
     /**
@@ -238,7 +260,11 @@ export class PatientDocumentRepository {
             `SELECT * FROM patient_document_versions WHERE version_id = $1`,
             [versionId]
         );
-        return result.rows[0] || null;
+        const version = result.rows[0] || null;
+        if (version && version.file_url) {
+            version.file_url = EncryptionUtil.decrypt(version.file_url);
+        }
+        return version;
     }
 }
 

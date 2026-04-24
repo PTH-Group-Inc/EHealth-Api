@@ -2,6 +2,7 @@ import { AUTH_ERRORS } from '../constants/auth-error.constant';
 import { SecurityUtil } from './auth-security.util';
 import { ClientInfo } from '../models/Core/auth_user-session.model';
 import { User } from '../models/Core/auth_account.model';
+import { AUTH_CONSTANTS } from '../constants/auth.constant';
 
 export type LoginIdentifierType = 'EMAIL' | 'PHONE';
 
@@ -47,6 +48,7 @@ export class AuthValidation {
             throw AUTH_ERRORS.INVALID_INPUT;
         }
 
+        // Chỉ kiểm tra độ dài tối thiểu cho đăng nhập để tránh login fail do regex nếu policy cũ
         if (password.length < 6) {
             throw AUTH_ERRORS.INVALID_PASSWORD_FORMAT;
         }
@@ -71,11 +73,27 @@ export class AuthValidation {
     }
 
     /**
-     * Chỉ validate Password (Dùng cho Reset Password)
+     * Chỉ validate Password (Dùng cho Reset Password và Change Password)
      */
     static validatePasswordOnly(password: string): void {
+        this.validatePasswordComplexity(password);
+    }
+
+    /**
+     * Xác thực độ phức tạp của mật khẩu
+     */
+    static validatePasswordComplexity(password: string): void {
         if (!password) throw AUTH_ERRORS.INVALID_INPUT;
-        if (password.length < 6) throw AUTH_ERRORS.INVALID_PASSWORD_FORMAT;
+        
+        if (password.length < AUTH_CONSTANTS.SECURITY.PASSWORD_MIN_LENGTH) {
+            throw AUTH_ERRORS.INVALID_PASSWORD_FORMAT;
+        }
+
+        // Bắt buộc: 1 chữ hoa, 1 chữ thường, 1 số, 1 ký tự đặc biệt
+        const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+        if (!complexityRegex.test(password)) {
+            throw AUTH_ERRORS.INVALID_PASSWORD_FORMAT;
+        }
     }
 
     /*
@@ -122,7 +140,7 @@ export class AuthValidation {
 
         if (!emailRegex.test(email)) throw AUTH_ERRORS.INVALID_DATA;
 
-        if (password.length < 6) throw AUTH_ERRORS.INVALID_DATA;
+        this.validatePasswordComplexity(password);
     }
 
     /**
@@ -136,7 +154,7 @@ export class AuthValidation {
 
         if (!phoneRegex.test(phone)) throw AUTH_ERRORS.INVALID_DATA;
 
-        if (password.length < 6) throw AUTH_ERRORS.INVALID_DATA;
+        this.validatePasswordComplexity(password);
     }
 
 

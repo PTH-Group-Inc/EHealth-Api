@@ -3,6 +3,8 @@ import { ClinicalResultsController } from '../../controllers/EHR/clinical-result
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { checkEHRAuthorization } from '../../middleware/checkEHRAuthorization.middleware';
+
 
 export const clinicalResultsRoutes = Router();
 
@@ -53,7 +55,7 @@ export const clinicalResultsRoutes = Router();
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     ClinicalResultsController.getResults
 );
 
@@ -88,7 +90,7 @@ clinicalResultsRoutes.get(
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/trends',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     ClinicalResultsController.getTrends
 );
 
@@ -115,7 +117,7 @@ clinicalResultsRoutes.get(
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/summary',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     ClinicalResultsController.getSummary
 );
 
@@ -143,7 +145,7 @@ clinicalResultsRoutes.get(
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/attachments',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     ClinicalResultsController.getAttachments
 );
 
@@ -171,7 +173,7 @@ clinicalResultsRoutes.get(
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/abnormal',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     ClinicalResultsController.getAbnormalResults
 );
 
@@ -203,7 +205,7 @@ clinicalResultsRoutes.get(
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/by-encounter/:encounterId',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     ClinicalResultsController.getResultsByEncounter
 );
 
@@ -236,7 +238,7 @@ clinicalResultsRoutes.get(
  */
 clinicalResultsRoutes.get(
     '/patients/:patientId/clinical-results/:orderId',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
     ClinicalResultsController.getResultDetail
 );
 

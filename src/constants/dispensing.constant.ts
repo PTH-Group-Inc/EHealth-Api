@@ -1,5 +1,6 @@
 /** Trạng thái phiếu cấp phát */
 export const DISPENSE_STATUS = {
+    PARTIALLY_DISPENSED: 'PARTIALLY_DISPENSED',
     COMPLETED: 'COMPLETED',
     CANCELLED: 'CANCELLED',
 } as const;

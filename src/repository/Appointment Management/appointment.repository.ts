@@ -1,10 +1,15 @@
 // src/repository/Appointment Management/appointment.repository.ts
 import { pool } from '../../config/postgresdb';
-import { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from '../../models/Appointment Management/appointment.model';
+import {
+    Appointment,
+    CreateAppointmentInput,
+    UpdateAppointmentInput,
+} from '../../models/Appointment Management/appointment.model';
 import { CreateAuditLogInput } from '../../models/Appointment Management/appointment-audit-log.model';
-import { ACTIVE_APPOINTMENT_STATUSES, APPOINTMENT_CODE_PREFIX } from '../../constants/appointment.constant';
+import { ACTIVE_APPOINTMENT_STATUSES, APPOINTMENT_CODE_PREFIX, APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import { AppointmentAuditLogRepository } from './appointment-audit-log.repository';
 import { v4 as uuidv4 } from 'uuid';
+import { INVOICE_STATUS } from '../../constants/billing-invoices.constant';
 
 export class AppointmentRepository {
 
@@ -31,6 +36,15 @@ export class AppointmentRepository {
             'SELECT id FROM patients WHERE id::varchar = $1 AND deleted_at IS NULL', [patientId]
         );
         return (result.rowCount ?? 0) > 0;
+    }
+
+    /** Lấy trạng thái của bệnh nhân (ví dụ blacklist) */
+    static async getPatientStatus(patientId: string): Promise<{ exists: boolean, is_blacklisted: boolean, no_show_count: number }> {
+        const result = await pool.query(
+            'SELECT is_blacklisted, no_show_count FROM patients WHERE id::varchar = $1 AND deleted_at IS NULL', [patientId]
+        );
+        if ((result.rowCount ?? 0) === 0) return { exists: false, is_blacklisted: false, no_show_count: 0 };
+        return { exists: true, is_blacklisted: result.rows[0].is_blacklisted || false, no_show_count: result.rows[0].no_show_count || 0 };
     }
 
     /** Kiểm tra bác sĩ có tồn tại và đang hoạt động không */
@@ -130,7 +144,8 @@ export class AppointmentRepository {
                     AND apt.status IN (${statusPlaceholders})
               ) < $3
             ORDER BY sl.start_time ASC
-            LIMIT 1;
+            LIMIT 1
+            FOR UPDATE OF sl SKIP LOCKED;
         `;
         const values = [shiftId, date, maxPerSlot, ...ACTIVE_APPOINTMENT_STATUSES];
         const executor = client || pool;
@@ -195,6 +210,14 @@ export class AppointmentRepository {
      * Đếm số lịch khám đang hoạt động trên 1 slot trong 1 ngày cụ thể
      */
     static async countActiveBySlotAndDate(slotId: string, appointmentDate: string, client?: import('pg').PoolClient): Promise<number> {
+        if (client) {
+            // Lock the slot row to prevent concurrent reading of active appointments count
+            await client.query(
+                `SELECT slot_id FROM appointment_slots WHERE slot_id = $1 FOR UPDATE`,
+                [slotId]
+            );
+        }
+
         const placeholders = ACTIVE_APPOINTMENT_STATUSES.map((_, i) => `$${i + 3}`).join(', ');
         const query = `
             SELECT COUNT(*)::int AS cnt
@@ -473,7 +496,7 @@ export class AppointmentRepository {
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
             LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
             WHERE a.doctor_id = $1
-              AND a.status NOT IN ('CANCELLED', 'NO_SHOW')
+              AND a.status NOT IN ('${APPOINTMENT_STATUS.CANCELLED}', '${APPOINTMENT_STATUS.NO_SHOW}')
         `;
         const values: any[] = [doctorId];
         let idx = 2;
@@ -542,10 +565,10 @@ export class AppointmentRepository {
     /**
      * Cập nhật thông tin lịch khám kèm ghi audit log — chạy trong Transaction
      */
-    static async update(id: string, data: UpdateAppointmentInput, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
-        const client = await pool.connect();
+    static async update(id: string, data: UpdateAppointmentInput, auditLog: CreateAuditLogInput, extClient?: import('pg').PoolClient): Promise<Appointment | null> {
+        const client = extClient || await pool.connect();
         try {
-            await client.query('BEGIN');
+            if (!extClient) await client.query('BEGIN');
 
             const setClauses: string[] = [];
             const values: any[] = [];
@@ -575,13 +598,13 @@ export class AppointmentRepository {
             // Ghi audit log trong cùng transaction
             await AppointmentAuditLogRepository.create(auditLog, client);
 
-            await client.query('COMMIT');
+            if (!extClient) await client.query('COMMIT');
             return updated;
         } catch (error) {
-            await client.query('ROLLBACK');
+            if (!extClient) await client.query('ROLLBACK');
             throw error;
         } finally {
-            client.release();
+            if (!extClient) client.release();
         }
     }
 
@@ -595,7 +618,7 @@ export class AppointmentRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'CANCELLED', cancelled_at = CURRENT_TIMESTAMP,
+                SET status = '${APPOINTMENT_STATUS.CANCELLED}', cancelled_at = CURRENT_TIMESTAMP,
                     cancellation_reason = $1, cancelled_by = $3, updated_at = CURRENT_TIMESTAMP
                 WHERE appointments_id = $2
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
@@ -925,10 +948,10 @@ export class AppointmentRepository {
     /**
      * Đổi lịch (ngày + slot) kèm ghi audit log — Transaction
      */
-    static async reschedule(id: string, newDate: string, newSlotId: string, auditLog: CreateAuditLogInput): Promise<Appointment | null> {
-        const client = await pool.connect();
+    static async reschedule(id: string, newDate: string, newSlotId: string, auditLog: CreateAuditLogInput, extClient?: import('pg').PoolClient): Promise<Appointment | null> {
+        const client = extClient || await pool.connect();
         try {
-            await client.query('BEGIN');
+            if (!extClient) await client.query('BEGIN');
 
             const query = `
                 UPDATE appointments
@@ -944,13 +967,13 @@ export class AppointmentRepository {
 
             await AppointmentAuditLogRepository.create(auditLog, client);
 
-            await client.query('COMMIT');
+            if (!extClient) await client.query('COMMIT');
             return updated;
         } catch (error) {
-            await client.query('ROLLBACK');
+            if (!extClient) await client.query('ROLLBACK');
             throw error;
         } finally {
-            client.release();
+            if (!extClient) client.release();
         }
     }
 
@@ -1018,7 +1041,7 @@ export class AppointmentRepository {
                     confirmed_at = CURRENT_TIMESTAMP,
                     confirmed_by = $1,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $2 AND status = 'PENDING'
+                WHERE appointments_id = $2 AND status IN ('PENDING', 'PENDING_DEPOSIT')
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [confirmedBy, id]);
@@ -1048,10 +1071,10 @@ export class AppointmentRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'CHECKED_IN',
+                SET status = '${APPOINTMENT_STATUS.CHECKED_IN}',
                     checked_in_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'CONFIRMED'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CONFIRMED}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id]);
@@ -1081,9 +1104,9 @@ export class AppointmentRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'COMPLETED',
+                SET status = '${APPOINTMENT_STATUS.COMPLETED}',
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'CHECKED_IN'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CHECKED_IN}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id]);
@@ -1299,6 +1322,29 @@ export class AppointmentRepository {
             [departmentId]
         );
         return result.rows;
+    }
+
+    /**
+     * Tìm invoice liên kết với appointment thông qua encounter
+     * appointment → encounter → invoice
+     */
+    static async findInvoiceByAppointmentId(appointmentId: string): Promise<{
+        invoices_id: string;
+        invoice_code: string;
+        status: string;
+        net_amount: string;
+        paid_amount: string;
+    } | null> {
+        const query = `
+            SELECT i.invoices_id, i.invoice_code, i.status, i.net_amount, i.paid_amount
+            FROM invoices i
+            INNER JOIN encounters e ON i.encounter_id = e.encounters_id
+            WHERE e.appointment_id = $1
+              AND i.status != '${INVOICE_STATUS.CANCELLED}'
+            LIMIT 1
+        `;
+        const result = await pool.query(query, [appointmentId]);
+        return result.rows[0] || null;
     }
 }
 

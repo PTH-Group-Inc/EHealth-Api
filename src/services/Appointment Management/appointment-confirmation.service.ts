@@ -28,7 +28,7 @@ export class AppointmentConfirmationService {
             throw new AppError(404, 'NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
 
-        if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
+        if (appointment.status !== APPOINTMENT_STATUS.PENDING && appointment.status !== APPOINTMENT_STATUS.PENDING_DEPOSIT) {
             throw new AppError(400, 'NOT_PENDING', CONFIRMATION_ERRORS.NOT_PENDING);
         }
 
@@ -37,7 +37,7 @@ export class AppointmentConfirmationService {
             appointment_audit_logs_id: `ALOG_${uuidv4().substring(0, 12)}`,
             appointment_id: appointmentId,
             changed_by: userId,
-            old_status: APPOINTMENT_STATUS.PENDING,
+            old_status: appointment.status,
             new_status: APPOINTMENT_STATUS.CONFIRMED,
             action_note: 'Xác nhận lịch khám',
         };
@@ -132,10 +132,10 @@ export class AppointmentConfirmationService {
                 // Cập nhật trạng thái trực tiếp (bypass confirmAppointment vì nó dùng userId cho confirmed_by)
                 const confirmQuery = `
                     UPDATE appointments
-                    SET status = 'CONFIRMED',
+                    SET status = '${APPOINTMENT_STATUS.CONFIRMED}',
                         confirmed_at = CURRENT_TIMESTAMP,
                         updated_at = CURRENT_TIMESTAMP
-                    WHERE appointments_id = $1 AND status = 'PENDING'
+                    WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.PENDING}'
                     RETURNING *;
                 `;
                 const confirmResult = await pool.query(confirmQuery, [row.appointments_id]);

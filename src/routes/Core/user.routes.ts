@@ -241,6 +241,9 @@ userRoutes.get('/account-status', UserController.getAccountStatuses);
  *                 type: array
  *                 items:
  *                   type: string
+ *                 minItems: 1
+ *                 maxItems: 1
+ *                 description: Mảng chứa đúng 1 vai trò hiệu lực của người dùng.
  *                 example: ["DOCTOR"]
  *               full_name:
  *                 type: string
@@ -408,7 +411,10 @@ userRoutes.get('/:userId', UserController.getUserById);
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["DOCTOR", "MANAGER"]
+ *                 minItems: 1
+ *                 maxItems: 1
+ *                 description: Mảng chứa đúng 1 vai trò hiệu lực của người dùng.
+ *                 example: ["DOCTOR"]
  *               status:
  *                 type: string
  *                 enum: [ACTIVE, INACTIVE, BANNED, PENDING]
@@ -442,6 +448,40 @@ userRoutes.get('/:userId', UserController.getUserById);
  */
 userRoutes.put('/:userId', UserController.updateUser);
 userRoutes.patch('/:userId', UserController.updateUser);
+
+/**
+ * @swagger
+ * /api/users/bulk:
+ *   delete:
+ *     summary: Vô hiệu hóa nhiều người dùng cùng lúc (Bulk Soft Delete)
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *
+ *     tags: [1.1.1 Quản lý User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userIds
+ *             properties:
+ *               userIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách ID người dùng cần xóa
+ *                 example: ["user-id-1", "user-id-2"]
+ *     responses:
+ *       200:
+ *         description: Xóa hàng loạt thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+userRoutes.delete('/bulk', UserController.bulkDeleteUsers);
 
 /**
  * @swagger
@@ -672,7 +712,7 @@ userRoutes.post('/:userId/change-password', UserController.changePassword);
  * @swagger
  * /api/users/{userId}/roles:
  *   get:
- *     summary: Lấy danh sách vai trò của người dùng
+ *     summary: Lấy vai trò hiệu lực của người dùng
  *     description: |
  *       **Vai trò được phép:** ADMIN
  *
@@ -697,7 +737,7 @@ userRoutes.get('/:userId/roles', UserController.getUserRoles);
  * @swagger
  * /api/users/{userId}/roles:
  *   post:
- *     summary: Gán vai trò cho người dùng
+ *     summary: Đổi vai trò hiệu lực của người dùng
  *     description: |
  *       **Vai trò được phép:** ADMIN
  *
@@ -722,10 +762,10 @@ userRoutes.get('/:userId/roles', UserController.getUserRoles);
  *               role:
  *                 type: string
  *                 example: "DOCTOR"
- *                 description: "Mã code của Role (VD: DOCTOR, NURSE) hoặc UUID của Role đó"
+ *                 description: "Mã code hoặc UUID của vai trò mới sẽ thay thế vai trò hiện tại"
  *     responses:
  *       200:
- *         description: Gán thành công
+ *         description: Đổi vai trò thành công
  *       400:
  *         description: Role không tồn tại
  *       404:
@@ -737,7 +777,7 @@ userRoutes.post('/:userId/roles', UserController.assignRole);
  * @swagger
  * /api/users/{userId}/roles/{roleId}:
  *   delete:
- *     summary: Xoá vai trò của người dùng
+ *     summary: Xoá vai trò hiệu lực của người dùng
  *     description: |
  *       **Vai trò được phép:** ADMIN
  *
@@ -755,10 +795,10 @@ userRoutes.post('/:userId/roles', UserController.assignRole);
  *         required: true
  *         schema:
  *           type: string
- *         description: "Mã code của Role (VD: DOCTOR) hoặc UUID của Role"
+ *         description: "Mã code hoặc UUID của vai trò cần xoá"
  *     responses:
  *       200:
- *         description: Xoá thành công
+ *         description: Xoá vai trò thành công
  *       400:
  *         description: User không có role này
  *       404:
@@ -933,5 +973,104 @@ userRoutes.delete('/:userId/facilities/:facilityId', UserFacilityController.remo
  *         description: Không tìm thấy người dùng
  */
 userRoutes.put('/:userId/facilities/:facilityId', UserFacilityController.transferUserToFacility);
+
+// ========================
+// 1.1.5 Gán vai trò cho người dùng
+// ========================
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles:
+ *   get:
+ *     summary: Lấy vai trò hiệu lực của người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *     tags: [1.1.5 Gán vai trò cho người dùng]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lấy vai trò hiệu lực thành công
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.get('/:userId/roles', UserController.getUserRoles);
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles:
+ *   post:
+ *     summary: Đổi vai trò hiệu lực của người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *     tags: [1.1.5 Gán vai trò cho người dùng]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 example: "DOCTOR"
+ *                 description: Mã hoặc ID của vai trò mới sẽ thay thế vai trò hiện tại
+ *     responses:
+ *       200:
+ *         description: Đổi vai trò thành công
+ *       400:
+ *         description: Vai trò không tồn tại hoặc thiếu dữ liệu
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.post('/:userId/roles', UserController.assignRole);
+
+/**
+ * @swagger
+ * /api/users/{userId}/roles/{roleId}:
+ *   delete:
+ *     summary: Xóa vai trò hiệu lực khỏi người dùng
+ *     description: |
+ *       **Vai trò được phép:** ADMIN, STAFF
+ *     tags: [1.1.5 Gán vai trò cho người dùng]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: roleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID hoặc mã vai trò cần xóa
+ *     responses:
+ *       200:
+ *         description: Xóa vai trò thành công
+ *       400:
+ *         description: Người dùng không có vai trò này
+ *       404:
+ *         description: Không tìm thấy người dùng
+ */
+userRoutes.delete('/:userId/roles/:roleId', UserController.removeRole);
 
 export default userRoutes;

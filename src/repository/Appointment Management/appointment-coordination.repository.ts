@@ -1,7 +1,7 @@
 // src/repository/Appointment Management/appointment-coordination.repository.ts
 import { pool } from '../../config/postgresdb';
 import { CreateCoordinationLogInput } from '../../models/Appointment Management/appointment-coordination.model';
-import { ACTIVE_APPOINTMENT_STATUSES } from '../../constants/appointment.constant';
+import { ACTIVE_APPOINTMENT_STATUSES, APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import { PoolClient } from 'pg';
 
 
@@ -460,9 +460,9 @@ export class AppointmentCoordinationRepository {
             SELECT
                 EXTRACT(HOUR FROM sl.start_time)::int AS hour,
                 COUNT(*)::int AS appointment_count,
-                COUNT(*) FILTER (WHERE a.status = 'CANCELLED')::int AS cancel_count,
-                COUNT(*) FILTER (WHERE a.status = 'NO_SHOW')::int AS no_show_count,
-                COUNT(*) FILTER (WHERE a.status = 'COMPLETED')::int AS completed_count
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.CANCELLED}')::int AS cancel_count,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.NO_SHOW}')::int AS no_show_count,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.COMPLETED}')::int AS completed_count
             FROM appointments a
             LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
             WHERE a.appointment_date >= $1::date

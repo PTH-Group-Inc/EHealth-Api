@@ -6,26 +6,11 @@ import logger from '../config/logger.config';
 
 export class SessionCleanup {
     static startSessionCleanupJob() {
-
         this.runCleanup();
 
-        const now = new Date();
-        const night = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate() + 1,
-            0, 0, 0
-        );
-        const msToMidnight = night.getTime() - now.getTime();
-
-        setTimeout(() => {
+        cron.schedule(AUTH_CONSTANTS.SESSION.CLEANUP_CRON, () => {
             this.runCleanup();
-
-            setInterval(() => {
-                this.runCleanup();
-            }, 24 * 60 * 60 * 1000);
-
-        }, msToMidnight);
+        });
     }
 
     private static async runCleanup() {

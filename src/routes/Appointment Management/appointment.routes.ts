@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { AppointmentController } from '../../controllers/Appointment Management/appointment.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
+import { idempotencyMiddleware } from '../../middleware/idempotency.middleware';
+import { validate } from '../../middleware/validate.middleware';
+import { createAppointmentSchema } from '../../schemas/appointment.schema';
 export const appointmentRoutes = Router();
 
 // =====================================================================
@@ -146,8 +149,64 @@ export const appointmentRoutes = Router();
  */
 appointmentRoutes.post(
     '/',
-    [verifyAccessToken],
+    [verifyAccessToken, idempotencyMiddleware, validate(createAppointmentSchema)],
     AppointmentController.create
+);
+
+/**
+ * @swagger
+ * /api/appointments/pre-book:
+ *   post:
+ *     summary: Đặt cọc lịch khám (Pre-book)
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_CREATE.
+ *       **Vai trò được phép:** ADMIN, STAFF, DOCTOR, NURSE, PATIENT.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Giống như API tạo lịch khám, nhưng gán trạng thái là PENDING_DEPOSIT.
+ *       - Tạo hóa đơn tạm cho việc đặt cọc.
+ *       - Khởi tạo thanh toán và trả về link thanh toán (VNPAY/ZALOPAY).
+ *     tags: [3.1 Quản lý Lịch khám]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - patient_id
+ *               - branch_id
+ *               - shift_id
+ *               - appointment_date
+ *               - booking_channel
+ *             properties:
+ *               patient_id:
+ *                 type: string
+ *               branch_id:
+ *                 type: string
+ *               shift_id:
+ *                 type: string
+ *               appointment_date:
+ *                 type: string
+ *                 format: date
+ *               booking_channel:
+ *                 type: string
+ *               reason_for_visit:
+ *                 type: string
+ *               symptoms_notes:
+ *                 type: string
+ *               facility_service_id:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Pre-book thành công, trả về link thanh toán
+ */
+appointmentRoutes.post(
+    '/pre-book',
+    [verifyAccessToken, idempotencyMiddleware, validate(createAppointmentSchema)],
+    AppointmentController.preBook
 );
 
 /**

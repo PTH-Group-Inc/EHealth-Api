@@ -59,7 +59,7 @@ export const APPOINTMENT_TEMPLATE_CODES = {
 // TRẠNG THÁI CHO PHÉP 
 
 /** Trạng thái cho phép xác nhận */
-export const CONFIRMABLE_STATUSES = ['PENDING'] as const;
+export const CONFIRMABLE_STATUSES = ['PENDING', 'PENDING_DEPOSIT'] as const;
 
 /** Trạng thái cho phép check-in */
 export const CHECKIN_ALLOWED_STATUSES = ['CONFIRMED'] as const;
@@ -73,7 +73,7 @@ export const REMINDABLE_STATUSES = ['PENDING', 'CONFIRMED'] as const;
 // THÔNG BÁO LỖI 
 
 export const CONFIRMATION_ERRORS = {
-    NOT_PENDING: 'Chỉ lịch khám ở trạng thái PENDING mới được xác nhận',
+    NOT_PENDING: 'Chỉ lịch khám ở trạng thái PENDING hoặc PENDING_DEPOSIT mới được xác nhận',
     NOT_CONFIRMED: 'Chỉ lịch khám ở trạng thái CONFIRMED mới được check-in',
     NOT_CHECKED_IN: 'Chỉ lịch khám ở trạng thái CHECKED_IN mới được hoàn tất',
     ALREADY_CONFIRMED: 'Lịch khám này đã được xác nhận trước đó',

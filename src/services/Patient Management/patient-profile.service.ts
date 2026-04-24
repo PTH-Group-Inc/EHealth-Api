@@ -45,6 +45,18 @@ export class PatientProfileService {
         );
     }
 
+    private static async assertProfileAccess(id: string, accountId: string, bypassOwnership?: boolean): Promise<void> {
+        if (bypassOwnership) {
+            const profile = await PatientRepository.getPatientById(id);
+            if (!profile) {
+                throw this.buildProfileAccessError();
+            }
+            return;
+        }
+
+        await this.getProfileById(id, accountId);
+    }
+
     private static generatePatientCode(): string {
         const now = new Date();
         const yy = String(now.getFullYear()).slice(-2);
@@ -243,8 +255,9 @@ export class PatientProfileService {
         id: string,
         accountId: string,
         file: Express.Multer.File,
+        options?: { bypassOwnership?: boolean },
     ): Promise<AvatarImage> {
-        await this.getProfileById(id, accountId);
+        await this.assertProfileAccess(id, accountId, options?.bypassOwnership);
 
         if (!PATIENT_AVATAR_CONFIG.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
             throw new AppError(
@@ -311,10 +324,15 @@ export class PatientProfileService {
     }
 
     /**
-     * Xoa anh ho so theo public_id trong patient profile thuoc account hien tai.
+     * Xoa anh ho so theo public_id trong patient profile.
      */
-    static async deleteAvatar(id: string, accountId: string, publicId: string): Promise<void> {
-        await this.getProfileById(id, accountId);
+    static async deleteAvatar(
+        id: string,
+        accountId: string,
+        publicId: string,
+        options?: { bypassOwnership?: boolean },
+    ): Promise<void> {
+        await this.assertProfileAccess(id, accountId, options?.bypassOwnership);
 
         const currentImages = await PatientProfileRepository.getAvatarImages(id);
         const imageExists = currentImages.some((image) => image.public_id === publicId);

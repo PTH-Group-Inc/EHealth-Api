@@ -1,5 +1,6 @@
 import { pool } from '../../config/postgresdb';
 import { User } from '../../models/Core/auth_account.model';
+import { normalizeRoleCodes } from '../../utils/role-priority.util';
 
 export class AccountRepository {
   /**
@@ -27,7 +28,12 @@ export class AccountRepository {
       LIMIT 1;
     `;
     const result = await pool.query(query, [email]);
-    return result.rows[0] ?? null;
+    if (result.rowCount === 0) return null;
+
+    return {
+      ...result.rows[0],
+      roles: normalizeRoleCodes(result.rows[0].roles),
+    };
   }
 
   /**
@@ -55,7 +61,12 @@ export class AccountRepository {
       LIMIT 1;
     `;
     const result = await pool.query(query, [phone]);
-    return result.rows[0] ?? null;
+    if (result.rowCount === 0) return null;
+
+    return {
+      ...result.rows[0],
+      roles: normalizeRoleCodes(result.rows[0].roles),
+    };
   }
 
   /**
@@ -83,7 +94,12 @@ export class AccountRepository {
       LIMIT 1;
     `;
     const result = await pool.query(query, [userId]);
-    return result.rows[0] ?? null;
+    if (result.rowCount === 0) return null;
+
+    return {
+      ...result.rows[0],
+      roles: normalizeRoleCodes(result.rows[0].roles),
+    };
   }
 
   /**

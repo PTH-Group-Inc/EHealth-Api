@@ -3,6 +3,8 @@ import { HealthTimelineController } from '../../controllers/EHR/health-timeline.
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { checkEHRAuthorization } from '../../middleware/checkEHRAuthorization.middleware';
+
 
 export const healthTimelineRoutes = Router();
 
@@ -99,7 +101,7 @@ export const healthTimelineRoutes = Router();
 healthTimelineRoutes.get(
     '/patients/:patientId/timeline',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
     HealthTimelineController.getTimeline
 );
 
@@ -157,7 +159,7 @@ healthTimelineRoutes.get(
 healthTimelineRoutes.get(
     '/patients/:patientId/timeline/summary',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
 
     HealthTimelineController.getTimelineSummary
 );
@@ -203,7 +205,7 @@ healthTimelineRoutes.get(
 healthTimelineRoutes.get(
     '/patients/:patientId/timeline/by-encounter/:encounterId',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
 
     HealthTimelineController.getByEncounter
 );
@@ -285,7 +287,7 @@ healthTimelineRoutes.get(
 healthTimelineRoutes.get(
     '/patients/:patientId/timeline/track-condition',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
 
     HealthTimelineController.trackCondition
 );
@@ -355,7 +357,7 @@ healthTimelineRoutes.get(
 healthTimelineRoutes.post(
     '/patients/:patientId/timeline/events',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
 
     HealthTimelineController.createManualEvent
 );
@@ -402,7 +404,7 @@ healthTimelineRoutes.post(
 healthTimelineRoutes.delete(
     '/patients/:patientId/timeline/events/:eventId',
     verifyAccessToken,
-    checkSessionStatus,
+    checkSessionStatus, checkEHRAuthorization,
 
     HealthTimelineController.deleteManualEvent
 );

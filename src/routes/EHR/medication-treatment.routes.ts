@@ -3,6 +3,8 @@ import { MedicationTreatmentController } from '../../controllers/EHR/medication-
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
 import { authorizeRoles } from '../../middleware/authorizeRoles.middleware';
+import { checkEHRAuthorization } from '../../middleware/checkEHRAuthorization.middleware';
+
 
 export const medicationTreatmentRoutes = Router();
 
@@ -46,7 +48,7 @@ export const medicationTreatmentRoutes = Router();
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.getMedicationRecords
 );
@@ -76,7 +78,7 @@ medicationTreatmentRoutes.get(
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/current',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.getCurrentMedications
 );
@@ -105,7 +107,7 @@ medicationTreatmentRoutes.get(
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/interaction-check',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.checkInteractions
 );
@@ -134,7 +136,7 @@ medicationTreatmentRoutes.get(
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/timeline',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.getTimeline
 );
@@ -168,7 +170,7 @@ medicationTreatmentRoutes.get(
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-records/:prescriptionId',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.getMedicationDetail
 );
@@ -206,7 +208,7 @@ medicationTreatmentRoutes.get(
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/treatment-records',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.getTreatmentRecords
 );
@@ -239,7 +241,7 @@ medicationTreatmentRoutes.get(
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/treatment-records/:planId',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.getTreatmentDetail
 );
@@ -290,7 +292,7 @@ medicationTreatmentRoutes.get(
  */
 medicationTreatmentRoutes.post(
     '/patients/:patientId/medication-adherence',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.createAdherence
 );
@@ -325,7 +327,7 @@ medicationTreatmentRoutes.post(
  */
 medicationTreatmentRoutes.get(
     '/patients/:patientId/medication-adherence',
-    verifyAccessToken, checkSessionStatus,
+    verifyAccessToken, checkSessionStatus, checkEHRAuthorization,
 
     MedicationTreatmentController.getAdherenceRecords
 );

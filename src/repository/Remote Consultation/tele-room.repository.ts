@@ -16,6 +16,8 @@ export class TeleRoomRepository {
     static async getConsultationDetail(consultationId: string): Promise<TeleRoomDetail | null> {
         const r = await pool.query(`
             SELECT tc.*,
+                doc.user_id AS doctor_user_id,
+                pat.account_id AS patient_user_id,
                 up_doc.full_name AS doctor_name,
                 up_pat.full_name AS patient_name,
                 sp.name AS specialty_name,

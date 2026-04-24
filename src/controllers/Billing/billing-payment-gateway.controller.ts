@@ -39,7 +39,9 @@ export const getOrdersByInvoice = asyncHandler(async (req: Request, res: Respons
 
 /** Webhook callback từ SePay — KHÔNG cần JWT, xác thực bằng API Key */
 export const sepayWebhook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await PaymentGatewayService.handleWebhook(req.body);
+    const signature = req.headers['authorization'] || req.headers['x-sepay-signature'];
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    const result = await PaymentGatewayService.handleWebhook(req.body, signature as string, rawBody);
     res.json({ success: true, ...result });
 });
 

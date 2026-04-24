@@ -15,6 +15,12 @@ export interface CreateStaffInput {
     branch_id?: string;
     department_id?: string;
     role_title?: string;
+    
+    // Doctor info
+    specialty_id?: string;
+    title?: string;
+    biography?: string;
+    consultation_fee?: number;
 }
 
 export interface UpdateStaffInput {
@@ -30,10 +36,16 @@ export interface UpdateStaffInput {
     branch_id?: string;
     department_id?: string;
     role_title?: string;
+    
+    // Doctor info
+    specialty_id?: string;
+    title?: string;
+    biography?: string;
+    consultation_fee?: number;
 }
 
 export interface UpdateDoctorInfoInput {
-    specialty_id: string;
+    specialty_id?: string;
     title?: string;
     biography?: string;
     consultation_fee?: number;

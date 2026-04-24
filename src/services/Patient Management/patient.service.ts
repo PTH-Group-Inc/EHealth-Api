@@ -135,6 +135,17 @@ export class PatientService {
             }
         }
 
+        // Cảnh báo trùng lặp theo tên và SĐT
+        if (input.phone_number && input.full_name && !input.force_create) {
+            const duplicates = await PatientRepository.findDuplicatesByNameAndPhone(input.full_name, input.phone_number);
+            if (duplicates.length > 0) {
+                throw {
+                    ...PATIENT_ERRORS.DUPLICATE_PATIENT_DETECTED,
+                    data: { duplicate_codes: duplicates.map((d: any) => d.patient_code) }
+                };
+            }
+        }
+
         // Sinh ID và mã bệnh nhân
         const newId = randomUUID();
         const patientCode = this.generatePatientCode();

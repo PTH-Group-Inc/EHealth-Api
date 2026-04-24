@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { DrugCategoryController } from '../../controllers/Medication Management/drug-category.controller';
 import { verifyAccessToken } from '../../middleware/verifyAccessToken.middleware';
 import { checkSessionStatus } from '../../middleware/checkSessionStatus.middleware';
-import { uploadExcel } from '../../middleware/upload.middleware';
+import { uploadExcel, verifyFileSignature } from '../../middleware/upload.middleware';
 const drugCategoryRoutes = Router();
 
 // Middleware quyền truy cập
@@ -230,7 +230,7 @@ drugCategoryRoutes.get('/export', DrugCategoryController.exportCategories);
  *       403:
  *         description: Không có quyền import
  */
-drugCategoryRoutes.post('/import', uploadExcel.single('file'), DrugCategoryController.importCategories);
+drugCategoryRoutes.post('/import', uploadExcel.single('file'), verifyFileSignature, DrugCategoryController.importCategories);
 
 /**
  * @swagger

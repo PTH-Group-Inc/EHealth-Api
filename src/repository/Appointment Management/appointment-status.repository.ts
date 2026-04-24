@@ -2,6 +2,8 @@
 import { pool } from '../../config/postgresdb';
 import { Appointment } from '../../models/Appointment Management/appointment.model';
 import { AppointmentAuditLogRepository } from './appointment-audit-log.repository';
+import { NO_SHOW_LIMITS } from '../../constants/appointment-status.constant';
+import { APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 
 
 export class AppointmentStatusRepository {
@@ -37,7 +39,7 @@ export class AppointmentStatusRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'CHECKED_IN',
+                SET status = '${APPOINTMENT_STATUS.CHECKED_IN}',
                     checked_in_at = CURRENT_TIMESTAMP,
                     queue_number = $2,
                     check_in_method = $3,
@@ -46,7 +48,7 @@ export class AppointmentStatusRepository {
                     qr_token = NULL,
                     qr_token_expires_at = NULL,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'CONFIRMED'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CONFIRMED}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id, queueNumber, checkInMethod, isLate, lateMinutes]);
@@ -75,7 +77,7 @@ export class AppointmentStatusRepository {
             SET qr_token = $2,
                 qr_token_expires_at = $3,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE appointments_id = $1 AND status = 'CONFIRMED'
+            WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CONFIRMED}'
               AND qr_token IS NULL
         `;
         const result = await pool.query(query, [id, qrToken, expiresAt]);
@@ -102,7 +104,7 @@ export class AppointmentStatusRepository {
             LEFT JOIN user_profiles up ON d.user_id = up.user_id
             WHERE a.qr_token = $1
               AND a.qr_token_expires_at >= CURRENT_TIMESTAMP
-              AND a.status = 'CONFIRMED';
+              AND a.status = '${APPOINTMENT_STATUS.CONFIRMED}';
         `;
         const result = await pool.query(query, [qrToken]);
         return result.rows[0] || null;
@@ -124,10 +126,10 @@ export class AppointmentStatusRepository {
             // Cập nhật appointment
             const aptQuery = `
                 UPDATE appointments
-                SET status = 'IN_PROGRESS',
+                SET status = '${APPOINTMENT_STATUS.IN_PROGRESS}',
                     started_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'CHECKED_IN'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CHECKED_IN}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const aptResult = await client.query(aptQuery, [id]);
@@ -170,10 +172,10 @@ export class AppointmentStatusRepository {
 
             const aptQuery = `
                 UPDATE appointments
-                SET status = 'COMPLETED',
+                SET status = '${APPOINTMENT_STATUS.COMPLETED}',
                     completed_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'IN_PROGRESS'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.IN_PROGRESS}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const aptResult = await client.query(aptQuery, [id]);
@@ -218,9 +220,9 @@ export class AppointmentStatusRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'NO_SHOW',
+                SET status = '${APPOINTMENT_STATUS.NO_SHOW}',
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status IN ('PENDING', 'CONFIRMED')
+                WHERE appointments_id = $1 AND status IN ('${APPOINTMENT_STATUS.PENDING}', '${APPOINTMENT_STATUS.CONFIRMED}')
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id]);
@@ -228,6 +230,17 @@ export class AppointmentStatusRepository {
 
             if (noShow) {
                 await AppointmentAuditLogRepository.create(auditLog, client);
+                
+                // Task 11: Auto-flag no-show blacklist
+                const patientUpdateQuery = `
+                    UPDATE patients
+                    SET no_show_count = COALESCE(no_show_count, 0) + 1,
+                        is_blacklisted = CASE WHEN COALESCE(no_show_count, 0) + 1 >= $2 THEN TRUE ELSE is_blacklisted END,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $1
+                    RETURNING no_show_count, is_blacklisted;
+                `;
+                await client.query(patientUpdateQuery, [noShow.patient_id, NO_SHOW_LIMITS.BLACKLIST_THRESHOLD]);
             }
 
             await client.query('COMMIT');
@@ -266,7 +279,7 @@ export class AppointmentStatusRepository {
             FROM appointments a
             JOIN patients p ON a.patient_id = p.id::varchar
             JOIN appointment_slots sl ON a.slot_id = sl.slot_id
-            WHERE a.status IN ('PENDING', 'CONFIRMED')
+            WHERE a.status IN ('${APPOINTMENT_STATUS.PENDING}', '${APPOINTMENT_STATUS.CONFIRMED}')
               AND a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date
               AND sl.end_time IS NOT NULL
               AND (a.appointment_date + sl.end_time::time + INTERVAL '1 minute' * $1) < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')
@@ -311,24 +324,24 @@ export class AppointmentStatusRepository {
         const query = `
             SELECT
                 COUNT(*) AS total,
-                COUNT(*) FILTER (WHERE a.status = 'PENDING') AS pending,
-                COUNT(*) FILTER (WHERE a.status = 'CONFIRMED') AS confirmed,
-                COUNT(*) FILTER (WHERE a.status = 'CHECKED_IN') AS checked_in,
-                COUNT(*) FILTER (WHERE a.status = 'IN_PROGRESS') AS in_progress,
-                COUNT(*) FILTER (WHERE a.status = 'COMPLETED') AS completed,
-                COUNT(*) FILTER (WHERE a.status = 'CANCELLED') AS cancelled,
-                COUNT(*) FILTER (WHERE a.status = 'NO_SHOW') AS no_show,
-                MIN(a.queue_number) FILTER (WHERE a.status = 'IN_PROGRESS') AS current_serving,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.PENDING}') AS pending,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.CONFIRMED}') AS confirmed,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.CHECKED_IN}') AS checked_in,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.IN_PROGRESS}') AS in_progress,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.COMPLETED}') AS completed,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.CANCELLED}') AS cancelled,
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.NO_SHOW}') AS no_show,
+                MIN(a.queue_number) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.IN_PROGRESS}') AS current_serving,
                 (
                     SELECT queue_number FROM appointments sub
                     LEFT JOIN medical_rooms smr ON sub.room_id = smr.medical_rooms_id
                     WHERE sub.appointment_date = COALESCE(${date ? `$1::date` : `(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`}, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date)
-                      AND sub.status = 'CHECKED_IN'
+                      AND sub.status = '${APPOINTMENT_STATUS.CHECKED_IN}'
                       ${branchId ? `AND smr.branch_id = '${branchId}'` : ''}
                     ORDER BY CASE sub.priority WHEN 'EMERGENCY' THEN 0 WHEN 'URGENT' THEN 1 ELSE 2 END, sub.queue_number ASC
                     LIMIT 1
                 ) AS next_in_line,
-                COUNT(*) FILTER (WHERE a.status = 'CHECKED_IN') AS total_waiting
+                COUNT(*) FILTER (WHERE a.status = '${APPOINTMENT_STATUS.CHECKED_IN}') AS total_waiting
             FROM appointments a
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
             WHERE ${conditions.join(' AND ')};
@@ -362,7 +375,7 @@ export class AppointmentStatusRepository {
         status?: string;
         specialty_id?: string;
     }): Promise<any[]> {
-        const conditions: string[] = [`a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`, `a.status IN ('CHECKED_IN', 'IN_PROGRESS')`];
+        const conditions: string[] = [`a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`, `a.status IN ('${APPOINTMENT_STATUS.CHECKED_IN}', '${APPOINTMENT_STATUS.IN_PROGRESS}')`];
         const params: any[] = [];
         let paramIdx = 1;
 
@@ -430,9 +443,9 @@ export class AppointmentStatusRepository {
             await client.query('BEGIN');
             const query = `
                 UPDATE appointments
-                SET status = 'SKIPPED',
+                SET status = '${APPOINTMENT_STATUS.SKIPPED}',
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'CHECKED_IN'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CHECKED_IN}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id]);
@@ -463,10 +476,10 @@ export class AppointmentStatusRepository {
             await client.query('BEGIN');
             const query = `
                 UPDATE appointments
-                SET status = 'CHECKED_IN',
+                SET status = '${APPOINTMENT_STATUS.CHECKED_IN}',
                     queue_number = $2,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'SKIPPED'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.SKIPPED}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id, newQueueNumber]);

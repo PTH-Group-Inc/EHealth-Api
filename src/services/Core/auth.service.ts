@@ -11,6 +11,8 @@ import { AuthMailUtil } from "../../utils/auth-mail.util";
 import { AccountVerificationRepository } from "../../repository/Core/auth_verification.repository";
 import { AUTH_CONSTANTS } from "../../constants/auth.constant";
 import { PermissionRepository } from "../../repository/Core/permission.repository";
+import { AuditLogRepository } from "../../repository/Core/audit-log.repository";
+import { AuditActionType } from "../../models/Core/audit-log.model";
 import logger from '../../config/logger.config';
 
 
@@ -25,7 +27,7 @@ export class AuthService {
 
     if (!user) throw AUTH_ERRORS.INVALID_CREDENTIAL;
 
-    await this.handleLoginAttempt(user, password);
+    await this.handleLoginAttempt(user, password, clientInfo);
 
     return this.processLoginSuccess(user, clientInfo);
   }
@@ -42,7 +44,7 @@ export class AuthService {
       throw AUTH_ERRORS.INVALID_CREDENTIAL;
     }
 
-    await this.handleLoginAttempt(user, password);
+    await this.handleLoginAttempt(user, password, clientInfo);
 
     return this.processLoginSuccess(user, clientInfo);
   }
@@ -50,7 +52,7 @@ export class AuthService {
   /**
    * Xử lý kiểm tra khóa và xác thực mật khẩu
    */
-  private static async handleLoginAttempt(user: User, passwordInput: string) {
+  private static async handleLoginAttempt(user: User, passwordInput: string, clientInfo: ClientInfo) {
 
     if (user.locked_until && new Date() < new Date(user.locked_until)) {
       throw AUTH_ERRORS.ACCOUNT_LOCKED;
@@ -64,7 +66,26 @@ export class AuthService {
       if (newFailedCount >= AUTH_CONSTANTS.LOGIN_LIMIT.MAX_ATTEMPTS) {
         const lockUntil = new Date(Date.now() + AUTH_CONSTANTS.LOGIN_LIMIT.LOCK_DURATION_MS);
         await AccountRepository.lockAccount(user.users_id, lockUntil);
+        await AuditLogRepository.createLog({
+            user_id: user.users_id,
+            action_type: AuditActionType.ACCOUNT_LOCK,
+            module_name: 'AUTH',
+            ip_address: clientInfo.ip,
+            user_agent: clientInfo.userAgent,
+            status_code: 423,
+            is_success: false
+        });
       }
+
+      await AuditLogRepository.createLog({
+          user_id: user.users_id,
+          action_type: AuditActionType.FAILED_ATTEMPT,
+          module_name: 'AUTH',
+          ip_address: clientInfo.ip,
+          user_agent: clientInfo.userAgent,
+          status_code: 401,
+          is_success: false
+      });
 
       throw AUTH_ERRORS.INVALID_CREDENTIAL;
     }
@@ -173,6 +194,19 @@ export class AuthService {
 
       if (!user.email) return;
 
+      const latestToken = await PasswordResetRepository.findLatestToken(user.users_id);
+      if (latestToken) {
+        const timeDiff = Date.now() - new Date(latestToken.createdAt).getTime();
+        if (timeDiff < 60000) {
+          throw new Error("Vui lòng đợi 60 giây trước khi yêu cầu gửi lại OTP.");
+        }
+      }
+
+      const recentTokenCount = await PasswordResetRepository.countRecentTokens(user.users_id, 24);
+      if (recentTokenCount >= 5) {
+        throw new Error("Bạn đã vượt quá số lần yêu cầu OTP trong ngày. Vui lòng thử lại sau 24h.");
+      }
+
       const resetId = SecurityUtil.generateResetPasswordId(user.users_id);
 
       const resetToken = SecurityUtil.generateOTP(6);
@@ -190,8 +224,14 @@ export class AuthService {
       );
 
       await AuthMailUtil.sendResetPasswordOtpEmail(user.email, resetToken);
-    } catch (error) {
+    } catch (error: any) {
       logger.error("Lỗi quên mật khẩu:", error);
+      if (
+        error?.message === "Vui lòng đợi 60 giây trước khi yêu cầu gửi lại OTP." ||
+        error?.message === "Bạn đã vượt quá số lần yêu cầu OTP trong ngày. Vui lòng thử lại sau 24h."
+      ) {
+        throw error;
+      }
     }
   }
 
@@ -391,6 +431,58 @@ export class AuthService {
     await AccountRepository.activateAccount(verificationRecord.userId);
 
     await AccountVerificationRepository.markAsUsed(verificationRecord.account_verifications_id);
+  }
+
+  /**
+   * Gửi lại mã OTP xác thực Email
+   */
+  static async resendVerifyEmailOTP(email: string): Promise<void> {
+    const user = await AccountRepository.findByEmail(email);
+    
+    if (!user) {
+      throw new Error("Tài khoản không tồn tại.");
+    }
+
+    if (user.status === 'ACTIVE') {
+      throw new Error("Tài khoản đã được xác thực.");
+    }
+
+    const latestToken = await AccountVerificationRepository.findLatestToken(user.users_id);
+    if (latestToken) {
+      const timeDiff = Date.now() - new Date(latestToken.createdAt).getTime();
+      if (timeDiff < 60000) {
+        throw new Error("Vui lòng đợi 60 giây trước khi yêu cầu gửi lại OTP.");
+      }
+    }
+
+    const recentTokenCount = await AccountVerificationRepository.countRecentTokens(user.users_id, 24);
+    if (recentTokenCount >= 5) {
+      throw new Error("Bạn đã vượt quá số lần yêu cầu OTP trong ngày. Vui lòng thử lại sau 24h.");
+    }
+
+    try {
+      await AccountVerificationRepository.invalidateOldTokens(user.users_id);
+
+      const otpCode = SecurityUtil.generateOTP(6);
+      const otpHash = SecurityUtil.hashTokenResetPassword(otpCode);
+      const verifyId = SecurityUtil.generateVerificationId(user.users_id);
+
+      const expiredAt = new Date(
+        Date.now() + AUTH_CONSTANTS.VERIFY_EMAIL.EXPIRES_IN_MS,
+      );
+
+      await AccountVerificationRepository.createVerificationToken(
+        verifyId,
+        user.users_id,
+        otpHash,
+        expiredAt,
+      );
+
+      await AuthMailUtil.sendOtpEmail(email, otpCode);
+    } catch (error) {
+      logger.error("⚠️ Lỗi gửi lại OTP:", error);
+      throw new Error("Không thể gửi lại OTP lúc này. Vui lòng thử lại sau.");
+    }
   }
 
 
