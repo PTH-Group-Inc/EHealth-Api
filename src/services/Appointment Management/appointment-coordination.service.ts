@@ -6,7 +6,7 @@ import { NotificationEngineService } from '../../services/Core/notification-engi
 import { DoctorLoadInfo, SlotSuggestion, BalanceOverview } from '../../models/Appointment Management/appointment-coordination.model';
 import { AppError } from '../../utils/app-error.util';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
-import { DEFAULT_MAX_PATIENTS_PER_SLOT } from '../../constants/appointment.constant';
+import { DEFAULT_MAX_PATIENTS_PER_SLOT, APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
 import {
     PRIORITY_LEVELS, COORDINATION_ACTIONS, REASSIGNABLE_STATUSES,
@@ -284,7 +284,7 @@ export class AppointmentCoordinationService {
         });
 
         /** Fix #6: Sync BS sang encounter nếu appointment đang IN_PROGRESS */
-        if (existing.status === 'IN_PROGRESS') {
+        if (existing.status === APPOINTMENT_STATUS.IN_PROGRESS) {
             try {
                 const encounter = await EncounterRepository.findActiveByAppointmentId(appointmentId);
                 if (encounter) {

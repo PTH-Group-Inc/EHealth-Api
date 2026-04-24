@@ -10,6 +10,7 @@ import {
     ENCOUNTER_ERRORS,
     ENCOUNTER_CONFIG,
 } from '../../constants/encounter.constant';
+import { APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import logger from '../../config/logger.config';
 import {
     Encounter,
@@ -98,7 +99,7 @@ export class EncounterService {
         }
 
         /** Kiểm tra trạng thái appointment phải là CHECKED_IN hoặc IN_PROGRESS */
-        if (apt.status !== 'CHECKED_IN' && apt.status !== 'IN_PROGRESS') {
+        if (apt.status !== APPOINTMENT_STATUS.CHECKED_IN && apt.status !== APPOINTMENT_STATUS.IN_PROGRESS) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'APPOINTMENT_NOT_CHECKED_IN', ENCOUNTER_ERRORS.APPOINTMENT_NOT_CHECKED_IN);
         }
 
@@ -363,8 +364,8 @@ export class EncounterService {
                     appointment_audit_logs_id: `ALOG_${uuidv4().substring(0, 12)}`,
                     appointment_id: encounter.appointment_id,
                     changed_by: userId,
-                    old_status: 'IN_PROGRESS',
-                    new_status: 'COMPLETED',
+                    old_status: APPOINTMENT_STATUS.IN_PROGRESS,
+                    new_status: APPOINTMENT_STATUS.COMPLETED,
                     action_note: `Hoàn tất khám từ encounter: ${encounterId}`,
                 });
             } catch (auditErr: any) {

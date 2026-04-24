@@ -1,10 +1,15 @@
 // src/repository/Appointment Management/appointment.repository.ts
 import { pool } from '../../config/postgresdb';
-import { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from '../../models/Appointment Management/appointment.model';
+import {
+    Appointment,
+    CreateAppointmentInput,
+    UpdateAppointmentInput,
+} from '../../models/Appointment Management/appointment.model';
 import { CreateAuditLogInput } from '../../models/Appointment Management/appointment-audit-log.model';
-import { ACTIVE_APPOINTMENT_STATUSES, APPOINTMENT_CODE_PREFIX } from '../../constants/appointment.constant';
+import { ACTIVE_APPOINTMENT_STATUSES, APPOINTMENT_CODE_PREFIX, APPOINTMENT_STATUS } from '../../constants/appointment.constant';
 import { AppointmentAuditLogRepository } from './appointment-audit-log.repository';
 import { v4 as uuidv4 } from 'uuid';
+import { INVOICE_STATUS } from '../../constants/billing-invoices.constant';
 
 export class AppointmentRepository {
 
@@ -474,7 +479,7 @@ export class AppointmentRepository {
             LEFT JOIN medical_rooms mr ON a.room_id = mr.medical_rooms_id
             LEFT JOIN appointment_slots sl ON a.slot_id = sl.slot_id
             WHERE a.doctor_id = $1
-              AND a.status NOT IN ('CANCELLED', 'NO_SHOW')
+              AND a.status NOT IN ('${APPOINTMENT_STATUS.CANCELLED}', '${APPOINTMENT_STATUS.NO_SHOW}')
         `;
         const values: any[] = [doctorId];
         let idx = 2;
@@ -595,7 +600,7 @@ export class AppointmentRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'CANCELLED', cancelled_at = CURRENT_TIMESTAMP,
+                SET status = '${APPOINTMENT_STATUS.CANCELLED}', cancelled_at = CURRENT_TIMESTAMP,
                     cancellation_reason = $1, cancelled_by = $3, updated_at = CURRENT_TIMESTAMP
                 WHERE appointments_id = $2
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
@@ -1048,10 +1053,10 @@ export class AppointmentRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'CHECKED_IN',
+                SET status = '${APPOINTMENT_STATUS.CHECKED_IN}',
                     checked_in_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'CONFIRMED'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CONFIRMED}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id]);
@@ -1081,9 +1086,9 @@ export class AppointmentRepository {
 
             const query = `
                 UPDATE appointments
-                SET status = 'COMPLETED',
+                SET status = '${APPOINTMENT_STATUS.COMPLETED}',
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $1 AND status = 'CHECKED_IN'
+                WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.CHECKED_IN}'
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [id]);
@@ -1317,7 +1322,7 @@ export class AppointmentRepository {
             FROM invoices i
             INNER JOIN encounters e ON i.encounter_id = e.encounters_id
             WHERE e.appointment_id = $1
-              AND i.status != 'CANCELLED'
+              AND i.status != '${INVOICE_STATUS.CANCELLED}'
             LIMIT 1
         `;
         const result = await pool.query(query, [appointmentId]);

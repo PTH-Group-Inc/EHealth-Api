@@ -1,4 +1,5 @@
 import { pool } from '../../config/postgresdb';
+import { NO_SHOW_LIMITS } from '../../constants/appointment-status.constant';
 import {
     Patient,
     CreatePatientInput,
@@ -509,17 +510,17 @@ export class PatientRepository {
     }
 
     /**
-     * Increment no_show_count and auto-flag is_blacklisted if >= 3
+     * Increment no_show_count and auto-flag is_blacklisted if >= NO_SHOW_LIMITS.BLACKLIST_THRESHOLD
      */
     static async incrementNoShowCount(id: string): Promise<void> {
         const query = `
             UPDATE patients 
             SET no_show_count = COALESCE(no_show_count, 0) + 1,
-                is_blacklisted = CASE WHEN COALESCE(no_show_count, 0) + 1 >= 3 THEN true ELSE is_blacklisted END,
+                is_blacklisted = CASE WHEN COALESCE(no_show_count, 0) + 1 >= $2 THEN true ELSE is_blacklisted END,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = $1 AND deleted_at IS NULL
         `;
-        await pool.query(query, [id]);
+        await pool.query(query, [id, NO_SHOW_LIMITS.BLACKLIST_THRESHOLD]);
     }
 }
 

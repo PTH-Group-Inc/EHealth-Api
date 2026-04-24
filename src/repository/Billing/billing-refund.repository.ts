@@ -6,6 +6,7 @@ import {
     RefundTimelineEvent,
     PaginatedResult,
 } from '../../models/Billing/billing-refund.model';
+import { INVOICE_STATUS } from '../../constants/billing-invoices.constant';
 
 export class BillingRefundRepository {
 
@@ -186,15 +187,15 @@ export class BillingRefundRepository {
                             WHEN transaction_type = 'REFUND' AND status = 'SUCCESS' THEN -amount
                             ELSE 0 END)
                         FROM payment_transactions WHERE invoice_id = $1
-                    ), 0) >= net_amount THEN 'PAID'
+                    ), 0) >= net_amount THEN '${INVOICE_STATUS.PAID}'
                     WHEN COALESCE((
                         SELECT SUM(CASE
                             WHEN transaction_type = 'PAYMENT' AND status = 'SUCCESS' THEN amount
                             WHEN transaction_type = 'REFUND' AND status = 'SUCCESS' THEN -amount
                             ELSE 0 END)
                         FROM payment_transactions WHERE invoice_id = $1
-                    ), 0) > 0 THEN 'PARTIALLY_PAID'
-                    ELSE 'UNPAID'
+                    ), 0) > 0 THEN '${INVOICE_STATUS.PARTIALLY_PAID}'
+                    ELSE '${INVOICE_STATUS.UNPAID}'
                 END,
                 updated_at = CURRENT_TIMESTAMP
             WHERE invoices_id = $1

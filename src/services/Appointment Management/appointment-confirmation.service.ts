@@ -132,10 +132,10 @@ export class AppointmentConfirmationService {
                 // Cập nhật trạng thái trực tiếp (bypass confirmAppointment vì nó dùng userId cho confirmed_by)
                 const confirmQuery = `
                     UPDATE appointments
-                    SET status = 'CONFIRMED',
+                    SET status = '${APPOINTMENT_STATUS.CONFIRMED}',
                         confirmed_at = CURRENT_TIMESTAMP,
                         updated_at = CURRENT_TIMESTAMP
-                    WHERE appointments_id = $1 AND status = 'PENDING'
+                    WHERE appointments_id = $1 AND status = '${APPOINTMENT_STATUS.PENDING}'
                     RETURNING *;
                 `;
                 const confirmResult = await pool.query(confirmQuery, [row.appointments_id]);

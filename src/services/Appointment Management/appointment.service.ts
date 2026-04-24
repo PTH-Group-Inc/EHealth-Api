@@ -33,7 +33,7 @@ import {
     DEFAULT_DEPARTMENT_SLOT_DAYS, MAX_DEPARTMENT_SLOT_DAYS
 } from '../../constants/appointment.constant';
 import { APPOINTMENT_TEMPLATE_CODES } from '../../constants/appointment-confirmation.constant';
-import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS } from '../../constants/appointment-change.constant';
+import { CHANGE_TYPE, POLICY_RESULT, CHANGE_ERRORS, RESCHEDULE_LIMITS } from '../../constants/appointment-change.constant';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../../config/logger.config';
 
@@ -501,7 +501,7 @@ export class AppointmentService {
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống');
 
         /** Fix #6: Sync BS sang encounter nếu appointment đang IN_PROGRESS */
-        if (existing.status === 'IN_PROGRESS') {
+        if (existing.status === APPOINTMENT_STATUS.IN_PROGRESS) {
             try {
                 const encounter = await EncounterRepository.findActiveByAppointmentId(id);
                 if (encounter) {
@@ -540,7 +540,7 @@ export class AppointmentService {
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'UPDATE_FAILED', 'Lỗi hệ thống');
 
         /** Fix #6: Sync phòng sang encounter nếu appointment đang IN_PROGRESS */
-        if (existing.status === 'IN_PROGRESS') {
+        if (existing.status === APPOINTMENT_STATUS.IN_PROGRESS) {
             try {
                 const encounter = await EncounterRepository.findActiveByAppointmentId(id);
                 if (encounter) {
@@ -745,9 +745,9 @@ export class AppointmentService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
         }
 
-        // Kiểm tra số lần dời lịch tối đa (max 2 lần)
+        // Kiểm tra số lần dời lịch tối đa
         const rescheduleCount = await AppointmentChangeRepository.getRescheduleCount(id);
-        if (rescheduleCount >= 2) {
+        if (rescheduleCount >= RESCHEDULE_LIMITS.MAX_RESCHEDULE_COUNT) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_LIMIT_EXCEEDED', APPOINTMENT_ERRORS.RESCHEDULE_LIMIT_EXCEEDED);
         }
 
@@ -761,8 +761,8 @@ export class AppointmentService {
             const diffMs = slotTime.getTime() - now.getTime();
             const diffHours = diffMs / (1000 * 60 * 60);
 
-            // Nếu khoảng thời gian < 2 tiếng và cuộc hẹn chưa diễn ra
-            if (diffHours >= 0 && diffHours < 2) {
+            // Nếu khoảng thời gian < limit và cuộc hẹn chưa diễn ra
+            if (diffHours >= 0 && diffHours < RESCHEDULE_LIMITS.PENALTY_HOURS) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_PENALTY_REQUIRED', APPOINTMENT_ERRORS.RESCHEDULE_PENALTY_REQUIRED);
             }
         }
@@ -1179,7 +1179,7 @@ export class AppointmentService {
         if (!appointment) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
-        if (appointment.status !== 'COMPLETED') {
+        if (appointment.status !== APPOINTMENT_STATUS.COMPLETED) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'APPOINTMENT_NOT_COMPLETED', 'Cuộc hẹn phải hoàn thành mới được đánh giá.');
         }
 

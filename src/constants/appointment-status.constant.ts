@@ -54,6 +54,11 @@ export const STATUS_CONFIG_LIMITS = {
     LATE_THRESHOLD_MAX: 60,
 } as const;
 
+/** Giới hạn No-Show */
+export const NO_SHOW_LIMITS = {
+    BLACKLIST_THRESHOLD: 5,
+} as const;
+
 /** Thông báo lỗi */
 export const STATUS_ERRORS = {
     NOT_CONFIRMED: 'Chỉ lịch khám ở trạng thái CONFIRMED mới được check-in',

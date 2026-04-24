@@ -13,6 +13,7 @@ import {
     RevenueSummary,
     PaginatedResult,
 } from '../../models/Billing/billing-invoices.model';
+import { INVOICE_STATUS } from '../../constants/billing-invoices.constant';
 
 export class BillingInvoiceRepository {
 
@@ -39,7 +40,7 @@ export class BillingInvoiceRepository {
                 invoices_id, invoice_code, patient_id, encounter_id, facility_id,
                 total_amount, discount_amount, insurance_amount, net_amount, paid_amount,
                 status, notes, created_by
-            ) VALUES ($1, $2, $3, $4, $5, 0, 0, 0, 0, 0, 'UNPAID', $6, $7)
+            ) VALUES ($1, $2, $3, $4, $5, 0, 0, 0, 0, 0, '${INVOICE_STATUS.UNPAID}', $6, $7)
             RETURNING *
         `;
         const params = [
@@ -283,18 +284,18 @@ export class BillingInvoiceRepository {
                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status = 'SUCCESS'
-                    ), 0) > net_amount THEN 'OVERPAID'
+                    ), 0) > net_amount THEN '${INVOICE_STATUS.OVERPAID}'
                     WHEN COALESCE((
                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status = 'SUCCESS'
-                    ), 0) >= net_amount THEN 'PAID'
+                    ), 0) >= net_amount THEN '${INVOICE_STATUS.PAID}'
                     WHEN COALESCE((
                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status = 'SUCCESS'
-                    ), 0) > 0 THEN 'PARTIALLY_PAID'
-                    ELSE 'UNPAID'
+                    ), 0) > 0 THEN '${INVOICE_STATUS.PARTIALLY_PAID}'
+                    ELSE '${INVOICE_STATUS.UNPAID}'
                 END,
                 updated_at = CURRENT_TIMESTAMP
             WHERE invoices_id = $1

@@ -12,6 +12,7 @@ import {
     POLICY_RESULT,
     RESCHEDULABLE_STATUSES,
     SYSTEM_AUTO_APPROVER,
+    RESCHEDULE_LIMITS,
 } from '../../constants/appointment-change.constant';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -198,8 +199,16 @@ export class AppointmentChangeService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'APPOINTMENT_NOT_FOUND', CHANGE_ERRORS.APPOINTMENT_NOT_FOUND);
         }
 
-        const canReschedule = (RESCHEDULABLE_STATUSES as readonly string[]).includes(existing.status);
+        let canReschedule = (RESCHEDULABLE_STATUSES as readonly string[]).includes(existing.status);
         const rescheduleCount = existing.reschedule_count || 0;
+        let reason = canReschedule
+                ? undefined
+                : `Lịch khám ở trạng thái ${existing.status} không thể dời. Chỉ PENDING hoặc CONFIRMED mới được dời lịch`;
+
+        if (canReschedule && rescheduleCount >= RESCHEDULE_LIMITS.MAX_RESCHEDULE_COUNT) {
+            canReschedule = false;
+            reason = 'Đã vượt quá số lần dời lịch tối đa';
+        }
 
         return {
             appointment_id: appointmentId,
@@ -207,9 +216,8 @@ export class AppointmentChangeService {
             current_status: existing.status,
             can_reschedule: canReschedule,
             reschedule_count: rescheduleCount,
-            reason: canReschedule
-                ? undefined
-                : `Lịch khám ở trạng thái ${existing.status} không thể dời. Chỉ PENDING hoặc CONFIRMED mới được dời lịch`,
+            max_reschedules: RESCHEDULE_LIMITS.MAX_RESCHEDULE_COUNT,
+            reason: reason,
         };
     }
 }
