@@ -284,6 +284,20 @@ export class DiagnosisRepository {
     }
 
     /**
+     * Kiểm tra mã ICD-10 có tồn tại trong danh mục chuẩn không
+     */
+    static async isICD10CodeValid(code: string): Promise<boolean> {
+        const result = await pool.query(
+            `SELECT EXISTS(
+                SELECT 1 FROM master_data_items
+                WHERE category_code = 'ICD10' AND is_active = TRUE AND code = $1
+            ) AS exists`,
+            [code]
+        );
+        return result.rows[0].exists;
+    }
+
+    /**
      * Kiểm tra encounter tồn tại và trả về status
      */
     static async getEncounterStatus(encounterId: string): Promise<{ exists: boolean; status: string | null }> {

@@ -193,7 +193,7 @@ export class BillingRefundRepository {
                             WHEN transaction_type = 'REFUND' AND status = 'SUCCESS' THEN -amount
                             ELSE 0 END)
                         FROM payment_transactions WHERE invoice_id = $1
-                    ), 0) > 0 THEN 'PARTIAL'
+                    ), 0) > 0 THEN 'PARTIALLY_PAID'
                     ELSE 'UNPAID'
                 END,
                 updated_at = CURRENT_TIMESTAMP

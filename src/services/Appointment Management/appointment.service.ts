@@ -65,11 +65,20 @@ export class AppointmentService {
                 `Kênh đặt lịch không hợp lệ. Các giá trị cho phép: ${validChannels.join(', ')}`);
         }
 
-        // Validate bệnh nhân
-        const patientOk = await AppointmentRepository.patientExists(data.patient_id);
-        if (!patientOk) {
+        // Validate bệnh nhân và kiểm tra blacklist
+        const patientStatus = await AppointmentRepository.getPatientStatus(data.patient_id);
+        if (!patientStatus.exists) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', APPOINTMENT_ERRORS.PATIENT_NOT_FOUND);
         }
+        let blacklistWarning: string | null = null;
+        if (patientStatus.is_blacklisted) {
+            if (data.booking_channel === 'DIRECT_CLINIC' || data.booking_channel === 'HOTLINE') {
+                blacklistWarning = 'CẢNH BÁO: Bệnh nhân nằm trong danh sách đen (vắng mặt >= 3 lần).';
+            } else {
+                throw new AppError(HTTP_STATUS.FORBIDDEN, 'PATIENT_BLACKLISTED', 'Bệnh nhân đã bị đưa vào danh sách đen do vắng mặt quá 3 lần. Không thể đặt lịch khám trực tuyến.');
+            }
+        }
+
 
         // Validate chi nhánh
         const branchOk = await AppointmentRepository.branchExists(data.branch_id);
@@ -132,7 +141,12 @@ export class AppointmentService {
                 {}
             );
 
-            return { ...appointment, warning: allocResult.warning || null };
+            let finalWarning = allocResult.warning || null;
+            if (blacklistWarning) {
+                finalWarning = finalWarning ? `${finalWarning}. ${blacklistWarning}` : blacklistWarning;
+            }
+
+            return { ...appointment, warning: finalWarning };
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;
@@ -729,6 +743,28 @@ export class AppointmentService {
         const slotOk = await AppointmentRepository.slotExists(newSlotId);
         if (!slotOk) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+        }
+
+        // Kiểm tra số lần dời lịch tối đa (max 2 lần)
+        const rescheduleCount = await AppointmentChangeRepository.getRescheduleCount(id);
+        if (rescheduleCount >= 2) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_LIMIT_EXCEEDED', APPOINTMENT_ERRORS.RESCHEDULE_LIMIT_EXCEEDED);
+        }
+
+        // Kiểm tra dời lịch dưới 2 tiếng
+        if (existing.slot_start_time) {
+            const now = new Date();
+            const [hours, minutes] = existing.slot_start_time.split(':').map(Number);
+            const slotTime = new Date(existing.appointment_date);
+            slotTime.setHours(hours, minutes, 0, 0);
+
+            const diffMs = slotTime.getTime() - now.getTime();
+            const diffHours = diffMs / (1000 * 60 * 60);
+
+            // Nếu khoảng thời gian < 2 tiếng và cuộc hẹn chưa diễn ra
+            if (diffHours >= 0 && diffHours < 2) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_PENALTY_REQUIRED', APPOINTMENT_ERRORS.RESCHEDULE_PENALTY_REQUIRED);
+            }
         }
 
         // Cần bọc lại logic thay đổi slot vào transaction để tránh race condition

@@ -293,7 +293,7 @@ export class BillingInvoiceRepository {
                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status = 'SUCCESS'
-                    ), 0) > 0 THEN 'PARTIAL'
+                    ), 0) > 0 THEN 'PARTIALLY_PAID'
                     ELSE 'UNPAID'
                 END,
                 updated_at = CURRENT_TIMESTAMP

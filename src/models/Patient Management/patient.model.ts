@@ -26,6 +26,8 @@ export interface Patient {
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
+    no_show_count?: number;
+    is_blacklisted?: boolean;
 
     // Multi-profile support (Module 1 — 1 account → nhiều patient profiles)
     relationship?: 'SELF' | 'PARENT' | 'CHILD' | 'SPOUSE' | 'SIBLING' | 'OTHER';
@@ -57,6 +59,7 @@ export interface CreatePatientInput {
     emergency_contact_phone?: string;
     relationship?: PatientRelationship;
     is_default?: boolean;
+    force_create?: boolean;
 }
 
 /** Input cập nhật thông tin hành chính bệnh nhân */
@@ -114,4 +117,6 @@ export interface PatientSummary {
     insurance_count: number;
     medical_history_count: number;
     allergy_count: number;
+    no_show_count?: number;
+    is_blacklisted?: boolean;
 }

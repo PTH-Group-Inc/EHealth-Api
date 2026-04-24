@@ -1,7 +1,7 @@
 /** Trạng thái hóa đơn */
 export const INVOICE_STATUS = {
     UNPAID: 'UNPAID',
-    PARTIAL: 'PARTIAL',
+    PARTIALLY_PAID: 'PARTIALLY_PAID',
     PAID: 'PAID',
     OVERPAID: 'OVERPAID',
     CANCELLED: 'CANCELLED',

@@ -1,0 +1,476 @@
+﻿diff --git a/src/constants/appointment.constant.ts b/src/constants/appointment.constant.ts
+index 16c0ee4..6a72063 100644
+--- a/src/constants/appointment.constant.ts
++++ b/src/constants/appointment.constant.ts
+@@ -108,6 +108,8 @@ export const APPOINTMENT_ERRORS = {
+     DEPARTMENT_NOT_FOUND: 'Khoa/Ph├▓ng ban kh├┤ng tß╗ôn tß║íi hoß║╖c ─æ├ú ngß╗½ng hoß║ít ─æß╗Öng',
+     MISSING_DEPARTMENT_FILTER: 'Thiß║┐u th├┤ng tin bß║»t buß╗Öc: department_id v├á facility_id',
+     PATIENT_PROFILE_NOT_FOUND: 'T├ái khoß║ún cß╗ºa bß║ín ch╞░a ─æ╞░ß╗úc li├¬n kß║┐t vß╗¢i hß╗ô s╞í bß╗çnh nh├ón n├áo trong hß╗ç thß╗æng',
++    RESCHEDULE_LIMIT_EXCEEDED: 'V╞░ß╗út qu├í sß╗æ lß║ºn dß╗¥i lß╗ïch tß╗æi ─æa (2 lß║ºn)',
++    RESCHEDULE_PENALTY_REQUIRED: 'Dß╗¥i lß╗ïch tr╞░ß╗¢c giß╗¥ kh├ím d╞░ß╗¢i 2 tiß║┐ng sß║╜ bß╗ï t├¡nh ph├¡ phß║ít. Xin li├¬n hß╗ç quß║ºy lß╗à t├ón ─æß╗â ─æ╞░ß╗úc hß╗ù trß╗ú.',
+ } as const;
+ 
+ /** Cß║únh b├ío (warning) ΓÇö lß╗ïch vß║½n tß║ío ─æ╞░ß╗úc nh╞░ng cß║ºn staff xß╗¡ l├╜ */
+diff --git a/src/constants/billing-invoices.constant.ts b/src/constants/billing-invoices.constant.ts
+index 56ba92f..7cad6f7 100644
+--- a/src/constants/billing-invoices.constant.ts
++++ b/src/constants/billing-invoices.constant.ts
+@@ -1,7 +1,7 @@
+ /** Trß║íng th├íi h├│a ─æ╞ín */
+ export const INVOICE_STATUS = {
+     UNPAID: 'UNPAID',
+-    PARTIAL: 'PARTIAL',
++    PARTIALLY_PAID: 'PARTIALLY_PAID',
+     PAID: 'PAID',
+     OVERPAID: 'OVERPAID',
+     CANCELLED: 'CANCELLED',
+diff --git a/src/constants/diagnosis.constant.ts b/src/constants/diagnosis.constant.ts
+index 49047b1..a98e69c 100644
+--- a/src/constants/diagnosis.constant.ts
++++ b/src/constants/diagnosis.constant.ts
+@@ -36,8 +36,12 @@ export const DIAGNOSIS_ERRORS = {
+     MISSING_CONCLUSION: 'Thiß║┐u nß╗Öi dung kß║┐t luß║¡n kh├ím (conclusion)',
+     PATIENT_NOT_FOUND: 'Bß╗çnh nh├ón kh├┤ng tß╗ôn tß║íi trong hß╗ç thß╗æng',
+     MISSING_SEARCH_QUERY: 'Thiß║┐u tß╗½ kh├│a t├¼m kiß║┐m (q)',
++    INVALID_ICD_FORMAT: 'M├ú ICD-10 kh├┤ng hß╗úp lß╗ç. Vui l├▓ng nhß║¡p ─æ├║ng ─æß╗ïnh dß║íng (VD: A00, E11.9)',
++    ICD_CODE_NOT_FOUND: 'M├ú ICD-10 kh├┤ng tß╗ôn tß║íi trong danh mß╗Ñc chuß║⌐n.',
+ } as const;
+ 
++export const ICD10_REGEX = /^[A-Z][0-9]{2}(\.[0-9]{1,4})?$/i;
++
+ /** Th├┤ng b├ío th├ánh c├┤ng */
+ export const DIAGNOSIS_SUCCESS = {
+     CREATED: 'Th├¬m chß║⌐n ─æo├ín th├ánh c├┤ng',
+diff --git a/src/constants/patient.constant.ts b/src/constants/patient.constant.ts
+index 83f6330..3143c9e 100644
+--- a/src/constants/patient.constant.ts
++++ b/src/constants/patient.constant.ts
+@@ -37,6 +37,12 @@ export const PATIENT_ERRORS = {
+         code: 'PAT_002',
+         message: 'Sß╗æ CMND/CCCD ─æ├ú tß╗ôn tß║íi trong hß╗ç thß╗æng.',
+     },
++    DUPLICATE_PATIENT_DETECTED: {
++        success: false,
++        code: 'PAT_011',
++        message: 'Ph├ít hiß╗çn bß╗çnh nh├ón c├│ thß╗â bß╗ï tr├╣ng lß║╖p (tr├╣ng hß╗ì t├¬n v├á sß╗æ ─æiß╗çn thoß║íi). Vui l├▓ng kiß╗âm tra kß╗╣ hoß║╖c gß╗Öp hß╗ô s╞í nß║┐u cß║ºn.',
++        status: 409
++    },
+     INVALID_GENDER: {
+         success: false,
+         code: 'PAT_003',
+diff --git a/src/models/Patient Management/patient.model.ts b/src/models/Patient Management/patient.model.ts
+index 41f98be..375201e 100644
+--- a/src/models/Patient Management/patient.model.ts	
++++ b/src/models/Patient Management/patient.model.ts	
+@@ -26,6 +26,8 @@ export interface Patient {
+     created_at: string;
+     updated_at: string;
+     deleted_at: string | null;
++    no_show_count?: number;
++    is_blacklisted?: boolean;
+ 
+     // Multi-profile support (Module 1 ΓÇö 1 account ΓåÆ nhiß╗üu patient profiles)
+     relationship?: 'SELF' | 'PARENT' | 'CHILD' | 'SPOUSE' | 'SIBLING' | 'OTHER';
+@@ -57,6 +59,7 @@ export interface CreatePatientInput {
+     emergency_contact_phone?: string;
+     relationship?: PatientRelationship;
+     is_default?: boolean;
++    force_create?: boolean;
+ }
+ 
+ /** Input cß║¡p nhß║¡t th├┤ng tin h├ánh ch├¡nh bß╗çnh nh├ón */
+@@ -114,4 +117,6 @@ export interface PatientSummary {
+     insurance_count: number;
+     medical_history_count: number;
+     allergy_count: number;
++    no_show_count?: number;
++    is_blacklisted?: boolean;
+ }
+diff --git a/src/repository/Appointment Management/appointment-change.repository.ts b/src/repository/Appointment Management/appointment-change.repository.ts
+index c04aaa7..73059b0 100644
+--- a/src/repository/Appointment Management/appointment-change.repository.ts	
++++ b/src/repository/Appointment Management/appointment-change.repository.ts	
+@@ -81,6 +81,18 @@ export class AppointmentChangeRepository {
+         return result.rows[0] || null;
+     }
+ 
++    /**
++     * Lß║Ñy sß╗æ lß║ºn dß╗¥i lß╗ïch (─æ├ú duyß╗çt) cß╗ºa mß╗Öt cuß╗Öc hß║╣n
++     */
++    static async getRescheduleCount(appointmentId: string): Promise<number> {
++        const query = `
++            SELECT COUNT(*) FROM appointment_change_logs
++            WHERE appointment_id = $1 AND change_type = 'RESCHEDULE' AND approval_status = 'APPROVED'
++        `;
++        const result = await pool.query(query, [appointmentId]);
++        return parseInt(result.rows[0].count, 10) || 0;
++    }
++
+     /**
+      * Lß║Ñy lß╗ïch sß╗¡ thay ─æß╗òi theo appointment_id
+      */
+diff --git a/src/repository/Appointment Management/appointment-status.repository.ts b/src/repository/Appointment Management/appointment-status.repository.ts
+index 14963a1..dbee1a2 100644
+--- a/src/repository/Appointment Management/appointment-status.repository.ts	
++++ b/src/repository/Appointment Management/appointment-status.repository.ts	
+@@ -228,6 +228,17 @@ export class AppointmentStatusRepository {
+ 
+             if (noShow) {
+                 await AppointmentAuditLogRepository.create(auditLog, client);
++                
++                // Task 11: Auto-flag no-show blacklist
++                const patientUpdateQuery = `
++                    UPDATE patients
++                    SET no_show_count = COALESCE(no_show_count, 0) + 1,
++                        is_blacklisted = CASE WHEN COALESCE(no_show_count, 0) + 1 >= 3 THEN TRUE ELSE is_blacklisted END,
++                        updated_at = CURRENT_TIMESTAMP
++                    WHERE id = $1
++                    RETURNING no_show_count, is_blacklisted;
++                `;
++                await client.query(patientUpdateQuery, [noShow.patient_id]);
+             }
+ 
+             await client.query('COMMIT');
+diff --git a/src/repository/Appointment Management/appointment.repository.ts b/src/repository/Appointment Management/appointment.repository.ts
+index 8591300..6df61c8 100644
+--- a/src/repository/Appointment Management/appointment.repository.ts	
++++ b/src/repository/Appointment Management/appointment.repository.ts	
+@@ -33,6 +33,15 @@ export class AppointmentRepository {
+         return (result.rowCount ?? 0) > 0;
+     }
+ 
++    /** Lß║Ñy trß║íng th├íi cß╗ºa bß╗çnh nh├ón (v├¡ dß╗Ñ blacklist) */
++    static async getPatientStatus(patientId: string): Promise<{ exists: boolean, is_blacklisted: boolean, no_show_count: number }> {
++        const result = await pool.query(
++            'SELECT is_blacklisted, no_show_count FROM patients WHERE id::varchar = $1 AND deleted_at IS NULL', [patientId]
++        );
++        if ((result.rowCount ?? 0) === 0) return { exists: false, is_blacklisted: false, no_show_count: 0 };
++        return { exists: true, is_blacklisted: result.rows[0].is_blacklisted || false, no_show_count: result.rows[0].no_show_count || 0 };
++    }
++
+     /** Kiß╗âm tra b├íc s─⌐ c├│ tß╗ôn tß║íi v├á ─æang hoß║ít ─æß╗Öng kh├┤ng */
+     static async doctorExists(doctorId: string): Promise<boolean> {
+         const result = await pool.query(
+diff --git a/src/repository/Billing/billing-invoices.repository.ts b/src/repository/Billing/billing-invoices.repository.ts
+index 80189cf..f7db8cb 100644
+--- a/src/repository/Billing/billing-invoices.repository.ts
++++ b/src/repository/Billing/billing-invoices.repository.ts
+@@ -293,7 +293,7 @@ export class BillingInvoiceRepository {
+                         SELECT SUM(CASE WHEN transaction_type = 'PAYMENT' THEN amount ELSE -amount END)
+                         FROM payment_transactions
+                         WHERE invoice_id = $1 AND status = 'SUCCESS'
+-                    ), 0) > 0 THEN 'PARTIAL'
++                    ), 0) > 0 THEN 'PARTIALLY_PAID'
+                     ELSE 'UNPAID'
+                 END,
+                 updated_at = CURRENT_TIMESTAMP
+diff --git a/src/repository/Billing/billing-offline-payment.repository.ts b/src/repository/Billing/billing-offline-payment.repository.ts
+index 6dfffa5..e11faf5 100644
+--- a/src/repository/Billing/billing-offline-payment.repository.ts
++++ b/src/repository/Billing/billing-offline-payment.repository.ts
+@@ -645,7 +645,7 @@ export class BillingOfflinePaymentRepository {
+                                         ELSE 0 END)
+                         FROM payment_transactions
+                         WHERE invoice_id = $1 AND status IN ('SUCCESS')
+-                    ), 0) > 0 THEN 'PARTIAL'
++                    ), 0) > 0 THEN 'PARTIALLY_PAID'
+                     ELSE 'UNPAID'
+                 END,
+                 updated_at = CURRENT_TIMESTAMP
+diff --git a/src/repository/Billing/billing-refund.repository.ts b/src/repository/Billing/billing-refund.repository.ts
+index a886b50..b55da13 100644
+--- a/src/repository/Billing/billing-refund.repository.ts
++++ b/src/repository/Billing/billing-refund.repository.ts
+@@ -193,7 +193,7 @@ export class BillingRefundRepository {
+                             WHEN transaction_type = 'REFUND' AND status = 'SUCCESS' THEN -amount
+                             ELSE 0 END)
+                         FROM payment_transactions WHERE invoice_id = $1
+-                    ), 0) > 0 THEN 'PARTIAL'
++                    ), 0) > 0 THEN 'PARTIALLY_PAID'
+                     ELSE 'UNPAID'
+                 END,
+                 updated_at = CURRENT_TIMESTAMP
+diff --git a/src/repository/EMR/diagnosis.repository.ts b/src/repository/EMR/diagnosis.repository.ts
+index 725914c..6b481a8 100644
+--- a/src/repository/EMR/diagnosis.repository.ts
++++ b/src/repository/EMR/diagnosis.repository.ts
+@@ -283,6 +283,20 @@ export class DiagnosisRepository {
+         return result.rows;
+     }
+ 
++    /**
++     * Kiß╗âm tra m├ú ICD-10 c├│ tß╗ôn tß║íi trong danh mß╗Ñc chuß║⌐n kh├┤ng
++     */
++    static async isICD10CodeValid(code: string): Promise<boolean> {
++        const result = await pool.query(
++            `SELECT EXISTS(
++                SELECT 1 FROM master_data_items
++                WHERE category_code = 'ICD10' AND is_active = TRUE AND code = $1
++            ) AS exists`,
++            [code]
++        );
++        return result.rows[0].exists;
++    }
++
+     /**
+      * Kiß╗âm tra encounter tß╗ôn tß║íi v├á trß║ú vß╗ü status
+      */
+diff --git a/src/repository/Patient Management/patient.repository.ts b/src/repository/Patient Management/patient.repository.ts
+index c6bf5a7..c11b0c7 100644
+--- a/src/repository/Patient Management/patient.repository.ts	
++++ b/src/repository/Patient Management/patient.repository.ts	
+@@ -25,7 +25,8 @@ export class PatientRepository {
+         status?: string,
+         gender?: string,
+         page: number = 1,
+-        limit: number = 20
++        limit: number = 20,
++        isBlacklisted?: boolean
+     ): Promise<PaginatedPatients> {
+         let whereClause = 'WHERE p.deleted_at IS NULL';
+         const params: any[] = [];
+@@ -44,6 +45,10 @@ export class PatientRepository {
+             params.push(`%${search}%`);
+             paramIndex++;
+         }
++        if (isBlacklisted !== undefined) {
++            whereClause += ` AND p.is_blacklisted = $${paramIndex++}`;
++            params.push(isBlacklisted);
++        }
+ 
+         // Count
+         const countQuery = `SELECT COUNT(*) FROM patients p ${whereClause}`;
+@@ -101,7 +106,26 @@ export class PatientRepository {
+             params.push(excludeId);
+         }
+         const result = await pool.query(query, params);
+-        return result.rows.length > 0;
++        return (result.rowCount ?? 0) > 0;
++    }
++
++    /**
++     * T├¼m kiß║┐m bß╗çnh nh├ón tr├╣ng lß║╖p (tr├╣ng t├¬n v├á sß╗æ ─æiß╗çn thoß║íi)
++     */
++    static async findDuplicatesByNameAndPhone(fullName: string, phoneNumber: string, excludeId?: string): Promise<{ id: string; patient_code: string }[]> {
++        let query = `
++            SELECT id, patient_code
++            FROM patients
++            WHERE full_name ILIKE $1 AND phone_number = $2 AND deleted_at IS NULL
++        `;
++        const params: any[] = [fullName, phoneNumber];
++
++        if (excludeId) {
++            query += ' AND id != $3';
++            params.push(excludeId);
++        }
++        const result = await pool.query(query, params);
++        return result.rows;
+     }
+ 
+     /**
+@@ -470,6 +494,8 @@ export class PatientRepository {
+                 p.id, p.patient_code, p.full_name, p.date_of_birth, p.gender,
+                 p.phone_number, p.email, p.id_card_number, p.address, p.status,
+                 COALESCE(p.has_insurance, false) AS has_insurance,
++                COALESCE(p.no_show_count, 0) AS no_show_count,
++                COALESCE(p.is_blacklisted, false) AS is_blacklisted,
+                 EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.date_of_birth))::int AS age,
+                 (SELECT COUNT(*) FROM patient_tags pt WHERE pt.patient_id = p.id)::int AS tag_count,
+                 (SELECT COUNT(*) FROM patient_insurances pi2 WHERE pi2.patient_id = p.id::varchar)::int AS insurance_count,
+@@ -481,5 +507,19 @@ export class PatientRepository {
+         const result = await pool.query(query, [id]);
+         return result.rows[0] || null;
+     }
++
++    /**
++     * Increment no_show_count and auto-flag is_blacklisted if >= 3
++     */
++    static async incrementNoShowCount(id: string): Promise<void> {
++        const query = `
++            UPDATE patients 
++            SET no_show_count = COALESCE(no_show_count, 0) + 1,
++                is_blacklisted = CASE WHEN COALESCE(no_show_count, 0) + 1 >= 3 THEN true ELSE is_blacklisted END,
++                updated_at = CURRENT_TIMESTAMP
++            WHERE id = $1 AND deleted_at IS NULL
++        `;
++        await pool.query(query, [id]);
++    }
+ }
+ 
+diff --git a/src/services/Appointment Management/appointment-status.service.ts b/src/services/Appointment Management/appointment-status.service.ts
+index 561858d..803731c 100644
+--- a/src/services/Appointment Management/appointment-status.service.ts	
++++ b/src/services/Appointment Management/appointment-status.service.ts	
+@@ -4,6 +4,7 @@ import { AppointmentRepository } from '../../repository/Appointment Management/a
+ import { AppointmentStatusRepository } from '../../repository/Appointment Management/appointment-status.repository';
+ import { EncounterRepository } from '../../repository/EMR/encounter.repository';
+ import { NotificationEngineService } from '../Core/notification-engine.service';
++import { PatientRepository } from '../Patient Management/patient.repository';
+ import { v4 as uuidv4 } from 'uuid';
+ import {
+     CHECK_IN_METHOD,
+@@ -380,6 +381,11 @@ export class AppointmentStatusService {
+             throw new AppError(400, 'NO_SHOW_FAILED', STATUS_ERRORS.NO_SHOW_NOT_ALLOWED);
+         }
+ 
++        // T─âng ─æß║┐m no-show v├á tß╗▒ ─æß╗Öng cß║únh b├ío (blacklist)
++        if (appointment.patient_id) {
++            await PatientRepository.incrementNoShowCount(appointment.patient_id);
++        }
++
+         /** Fix #5: Dß╗ìn dß║╣p encounter ─æang mß╗ƒ nß║┐u c├│ (edge case) */
+         try {
+             const encounter = await EncounterRepository.findActiveByAppointmentId(appointmentId);
+@@ -433,6 +439,11 @@ export class AppointmentStatusService {
+ 
+                 await AppointmentStatusRepository.markNoShow(apt.appointments_id, auditLog);
+ 
++                // T─âng ─æß║┐m no-show v├á tß╗▒ ─æß╗Öng cß║únh b├ío
++                if (apt.patient_id) {
++                    await PatientRepository.incrementNoShowCount(apt.patient_id);
++                }
++
+                 /** B3: Dß╗ìn dß║╣p encounter + giß║úi ph├│ng ph├▓ng (t╞░╞íng tß╗▒ markNoShow thß╗º c├┤ng) */
+                 try {
+                     const encounter = await EncounterRepository.findActiveByAppointmentId(apt.appointments_id);
+diff --git a/src/services/Appointment Management/appointment.service.ts b/src/services/Appointment Management/appointment.service.ts
+index 55ec990..d749b9c 100644
+--- a/src/services/Appointment Management/appointment.service.ts	
++++ b/src/services/Appointment Management/appointment.service.ts	
+@@ -65,11 +65,20 @@ export class AppointmentService {
+                 `K├¬nh ─æß║╖t lß╗ïch kh├┤ng hß╗úp lß╗ç. C├íc gi├í trß╗ï cho ph├⌐p: ${validChannels.join(', ')}`);
+         }
+ 
+-        // Validate bß╗çnh nh├ón
+-        const patientOk = await AppointmentRepository.patientExists(data.patient_id);
+-        if (!patientOk) {
++        // Validate bß╗çnh nh├ón v├á kiß╗âm tra blacklist
++        const patientStatus = await AppointmentRepository.getPatientStatus(data.patient_id);
++        if (!patientStatus.exists) {
+             throw new AppError(HTTP_STATUS.NOT_FOUND, 'PATIENT_NOT_FOUND', APPOINTMENT_ERRORS.PATIENT_NOT_FOUND);
+         }
++        let blacklistWarning: string | null = null;
++        if (patientStatus.is_blacklisted) {
++            if (data.booking_channel === 'DIRECT_CLINIC' || data.booking_channel === 'HOTLINE') {
++                blacklistWarning = 'Cß║óNH B├üO: Bß╗çnh nh├ón nß║▒m trong danh s├ích ─æen (vß║»ng mß║╖t >= 3 lß║ºn).';
++            } else {
++                throw new AppError(HTTP_STATUS.FORBIDDEN, 'PATIENT_BLACKLISTED', 'Bß╗çnh nh├ón ─æ├ú bß╗ï ─æ╞░a v├áo danh s├ích ─æen do vß║»ng mß║╖t qu├í 3 lß║ºn. Kh├┤ng thß╗â ─æß║╖t lß╗ïch kh├ím trß╗▒c tuyß║┐n.');
++            }
++        }
++
+ 
+         // Validate chi nh├ính
+         const branchOk = await AppointmentRepository.branchExists(data.branch_id);
+@@ -132,7 +141,12 @@ export class AppointmentService {
+                 {}
+             );
+ 
+-            return { ...appointment, warning: allocResult.warning || null };
++            let finalWarning = allocResult.warning || null;
++            if (blacklistWarning) {
++                finalWarning = finalWarning ? `${finalWarning}. ${blacklistWarning}` : blacklistWarning;
++            }
++
++            return { ...appointment, warning: finalWarning };
+         } catch (error) {
+             await client.query('ROLLBACK');
+             throw error;
+@@ -731,6 +745,28 @@ export class AppointmentService {
+             throw new AppError(HTTP_STATUS.NOT_FOUND, 'SLOT_NOT_FOUND', APPOINTMENT_ERRORS.SLOT_NOT_FOUND);
+         }
+ 
++        // Kiß╗âm tra sß╗æ lß║ºn dß╗¥i lß╗ïch tß╗æi ─æa (max 2 lß║ºn)
++        const rescheduleCount = await AppointmentChangeRepository.getRescheduleCount(id);
++        if (rescheduleCount >= 2) {
++            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_LIMIT_EXCEEDED', APPOINTMENT_ERRORS.RESCHEDULE_LIMIT_EXCEEDED);
++        }
++
++        // Kiß╗âm tra dß╗¥i lß╗ïch d╞░ß╗¢i 2 tiß║┐ng
++        if (existing.slot_start_time) {
++            const now = new Date();
++            const [hours, minutes] = existing.slot_start_time.split(':').map(Number);
++            const slotTime = new Date(existing.appointment_date);
++            slotTime.setHours(hours, minutes, 0, 0);
++
++            const diffMs = slotTime.getTime() - now.getTime();
++            const diffHours = diffMs / (1000 * 60 * 60);
++
++            // Nß║┐u khoß║úng thß╗¥i gian < 2 tiß║┐ng v├á cuß╗Öc hß║╣n ch╞░a diß╗àn ra
++            if (diffHours >= 0 && diffHours < 2) {
++                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESCHEDULE_PENALTY_REQUIRED', APPOINTMENT_ERRORS.RESCHEDULE_PENALTY_REQUIRED);
++            }
++        }
++
+         // Cß║ºn bß╗ìc lß║íi logic thay ─æß╗òi slot v├áo transaction ─æß╗â tr├ính race condition
+         const client = await pool.connect();
+         try {
+diff --git a/src/services/EMR/diagnosis.service.ts b/src/services/EMR/diagnosis.service.ts
+index 168ca17..f52cdad 100644
+--- a/src/services/EMR/diagnosis.service.ts
++++ b/src/services/EMR/diagnosis.service.ts
+@@ -7,6 +7,7 @@ import {
+     DIAGNOSIS_ERRORS,
+     DIAGNOSIS_CONFIG,
+     VALID_TYPE_TRANSITIONS,
++    ICD10_REGEX,
+ } from '../../constants/diagnosis.constant';
+ import { ENCOUNTER_EDITABLE_STATUSES } from '../../constants/encounter.constant';
+ import {
+@@ -33,6 +34,17 @@ export class DiagnosisService {
+         if (!data.icd10_code?.trim()) {
+             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_ICD_CODE', DIAGNOSIS_ERRORS.MISSING_ICD_CODE);
+         }
++
++        const trimmedCode = data.icd10_code.trim();
++        if (!ICD10_REGEX.test(trimmedCode)) {
++            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ICD_FORMAT', DIAGNOSIS_ERRORS.INVALID_ICD_FORMAT);
++        }
++
++        const isCodeValid = await DiagnosisRepository.isICD10CodeValid(trimmedCode);
++        if (!isCodeValid) {
++            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'ICD_CODE_NOT_FOUND', DIAGNOSIS_ERRORS.ICD_CODE_NOT_FOUND);
++        }
++
+         if (!data.diagnosis_name?.trim()) {
+             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DIAGNOSIS_NAME', DIAGNOSIS_ERRORS.MISSING_DIAGNOSIS_NAME);
+         }
+@@ -85,6 +97,17 @@ export class DiagnosisService {
+         const record = await this.getActiveDiagnosis(diagnosisId);
+         await this.validateEncounterEditable(record.encounter_id);
+ 
++        if (data.icd10_code) {
++            const trimmedCode = data.icd10_code.trim();
++            if (!ICD10_REGEX.test(trimmedCode)) {
++                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ICD_FORMAT', DIAGNOSIS_ERRORS.INVALID_ICD_FORMAT);
++            }
++            const isCodeValid = await DiagnosisRepository.isICD10CodeValid(trimmedCode);
++            if (!isCodeValid) {
++                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'ICD_CODE_NOT_FOUND', DIAGNOSIS_ERRORS.ICD_CODE_NOT_FOUND);
++            }
++        }
++
+         const updated = await DiagnosisRepository.update(diagnosisId, data);
+         return (await DiagnosisRepository.findById(diagnosisId))!;
+     }
+diff --git a/src/services/Patient Management/patient.service.ts b/src/services/Patient Management/patient.service.ts
+index b3d3d77..6748de6 100644
+--- a/src/services/Patient Management/patient.service.ts	
++++ b/src/services/Patient Management/patient.service.ts	
+@@ -135,6 +135,17 @@ export class PatientService {
+             }
+         }
+ 
++        // Cß║únh b├ío tr├╣ng lß║╖p theo t├¬n v├á S─ÉT
++        if (input.phone_number && input.full_name && !input.force_create) {
++            const duplicates = await PatientRepository.findDuplicatesByNameAndPhone(input.full_name, input.phone_number);
++            if (duplicates.length > 0) {
++                throw {
++                    ...PATIENT_ERRORS.DUPLICATE_PATIENT_DETECTED,
++                    data: { duplicate_codes: duplicates.map((d: any) => d.patient_code) }
++                };
++            }
++        }
++
+         // Sinh ID v├á m├ú bß╗çnh nh├ón
+         const newId = randomUUID();
+         const patientCode = this.generatePatientCode();

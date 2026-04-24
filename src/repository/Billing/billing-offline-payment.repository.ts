@@ -645,7 +645,7 @@ export class BillingOfflinePaymentRepository {
                                         ELSE 0 END)
                         FROM payment_transactions
                         WHERE invoice_id = $1 AND status IN ('SUCCESS')
-                    ), 0) > 0 THEN 'PARTIAL'
+                    ), 0) > 0 THEN 'PARTIALLY_PAID'
                     ELSE 'UNPAID'
                 END,
                 updated_at = CURRENT_TIMESTAMP

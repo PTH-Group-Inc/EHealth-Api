@@ -33,6 +33,15 @@ export class AppointmentRepository {
         return (result.rowCount ?? 0) > 0;
     }
 
+    /** Lấy trạng thái của bệnh nhân (ví dụ blacklist) */
+    static async getPatientStatus(patientId: string): Promise<{ exists: boolean, is_blacklisted: boolean, no_show_count: number }> {
+        const result = await pool.query(
+            'SELECT is_blacklisted, no_show_count FROM patients WHERE id::varchar = $1 AND deleted_at IS NULL', [patientId]
+        );
+        if ((result.rowCount ?? 0) === 0) return { exists: false, is_blacklisted: false, no_show_count: 0 };
+        return { exists: true, is_blacklisted: result.rows[0].is_blacklisted || false, no_show_count: result.rows[0].no_show_count || 0 };
+    }
+
     /** Kiểm tra bác sĩ có tồn tại và đang hoạt động không */
     static async doctorExists(doctorId: string): Promise<boolean> {
         const result = await pool.query(

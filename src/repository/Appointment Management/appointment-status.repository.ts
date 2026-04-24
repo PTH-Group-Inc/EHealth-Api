@@ -228,6 +228,17 @@ export class AppointmentStatusRepository {
 
             if (noShow) {
                 await AppointmentAuditLogRepository.create(auditLog, client);
+                
+                // Task 11: Auto-flag no-show blacklist
+                const patientUpdateQuery = `
+                    UPDATE patients
+                    SET no_show_count = COALESCE(no_show_count, 0) + 1,
+                        is_blacklisted = CASE WHEN COALESCE(no_show_count, 0) + 1 >= 3 THEN TRUE ELSE is_blacklisted END,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $1
+                    RETURNING no_show_count, is_blacklisted;
+                `;
+                await client.query(patientUpdateQuery, [noShow.patient_id]);
             }
 
             await client.query('COMMIT');

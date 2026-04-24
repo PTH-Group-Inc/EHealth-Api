@@ -36,7 +36,11 @@ export const DIAGNOSIS_ERRORS = {
     MISSING_CONCLUSION: 'Thiếu nội dung kết luận khám (conclusion)',
     PATIENT_NOT_FOUND: 'Bệnh nhân không tồn tại trong hệ thống',
     MISSING_SEARCH_QUERY: 'Thiếu từ khóa tìm kiếm (q)',
+    INVALID_ICD_FORMAT: 'Mã ICD-10 không hợp lệ. Vui lòng nhập đúng định dạng (VD: A00, E11.9)',
+    ICD_CODE_NOT_FOUND: 'Mã ICD-10 không tồn tại trong danh mục chuẩn.',
 } as const;
+
+export const ICD10_REGEX = /^[A-Z][0-9]{2}(\.[0-9]{1,4})?$/i;
 
 /** Thông báo thành công */
 export const DIAGNOSIS_SUCCESS = {

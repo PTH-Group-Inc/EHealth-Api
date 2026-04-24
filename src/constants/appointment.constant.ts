@@ -108,6 +108,8 @@ export const APPOINTMENT_ERRORS = {
     DEPARTMENT_NOT_FOUND: 'Khoa/Phòng ban không tồn tại hoặc đã ngừng hoạt động',
     MISSING_DEPARTMENT_FILTER: 'Thiếu thông tin bắt buộc: department_id và facility_id',
     PATIENT_PROFILE_NOT_FOUND: 'Tài khoản của bạn chưa được liên kết với hồ sơ bệnh nhân nào trong hệ thống',
+    RESCHEDULE_LIMIT_EXCEEDED: 'Vượt quá số lần dời lịch tối đa (2 lần)',
+    RESCHEDULE_PENALTY_REQUIRED: 'Dời lịch trước giờ khám dưới 2 tiếng sẽ bị tính phí phạt. Xin liên hệ quầy lễ tân để được hỗ trợ.',
 } as const;
 
 /** Cảnh báo (warning) — lịch vẫn tạo được nhưng cần staff xử lý */
