@@ -415,25 +415,6 @@ export class AppointmentController {
     });
 
     /**
-     * POST /api/appointments/pre-book
-     */
-    static preBook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        const userId = (req as any).auth?.user_id || 'system';
-        const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-        
-        const result = await AppointmentService.preBookAppointment(req.body, userId, clientIP);
-
-        res.status(HTTP_STATUS.CREATED).json({
-            success: true,
-            message: result.warning
-                ? `Tạo lịch và yêu cầu thanh toán thành công. Lưu ý: ${result.warning}`
-                : 'Tạo lịch và yêu cầu thanh toán thành công.',
-            warning: result.warning || undefined,
-            data: result
-        });
-    });
-
-    /**
      * POST /api/appointments/:id/regenerate-qr
      */
     static regenerateQR = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
