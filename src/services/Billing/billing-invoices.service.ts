@@ -267,11 +267,6 @@ export class BillingInvoiceService {
 
     /** Thêm dòng chi tiết vào HĐ */
     static async addInvoiceItem(invoiceId: string, input: AddInvoiceItemInput, userId: string): Promise<InvoiceDetail> {
-        const invoice = await BillingInvoiceRepository.getInvoiceById(invoiceId);
-        if (!invoice) throw BILLING_INVOICE_ERRORS.INVOICE_NOT_FOUND;
-        if (invoice.status === INVOICE_STATUS.CANCELLED) throw BILLING_INVOICE_ERRORS.INVOICE_CANCELLED;
-        if (invoice.status === INVOICE_STATUS.PAID) throw BILLING_INVOICE_ERRORS.INVOICE_ALREADY_PAID;
-
         const validTypes = Object.values(INVOICE_ITEM_TYPE);
         if (!validTypes.includes(input.reference_type as any)) throw BILLING_INVOICE_ERRORS.INVALID_ITEM_TYPE;
         if (input.quantity <= 0) throw BILLING_INVOICE_ERRORS.INVALID_QUANTITY;
@@ -280,6 +275,22 @@ export class BillingInvoiceService {
         const client = await BillingInvoiceRepository.getClient();
         try {
             await client.query('BEGIN');
+
+            /* Lock hóa đơn trước khi kiểm tra trạng thái */
+            const invoice = await BillingInvoiceRepository.getInvoiceByIdWithLock(invoiceId, client);
+            if (!invoice) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_NOT_FOUND;
+            }
+            if (invoice.status === INVOICE_STATUS.CANCELLED) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_CANCELLED;
+            }
+            if (invoice.status === INVOICE_STATUS.PAID || invoice.status === 'OVERPAID') {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_ALREADY_PAID;
+            }
+
             const itemId = this.generateId('IDT');
             const item = await BillingInvoiceRepository.addInvoiceItem(itemId, invoiceId, input, client);
             await BillingInvoiceRepository.recalculateInvoice(invoiceId, client);
@@ -295,20 +306,34 @@ export class BillingInvoiceService {
 
     /** Sửa dòng chi tiết */
     static async updateInvoiceItem(invoiceId: string, itemId: string, input: UpdateInvoiceItemInput, userId: string): Promise<InvoiceDetail> {
-        const invoice = await BillingInvoiceRepository.getInvoiceById(invoiceId);
-        if (!invoice) throw BILLING_INVOICE_ERRORS.INVOICE_NOT_FOUND;
-        if (invoice.status === INVOICE_STATUS.CANCELLED) throw BILLING_INVOICE_ERRORS.INVOICE_CANCELLED;
-        if (invoice.status === INVOICE_STATUS.PAID) throw BILLING_INVOICE_ERRORS.INVOICE_ALREADY_PAID;
-
-        const existing = await BillingInvoiceRepository.getInvoiceItemById(itemId);
-        if (!existing) throw BILLING_INVOICE_ERRORS.ITEM_NOT_FOUND;
-
         if (input.quantity !== undefined && input.quantity <= 0) throw BILLING_INVOICE_ERRORS.INVALID_QUANTITY;
         if (input.unit_price !== undefined && input.unit_price < 0) throw BILLING_INVOICE_ERRORS.INVALID_PRICE;
 
         const client = await BillingInvoiceRepository.getClient();
         try {
             await client.query('BEGIN');
+
+            /* Lock hóa đơn trước khi kiểm tra trạng thái */
+            const invoice = await BillingInvoiceRepository.getInvoiceByIdWithLock(invoiceId, client);
+            if (!invoice) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_NOT_FOUND;
+            }
+            if (invoice.status === INVOICE_STATUS.CANCELLED) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_CANCELLED;
+            }
+            if (invoice.status === INVOICE_STATUS.PAID || invoice.status === 'OVERPAID') {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_ALREADY_PAID;
+            }
+
+            const existing = await BillingInvoiceRepository.getInvoiceItemById(itemId);
+            if (!existing) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.ITEM_NOT_FOUND;
+            }
+
             const item = await BillingInvoiceRepository.updateInvoiceItem(itemId, input, client);
             await BillingInvoiceRepository.recalculateInvoice(invoiceId, client);
             await client.query('COMMIT');
@@ -323,17 +348,31 @@ export class BillingInvoiceService {
 
     /** Xóa dòng chi tiết */
     static async deleteInvoiceItem(invoiceId: string, itemId: string, userId: string): Promise<void> {
-        const invoice = await BillingInvoiceRepository.getInvoiceById(invoiceId);
-        if (!invoice) throw BILLING_INVOICE_ERRORS.INVOICE_NOT_FOUND;
-        if (invoice.status === INVOICE_STATUS.CANCELLED) throw BILLING_INVOICE_ERRORS.INVOICE_CANCELLED;
-        if (invoice.status === INVOICE_STATUS.PAID) throw BILLING_INVOICE_ERRORS.INVOICE_ALREADY_PAID;
-
-        const existing = await BillingInvoiceRepository.getInvoiceItemById(itemId);
-        if (!existing) throw BILLING_INVOICE_ERRORS.ITEM_NOT_FOUND;
-
         const client = await BillingInvoiceRepository.getClient();
         try {
             await client.query('BEGIN');
+
+            /* Lock hóa đơn trước khi kiểm tra trạng thái */
+            const invoice = await BillingInvoiceRepository.getInvoiceByIdWithLock(invoiceId, client);
+            if (!invoice) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_NOT_FOUND;
+            }
+            if (invoice.status === INVOICE_STATUS.CANCELLED) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_CANCELLED;
+            }
+            if (invoice.status === INVOICE_STATUS.PAID || invoice.status === 'OVERPAID') {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.INVOICE_ALREADY_PAID;
+            }
+
+            const existing = await BillingInvoiceRepository.getInvoiceItemById(itemId);
+            if (!existing) {
+                await client.query('ROLLBACK');
+                throw BILLING_INVOICE_ERRORS.ITEM_NOT_FOUND;
+            }
+
             await BillingInvoiceRepository.deleteInvoiceItem(itemId, client);
             await BillingInvoiceRepository.recalculateInvoice(invoiceId, client);
             await client.query('COMMIT');

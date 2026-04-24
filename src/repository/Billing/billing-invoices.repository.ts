@@ -162,6 +162,23 @@ export class BillingInvoiceRepository {
     }
 
     /**
+     * Lấy chi tiết 1 hóa đơn kèm khóa dòng (FOR UPDATE)
+     * Dùng trong transaction để tránh race condition
+     */
+    static async getInvoiceByIdWithLock(invoiceId: string, client: PoolClient): Promise<Invoice | null> {
+        const sql = `
+            SELECT i.*
+            FROM invoices i
+            WHERE i.invoices_id = $1
+            FOR UPDATE
+        `;
+        const result = await client.query(sql, [invoiceId]);
+        if (result.rows.length === 0) return null;
+
+        return result.rows[0] as Invoice;
+    }
+
+    /**
      * Cập nhật hóa đơn (discount, notes)
      */
     static async updateInvoice(
