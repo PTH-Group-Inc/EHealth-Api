@@ -18,6 +18,8 @@ import {
     DrugSearchResult,
     PrescriptionSummary,
 } from '../../models/EMR/prescription.model';
+import { ClinicalExamRepository } from '../../repository/EMR/clinical-exam.repository';
+import { DiagnosisRepository } from '../../repository/EMR/diagnosis.repository';
 
 
 export class PrescriptionService {
@@ -153,6 +155,18 @@ export class PrescriptionService {
         const activeCount = await PrescriptionRepository.countActiveDetails(prescriptionId);
         if (activeCount < PRESCRIPTION_CONFIG.MIN_DETAILS_FOR_CONFIRM) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'NO_DETAILS', PRESCRIPTION_ERRORS.NO_DETAILS_FOR_CONFIRM);
+        }
+
+        /** KIỂM TRA ĐIỀU KIỆN LÂM SÀNG: Clinical Exam phải FINALIZED */
+        const clinicalExam = await ClinicalExamRepository.findByEncounterId(prescription.encounter_id);
+        if (!clinicalExam || clinicalExam.status !== 'FINAL') {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CLINICAL_EXAM_NOT_FINALIZED', PRESCRIPTION_ERRORS.CLINICAL_EXAM_NOT_FINALIZED);
+        }
+
+        /** KIỂM TRA ĐIỀU KIỆN LÂM SÀNG: Phải có chẩn đoán PRIMARY */
+        const primaryDiagnosis = await DiagnosisRepository.findPrimaryByEncounterId(prescription.encounter_id);
+        if (!primaryDiagnosis) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_PRIMARY_DIAGNOSIS', PRESCRIPTION_ERRORS.MISSING_PRIMARY_DIAGNOSIS);
         }
 
         await PrescriptionRepository.confirm(prescriptionId);

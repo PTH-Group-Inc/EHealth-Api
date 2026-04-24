@@ -37,7 +37,7 @@ export class DispensingService {
         if (!rxInfo.exists) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'PRESCRIPTION_NOT_FOUND', DISPENSE_ERRORS.PRESCRIPTION_NOT_FOUND);
         }
-        if (rxInfo.status !== 'PRESCRIBED') {
+        if (rxInfo.status !== 'PRESCRIBED' && rxInfo.status !== 'PARTIALLY_DISPENSED') {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PRESCRIPTION_NOT_PRESCRIBED', DISPENSE_ERRORS.PRESCRIPTION_NOT_PRESCRIBED);
         }
 
@@ -126,8 +126,34 @@ export class DispensingService {
                 }
             }
 
-            // Cập nhật trạng thái đơn thuốc → DISPENSED
-            await DispensingRepository.updatePrescriptionStatus(client, prescriptionId, 'DISPENSED');
+            // Xác định trạng thái cấp phát (PARTIALLY_DISPENSED hay DISPENSED)
+            const allRxDetails = await DispensingRepository.getAllPrescriptionDetails(prescriptionId);
+            const totalRequested = allRxDetails.reduce((sum, d) => sum + Number(d.quantity), 0);
+
+            // Lấy tổng số lượng đã cấp phát trước đó
+            const prevDispenses = await client.query(
+                `SELECT SUM(dispensed_quantity) as total_prev 
+                 FROM drug_dispense_details ddd
+                 JOIN drug_dispense_orders ddo ON ddo.drug_dispense_orders_id = ddd.dispense_order_id
+                 WHERE ddo.prescription_id = $1 AND ddo.status IN ('COMPLETED', 'PARTIALLY_DISPENSED')`,
+                [prescriptionId]
+            );
+            const prevDispensed = Number(prevDispenses.rows[0].total_prev || 0);
+            const currentDispensed = input.items.reduce((sum, item) => sum + Number(item.dispensed_quantity), 0);
+            const totalDispensed = prevDispensed + currentDispensed;
+
+            const finalStatus = (totalDispensed < totalRequested) 
+                ? DISPENSE_STATUS.PARTIALLY_DISPENSED 
+                : DISPENSE_STATUS.COMPLETED;
+
+            // Cập nhật trạng thái phiếu cấp phát nếu là PARTIALLY_DISPENSED (do createOrder mặc định là COMPLETED)
+            if (finalStatus === DISPENSE_STATUS.PARTIALLY_DISPENSED) {
+                await client.query(`UPDATE drug_dispense_orders SET status = $1 WHERE drug_dispense_orders_id = $2`, [finalStatus, orderId]);
+            }
+
+            // Cập nhật trạng thái đơn thuốc → DISPENSED hoặc PARTIALLY_DISPENSED
+            const rxFinalStatus = (totalDispensed < totalRequested) ? 'PARTIALLY_DISPENSED' : 'DISPENSED';
+            await DispensingRepository.updatePrescriptionStatus(client, prescriptionId, rxFinalStatus);
 
             await client.query('COMMIT');
 

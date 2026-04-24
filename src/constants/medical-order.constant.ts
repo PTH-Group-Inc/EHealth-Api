@@ -65,6 +65,8 @@ export const ORDER_ERRORS = {
     MISSING_RESULT_SUMMARY: 'Thiếu tóm tắt kết quả (result_summary)',
     MISSING_CANCEL_REASON: 'Thiếu lý do hủy chỉ định',
     PATIENT_NOT_FOUND: 'Bệnh nhân không tồn tại',
+    MISSING_RADIOLOGY_IMAGES: 'Kết quả X-Quang/Chẩn đoán hình ảnh bắt buộc phải có hình ảnh đính kèm',
+    MISSING_LAB_METRICS: 'Kết quả xét nghiệm bắt buộc phải có các chỉ số đo lường',
 } as const;
 
 /** Thông báo thành công */

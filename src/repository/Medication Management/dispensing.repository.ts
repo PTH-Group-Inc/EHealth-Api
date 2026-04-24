@@ -93,6 +93,22 @@ export class DispensingRepository {
         return { exists: true, drug_id: result.rows[0].drug_id, quantity: result.rows[0].quantity };
     }
 
+    /** Lấy tất cả các dòng thuốc của đơn thuốc (prescription) */
+    static async getAllPrescriptionDetails(prescriptionId: string): Promise<Array<{
+        prescription_details_id: string;
+        drug_id: string;
+        quantity: number;
+    }>> {
+        const result = await pool.query(
+            `SELECT prescription_details_id, drug_id, quantity
+             FROM prescription_details
+             WHERE prescription_id = $1
+               AND is_active = TRUE`,
+            [prescriptionId]
+        );
+        return result.rows;
+    }
+
     /** Lấy thông tin lô tồn kho */
     static async getInventoryBatch(inventoryId: string): Promise<{
         exists: boolean;

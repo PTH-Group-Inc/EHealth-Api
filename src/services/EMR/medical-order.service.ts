@@ -9,6 +9,7 @@ import {
     ORDER_CONFIG,
     VALID_ORDER_TYPES,
     VALID_PRIORITIES,
+    ORDER_TYPE,
 } from '../../constants/medical-order.constant';
 import {
     MedicalOrderRecord,
@@ -189,6 +190,17 @@ export class MedicalOrderService {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_RESULT_SUMMARY', ORDER_ERRORS.MISSING_RESULT_SUMMARY);
         }
 
+        /** Schema validation theo order_type */
+        if (order.order_type === ORDER_TYPE.RADIOLOGY) {
+            if (!data.attachment_urls || data.attachment_urls.length === 0) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_RADIOLOGY_IMAGES', ORDER_ERRORS.MISSING_RADIOLOGY_IMAGES);
+            }
+        } else if (order.order_type === ORDER_TYPE.LABORATORY) {
+            if (!data.result_details || Object.keys(data.result_details).length === 0) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LAB_METRICS', ORDER_ERRORS.MISSING_LAB_METRICS);
+            }
+        }
+
         /** Kiểm tra kết quả đã tồn tại chưa */
         const existingResult = await MedicalOrderRepository.findResultByOrderId(orderId);
         if (existingResult) {
@@ -220,6 +232,17 @@ export class MedicalOrderService {
 
         if (order.status !== ORDER_STATUS.COMPLETED) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'RESULT_NOT_FOUND', ORDER_ERRORS.RESULT_NOT_FOUND);
+        }
+
+        /** Schema validation theo order_type */
+        if (order.order_type === ORDER_TYPE.RADIOLOGY) {
+            if (data.attachment_urls !== undefined && data.attachment_urls.length === 0) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_RADIOLOGY_IMAGES', ORDER_ERRORS.MISSING_RADIOLOGY_IMAGES);
+            }
+        } else if (order.order_type === ORDER_TYPE.LABORATORY) {
+            if (data.result_details !== undefined && Object.keys(data.result_details).length === 0) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LAB_METRICS', ORDER_ERRORS.MISSING_LAB_METRICS);
+            }
         }
 
         const existingResult = await MedicalOrderRepository.findResultByOrderId(orderId);

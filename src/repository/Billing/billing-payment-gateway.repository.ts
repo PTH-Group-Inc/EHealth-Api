@@ -109,14 +109,15 @@ export class PaymentGatewayRepository {
         return result.rows[0];
     }
 
-    /** Chuyển các order hết hạn sang EXPIRED — chạy bởi cron job */
-    static async expirePendingOrders(): Promise<number> {
+    /** Chuyển các order hết hạn sang EXPIRED — chạy bởi cron job và trả về danh sách đã hết hạn */
+    static async expirePendingOrders(): Promise<PaymentOrder[]> {
         const sql = `
             UPDATE payment_orders SET status = 'EXPIRED', updated_at = CURRENT_TIMESTAMP
             WHERE status = 'PENDING' AND expires_at <= CURRENT_TIMESTAMP
+            RETURNING *
         `;
         const result = await pool.query(sql);
-        return result.rowCount || 0;
+        return result.rows;
     }
 
     /** Danh sách lệnh thanh toán theo invoice */

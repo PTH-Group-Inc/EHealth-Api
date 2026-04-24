@@ -65,6 +65,8 @@ export const PRESCRIPTION_ERRORS = {
     DOCTOR_NOT_FOUND: 'Bác sĩ không tồn tại trong hệ thống',
     MISSING_SEARCH_QUERY: 'Thiếu từ khóa tìm kiếm (q)',
     ALLERGY_ALERT: '⚠️ CẢNH BÁO DỊ ỨNG: Bệnh nhân có tiền sử dị ứng với thuốc này. Kê đơn bị chặn vì lý do an toàn.',
+    CLINICAL_EXAM_NOT_FINALIZED: 'Phiếu khám lâm sàng phải được hoàn tất (FINAL) trước khi xác nhận đơn thuốc',
+    MISSING_PRIMARY_DIAGNOSIS: 'Lượt khám phải có ít nhất một chẩn đoán chính (PRIMARY) trước khi xác nhận đơn thuốc',
 } as const;
 
 /** Thông báo thành công */

@@ -115,6 +115,7 @@ export class LeaveService {
         if (!updated) throw new AppError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'APPROVE_FAILED', 'Lỗi hệ thống khi duyệt đơn.');
 
         await this.markSchedulesAsLeave(leave.user_id, leave.start_date as string, leave.end_date as string, leave.reason);
+        await this.cancelAppointmentsInLeave(leave.user_id, leave.start_date as string, leave.end_date as string, leave.reason);
 
         return updated;
     }
@@ -159,5 +160,37 @@ export class LeaveService {
               AND working_date <= $4::date
         `;
         await dbPool.query(query, [reason, userId, startDate, endDate]);
+    }
+
+    /**
+     * Hủy các lịch hẹn đã đặt trong thời gian nghỉ và giải phóng slot
+     */
+    private static async cancelAppointmentsInLeave(userId: string, startDate: string, endDate: string, reason: string): Promise<void> {
+        const { pool: dbPool } = await import('../../config/postgresdb');
+        const query = `
+            UPDATE appointments
+            SET status = 'CANCELLED',
+                cancellation_reason = $1,
+                cancelled_at = CURRENT_TIMESTAMP
+            WHERE doctor_id = $2
+              AND appointment_date >= $3::date
+              AND appointment_date <= $4::date
+              AND status IN ('SCHEDULED', 'CONFIRMED')
+            RETURNING appointment_id, slot_id
+        `;
+        const result = await dbPool.query(query, [`Bác sĩ nghỉ phép: ${reason}`, userId, startDate, endDate]);
+
+        // Giải phóng slot
+        if (result.rows.length > 0) {
+            const slotIds = result.rows.map(r => r.slot_id).filter(id => id);
+            if (slotIds.length > 0) {
+                const updateSlotsQuery = `
+                    UPDATE appointment_slots
+                    SET status = 'AVAILABLE'
+                    WHERE slot_id = ANY($1)
+                `;
+                await dbPool.query(updateSlotsQuery, [slotIds]);
+            }
+        }
     }
 }

@@ -161,13 +161,20 @@ export class BillingRefundService {
      * Tạo txn REFUND trong payment_transactions, cập nhật invoice
      */
     static async processRefund(requestId: string, userId: string): Promise<RefundRequest> {
-        const refund = await BillingRefundRepository.getRefundById(requestId);
-        if (!refund) throw REFUND_ERRORS.REQUEST_NOT_FOUND;
-        if (refund.status !== REFUND_STATUS.APPROVED) throw REFUND_ERRORS.NOT_APPROVED;
-
         const client = await BillingRefundRepository.getClient();
         try {
             await client.query('BEGIN');
+
+            /* Lock row để chống race condition (đảm bảo không bị process 2 lần) */
+            const lockRes = await client.query(
+                `SELECT status, invoice_id, refund_amount, refund_method, request_code FROM refund_requests WHERE request_id = $1 FOR UPDATE`,
+                [requestId]
+            );
+
+            if (lockRes.rows.length === 0) throw REFUND_ERRORS.REQUEST_NOT_FOUND;
+            
+            const refund = lockRes.rows[0];
+            if (refund.status !== REFUND_STATUS.APPROVED) throw REFUND_ERRORS.NOT_APPROVED;
 
             /* Đánh dấu PROCESSING */
             await BillingRefundRepository.updateRefundStatus(requestId, REFUND_STATUS.PROCESSING, {
