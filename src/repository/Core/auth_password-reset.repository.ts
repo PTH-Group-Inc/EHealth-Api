@@ -66,4 +66,46 @@ export class PasswordResetRepository {
 
         await pool.query(query, [id]);
     }
+
+    /**
+     * Lấy token mới nhất của user
+     */
+    static async findLatestToken(userId: string): Promise<PasswordReset | null> {
+        const query = `
+            SELECT password_resets_id, user_id, reset_token, expired_at, used_at, created_at
+            FROM password_resets
+            WHERE user_id = $1
+            ORDER BY created_at DESC
+            LIMIT 1
+        `;
+
+        const result = await pool.query(query, [userId]);
+
+        if (result.rowCount === 0) return null;
+
+        return {
+            password_resets_id: result.rows[0].password_resets_id,
+            userId: result.rows[0].user_id,
+            resetToken: result.rows[0].reset_token,
+            expiredAt: result.rows[0].expired_at,
+            usedAt: result.rows[0].used_at,
+            createdAt: result.rows[0].created_at,
+        };
+    }
+
+    /**
+     * Đếm số lượng token đã tạo trong khoảng thời gian
+     */
+    static async countRecentTokens(userId: string, hours: number): Promise<number> {
+        const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+        const query = `
+            SELECT COUNT(*) as count
+            FROM password_resets
+            WHERE user_id = $1
+              AND created_at >= $2
+        `;
+
+        const result = await pool.query(query, [userId, since]);
+        return parseInt(result.rows[0].count, 10);
+    }
 }

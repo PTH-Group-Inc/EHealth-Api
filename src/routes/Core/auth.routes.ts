@@ -194,6 +194,36 @@ authRoutes.post('/register/phone', [authSensitiveRateLimiter, validate(registerP
 
 /**
  * @swagger
+ * /api/auth/resend-verify-email:
+ *   post:
+ *     summary: Gửi lại mã OTP xác thực Email
+ *     description: |
+ *       **Vai trò được phép:** Tất cả
+ *
+ *     tags: [1.2.1 Xác thực & Đăng nhập hệ thống]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: ['email']
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Mã OTP mới đã được gửi
+ *       400:
+ *         description: Email không hợp lệ
+ *       404:
+ *         description: Tài khoản không tồn tại hoặc đã được xác thực
+ */
+authRoutes.post('/resend-verify-email', [authSensitiveRateLimiter, validate(forgotPasswordSchema)], AuthController.resendVerifyEmail);
+
+/**
+ * @swagger
  * /api/auth/verify-email:
  *   post:
  *     summary: Xác thực tài khoản (Bằng mã OTP gửi qua Email)
@@ -221,6 +251,8 @@ authRoutes.post('/register/phone', [authSensitiveRateLimiter, validate(registerP
  *         description: Xác thực tài khoản thành công, tài khoản đã được Active
  *       400:
  *         description: Mã OTP không đúng hoặc đã hết hạn
+ *       404:
+ *         description: Tài khoản không tồn tại
  *         content:
  *           application/json:
  *             schema:

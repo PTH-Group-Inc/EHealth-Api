@@ -1023,7 +1023,7 @@ export class AppointmentRepository {
                     confirmed_at = CURRENT_TIMESTAMP,
                     confirmed_by = $1,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE appointments_id = $2 AND status = 'PENDING'
+                WHERE appointments_id = $2 AND status IN ('PENDING', 'PENDING_DEPOSIT')
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const result = await client.query(query, [confirmedBy, id]);

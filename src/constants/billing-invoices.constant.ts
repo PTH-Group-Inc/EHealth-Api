@@ -13,6 +13,8 @@ export const INVOICE_ITEM_TYPE = {
     CONSULTATION: 'CONSULTATION',
     LAB_ORDER: 'LAB_ORDER',
     DRUG: 'DRUG',
+    DEPOSIT: 'DEPOSIT',
+    APPOINTMENT: 'APPOINTMENT',
 } as const;
 export type InvoiceItemType = typeof INVOICE_ITEM_TYPE[keyof typeof INVOICE_ITEM_TYPE];
 

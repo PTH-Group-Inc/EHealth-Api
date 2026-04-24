@@ -37,6 +37,25 @@ export class AppointmentController {
     });
 
     /**
+     * POST /api/appointments/pre-book — Đặt cọc lịch khám
+     */
+    static preBook = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const { patient_id, branch_id, shift_id, slot_id, appointment_date, booking_channel } = req.body;
+            if (!patient_id || !branch_id || (!slot_id && !shift_id) || !appointment_date || !booking_channel) {
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
+                    'Thiếu thông tin bắt buộc: patient_id, branch_id, slot_id, appointment_date, booking_channel');
+            }
+            const userId = (req as any).auth?.user_id;
+            const result = await AppointmentService.preBookAppointment(req.body, userId);
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                message: 'Pre-book thành công, vui lòng thanh toán để xác nhận lịch khám.',
+                warning: result.warning || undefined,
+                data: result
+            });
+    });
+
+    /**
      * GET /api/appointments — Danh sách lịch khám
      */
     static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

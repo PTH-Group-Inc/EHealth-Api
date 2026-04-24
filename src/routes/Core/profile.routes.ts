@@ -63,7 +63,7 @@ profileRoutes.use(verifyAccessToken, checkSessionStatus);
  *                       example: MALE
  *                     avatar_url:
  *                       type: array
- *                       description: Danh sách ảnh đại diện (tối đa 5 ảnh)
+ *                       description: Danh sách ảnh đại diện (tối đa 20 ảnh)
  *                       items:
  *                         type: object
  *                         properties:
@@ -302,7 +302,7 @@ profileRoutes.put('/settings', ProfileController.updateMySettings);
  *       - Upload 1 ảnh đại diện lên Cloudinary.
  *       - Gửi dữ liệu dạng `multipart/form-data` với field name là `avatar`.
  *       - Chỉ chấp nhận file ảnh JPG, PNG, WebP. Dung lượng tối đa 5MB.
- *       - Mỗi user được tối đa **5 ảnh đại diện**. Ảnh mới nhất (cuối mảng) được coi là ảnh chính.
+ *       - Mỗi user được tối đa **20 ảnh đại diện**. Ảnh mới nhất (cuối mảng) được coi là ảnh chính.
  *       - Nếu đã đạt giới hạn → cần xóa ảnh cũ trước khi upload mới.
  *       - Response trả về metadata ảnh vừa upload (URL, public_id, uploaded_at).
  *     tags: [1.6 Quản lý hồ sơ người dùng (User Profile)]
@@ -352,7 +352,7 @@ profileRoutes.put('/settings', ProfileController.updateMySettings);
  *           - `AVT_001`: Không tìm thấy file ảnh tải lên
  *           - `AVT_002`: Định dạng file không hợp lệ
  *           - `AVT_003`: File vượt quá giới hạn 5MB
- *           - `AVT_005`: Đã đạt giới hạn tối đa 5 ảnh
+ *           - `AVT_005`: Đã đạt giới hạn tối đa 20 ảnh
  *       401:
  *         description: Chưa đăng nhập hoặc token hết hạn
  *       500:

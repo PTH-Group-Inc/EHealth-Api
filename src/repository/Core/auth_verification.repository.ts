@@ -95,4 +95,42 @@ export class AccountVerificationRepository {
         const result = await pool.query(query, [userId, tokenHash]);
         return result.rows[0] ?? null;
     }
+
+    /**
+     * Lấy token mới nhất của user
+     */
+    static async findLatestToken(userId: string): Promise<AccountVerification | null> {
+        const query = `
+            SELECT 
+                account_verifications_id,
+                user_id as "userId",
+                verify_token_hash as "verifyTokenHash",
+                expired_at as "expiredAt",
+                used_at as "usedAt",
+                created_at as "createdAt"
+            FROM account_verifications
+            WHERE user_id = $1
+            ORDER BY created_at DESC
+            LIMIT 1
+        `;
+
+        const result = await pool.query(query, [userId]);
+        return result.rows[0] ?? null;
+    }
+
+    /**
+     * Đếm số lượng token đã tạo trong khoảng thời gian
+     */
+    static async countRecentTokens(userId: string, hours: number): Promise<number> {
+        const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+        const query = `
+            SELECT COUNT(*) as count
+            FROM account_verifications
+            WHERE user_id = $1
+              AND created_at >= $2
+        `;
+
+        const result = await pool.query(query, [userId, since]);
+        return parseInt(result.rows[0].count, 10);
+    }
 }

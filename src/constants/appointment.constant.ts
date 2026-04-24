@@ -5,6 +5,7 @@
 /** Trạng thái lịch khám */
 export const APPOINTMENT_STATUS = {
     PENDING: 'PENDING',
+    PENDING_DEPOSIT: 'PENDING_DEPOSIT',
     CONFIRMED: 'CONFIRMED',
     CHECKED_IN: 'CHECKED_IN',
     IN_PROGRESS: 'IN_PROGRESS',
@@ -17,6 +18,7 @@ export const APPOINTMENT_STATUS = {
 /** Các trạng thái coi là "đang hoạt động" (chưa bị huỷ/hoàn tất) */
 export const ACTIVE_APPOINTMENT_STATUSES = [
     APPOINTMENT_STATUS.PENDING,
+    APPOINTMENT_STATUS.PENDING_DEPOSIT,
     APPOINTMENT_STATUS.CONFIRMED,
     APPOINTMENT_STATUS.CHECKED_IN,
     APPOINTMENT_STATUS.IN_PROGRESS,
@@ -29,10 +31,14 @@ export const BOOKING_CHANNEL = {
     HOTLINE: 'HOTLINE',
     DIRECT_CLINIC: 'DIRECT_CLINIC',
     ZALO: 'ZALO',
+    EMAIL: 'EMAIL',
 } as const;
 
 /** Giá trị mặc định cho số bệnh nhân tối đa mỗi slot (nếu chưa cấu hình) */
 export const DEFAULT_MAX_PATIENTS_PER_SLOT = 1;
+
+/** Số tiền đặt cọc mặc định khi pre-book (VND) */
+export const PRE_BOOK_DEPOSIT_AMOUNT = 50000;
 
 /** Số ngày mặc định khi quét slot trống theo khoa (nếu không truyền tham số days) */
 export const DEFAULT_DEPARTMENT_SLOT_DAYS = 7;
@@ -46,12 +52,14 @@ export const APPOINTMENT_CODE_PREFIX = 'APP';
 /** Trạng thái cho phép đổi lịch */
 export const RESCHEDULABLE_STATUSES = [
     APPOINTMENT_STATUS.PENDING,
+    APPOINTMENT_STATUS.PENDING_DEPOSIT,
     APPOINTMENT_STATUS.CONFIRMED,
 ];
 
 /** Trạng thái cho phép cập nhật thông tin lịch khám (ngày, BS, slot, phòng) */
 export const UPDATABLE_STATUSES = [
     APPOINTMENT_STATUS.PENDING,
+    APPOINTMENT_STATUS.PENDING_DEPOSIT,
     APPOINTMENT_STATUS.CONFIRMED,
 ];
 

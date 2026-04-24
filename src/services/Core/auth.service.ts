@@ -194,6 +194,19 @@ export class AuthService {
 
       if (!user.email) return;
 
+      const latestToken = await PasswordResetRepository.findLatestToken(user.users_id);
+      if (latestToken) {
+        const timeDiff = Date.now() - new Date(latestToken.createdAt).getTime();
+        if (timeDiff < 60000) {
+          throw new Error("Vui lòng đợi 60 giây trước khi yêu cầu gửi lại OTP.");
+        }
+      }
+
+      const recentTokenCount = await PasswordResetRepository.countRecentTokens(user.users_id, 24);
+      if (recentTokenCount >= 5) {
+        throw new Error("Bạn đã vượt quá số lần yêu cầu OTP trong ngày. Vui lòng thử lại sau 24h.");
+      }
+
       const resetId = SecurityUtil.generateResetPasswordId(user.users_id);
 
       const resetToken = SecurityUtil.generateOTP(6);
@@ -211,8 +224,14 @@ export class AuthService {
       );
 
       await AuthMailUtil.sendResetPasswordOtpEmail(user.email, resetToken);
-    } catch (error) {
+    } catch (error: any) {
       logger.error("Lỗi quên mật khẩu:", error);
+      if (
+        error?.message === "Vui lòng đợi 60 giây trước khi yêu cầu gửi lại OTP." ||
+        error?.message === "Bạn đã vượt quá số lần yêu cầu OTP trong ngày. Vui lòng thử lại sau 24h."
+      ) {
+        throw error;
+      }
     }
   }
 
@@ -412,6 +431,58 @@ export class AuthService {
     await AccountRepository.activateAccount(verificationRecord.userId);
 
     await AccountVerificationRepository.markAsUsed(verificationRecord.account_verifications_id);
+  }
+
+  /**
+   * Gửi lại mã OTP xác thực Email
+   */
+  static async resendVerifyEmailOTP(email: string): Promise<void> {
+    const user = await AccountRepository.findByEmail(email);
+    
+    if (!user) {
+      throw new Error("Tài khoản không tồn tại.");
+    }
+
+    if (user.status === 'ACTIVE') {
+      throw new Error("Tài khoản đã được xác thực.");
+    }
+
+    const latestToken = await AccountVerificationRepository.findLatestToken(user.users_id);
+    if (latestToken) {
+      const timeDiff = Date.now() - new Date(latestToken.createdAt).getTime();
+      if (timeDiff < 60000) {
+        throw new Error("Vui lòng đợi 60 giây trước khi yêu cầu gửi lại OTP.");
+      }
+    }
+
+    const recentTokenCount = await AccountVerificationRepository.countRecentTokens(user.users_id, 24);
+    if (recentTokenCount >= 5) {
+      throw new Error("Bạn đã vượt quá số lần yêu cầu OTP trong ngày. Vui lòng thử lại sau 24h.");
+    }
+
+    try {
+      await AccountVerificationRepository.invalidateOldTokens(user.users_id);
+
+      const otpCode = SecurityUtil.generateOTP(6);
+      const otpHash = SecurityUtil.hashTokenResetPassword(otpCode);
+      const verifyId = SecurityUtil.generateVerificationId(user.users_id);
+
+      const expiredAt = new Date(
+        Date.now() + AUTH_CONSTANTS.VERIFY_EMAIL.EXPIRES_IN_MS,
+      );
+
+      await AccountVerificationRepository.createVerificationToken(
+        verifyId,
+        user.users_id,
+        otpHash,
+        expiredAt,
+      );
+
+      await AuthMailUtil.sendOtpEmail(email, otpCode);
+    } catch (error) {
+      logger.error("⚠️ Lỗi gửi lại OTP:", error);
+      throw new Error("Không thể gửi lại OTP lúc này. Vui lòng thử lại sau.");
+    }
   }
 
 
