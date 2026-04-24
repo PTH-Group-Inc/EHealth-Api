@@ -1,4 +1,5 @@
 import { randomUUID, createHmac } from 'crypto';
+import { AppError } from '../../utils/app-error.util';
 import { PaymentGatewayRepository } from '../../repository/Billing/billing-payment-gateway.repository';
 import { BillingInvoiceRepository } from '../../repository/Billing/billing-invoices.repository';
 import {
@@ -112,21 +113,21 @@ export class PaymentGatewayService {
         if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
 
         if (!signature) {
-            throw { status: 401, message: 'Unauthorized - Missing signature' };
+            throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Missing signature');
         }
 
         if (signature.startsWith('Apikey ')) {
             const token = signature.substring(7);
             if (token !== config.api_key && token !== config.webhook_secret) {
-                throw { status: 401, message: 'Unauthorized - Invalid API Key' };
+                throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Invalid API Key');
             }
         } else if (config.webhook_secret && rawBody) {
             const expectedSignature = createHmac('sha256', config.webhook_secret).update(rawBody).digest('hex');
             if (signature !== expectedSignature) {
-                throw { status: 401, message: 'Unauthorized - Invalid HMAC signature' };
+                throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Invalid HMAC signature');
             }
         } else {
-            throw { status: 401, message: 'Unauthorized - Could not verify signature' };
+            throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Could not verify signature');
         }
 
         /* 1. Chỉ xử lý giao dịch tiền vào */
@@ -200,8 +201,15 @@ export class PaymentGatewayService {
 
             await client.query('COMMIT');
             return { processed: true, message: 'Giao dịch đã được ghi nhận thành công.' };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
+            
+            // Handle database unique constraint violation for idempotent webhook processing
+            if (error.code === '23505') {
+                console.warn(`[Webhook Idempotency] Ignored duplicate gateway_transaction_id: ${payload.referenceNumber}`);
+                return { processed: false, message: 'Giao dịch đã được ghi nhận trước đó (trùng lặp hệ thống).' };
+            }
+
             throw error;
         } finally {
             client.release();
