@@ -143,7 +143,7 @@ export class AppointmentService {
                 action_note: initialStatus === APPOINTMENT_STATUS.CONFIRMED
                     ? `Tạo lịch khám và tự động xác nhận (kênh: ${data.booking_channel})`
                     : `Tạo lịch khám mới qua kênh ${data.booking_channel}`
-            }, initialStatus);
+            }, initialStatus, client);
 
             await client.query('COMMIT');
 
@@ -722,8 +722,8 @@ export class AppointmentService {
                 changed_by: userId,
                 old_status: null,
                 new_status: initialStatus,
-                action_note: `Pre-book lịch khám (đặt cọc) qua kênh ${data.booking_channel}`
-            }, initialStatus);
+                action_note: `Đặt cọc lịch khám qua kênh ${data.booking_channel}`
+            }, initialStatus, client);
 
             // ── 3. TẠO DEPOSIT INVOICE ──
 
@@ -740,14 +740,15 @@ export class AppointmentService {
                     invoices_id, invoice_code, patient_id,
                     total_amount, discount_amount, insurance_amount,
                     net_amount, paid_amount, status,
-                    notes, created_by
+                    notes, created_by, appointment_id, invoice_type
                 ) VALUES ($1, $2, $3, $4, 0, 0, $4, 0, 'UNPAID',
-                    $5, $6)
+                    $5, $6, $7, 'PRE_BOOKING')
             `, [
                 invoiceId, invoiceCode, data.patient_id,
                 depositAmount,
                 `Đặt cọc lịch khám ${appointment.appointment_code}`,
-                userId || null
+                userId || null,
+                appointment.appointments_id
             ]);
 
             // Tạo invoice_detail với reference_type = 'APPOINTMENT'
@@ -777,7 +778,7 @@ export class AppointmentService {
                 }, userId || 'SYSTEM');
             } catch (err: any) {
                 // Payment gateway lỗi → appointment vẫn tạo được, BN thanh toán thủ công
-                logger.error(`[PRE_BOOK] Lỗi tạo QR thanh toán:`, err.message);
+                logger.error(`[PRE_BOOK] Lỗi tạo QR thanh toán:`, err?.message || err?.code || JSON.stringify(err));
             }
 
             // ── 5. NOTIFICATION ──
@@ -1499,7 +1500,14 @@ export class AppointmentService {
             description: `Đặt cọc lịch khám ${appointment.appointment_code} (Tạo lại)`,
         }, accountId);
 
-        return qrOrder;
+        return {
+            ...qrOrder,
+            appointment_id: appointmentId,
+            invoice_id: invoice.invoices_id,
+            amount: Number(qrOrder.amount || amount),
+            qr_url: qrOrder.qr_code_url,
+            qrTemplateData: qrOrder.qr_code_url,
+        };
     }
 
     /**

@@ -9,6 +9,7 @@ import { SessionCleanup } from './jobs/SessionCleanup.jobs'
 import { AppointmentReminderJob } from './jobs/AppointmentReminder.jobs'
 import { startPaymentOrderExpiryJob } from './jobs/PaymentOrderExpiry.jobs'
 import { startAppointmentNoShowJob } from './jobs/AppointmentNoShow.jobs'
+import { startStalePendingDepositCleanupJob } from './jobs/StalePendingDepositCleanup.jobs'
 import morganMiddleware from './middleware/morgan.middleware'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware'
 import { globalApiRateLimiter } from './middleware/rate_limit.middleware'
@@ -16,6 +17,10 @@ import { globalApiRateLimiter } from './middleware/rate_limit.middleware'
 import { metricsMiddleware } from './middleware/metrics.middleware'
 
 const app = express()
+
+// Trust first proxy (Nginx/reverse proxy) — cho phép Express đọc IP thật từ X-Forwarded-For
+// Nếu không có dòng này, express-rate-limit sẽ coi TẤT CẢ user là cùng 1 IP (IP của proxy)
+app.set('trust proxy', 1)
 
 app.use(metricsMiddleware)
 
@@ -49,6 +54,7 @@ SessionCleanup.startSessionCleanupJob();
 AppointmentReminderJob.startReminderJob();
 startPaymentOrderExpiryJob();
 startAppointmentNoShowJob();
+startStalePendingDepositCleanupJob();
 
 // ─── 404 Handler ─── Đặt sau tất cả routes
 app.use(notFoundHandler);

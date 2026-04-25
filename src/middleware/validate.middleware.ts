@@ -10,6 +10,7 @@ export const validate = (schema: ZodSchema, source: 'body' | 'query' | 'params' 
         } catch (error) {
             if (error instanceof ZodError) {
                 const zodError = error as ZodError<any>;
+                require('fs').appendFileSync('zod_error.log', JSON.stringify(zodError.issues, null, 2) + '\n');
                 return res.status(422).json({
                     success: false,
                     message: "Validation Error",

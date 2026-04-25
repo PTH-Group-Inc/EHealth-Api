@@ -23,8 +23,9 @@ export const startPaymentOrderExpiryJob = (): void => {
                         if (appointmentItem && appointmentItem.reference_id) {
                             await AppointmentService.cancelAppointment(
                                 appointmentItem.reference_id,
-                                'Quá hạn thanh toán (Auto-cancel)',
-                                'SYSTEM'
+                                'Quá hạn thanh toán đặt cọc (Auto-cancel bởi hệ thống)',
+                                'SYSTEM',
+                                ['ADMIN'] // Bypass cancel policy cho hệ thống tự hủy
                             );
                             logger.info(`[PaymentOrderExpiry] Đã hủy appointment ${appointmentItem.reference_id} do quá hạn thanh toán.`);
                         }
