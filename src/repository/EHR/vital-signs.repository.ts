@@ -42,7 +42,7 @@ export class VitalSignsRepository {
             `SELECT EXISTS(
                 SELECT 1 FROM encounters e 
                 JOIN doctors d ON e.doctor_id = d.doctors_id
-                WHERE e.patient_id = $1 AND d.user_id = $2 AND e.deleted_at IS NULL
+                WHERE e.patient_id = $1 AND d.user_id = $2
              ) AS has_encounter`,
             [patientId, doctorId]
         );
@@ -52,7 +52,7 @@ export class VitalSignsRepository {
             `SELECT EXISTS(
                 SELECT 1 FROM appointments a
                 JOIN doctors d ON a.doctor_id = d.doctors_id
-                WHERE a.patient_id = $1 AND d.user_id = $2 AND a.deleted_at IS NULL
+                WHERE a.patient_id = $1 AND d.user_id = $2 AND a.status != 'CANCELLED'
              ) AS has_appointment`,
             [patientId, doctorId]
         );
@@ -102,7 +102,7 @@ export class VitalSignsRepository {
                     up_rec.full_name AS recorder_name,
                     ce.pulse, ce.blood_pressure_systolic, ce.blood_pressure_diastolic,
                     ce.temperature, ce.respiratory_rate, ce.spo2,
-                    ce.weight, ce.height, ce.bmi, ce.blood_glucose,
+                    ce.weight, ce.height, ce.bmi,
                     ce.created_at
              FROM clinical_examinations ce
              JOIN encounters e ON e.encounters_id = ce.encounter_id
@@ -129,7 +129,7 @@ export class VitalSignsRepository {
                     up_rec.full_name AS recorder_name,
                     ce.pulse, ce.blood_pressure_systolic, ce.blood_pressure_diastolic,
                     ce.temperature, ce.respiratory_rate, ce.spo2,
-                    ce.weight, ce.height, ce.bmi, ce.blood_glucose,
+                    ce.weight, ce.height, ce.bmi,
                     ce.created_at
              FROM clinical_examinations ce
              JOIN encounters e ON e.encounters_id = ce.encounter_id
@@ -151,7 +151,7 @@ export class VitalSignsRepository {
         const validFields = [
             'pulse', 'blood_pressure_systolic', 'blood_pressure_diastolic',
             'temperature', 'respiratory_rate', 'spo2',
-            'weight', 'height', 'bmi', 'blood_glucose',
+            'weight', 'height', 'bmi'
         ];
         if (!validFields.includes(metricType)) return [];
 
@@ -199,7 +199,7 @@ export class VitalSignsRepository {
                     e.start_time AS encounter_start,
                     ce.pulse, ce.blood_pressure_systolic, ce.blood_pressure_diastolic,
                     ce.temperature, ce.respiratory_rate, ce.spo2,
-                    ce.weight, ce.height, ce.bmi, ce.blood_glucose,
+                    ce.weight, ce.height, ce.bmi,
                     ce.created_at
              FROM clinical_examinations ce
              JOIN encounters e ON e.encounters_id = ce.encounter_id
@@ -216,7 +216,7 @@ export class VitalSignsRepository {
     static async getRecentVitals(patientId: string, lastN: number): Promise<VitalSignRecord[]> {
         const r = await pool.query(
             `SELECT ce.pulse, ce.blood_pressure_systolic, ce.blood_pressure_diastolic,
-                    ce.weight, ce.height, ce.bmi, ce.blood_glucose,
+                    ce.weight, ce.height, ce.bmi,
                     ce.created_at
              FROM clinical_examinations ce
              JOIN encounters e ON e.encounters_id = ce.encounter_id
