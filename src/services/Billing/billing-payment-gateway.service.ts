@@ -171,10 +171,13 @@ export class PaymentGatewayService {
                 return { processed: false, message: `Số tiền chuyển (${payload.transferAmount}) nhỏ hơn yêu cầu (${orderAmount}).` };
             }
 
+            /* Lấy mã tham chiếu từ payload */
+            const refCode = payload.referenceCode || payload.referenceNumber || `SEPAY_${payload.id}`;
+
             /* Cập nhật order → PAID */
             await PaymentGatewayRepository.markOrderPaid(
                 order.payment_orders_id,
-                payload.referenceNumber,
+                refCode,
                 payload,
                 client
             );
@@ -190,7 +193,7 @@ export class PaymentGatewayService {
                     invoice_id: order.invoice_id,
                     payment_method: 'BANK_TRANSFER',
                     amount: payload.transferAmount,
-                    gateway_transaction_id: payload.referenceNumber,
+                    gateway_transaction_id: refCode,
                     gateway_response: payload,
                     notes: `Thanh toán online qua SePay - ${order.order_code}`,
                 },
@@ -242,7 +245,8 @@ export class PaymentGatewayService {
             
             // Handle database unique constraint violation for idempotent webhook processing
             if (error.code === '23505') {
-                console.warn(`[Webhook Idempotency] Ignored duplicate gateway_transaction_id: ${payload.referenceNumber}`);
+                const refCode = payload.referenceCode || payload.referenceNumber || `SEPAY_${payload.id}`;
+                console.warn(`[Webhook Idempotency] Ignored duplicate gateway_transaction_id: ${refCode}`);
                 return { processed: false, message: 'Giao dịch đã được ghi nhận trước đó (trùng lặp hệ thống).' };
             }
 

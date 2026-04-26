@@ -81,7 +81,7 @@ export class VitalSignsService {
         const vitalFields = [
             'pulse', 'blood_pressure_systolic', 'blood_pressure_diastolic',
             'temperature', 'respiratory_rate', 'spo2',
-            'weight', 'height', 'bmi', 'blood_glucose',
+            'weight', 'height', 'bmi'
         ];
 
         const abnormals: AbnormalVitalItem[] = [];

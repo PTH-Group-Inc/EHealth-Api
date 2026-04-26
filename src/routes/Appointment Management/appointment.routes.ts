@@ -5,6 +5,7 @@ import { checkSessionStatus } from '../../middleware/checkSessionStatus.middlewa
 import { idempotencyMiddleware } from '../../middleware/idempotency.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { createAppointmentSchema } from '../../schemas/appointment.schema';
+import { pollingRateLimiter } from '../../middleware/rate_limit.middleware';
 export const appointmentRoutes = Router();
 
 // =====================================================================
@@ -1375,21 +1376,6 @@ appointmentRoutes.post(
 
 /**
  * @swagger
- * /api/appointments/pre-book:
- *   post:
- *     summary: Tạo lịch khám trả trước và tạo mã QR thanh toán
- *     tags: [3.1 Quản lý Lịch khám]
- *     security:
- *       - bearerAuth: []
- */
-appointmentRoutes.post(
-    '/pre-book',
-    [verifyAccessToken, checkSessionStatus],
-    AppointmentController.preBook
-);
-
-/**
- * @swagger
  * /api/appointments/{id}:
  *   get:
  *     summary: Xem chi tiết một lịch khám (kèm Audit Trail)
@@ -1491,7 +1477,7 @@ appointmentRoutes.post(
  */
 appointmentRoutes.get(
     '/:id/payment-status',
-    [verifyAccessToken, checkSessionStatus],
+    [pollingRateLimiter, verifyAccessToken, checkSessionStatus],
     AppointmentController.getPaymentStatus
 );
 

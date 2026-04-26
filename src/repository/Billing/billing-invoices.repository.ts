@@ -85,7 +85,19 @@ export class BillingInvoiceRepository {
     static async getInvoiceByAppointmentId(appointmentId: string): Promise<Invoice | null> {
         const sql = `SELECT * FROM invoices WHERE appointment_id = $1 AND invoice_type = 'PRE_BOOKING' LIMIT 1`;
         const result = await pool.query(sql, [appointmentId]);
-        return result.rows[0] || null;
+        if (result.rows[0]) return result.rows[0];
+
+        const legacySql = `
+            SELECT i.*
+            FROM invoices i
+            JOIN invoice_details idt ON idt.invoice_id = i.invoices_id
+            WHERE idt.reference_type = 'APPOINTMENT'
+              AND idt.reference_id = $1
+            ORDER BY i.created_at DESC
+            LIMIT 1
+        `;
+        const legacyResult = await pool.query(legacySql, [appointmentId]);
+        return legacyResult.rows[0] || null;
     }
 
     /**

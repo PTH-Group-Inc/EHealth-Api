@@ -41,7 +41,11 @@ export const AUTH_CONSTANTS = {
         },
         GLOBAL: {
             WINDOW_MS: 60 * 1000, // 1 minute
-            MAX_REQUESTS: 100
+            MAX_REQUESTS: 600     // 600 req/phút — cho phép SPA dashboard + polling đồng thời
+        },
+        POLLING: {
+            WINDOW_MS: 60 * 1000, // 1 minute
+            MAX_REQUESTS: 60      // 60 req/phút — polling payment-status (~5s/lần = 12 req/phút/tab)
         }
     }
 

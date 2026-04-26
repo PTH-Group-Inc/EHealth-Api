@@ -189,7 +189,8 @@ describe('AppointmentService.preBookAppointment', () => {
         expect(AppointmentRepository.create).toHaveBeenCalledWith(
             expect.anything(),
             expect.objectContaining({ new_status: APPOINTMENT_STATUS.PENDING_DEPOSIT }),
-            APPOINTMENT_STATUS.PENDING_DEPOSIT
+            APPOINTMENT_STATUS.PENDING_DEPOSIT,
+            __mockClient
         );
     });
 
@@ -210,6 +211,10 @@ describe('AppointmentService.preBookAppointment', () => {
         expect(invoiceInsert).toBeTruthy();
         // Verify deposit amount
         expect(invoiceInsert[1]).toContain(PRE_BOOK_DEPOSIT_AMOUNT);
+        expect(invoiceInsert[0]).toContain('appointment_id');
+        expect(invoiceInsert[0]).toContain('invoice_type');
+        expect(invoiceInsert[0]).toContain("'PRE_BOOKING'");
+        expect(invoiceInsert[1]).toContain(mockAppointment.appointments_id);
     });
 
     it('should create invoice_detail with reference_type APPOINTMENT', async () => {
