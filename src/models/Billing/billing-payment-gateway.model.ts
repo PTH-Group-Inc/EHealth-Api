@@ -76,7 +76,8 @@ export interface SepayWebhookPayload {
     accumulated: number;
     code: string | null;
     content: string;
-    referenceNumber: string;
+    referenceNumber?: string;
+    referenceCode?: string;
     description: string;
 }
 
