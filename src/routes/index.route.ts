@@ -36,7 +36,7 @@ export const initRoutes = (app: Express) => {
     v1Routes.use('/', AppointmentManagementRoutes);
     v1Routes.use('/', EMRRoutes);
     v1Routes.use('/', EHRRoutes);
-    v1Routes.use('/', BillingRoutes);
+    v1Routes.use('/billing', BillingRoutes);
     v1Routes.use('/', ReportsRoutes);
     v1Routes.use('/', RemoteConsultationRoutes);
 
