@@ -716,6 +716,8 @@ export class AppointmentService {
 
             // Luôn dùng PENDING_DEPOSIT cho pre-book (không auto-confirm)
             const initialStatus = APPOINTMENT_STATUS.PENDING_DEPOSIT;
+            
+            data.payment_expires_at = new Date(Date.now() + PRE_BOOKING_CONFIG.PAYMENT_TIMEOUT_MINUTES * 60 * 1000).toISOString();
 
             const appointment = await AppointmentRepository.create(data, {
                 appointment_id: '',
@@ -1494,6 +1496,16 @@ export class AppointmentService {
         // Lấy số tiền từ invoice hoặc dùng hằng số mặc định
         const amount = Number(invoice.total_amount || PRE_BOOK_DEPOSIT_AMOUNT);
 
+        // Dùng payment_expires_at từ database, nếu không có thì fallback tính từ created_at
+        const expiresAt = appointment.payment_expires_at 
+            ? new Date(appointment.payment_expires_at) 
+            : new Date(new Date(appointment.created_at || new Date()).getTime() + PRE_BOOKING_CONFIG.PAYMENT_TIMEOUT_MINUTES * 60 * 1000);
+        const remainingSeconds = Math.floor((expiresAt.getTime() - Date.now()) / 1000);
+
+        if (remainingSeconds <= 0) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'PAYMENT_EXPIRED', 'Thời gian thanh toán đã hết, lịch hẹn đang chờ được hủy. Vui lòng đặt lại lịch khám mới.');
+        }
+
         const qrOrder = await PaymentGatewayService.generateQR({
             invoice_id: invoice.invoices_id,
             amount: amount,
@@ -1507,6 +1519,8 @@ export class AppointmentService {
             amount: Number(qrOrder.amount || amount),
             qr_url: qrOrder.qr_code_url,
             qrTemplateData: qrOrder.qr_code_url,
+            remaining_seconds: remainingSeconds,
+            expires_at: expiresAt.toISOString(),
         };
     }
 
