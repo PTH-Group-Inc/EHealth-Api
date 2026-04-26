@@ -20,6 +20,7 @@ export interface Appointment {
     reason_for_visit?: string;
     symptoms_notes?: string;
     status: AppointmentStatus;
+    payment_expires_at?: string | null;
     confirmed_at?: string | null;
     confirmed_by?: string | null;
     checked_in_at?: string | null;
@@ -72,6 +73,7 @@ export interface CreateAppointmentInput {
     doctor_id?: string;
     room_id?: string;
     status?: AppointmentStatus;
+    payment_expires_at?: string | null;
 }
 
 export interface UpdateAppointmentInput {

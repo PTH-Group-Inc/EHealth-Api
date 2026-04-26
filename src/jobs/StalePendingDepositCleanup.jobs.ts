@@ -25,10 +25,14 @@ export const startStalePendingDepositCleanupJob = (): void => {
     cron.schedule('*/5 * * * *', async () => {
         try {
             const result = await pool.query(`
-                SELECT appointments_id, appointment_code, created_at
+                SELECT appointments_id, appointment_code, created_at, payment_expires_at
                 FROM appointments
                 WHERE status = 'PENDING_DEPOSIT'
-                  AND created_at < NOW() - INTERVAL '${STALE_THRESHOLD_MINUTES} minutes'
+                  AND (
+                      payment_expires_at < NOW() - INTERVAL '${BUFFER_MINUTES} minutes'
+                      OR 
+                      (payment_expires_at IS NULL AND created_at < NOW() - INTERVAL '${STALE_THRESHOLD_MINUTES} minutes')
+                  )
                 ORDER BY created_at ASC
                 LIMIT 50
             `);
