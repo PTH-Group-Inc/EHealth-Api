@@ -19,7 +19,7 @@ export class PatientDocumentController {
                 notes: req.body.notes,
             };
             const file = req.file as Express.Multer.File;
-            const uploadedBy = (req as any).user?.userId || null;
+            const uploadedBy = (req as any).auth?.user_id || null;
 
             const data = await PatientDocumentService.upload(input, file, uploadedBy);
             res.status(201).json({
@@ -88,7 +88,7 @@ export class PatientDocumentController {
     static uploadVersion = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const { id } = req.params as { id: string };
             const file = req.file as Express.Multer.File;
-            const uploadedBy = (req as any).user?.userId || null;
+            const uploadedBy = (req as any).auth?.user_id || null;
 
             const data = await PatientDocumentService.uploadNewVersion(id, file, uploadedBy);
             res.status(201).json({
