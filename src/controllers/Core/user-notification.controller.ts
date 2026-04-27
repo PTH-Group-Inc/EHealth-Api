@@ -74,4 +74,27 @@ export class UserNotificationController {
                 data: { sent_count: sentCount }
             });
     });
+
+    /**
+     * [USER] Xóa 1 thông báo
+     */
+    static deleteNotification = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const userId = (req as any).auth?.user_id;
+            const id = req.params.id as string;
+
+            const deleted = await UserNotificationRepository.deleteNotification(id, userId!);
+
+            if (!deleted) {
+                 res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy thông báo hoặc bạn không có quyền xóa.'
+                });
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                message: 'Đã xóa thông báo.'
+            });
+    });
 }

@@ -88,4 +88,16 @@ export class UserNotificationRepository {
         const result = await pool.query(query, [userId]);
         return result.rowCount ?? 0;
     }
+
+    /**
+     * Xóa 1 thông báo
+     */
+    static async deleteNotification(id: string, userId: string): Promise<boolean> {
+        const query = `
+            DELETE FROM user_notifications
+            WHERE user_notifications_id = $1 AND user_id = $2
+        `;
+        const result = await pool.query(query, [id, userId]);
+        return (result.rowCount ?? 0) > 0;
+    }
 }

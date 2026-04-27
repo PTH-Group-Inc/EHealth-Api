@@ -134,6 +134,31 @@ inboxRouter.put('/read-all', UserNotificationController.markAllAsRead);
  */
 inboxRouter.put('/:id/read', UserNotificationController.markAsRead);
 
+/**
+ * @swagger
+ * /api/notifications/inbox/{id}:
+ *   delete:
+ *     summary: Xóa 1 thông báo
+ *     description: |
+ *       **Vai trò được phép:** Tất cả thành viên đã đăng nhập
+ *
+ *     tags: [1.7.5 Hộp thư Thông báo cá nhân (User Inbox)]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không tìm thấy
+ */
+inboxRouter.delete('/:id', UserNotificationController.deleteNotification);
+
 // Kết nối Sub-router của Box vào Route gốc
 userNotificationRoutes.use('/', inboxRouter);
 
