@@ -25,6 +25,9 @@ export class PatientRepository {
         search?: string,
         status?: string,
         gender?: string,
+        hasInsurance?: boolean,
+        ageFrom?: number,
+        ageTo?: number,
         page: number = 1,
         limit: number = 20,
         isBlacklisted?: boolean
@@ -45,6 +48,18 @@ export class PatientRepository {
             whereClause += ` AND (p.full_name ILIKE $${paramIndex} OR p.patient_code ILIKE $${paramIndex} OR p.phone_number ILIKE $${paramIndex} OR p.id_card_number ILIKE $${paramIndex})`;
             params.push(`%${search}%`);
             paramIndex++;
+        }
+        if (hasInsurance !== undefined) {
+            whereClause += ` AND p.has_insurance = $${paramIndex++}`;
+            params.push(hasInsurance);
+        }
+        if (ageFrom !== undefined) {
+            whereClause += ` AND date_part('year', age(p.date_of_birth)) >= $${paramIndex++}`;
+            params.push(ageFrom);
+        }
+        if (ageTo !== undefined) {
+            whereClause += ` AND date_part('year', age(p.date_of_birth)) <= $${paramIndex++}`;
+            params.push(ageTo);
         }
         if (isBlacklisted !== undefined) {
             whereClause += ` AND p.is_blacklisted = $${paramIndex++}`;

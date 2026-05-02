@@ -93,11 +93,14 @@ export class PatientService {
         search?: string,
         status?: string,
         gender?: string,
+        hasInsurance?: string,
+        ageFrom?: string,
+        ageTo?: string,
         page: number = PATIENT_CONFIG.DEFAULT_PAGE,
         limit: number = PATIENT_CONFIG.DEFAULT_LIMIT
     ): Promise<PaginatedPatients> {
         const safeLimit = Math.min(limit, PATIENT_CONFIG.MAX_LIMIT);
-        return await PatientRepository.getPatients(search, status, gender, page, safeLimit);
+        return await PatientRepository.getPatients(search, status, gender, hasInsurance, ageFrom, ageTo, page, safeLimit);
     }
 
     /**
