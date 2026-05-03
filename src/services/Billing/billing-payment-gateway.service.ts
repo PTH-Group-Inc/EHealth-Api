@@ -191,7 +191,7 @@ export class PaymentGatewayService {
                     gateway_response: payload,
                     notes: `Thanh toán online qua SePay - ${order.order_code}`,
                 },
-                'system',
+                null,
                 client
             );
             console.log(`[Webhook] Payment transaction created: ${txnCode}`);
