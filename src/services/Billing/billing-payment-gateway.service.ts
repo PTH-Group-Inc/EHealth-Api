@@ -111,27 +111,9 @@ export class PaymentGatewayService {
      * Xử lý webhook callback từ SePay
      */
     static async handleWebhook(payload: SepayWebhookPayload, signature?: string, rawBody?: string): Promise<{ processed: boolean; message: string }> {
-        /* 0. Xác thực chữ ký webhook (HMAC hoặc Apikey) */
+        /* 0. Auth đã được middleware verifySepayWebhook xử lý — không cần verify lại */
         const config = await PaymentGatewayRepository.getGatewayConfig(GATEWAY_NAME.SEPAY);
         if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
-
-        if (!signature) {
-            throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Missing signature');
-        }
-
-        if (signature.startsWith('Apikey ')) {
-            const token = signature.substring(7);
-            if (token !== config.api_key && token !== config.webhook_secret) {
-                throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Invalid API Key');
-            }
-        } else if (config.webhook_secret && rawBody) {
-            const expectedSignature = createHmac('sha256', config.webhook_secret).update(rawBody).digest('hex');
-            if (signature !== expectedSignature) {
-                throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Invalid HMAC signature');
-            }
-        } else {
-            throw new AppError(401, PAYMENT_GATEWAY_ERRORS.WEBHOOK_AUTH_FAILED.code, 'Unauthorized - Could not verify signature');
-        }
 
         /* 1. Chỉ xử lý giao dịch tiền vào */
         if (payload.transferType !== 'in') {
