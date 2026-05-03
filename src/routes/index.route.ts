@@ -45,6 +45,7 @@ export const initRoutes = (app: Express) => {
     app.use('/api', v1Routes);
 
     app.post('/hooks/sepay-payment', verifySepayWebhook, sepayWebhook);
+    app.post('/api/hooks/sepay-payment', verifySepayWebhook, sepayWebhook);
     // Alias for the user's specific SePay configuration
     app.post('/api/v1/billing/payment-gateway/sepay/webhook', verifySepayWebhook, sepayWebhook);
 }
