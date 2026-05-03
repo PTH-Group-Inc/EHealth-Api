@@ -221,26 +221,7 @@ export class PaymentGatewayService {
                 }
             }
 
-            /* ── AUTO-CONFIRM APPOINTMENT nếu đây là deposit invoice ── */
-            try {
-                const depositCheck = await client.query(
-                    `SELECT reference_id FROM invoice_details
-                     WHERE invoice_id = $1 AND reference_type = 'APPOINTMENT'
-                     LIMIT 1`,
-                    [order.invoice_id]
-                );
-                if (depositCheck.rows.length > 0) {
-                    const appointmentId = depositCheck.rows[0].reference_id;
-                    console.log(`[Webhook] Found deposit appointment: ${appointmentId}`);
-                    // Import động để tránh circular dependency
-                    const { AppointmentService } = require('../Appointment Management/appointment.service');
-                    await AppointmentService.confirmDepositPayment(appointmentId, order.invoice_id);
-                    console.log(`[Webhook] Deposit confirmed for appointment ${appointmentId}`);
-                }
-            } catch (confirmErr: any) {
-                // Không throw — thanh toán đã ghi nhận, appointment confirm lỗi sẽ log
-                console.error(`[Webhook] Auto-confirm deposit failed for invoice ${order.invoice_id}:`, confirmErr.message);
-            }
+            /* ── AUTO-CONFIRM: Đã xử lý ở block trên (dùng client trong cùng transaction) ── */
 
             await client.query('COMMIT');
             console.log(`[Webhook] ── COMMIT SUCCESS ── order=${order.order_code}`);
