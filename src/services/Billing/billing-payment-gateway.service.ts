@@ -209,7 +209,7 @@ export class PaymentGatewayService {
                     
                     await AppointmentAuditLogRepository.create({
                         appointment_id: updatedInvoice.appointment_id,
-                        changed_by: 'system',
+                        changed_by: null as any,
                         old_status: APPOINTMENT_STATUS.PENDING,
                         new_status: APPOINTMENT_STATUS.CONFIRMED,
                         action_note: `Thanh toán thành công ${orderAmount} VND. Tự động xác nhận.`
