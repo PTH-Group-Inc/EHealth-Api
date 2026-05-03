@@ -111,9 +111,15 @@ export class PaymentGatewayService {
      * Xử lý webhook callback từ SePay
      */
     static async handleWebhook(payload: SepayWebhookPayload, signature?: string, rawBody?: string): Promise<{ processed: boolean; message: string }> {
+        console.log(`[Webhook] ── Incoming webhook ──`, JSON.stringify({ content: payload.content, amount: payload.transferAmount, type: payload.transferType, ref: payload.referenceCode }));
+        
         /* 0. Auth đã được middleware verifySepayWebhook xử lý — không cần verify lại */
         const config = await PaymentGatewayRepository.getGatewayConfig(GATEWAY_NAME.SEPAY);
-        if (!config) throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
+        if (!config) {
+            console.error('[Webhook] Gateway config not found in DB!');
+            throw PAYMENT_GATEWAY_ERRORS.GATEWAY_NOT_CONFIGURED;
+        }
+        console.log(`[Webhook] Gateway config loaded OK`);
 
         /* 1. Chỉ xử lý giao dịch tiền vào */
         if (payload.transferType !== 'in') {
@@ -124,6 +130,7 @@ export class PaymentGatewayService {
         const client = await PaymentGatewayRepository.getClient();
         try {
             await client.query('BEGIN');
+            console.log(`[Webhook] Transaction BEGIN`);
 
             /* 3. Tìm order + LOCK (chặn webhook khác) */
             const order = await PaymentGatewayRepository.findAndLockOrderByTransferContent(
@@ -131,8 +138,10 @@ export class PaymentGatewayService {
             );
             if (!order) {
                 await client.query('ROLLBACK');
+                console.log(`[Webhook] No matching order found for content: ${payload.content}`);
                 return { processed: false, message: 'Không tìm thấy lệnh thanh toán phù hợp.' };
             }
+            console.log(`[Webhook] Found order: ${order.payment_orders_id}, code: ${order.order_code}, status: ${order.status}, invoice: ${order.invoice_id}`);
 
             /* 4. Idempotent check — BÊN TRONG lock → 100% chính xác */
             if (order.status === PAYMENT_ORDER_STATUS.PAID) {
@@ -143,6 +152,7 @@ export class PaymentGatewayService {
             /* 5. Kiểm tra order còn hợp lệ */
             if (order.status === PAYMENT_ORDER_STATUS.EXPIRED || order.status === PAYMENT_ORDER_STATUS.CANCELLED) {
                 await client.query('ROLLBACK');
+                console.log(`[Webhook] Order ${order.order_code} is ${order.status}, skipping.`);
                 return { processed: false, message: 'Lệnh thanh toán đã hết hạn/hủy.' };
             }
 
@@ -155,6 +165,7 @@ export class PaymentGatewayService {
 
             /* Lấy mã tham chiếu từ payload */
             const refCode = payload.referenceCode || payload.referenceNumber || `SEPAY_${payload.id}`;
+            console.log(`[Webhook] Marking order PAID, refCode: ${refCode}`);
 
             /* Cập nhật order → PAID */
             await PaymentGatewayRepository.markOrderPaid(
@@ -163,6 +174,7 @@ export class PaymentGatewayService {
                 payload,
                 client
             );
+            console.log(`[Webhook] Order marked PAID`);
 
             /* Tạo payment_transactions */
             const txnId = this.generateId('TXN');
@@ -182,23 +194,31 @@ export class PaymentGatewayService {
                 'system',
                 client
             );
+            console.log(`[Webhook] Payment transaction created: ${txnCode}`);
 
             /* Cập nhật paid_amount + status trên invoice */
             const updatedInvoice = await BillingInvoiceRepository.updatePaidAmount(order.invoice_id, client);
+            console.log(`[Webhook] Invoice updated: status=${updatedInvoice.status}, type=${updatedInvoice.invoice_type}, appointment_id=${updatedInvoice.appointment_id}`);
 
             if (updatedInvoice.invoice_type === 'PRE_BOOKING' && 
                 (updatedInvoice.status === 'PAID' || updatedInvoice.status === 'OVERPAID') && 
                 updatedInvoice.appointment_id) {
                 
-                await AppointmentRepository.updateStatusById(updatedInvoice.appointment_id, APPOINTMENT_STATUS.CONFIRMED, client);
-                
-                await AppointmentAuditLogRepository.create({
-                    appointment_id: updatedInvoice.appointment_id,
-                    changed_by: 'system',
-                    old_status: APPOINTMENT_STATUS.PENDING,
-                    new_status: APPOINTMENT_STATUS.CONFIRMED,
-                    action_note: `Thanh toán thành công ${orderAmount} VND. Tự động xác nhận.`
-                }, client);
+                try {
+                    await AppointmentRepository.updateStatusById(updatedInvoice.appointment_id, APPOINTMENT_STATUS.CONFIRMED, client);
+                    
+                    await AppointmentAuditLogRepository.create({
+                        appointment_id: updatedInvoice.appointment_id,
+                        changed_by: 'system',
+                        old_status: APPOINTMENT_STATUS.PENDING,
+                        new_status: APPOINTMENT_STATUS.CONFIRMED,
+                        action_note: `Thanh toán thành công ${orderAmount} VND. Tự động xác nhận.`
+                    }, client);
+                    console.log(`[Webhook] Appointment ${updatedInvoice.appointment_id} confirmed via PRE_BOOKING`);
+                } catch (apptErr: any) {
+                    console.error(`[Webhook] Failed to confirm appointment via PRE_BOOKING:`, apptErr.message);
+                    // Don't throw — payment already recorded
+                }
             }
 
             /* ── AUTO-CONFIRM APPOINTMENT nếu đây là deposit invoice ── */
@@ -211,9 +231,11 @@ export class PaymentGatewayService {
                 );
                 if (depositCheck.rows.length > 0) {
                     const appointmentId = depositCheck.rows[0].reference_id;
+                    console.log(`[Webhook] Found deposit appointment: ${appointmentId}`);
                     // Import động để tránh circular dependency
                     const { AppointmentService } = require('../Appointment Management/appointment.service');
                     await AppointmentService.confirmDepositPayment(appointmentId, order.invoice_id);
+                    console.log(`[Webhook] Deposit confirmed for appointment ${appointmentId}`);
                 }
             } catch (confirmErr: any) {
                 // Không throw — thanh toán đã ghi nhận, appointment confirm lỗi sẽ log
@@ -221,9 +243,11 @@ export class PaymentGatewayService {
             }
 
             await client.query('COMMIT');
+            console.log(`[Webhook] ── COMMIT SUCCESS ── order=${order.order_code}`);
             return { processed: true, message: 'Giao dịch đã được ghi nhận thành công.' };
         } catch (error: any) {
             await client.query('ROLLBACK');
+            console.error(`[Webhook] ── ROLLBACK ── error:`, error.message || error.code || error);
             
             // Handle database unique constraint violation for idempotent webhook processing
             if (error.code === '23505') {
