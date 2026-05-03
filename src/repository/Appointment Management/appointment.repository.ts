@@ -1338,8 +1338,8 @@ export class AppointmentRepository {
         const query = `
             SELECT i.invoices_id, i.invoice_code, i.status, i.net_amount, i.paid_amount
             FROM invoices i
-            INNER JOIN encounters e ON i.encounter_id = e.encounters_id
-            WHERE e.appointment_id = $1
+            LEFT JOIN encounters e ON i.encounter_id = e.encounters_id
+            WHERE (e.appointment_id = $1 OR i.appointment_id = $1)
               AND i.status != '${INVOICE_STATUS.CANCELLED}'
             LIMIT 1
         `;
