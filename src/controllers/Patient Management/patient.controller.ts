@@ -16,17 +16,31 @@ export class PatientController {
      * Lấy danh sách hồ sơ bệnh nhân
      */
     static getPatients = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const { search, status, gender, page, limit } = req.query as Record<string, string>;
+            const { search, status, gender, hasInsurance, ageFrom, ageTo, page, limit } = req.query as Record<string, string>;
 
             const data = await PatientService.getPatients(
                 search,
                 status,
                 gender,
+                hasInsurance,
+                ageFrom,
+                ageTo,
                 page ? parseInt(page) : PATIENT_CONFIG.DEFAULT_PAGE,
                 limit ? parseInt(limit) : PATIENT_CONFIG.DEFAULT_LIMIT
             );
 
-            res.status(200).json({ success: true, data });
+            res.status(200).json({ 
+                success: true, 
+                data: {
+                    items: data.data,
+                    pagination: {
+                        total_items: data.total,
+                        total_pages: data.totalPages,
+                        current_page: data.page,
+                        limit: data.limit
+                    }
+                } 
+            });
     });
 
     /**
