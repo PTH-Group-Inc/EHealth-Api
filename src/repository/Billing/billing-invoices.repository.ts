@@ -444,7 +444,7 @@ export class BillingInvoiceRepository {
         paymentId: string,
         transactionCode: string,
         input: CreatePaymentInput,
-        cashierId: string,
+        cashierId: string | null,
         client?: PoolClient
     ): Promise<PaymentTransaction> {
         const sql = `
@@ -460,7 +460,7 @@ export class BillingInvoiceRepository {
             input.payment_method, input.amount,
             input.gateway_transaction_id || null,
             input.gateway_response ? JSON.stringify(input.gateway_response) : null,
-            cashierId, input.notes || null,
+            cashierId || null, input.notes || null,
         ];
         const executor = client || pool;
         const result = await executor.query(sql, params);
