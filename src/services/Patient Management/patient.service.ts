@@ -100,7 +100,10 @@ export class PatientService {
         limit: number = PATIENT_CONFIG.DEFAULT_LIMIT
     ): Promise<PaginatedPatients> {
         const safeLimit = Math.min(limit, PATIENT_CONFIG.MAX_LIMIT);
-        return await PatientRepository.getPatients(search, status, gender, hasInsurance, ageFrom, ageTo, page, safeLimit);
+        const insuranceBool = hasInsurance === 'true' ? true : hasInsurance === 'false' ? false : undefined;
+        const ageFromNum = ageFrom ? parseInt(ageFrom, 10) : undefined;
+        const ageToNum = ageTo ? parseInt(ageTo, 10) : undefined;
+        return await PatientRepository.getPatients(search, status, gender, insuranceBool, ageFromNum, ageToNum, page, safeLimit);
     }
 
     /**
