@@ -115,6 +115,7 @@ export class AppointmentStatusController {
                 branch_id: req.query.branch_id?.toString(),
                 room_id: req.query.room_id?.toString(),
                 status: req.query.status?.toString(),
+                include_all: req.query.include_all === 'true'
             };
             const data = await AppointmentStatusService.getQueueToday(filters);
             res.status(HTTP_STATUS.OK).json({

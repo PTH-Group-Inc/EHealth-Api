@@ -230,7 +230,7 @@ export class AppointmentStatusRepository {
 
             if (noShow) {
                 await AppointmentAuditLogRepository.create(auditLog, client);
-                
+
                 // Task 11: Auto-flag no-show blacklist
                 const patientUpdateQuery = `
                     UPDATE patients
@@ -374,10 +374,15 @@ export class AppointmentStatusRepository {
         room_id?: string;
         status?: string;
         specialty_id?: string;
+        include_all?: boolean;
     }): Promise<any[]> {
-        const conditions: string[] = [`a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`, `a.status IN ('${APPOINTMENT_STATUS.CHECKED_IN}', '${APPOINTMENT_STATUS.IN_PROGRESS}')`];
+        const conditions: string[] = [`a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`];
         const params: any[] = [];
         let paramIdx = 1;
+
+        if (!filters.status && !filters.include_all) {
+            conditions.push(`a.status IN ('${APPOINTMENT_STATUS.CHECKED_IN}', '${APPOINTMENT_STATUS.IN_PROGRESS}')`);
+        }
 
         if (filters.branch_id) {
             conditions.push(`mr.branch_id = $${paramIdx++}`);
