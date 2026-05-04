@@ -531,17 +531,17 @@ export class AppointmentRepository {
             const insertQuery = `
                 INSERT INTO appointments (
                     appointments_id, appointment_code, patient_id, branch_id, doctor_id, slot_id,
-                    room_id, facility_service_id, appointment_date, booking_channel,
+                    room_id, facility_service_id, specialty_id, appointment_date, booking_channel,
                     reason_for_visit, symptoms_notes, status, payment_expires_at
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
                 RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS appointment_date;
             `;
             const values = [
                 id, code, data.patient_id, data.branch_id, data.doctor_id || null, data.slot_id || null,
-                data.room_id || null, data.facility_service_id || null, data.appointment_date,
-                data.booking_channel, data.reason_for_visit || null, data.symptoms_notes || null,
-                initialStatus, data.payment_expires_at || null
+                data.room_id || null, data.facility_service_id || null, data.specialty_id || null,
+                data.appointment_date, data.booking_channel, data.reason_for_visit || null,
+                data.symptoms_notes || null, initialStatus, data.payment_expires_at || null
             ];
             const result = await client.query(insertQuery, values);
             const appointment = result.rows[0];

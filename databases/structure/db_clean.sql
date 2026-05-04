@@ -794,6 +794,7 @@ CREATE TABLE appointments (
     slot_id VARCHAR(50), -- Nullable: dat lich chua chon slot cu the
     room_id VARCHAR(50), -- Phong kham
     facility_service_id VARCHAR(50), -- Dich vu kham
+    specialty_id VARCHAR(50), -- Chuyen khoa (luu de dam bao du lieu khi chua co BS)
     appointment_date DATE NOT NULL DEFAULT CURRENT_DATE,
     booking_channel VARCHAR(50) NOT NULL, -- APP, WEB, HOTLINE, DIRECT_CLINIC, ZALO
     reason_for_visit TEXT,
@@ -822,7 +823,8 @@ CREATE TABLE appointments (
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (doctor_id) REFERENCES doctors(doctors_id) ON DELETE SET NULL,
     FOREIGN KEY (slot_id) REFERENCES appointment_slots(slot_id) ON DELETE SET NULL,
-    FOREIGN KEY (room_id) REFERENCES medical_rooms(medical_rooms_id) ON DELETE SET NULL
+    FOREIGN KEY (room_id) REFERENCES medical_rooms(medical_rooms_id) ON DELETE SET NULL,
+    FOREIGN KEY (specialty_id) REFERENCES specialties(specialties_id) ON DELETE SET NULL
     -- FK facility_service_id -> facility_services: deferred (bang tao o Module 7)
 );
 

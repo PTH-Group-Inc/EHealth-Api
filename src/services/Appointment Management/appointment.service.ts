@@ -1315,6 +1315,11 @@ export class AppointmentService {
         }
         // Không throw — lịch vẫn tạo được, staff gán BS sau
 
+        // ★ Luôn ghi specialty_id vào data để Repository INSERT được đầy đủ
+        if (specialtyId) {
+            data.specialty_id = specialtyId;
+        }
+
         // 4. Gán phòng đúng khoa (ưu tiên) hoặc phòng trống bất kỳ (fallback)
         const room = await AppointmentRepository.findAvailableRoom(data.branch_id, specialtyId);
         if (room) {
