@@ -61,14 +61,19 @@ export class DepartmentRepository {
     / Lấy danh sách khoa/phòng ban cho dropdown
     */
 
-    static async getDepartmentsForDropdown(branch_id: string): Promise<DepartmentDropdown[]> {
-        const query = `
+    static async getDepartmentsForDropdown(branch_id?: string): Promise<DepartmentDropdown[]> {
+        let query = `
             SELECT departments_id, branch_id, code, name, logo_url
             FROM departments
-            WHERE branch_id = $1 AND status = 'ACTIVE' AND deleted_at IS NULL
-            ORDER BY name ASC
+            WHERE status = 'ACTIVE' AND deleted_at IS NULL
         `;
-        const result = await pool.query(query, [branch_id]);
+        const params: any[] = [];
+        if (branch_id) {
+            params.push(branch_id);
+            query += ` AND branch_id = $1`;
+        }
+        query += ` ORDER BY name ASC`;
+        const result = await pool.query(query, params);
         return result.rows;
     }
 

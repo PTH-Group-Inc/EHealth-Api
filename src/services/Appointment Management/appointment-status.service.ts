@@ -698,4 +698,36 @@ export class AppointmentStatusService {
         });
         return result;
     }
+
+    /**
+     * Force release a room that is stuck
+     */
+    static async forceReleaseRoom(roomId: string, userId: string): Promise<any> {
+        if (!roomId) {
+            throw new AppError(400, 'MISSING_ROOM_ID', 'Vui lòng cung cấp ID phòng.');
+        }
+
+        const roomStatus = await AppointmentStatusRepository.getRoomStatusById(roomId);
+        if (!roomStatus) {
+            throw new AppError(404, 'ROOM_NOT_FOUND', 'Không tìm thấy phòng khám.');
+        }
+
+        // Generate an audit log
+        const auditLog = {
+            appointment_audit_logs_id: `ALOG_${uuidv4().substring(0, 12)}`,
+            appointment_id: null,
+            changed_by: userId,
+            old_status: null,
+            new_status: null,
+            action_note: `Giải phóng phòng thủ công.`,
+        };
+
+        const result = await AppointmentStatusRepository.forceReleaseRoom(roomId, auditLog);
+        
+        if (!result) {
+            throw new AppError(500, 'RELEASE_FAILED', 'Không thể giải phóng phòng.');
+        }
+
+        return result;
+    }
 }

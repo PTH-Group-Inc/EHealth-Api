@@ -520,14 +520,28 @@ export class AppointmentStatusRepository {
                 mr.code AS room_code,
                 mr.name AS room_name,
                 mr.room_type,
-                mr.room_status,
+                mr.room_status AS status,
                 mr.current_appointment_id,
                 mr.current_patient_id,
                 dep.name AS department_name,
                 br.name AS branch_name,
                 a.appointment_code AS current_appointment_code,
                 p.full_name AS current_patient_name,
-                up.full_name AS current_doctor_name
+                up.full_name AS doctor_name,
+                (
+                    SELECT COUNT(*)
+                    FROM appointments sub_a
+                    WHERE sub_a.room_id = mr.medical_rooms_id
+                      AND sub_a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date
+                      AND sub_a.status = 'CHECKED_IN'
+                )::int AS waiting_count,
+                (
+                    SELECT COUNT(*)
+                    FROM appointments sub_a
+                    WHERE sub_a.room_id = mr.medical_rooms_id
+                      AND sub_a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date
+                      AND sub_a.status = 'COMPLETED'
+                )::int AS completed_count
             FROM medical_rooms mr
             LEFT JOIN departments dep ON mr.department_id = dep.departments_id
             LEFT JOIN branches br ON mr.branch_id = br.branches_id
@@ -540,6 +554,55 @@ export class AppointmentStatusRepository {
         `;
         const result = await pool.query(query, params);
         return result.rows;
+    }
+
+    /**
+     * Force release a medical room, setting its status to AVAILABLE and clearing current appointment/patient.
+     */
+    static async forceReleaseRoom(roomId: string, auditLog?: any): Promise<boolean> {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const query = `
+                UPDATE medical_rooms
+                SET room_status = 'AVAILABLE',
+                    current_appointment_id = NULL,
+                    current_patient_id = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE medical_rooms_id = $1
+                RETURNING *;
+            `;
+            const result = await client.query(query, [roomId]);
+
+            if (result.rowCount === 0) {
+                throw new Error('Không tìm thấy phòng khám để giải phóng.');
+            }
+
+            if (auditLog) {
+                const logQuery = `
+                    INSERT INTO appointment_audit_logs 
+                        (appointment_audit_logs_id, appointment_id, changed_by, old_status, new_status, action_note, created_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+                `;
+                await client.query(logQuery, [
+                    auditLog.appointment_audit_logs_id,
+                    auditLog.appointment_id,
+                    auditLog.changed_by,
+                    auditLog.old_status,
+                    auditLog.new_status,
+                    auditLog.action_note
+                ]);
+            }
+
+            await client.query('COMMIT');
+            return true;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 
     /**

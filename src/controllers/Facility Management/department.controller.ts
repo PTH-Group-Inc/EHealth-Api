@@ -28,7 +28,7 @@ export class DepartmentController {
     });
 
     static getDepartmentsForDropdown = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const branch_id = req.query.branch_id?.toString() || '';
+            const branch_id = req.query.branch_id?.toString();
             const result = await DepartmentService.getDepartmentsForDropdown(branch_id);
             res.status(200).json({
                 success: true,
