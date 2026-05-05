@@ -17,10 +17,7 @@ export class DepartmentService {
     /*
     / Lấy danh sách khoa/phòng ban cho dropdown
     */
-    static async getDepartmentsForDropdown(branch_id: string) {
-        if (!branch_id) {
-            throw { ...DEPARTMENT_ERRORS.BRANCH_NOT_FOUND, message: 'Vui lòng cung cấp branch_id để lấy danh sách khoa/phòng ban hợp lệ.' };
-        }
+    static async getDepartmentsForDropdown(branch_id?: string) {
         return await DepartmentRepository.getDepartmentsForDropdown(branch_id);
     }
 

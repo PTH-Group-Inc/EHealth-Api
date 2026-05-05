@@ -860,3 +860,44 @@ appointmentStatusRoutes.patch(
     checkSessionStatus,
     AppointmentStatusController.recallPatient
 );
+
+/**
+ * @swagger
+ * /api/appointment-status/rooms/{id}/release:
+ *   patch:
+ *     summary: Giải phóng phòng khám thủ công
+ *     description: |
+ *       **Phân quyền:** Yêu cầu quyền APPOINTMENT_STATUS_MANAGE.
+ *       **Vai trò được phép:** ADMIN, STAFF, NURSE.
+ *
+ *       **Mô tả chi tiết:**
+ *       - Giải phóng phòng khám khi phòng bị kẹt ở trạng thái OCCUPIED do lỗi đồng bộ.
+ *       - Chuyển trạng thái phòng về AVAILABLE và xoá current_patient_id, current_appointment_id.
+ *       - Ghi audit log.
+ *     tags: [3.7 Check-in & Trạng thái]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID phòng khám
+ *         example: RM_HCM_N102
+ *     responses:
+ *       200:
+ *         description: Giải phóng phòng thành công
+ *       404:
+ *         description: Không tìm thấy phòng
+ *       401:
+ *         description: Chưa đăng nhập
+ *       403:
+ *         description: Không có quyền
+ */
+appointmentStatusRoutes.patch(
+    '/rooms/:id/release',
+    verifyAccessToken,
+    checkSessionStatus,
+    AppointmentStatusController.forceReleaseRoom
+);

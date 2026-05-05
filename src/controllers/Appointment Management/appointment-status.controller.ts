@@ -177,4 +177,15 @@ export class AppointmentStatusController {
                 data: result,
             });
     });
+
+    /** PATCH /api/appointment-status/rooms/:id/release — Giải phóng phòng thủ công */
+    static forceReleaseRoom = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const userId = (req as any).auth?.user_id;
+            const result = await AppointmentStatusService.forceReleaseRoom(req.params.id.toString(), userId);
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: 'Phòng đã được giải phóng thành công.',
+                data: result,
+            });
+    });
 }
