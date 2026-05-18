@@ -51,6 +51,7 @@ export class ServiceRepository {
 
         const dataQuery = `
             SELECT services.*,
+                   services.services_id AS service_id,
                    (SELECT MIN(fs.base_price) FROM facility_services fs WHERE fs.service_id = services.services_id) as base_price
             FROM services
             ${whereClause}
@@ -73,7 +74,8 @@ export class ServiceRepository {
      */
     static async getServiceById(id: string): Promise<MasterService | null> {
         const query = `
-            SELECT * FROM services
+            SELECT services.*, services.services_id AS service_id
+            FROM services
             WHERE services_id = $1 AND deleted_at IS NULL
         `;
         const result = await pool.query(query, [id]);
@@ -85,7 +87,8 @@ export class ServiceRepository {
      */
     static async getServiceByCode(code: string): Promise<MasterService | null> {
         const query = `
-            SELECT * FROM services
+            SELECT services.*, services.services_id AS service_id
+            FROM services
             WHERE code = $1 AND deleted_at IS NULL
         `;
         const result = await pool.query(query, [code]);
@@ -98,6 +101,7 @@ export class ServiceRepository {
     static async getAllServices(): Promise<MasterService[]> {
         const query = `
             SELECT services.*,
+                   services.services_id AS service_id,
                    (SELECT MIN(fs.base_price) FROM facility_services fs WHERE fs.service_id = services.services_id) as base_price
             FROM services
             WHERE deleted_at IS NULL AND EXISTS (SELECT 1 FROM facility_services fs WHERE fs.service_id = services.services_id)

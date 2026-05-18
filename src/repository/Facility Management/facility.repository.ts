@@ -8,7 +8,7 @@ export class FacilityRepository {
      */
     static async getFacilitiesForDropdown(): Promise<FacilityDropdown[]> {
         const query = `
-            SELECT facilities_id, code, name
+            SELECT facilities_id, facilities_id AS facility_id, code, name
             FROM facilities
             WHERE status = 'ACTIVE' AND deleted_at IS NULL
             ORDER BY name ASC
@@ -22,7 +22,7 @@ export class FacilityRepository {
      */
     static async getFacilityInfo(): Promise<FacilityInfo | null> {
         const query = `
-            SELECT facilities_id, code, name, tax_code, email, phone,
+            SELECT facilities_id, facilities_id AS facility_id, code, name, tax_code, email, phone,
                    website, logo_url, headquarters_address, status, updated_at, deleted_at
             FROM facilities
             WHERE status = 'ACTIVE' AND deleted_at IS NULL
@@ -46,7 +46,7 @@ export class FacilityRepository {
             UPDATE facilities
             SET ${setClauses}, updated_at = CURRENT_TIMESTAMP
             WHERE facilities_id = $1 AND deleted_at IS NULL
-            RETURNING facilities_id, code, name, tax_code, email, phone,
+            RETURNING facilities_id, facilities_id AS facility_id, code, name, tax_code, email, phone,
                       website, logo_url, headquarters_address, status, updated_at, deleted_at
         `;
 
@@ -103,7 +103,7 @@ export class FacilityRepository {
         const total = parseInt(countResult.rows[0].count, 10);
 
         const dataQuery = `
-            SELECT facilities_id, code, name, tax_code, email, phone, 
+            SELECT facilities_id, facilities_id AS facility_id, code, name, tax_code, email, phone,
                    website, logo_url, headquarters_address, status, updated_at, deleted_at
             FROM facilities
             ${whereClause}
@@ -120,7 +120,7 @@ export class FacilityRepository {
      */
     static async findFacilityById(id: string): Promise<FacilityInfo | null> {
         const query = `
-            SELECT facilities_id, code, name, tax_code, email, phone, 
+            SELECT facilities_id, facilities_id AS facility_id, code, name, tax_code, email, phone,
                    website, logo_url, headquarters_address, status, updated_at, deleted_at
             FROM facilities
             WHERE facilities_id = $1 AND deleted_at IS NULL

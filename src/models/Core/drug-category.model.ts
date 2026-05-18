@@ -2,6 +2,9 @@
  * Entity đại diện cho Nhóm thuốc
  */
 export interface DrugCategory {
+    /** Canonical alias snake_case (#7). */
+    drug_category_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `drug_category_id`. */
     drug_categories_id: string;
     code: string;
     name: string;

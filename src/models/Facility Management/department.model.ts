@@ -1,4 +1,7 @@
 export interface DepartmentDropdown {
+    /** Canonical alias snake_case (#7). */
+    department_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `department_id`. */
     departments_id: string;
     branch_id: string;
     code: string;

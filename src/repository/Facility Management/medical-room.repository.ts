@@ -8,7 +8,7 @@ export class MedicalRoomRepository {
      */
     static async getDropdownList(branchId?: string, departmentId?: string): Promise<MedicalRoomDropdown[]> {
         let query = `
-            SELECT medical_rooms_id, branch_id, department_id, code, name
+            SELECT medical_rooms_id, medical_rooms_id AS medical_room_id, branch_id, department_id, code, name
             FROM medical_rooms
             WHERE status = 'ACTIVE' AND deleted_at IS NULL
         `;
@@ -38,8 +38,8 @@ export class MedicalRoomRepository {
      */
     static async getMedicalRooms(params: MedicalRoomQuery): Promise<{ items: MedicalRoomInfo[], total: number }> {
         let query = `
-            SELECT 
-                r.medical_rooms_id, r.branch_id, r.department_id, 
+            SELECT
+                r.medical_rooms_id, r.medical_rooms_id AS medical_room_id, r.branch_id, r.department_id,
                 r.code, r.name, r.room_type, r.capacity, r.status,
                 b.name as branch_name,
                 d.name as department_name
@@ -120,8 +120,8 @@ export class MedicalRoomRepository {
      */
     static async getById(id: string): Promise<MedicalRoomInfo | null> {
         const query = `
-            SELECT 
-                r.medical_rooms_id, r.branch_id, r.department_id, 
+            SELECT
+                r.medical_rooms_id, r.medical_rooms_id AS medical_room_id, r.branch_id, r.department_id,
                 r.code, r.name, r.room_type, r.capacity, r.status,
                 b.name as branch_name,
                 d.name as department_name

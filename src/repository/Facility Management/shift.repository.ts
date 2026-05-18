@@ -25,7 +25,7 @@ export class ShiftRepository {
         const query = `
             INSERT INTO shifts (shifts_id, facility_id, code, name, start_time, end_time, description)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING *;
+            RETURNING *, shifts_id AS shift_id;
         `;
         const values = [id, input.facility_id, input.code, input.name, input.start_time, input.end_time, input.description || null];
         const result = await pool.query(query, values);
@@ -37,7 +37,7 @@ export class ShiftRepository {
      */
     static async getShifts(facilityId?: string, status?: string, keyword?: string): Promise<Shift[]> {
         let query = `
-            SELECT * FROM shifts 
+            SELECT *, shifts_id AS shift_id FROM shifts
             WHERE deleted_at IS NULL
         `;
         const values: any[] = [];
@@ -67,7 +67,7 @@ export class ShiftRepository {
      * Tìm Ca làm việc thông qua ID
      */
     static async getShiftById(id: string): Promise<Shift | null> {
-        const query = `SELECT * FROM shifts WHERE shifts_id = $1 AND deleted_at IS NULL`;
+        const query = `SELECT *, shifts_id AS shift_id FROM shifts WHERE shifts_id = $1 AND deleted_at IS NULL`;
         const result = await pool.query(query, [id]);
         return result.rows[0] || null;
     }
@@ -76,7 +76,7 @@ export class ShiftRepository {
      * Tìm Ca làm việc thông qua mã Code để tránh trùng lặp
      */
     static async getShiftByCode(code: string): Promise<Shift | null> {
-        const query = `SELECT * FROM shifts WHERE code = $1 AND deleted_at IS NULL`;
+        const query = `SELECT *, shifts_id AS shift_id FROM shifts WHERE code = $1 AND deleted_at IS NULL`;
         const result = await pool.query(query, [code]);
         return result.rows[0] || null;
     }
@@ -114,7 +114,7 @@ export class ShiftRepository {
             values.push(updateData.status);
         }
 
-        query += ` WHERE shifts_id = $${index} AND deleted_at IS NULL RETURNING *`;
+        query += ` WHERE shifts_id = $${index} AND deleted_at IS NULL RETURNING *, shifts_id AS shift_id`;
         values.push(id);
 
         const result = await pool.query(query, values);

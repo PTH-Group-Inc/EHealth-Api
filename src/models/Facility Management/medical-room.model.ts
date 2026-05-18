@@ -1,5 +1,8 @@
 // src\models\medical-room.model.ts
 export interface MedicalRoomDropdown {
+    /** Canonical alias snake_case (#7). */
+    medical_room_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `medical_room_id`. */
     medical_rooms_id: string;
     branch_id: string;
     department_id?: string | null;

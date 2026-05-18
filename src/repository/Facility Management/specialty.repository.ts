@@ -23,7 +23,7 @@ export class SpecialtyRepository {
         // Aggregate stats: service_count via specialty_services, doctor_count via doctors.
         // Tránh FE phải call thêm 2 API rồi aggregate ở client.
         const dataQuery = `
-            SELECT s.specialties_id, s.code, s.name, s.description, s.logo_url,
+            SELECT s.specialties_id, s.specialties_id AS specialty_id, s.code, s.name, s.description, s.logo_url,
                    COALESCE(svc_stats.service_count, 0)::int AS service_count,
                    COALESCE(doc_stats.doctor_count, 0)::int  AS doctor_count
             FROM specialties s
@@ -57,8 +57,8 @@ export class SpecialtyRepository {
      */
     static async getSpecialtyById(id: string): Promise<Specialty | null> {
         const query = `
-            SELECT specialties_id, code, name, description, logo_url 
-            FROM specialties 
+            SELECT specialties_id, specialties_id AS specialty_id, code, name, description, logo_url
+            FROM specialties
             WHERE specialties_id = $1 AND deleted_at IS NULL
         `;
         const result = await pool.query(query, [id]);
@@ -70,8 +70,8 @@ export class SpecialtyRepository {
      */
     static async getSpecialtyByCode(code: string): Promise<Specialty | null> {
         const query = `
-            SELECT specialties_id, code, name, description, logo_url 
-            FROM specialties 
+            SELECT specialties_id, specialties_id AS specialty_id, code, name, description, logo_url
+            FROM specialties
             WHERE code = $1 AND deleted_at IS NULL
         `;
         const result = await pool.query(query, [code]);
@@ -85,7 +85,7 @@ export class SpecialtyRepository {
         const query = `
             INSERT INTO specialties (specialties_id, code, name, description, logo_url)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING specialties_id, code, name, description, logo_url;
+            RETURNING specialties_id, specialties_id AS specialty_id, code, name, description, logo_url;
         `;
         const values = [specialty.specialties_id, specialty.code, specialty.name, specialty.description, specialty.logo_url || null];
         const result = await pool.query(query, values);
@@ -106,8 +106,8 @@ export class SpecialtyRepository {
         const query = `
             UPDATE specialties 
             SET ${setClauses}
-            WHERE specialties_id = $1 
-            RETURNING specialties_id, code, name, description, logo_url;
+            WHERE specialties_id = $1
+            RETURNING specialties_id, specialties_id AS specialty_id, code, name, description, logo_url;
         `;
         const result = await pool.query(query, [id, ...values]);
         return result.rows[0] ?? null;

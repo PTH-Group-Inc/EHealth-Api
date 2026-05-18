@@ -33,7 +33,7 @@ export class DepartmentRepository {
         // và medical_rooms -> appointments (appointment_today, patient_count today)
         // -> trả về cho FE thay vì FE phải call thêm 3 API rồi aggregate ở client.
         const query = `
-            SELECT d.departments_id, d.branch_id, d.code, d.name, d.description, d.logo_url, d.status,
+            SELECT d.departments_id, d.departments_id AS department_id, d.branch_id, d.code, d.name, d.description, d.logo_url, d.status,
                    b.name as branch_name, f.name as facility_name,
                    COALESCE(doc_stats.doctor_count, 0)::int        AS doctor_count,
                    COALESCE(appt_stats.appointment_today, 0)::int  AS appointment_today,
@@ -86,7 +86,7 @@ export class DepartmentRepository {
 
     static async getDepartmentsForDropdown(branch_id?: string): Promise<DepartmentDropdown[]> {
         let query = `
-            SELECT departments_id, branch_id, code, name, logo_url
+            SELECT departments_id, departments_id AS department_id, branch_id, code, name, logo_url
             FROM departments
             WHERE status = 'ACTIVE' AND deleted_at IS NULL
         `;
@@ -119,7 +119,7 @@ export class DepartmentRepository {
 
     static async findDepartmentById(id: string): Promise<DepartmentInfo | null> {
         const query = `
-            SELECT d.*, b.name as branch_name, b.facility_id, f.name as facility_name
+            SELECT d.*, d.departments_id AS department_id, b.name as branch_name, b.facility_id, f.name as facility_name
             FROM departments d
             INNER JOIN branches b ON d.branch_id = b.branches_id
             INNER JOIN facilities f ON b.facility_id = f.facilities_id

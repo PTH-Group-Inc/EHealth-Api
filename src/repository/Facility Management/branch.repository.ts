@@ -42,7 +42,7 @@ export class BranchRepository {
         const total = parseInt(countResult.rows[0].count, 10);
 
         const dataQuery = `
-            SELECT b.branches_id, b.facility_id, b.code, b.name, b.address, 
+            SELECT b.branches_id, b.branches_id AS branch_id, b.facility_id, b.code, b.name, b.address,
                    b.phone, b.status, b.established_date, b.logo_url, b.deleted_at, f.name as facility_name
             FROM branches b
             LEFT JOIN facilities f ON b.facility_id = f.facilities_id
@@ -60,7 +60,7 @@ export class BranchRepository {
      */
     static async getBranchesForDropdown(): Promise<BranchDropdown[]> {
         const query = `
-            SELECT branches_id, facility_id, code, name, logo_url
+            SELECT branches_id, branches_id AS branch_id, facility_id, code, name, logo_url
             FROM branches
             WHERE status = 'ACTIVE' AND deleted_at IS NULL
             ORDER BY name ASC
@@ -74,7 +74,7 @@ export class BranchRepository {
      */
     static async findBranchById(id: string): Promise<BranchInfo | null> {
         const query = `
-            SELECT b.branches_id, b.facility_id, b.code, b.name, b.address, 
+            SELECT b.branches_id, b.branches_id AS branch_id, b.facility_id, b.code, b.name, b.address,
                    b.phone, b.status, b.established_date, b.logo_url, b.deleted_at, f.name as facility_name
             FROM branches b
             LEFT JOIN facilities f ON b.facility_id = f.facilities_id
@@ -129,7 +129,7 @@ export class BranchRepository {
             UPDATE branches
             SET ${setClauses.join(', ')}
             WHERE branches_id = $1 AND deleted_at IS NULL
-            RETURNING branches_id, facility_id, code, name, address, phone, status, established_date, logo_url
+            RETURNING branches_id, branches_id AS branch_id, facility_id, code, name, address, phone, status, established_date, logo_url
         `;
 
         const result = await pool.query(query, [id, ...values]);

@@ -2,6 +2,9 @@
  * Danh mục chuẩn dịch vụ kỹ thuật Y tế (Thông tư BYT)
  */
 export interface MasterService {
+    /** Canonical alias snake_case (#7). */
+    service_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `service_id`. */
     services_id: string;
     code: string;
     name: string;

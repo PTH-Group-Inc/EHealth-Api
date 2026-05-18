@@ -126,11 +126,21 @@ export function errorHandler(
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 
+/**
+ * Xử lý request không match route nào.
+ *
+ * Lưu ý: Express không cho phép phân biệt clean giữa "URL không tồn tại"
+ * và "URL tồn tại nhưng sai HTTP method" mà không phải đăng ký từng route
+ * thủ công. Vì vậy chúng ta trả 404 thống nhất kèm method+URL trong message
+ * để FE có thể dễ dàng debug "endpoint sai" vs "method sai" qua log.
+ *
+ * Ref: BACKEND_TASKS #13 — 404 vs 405 handler hint.
+ */
 export function notFoundHandler(req: Request, res: Response): void {
-    logger.warn(`[404] ${req.method} ${req.originalUrl} — Endpoint không tồn tại`);
+    logger.warn(`[404] ${req.method} ${req.originalUrl} — Endpoint hoặc method không hỗ trợ`);
     res.status(404).json({
         success: false,
         code: 'NOT_FOUND',
-        message: `Endpoint '${req.originalUrl}' không tồn tại trên hệ thống.`,
+        message: `Endpoint '${req.method} ${req.originalUrl}' không tồn tại hoặc HTTP method không được hỗ trợ. Vui lòng kiểm tra lại URL và method.`,
     });
 }
