@@ -18,7 +18,7 @@ export interface MedicalRoomInfo extends MedicalRoomDropdown {
 export interface CreateMedicalRoomInput {
     branch_id: string;
     department_id?: string;
-    code: string;
+    code?: string;
     name: string;
     room_type: string;
     capacity?: number;

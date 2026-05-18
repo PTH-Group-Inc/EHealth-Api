@@ -33,7 +33,7 @@ export interface CreateBedInput {
     department_id?: string;
     room_id?: string;
     name: string;
-    code: string;
+    code?: string;
     type?: string;
     status?: string;
     description?: string;

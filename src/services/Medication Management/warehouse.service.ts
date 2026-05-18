@@ -1,6 +1,7 @@
 import { WarehouseRepository } from '../../repository/Medication Management/warehouse.repository';
 import { CreateWarehouseInput, UpdateWarehouseInput } from '../../models/Medication Management/warehouse.model';
 import { WAREHOUSE_ERRORS } from '../../constants/warehouse.constant';
+import { generateCode } from '../../utils/code-generator.util';
 
 const HTTP_STATUS = { BAD_REQUEST: 400, NOT_FOUND: 404, CONFLICT: 409 };
 
@@ -29,7 +30,7 @@ export class WarehouseService {
 
     /** Tạo kho mới */
     static async create(input: CreateWarehouseInput) {
-        if (!input.branch_id || !input.code || !input.name) {
+        if (!input.branch_id || !input.name) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED', WAREHOUSE_ERRORS.MISSING_REQUIRED);
         }
 
@@ -38,10 +39,17 @@ export class WarehouseService {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'BRANCH_NOT_FOUND', WAREHOUSE_ERRORS.BRANCH_NOT_FOUND);
         }
 
-        const codeExists = await WarehouseRepository.codeExists(input.branch_id, input.code);
-        if (codeExists) {
-            throw new AppError(HTTP_STATUS.CONFLICT, 'CODE_ALREADY_EXISTS', WAREHOUSE_ERRORS.CODE_ALREADY_EXISTS);
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = input.code?.trim() || generateCode('WH');
+
+        // Chỉ check unique khi user truyền code thủ công
+        if (input.code?.trim()) {
+            const codeExists = await WarehouseRepository.codeExists(input.branch_id, input.code);
+            if (codeExists) {
+                throw new AppError(HTTP_STATUS.CONFLICT, 'CODE_ALREADY_EXISTS', WAREHOUSE_ERRORS.CODE_ALREADY_EXISTS);
+            }
         }
+        input.code = code;
 
         const id = WarehouseRepository.generateId();
         return WarehouseRepository.create(id, input);

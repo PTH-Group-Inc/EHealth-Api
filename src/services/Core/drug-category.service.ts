@@ -11,6 +11,7 @@ import {
     PHARMACY_CONFIG
 } from '../../constants/pharmacy.constant';
 import { ExcelUtil, ExcelColumn } from '../../utils/excel.util';
+import { generateCode } from '../../utils/code-generator.util';
 
 export class DrugCategoryService {
     /**
@@ -56,12 +57,19 @@ export class DrugCategoryService {
      * Tạo mới nhóm thuốc.
      */
     static async createCategory(input: CreateDrugCategoryInput): Promise<DrugCategory> {
-        const existing = await DrugCategoryRepository.getCategoryByCode(input.code);
-        if (existing) {
-            throw PHARMACY_CATEGORY_ERRORS.ALREADY_EXISTS;
-        }
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = input.code?.trim() || generateCode('CAT');
 
-        const newId = this.generateCategoryId(input.code);
+        // Chỉ check unique khi user truyền code thủ công
+        if (input.code?.trim()) {
+            const existing = await DrugCategoryRepository.getCategoryByCode(input.code);
+            if (existing) {
+                throw PHARMACY_CATEGORY_ERRORS.ALREADY_EXISTS;
+            }
+        }
+        input.code = code;
+
+        const newId = this.generateCategoryId(code);
 
         return await DrugCategoryRepository.createCategory(newId, input);
     }

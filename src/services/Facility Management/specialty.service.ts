@@ -5,6 +5,7 @@ import { Specialty, SpecialtyPayloadDTO } from '../../models/Facility Management
 import { ERROR_MESSAGES } from '../../constants/message.constant';
 import { PAGINATION } from '../../constants/pagination.constant';
 import { HTTP_STATUS } from '../../constants/httpStatus.constant';
+import { generateCode } from '../../utils/code-generator.util';
 
 class AppError extends Error {
     constructor(public statusCode: number, message: string) {
@@ -63,15 +64,20 @@ export class SpecialtyService {
      * Thêm mới chuyên khoa.
      */
     static async createSpecialty(payload: SpecialtyPayloadDTO): Promise<Specialty> {
-        // Kiểm tra xem code đã tồn tại chưa
-        const existingSpecialty = await SpecialtyRepository.getSpecialtyByCode(payload.code);
-        if (existingSpecialty) {
-            throw new AppError(HTTP_STATUS.CONFLICT, ERROR_MESSAGES.SPECIALTY_CODE_EXISTS);
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = payload.code?.trim() || generateCode('SPEC');
+
+        // Chỉ check unique khi user truyền code thủ công
+        if (payload.code?.trim()) {
+            const existingSpecialty = await SpecialtyRepository.getSpecialtyByCode(payload.code);
+            if (existingSpecialty) {
+                throw new AppError(HTTP_STATUS.CONFLICT, ERROR_MESSAGES.SPECIALTY_CODE_EXISTS);
+            }
         }
 
         const newSpecialty: Specialty = {
             specialties_id: SpecialtyService.generateSpecialtyId(),
-            code: payload.code,
+            code,
             name: payload.name,
             description: payload.description || null
         };

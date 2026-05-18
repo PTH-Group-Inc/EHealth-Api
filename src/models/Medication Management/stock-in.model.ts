@@ -15,7 +15,7 @@ export interface Supplier {
 }
 
 export interface CreateSupplierInput {
-    code: string;
+    code?: string;
     name: string;
     contact_person?: string;
     phone?: string;

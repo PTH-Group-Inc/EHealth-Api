@@ -16,7 +16,7 @@ export interface MasterService {
 }
 
 export interface CreateServiceInput {
-    code: string;
+    code?: string;
     name: string;
     service_group?: string;
     service_type?: string;

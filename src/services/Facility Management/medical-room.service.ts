@@ -4,6 +4,7 @@ import { DepartmentRepository } from '../../repository/Facility Management/depar
 import { CreateMedicalRoomInput, MedicalRoomDropdown, MedicalRoomInfo, MedicalRoomQuery, UpdateMedicalRoomInput } from '../../models/Facility Management/medical-room.model';
 import { MedicalRoomStatus, MedicalRoomType, ROOM_ERRORS, ROOM_MESSAGES } from '../../constants/medical-room.constant';
 import { AppError } from '../../utils/app-error.util';
+import { generateCode } from '../../utils/code-generator.util';
 
 export class MedicalRoomService {
     /**
@@ -70,15 +71,21 @@ export class MedicalRoomService {
             }
         }
 
-        // 3. Validate: Code không được trùng trong cùng Branch
-        const codeExists = await MedicalRoomRepository.checkCodeExists(data.branch_id, data.code);
-        if (codeExists) {
-            throw new AppError(
-                ROOM_ERRORS.CODE_EXISTS.httpCode,
-                ROOM_ERRORS.CODE_EXISTS.message,
-                ROOM_ERRORS.CODE_EXISTS.code
-            );
+        // 3. Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = data.code?.trim() || generateCode('ROOM');
+
+        // Chỉ check unique khi user truyền code thủ công
+        if (data.code?.trim()) {
+            const codeExists = await MedicalRoomRepository.checkCodeExists(data.branch_id, data.code);
+            if (codeExists) {
+                throw new AppError(
+                    ROOM_ERRORS.CODE_EXISTS.httpCode,
+                    ROOM_ERRORS.CODE_EXISTS.message,
+                    ROOM_ERRORS.CODE_EXISTS.code
+                );
+            }
         }
+        data.code = code;
 
         // 4. Validate Room Type (nếu có truyền)
         if (data.room_type && !Object.values(MedicalRoomType).includes(data.room_type as MedicalRoomType)) {

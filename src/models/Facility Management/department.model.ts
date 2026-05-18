@@ -15,7 +15,7 @@ export interface DepartmentInfo extends DepartmentDropdown {
 
 export interface CreateDepartmentInput {
     branch_id: string;
-    code: string;
+    code?: string;  // optional - BE auto-gen nếu không truyền (FE bỏ field Mã)
     name: string;
     description?: string;
     logo_url?: string;

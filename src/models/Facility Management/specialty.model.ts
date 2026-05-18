@@ -13,7 +13,7 @@ export interface Specialty {
  * Payload
  */
 export interface SpecialtyPayloadDTO {
-    code: string;
+    code?: string;
     name: string;
     description?: string;
     logo_url?: string;

@@ -11,6 +11,7 @@ import {
     SERVICE_CONFIG
 } from '../../constants/medical-service.constant';
 import { ExcelUtil, ExcelColumn } from '../../utils/excel.util';
+import { generateCode } from '../../utils/code-generator.util';
 
 export class MasterServiceLogic {
     /**
@@ -57,11 +58,17 @@ export class MasterServiceLogic {
      * Tạo mới dịch vụ chuẩn.
      */
     static async createService(input: CreateServiceInput): Promise<MasterService> {
-        // Kiểm tra Code trùng
-        const existingCode = await ServiceRepository.getServiceByCode(input.code);
-        if (existingCode) {
-            throw SERVICE_ERRORS.ALREADY_EXISTS;
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = input.code?.trim() || generateCode('SVC');
+
+        // Chỉ check unique khi user truyền code thủ công
+        if (input.code?.trim()) {
+            const existingCode = await ServiceRepository.getServiceByCode(input.code);
+            if (existingCode) {
+                throw SERVICE_ERRORS.ALREADY_EXISTS;
+            }
         }
+        input.code = code;
 
         const newId = this.generateServiceId();
 
@@ -154,7 +161,7 @@ export class MasterServiceLogic {
                     is_active: parseBoolean(row.is_active, true)
                 };
 
-                const existing = await ServiceRepository.getServiceByCode(input.code);
+                const existing = await ServiceRepository.getServiceByCode(input.code!);
                 const id = existing ? existing.services_id : this.generateServiceId();
 
                 await ServiceRepository.upsertService(id, input);

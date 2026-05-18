@@ -22,7 +22,7 @@ export interface BranchDropdown {
 // Input tạo mới chi nhánh
 export interface CreateBranchInput {
     facility_id: string;
-    code: string;
+    code?: string;  // optional - BE auto-gen nếu không truyền (FE bỏ field Mã)
     name: string;
     address: string;
     phone?: string;

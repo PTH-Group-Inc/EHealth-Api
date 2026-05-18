@@ -13,7 +13,7 @@ export interface DrugCategory {
  * Payload tạo mới nhóm thuốc
  */
 export interface CreateDrugCategoryInput {
-    code: string;
+    code?: string;
     name: string;
     description?: string;
 }

@@ -4,6 +4,7 @@ import { CreateBranchInput, UpdateBranchInput, BranchQuery } from '../../models/
 import { BRANCH_ERRORS, BranchStatus } from '../../constants/branch.constant';
 import { FACILITY_ERRORS } from '../../constants/facility.constant';
 import { randomUUID } from 'crypto';
+import { generateCode } from '../../utils/code-generator.util';
 
 export class BranchService {
     /**
@@ -39,15 +40,21 @@ export class BranchService {
         const facility = await FacilityRepository.findFacilityById(data.facility_id);
         if (!facility) throw FACILITY_ERRORS.FACILITY_NOT_FOUND;
 
+        // Auto-gen code nếu FE không truyền (bỏ field Mã khỏi modal)
+        const code = data.code?.trim() || generateCode('BR');
 
-        const existingCode = await BranchRepository.findBranchByCode(data.code);
-        if (existingCode) throw BRANCH_ERRORS.BRANCH_CODE_EXISTS;
+        // Chỉ check unique khi user truyền code thủ công
+        if (data.code?.trim()) {
+            const existingCode = await BranchRepository.findBranchByCode(data.code);
+            if (existingCode) throw BRANCH_ERRORS.BRANCH_CODE_EXISTS;
+        }
 
         const branchId = `BRN_${Date.now()}_${randomUUID().substring(0, 8)}`;
 
         const newBranch = {
             id: branchId,
             ...data,
+            code,
             status: BranchStatus.ACTIVE
         };
 

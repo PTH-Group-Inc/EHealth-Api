@@ -12,6 +12,7 @@ import {
     EQUIPMENT_CONFIG,
     VALID_EQUIPMENT_STATUSES
 } from '../../constants/medical-equipment.constant';
+import { generateCode } from '../../utils/code-generator.util';
 
 export class MedicalEquipmentService {
     /**
@@ -67,11 +68,17 @@ export class MedicalEquipmentService {
             throw EQUIPMENT_ERRORS.BRANCH_NOT_FOUND;
         }
 
-        // Kiểm tra mã tài sản trùng
-        const codeExists = await MedicalEquipmentRepository.checkCodeExists(input.code);
-        if (codeExists) {
-            throw EQUIPMENT_ERRORS.CODE_ALREADY_EXISTS;
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = input.code?.trim() || generateCode('EQ');
+
+        // Chỉ check unique khi user truyền code thủ công
+        if (input.code?.trim()) {
+            const codeExists = await MedicalEquipmentRepository.checkCodeExists(input.code);
+            if (codeExists) {
+                throw EQUIPMENT_ERRORS.CODE_ALREADY_EXISTS;
+            }
         }
+        input.code = code;
 
         // Kiểm tra phòng hợp lệ (nếu có)
         if (input.current_room_id) {
