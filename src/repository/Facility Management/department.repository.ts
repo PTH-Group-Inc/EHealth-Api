@@ -29,12 +29,35 @@ export class DepartmentRepository {
 
         const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
+        // Aggregate stats: JOIN qua user_branch_dept -> doctors (doctor_count)
+        // và medical_rooms -> appointments (appointment_today, patient_count today)
+        // -> trả về cho FE thay vì FE phải call thêm 3 API rồi aggregate ở client.
         const query = `
             SELECT d.departments_id, d.branch_id, d.code, d.name, d.description, d.logo_url, d.status,
-                   b.name as branch_name, f.name as facility_name
+                   b.name as branch_name, f.name as facility_name,
+                   COALESCE(doc_stats.doctor_count, 0)::int        AS doctor_count,
+                   COALESCE(appt_stats.appointment_today, 0)::int  AS appointment_today,
+                   COALESCE(appt_stats.patient_count, 0)::int      AS patient_count
             FROM departments d
             INNER JOIN branches b ON d.branch_id = b.branches_id
             INNER JOIN facilities f ON b.facility_id = f.facilities_id
+            LEFT JOIN (
+                SELECT ubd.department_id, COUNT(DISTINCT doc.doctors_id) AS doctor_count
+                FROM user_branch_dept ubd
+                INNER JOIN doctors doc ON doc.user_id = ubd.user_id AND doc.is_active = TRUE
+                WHERE ubd.department_id IS NOT NULL AND ubd.status = 'ACTIVE'
+                GROUP BY ubd.department_id
+            ) doc_stats ON doc_stats.department_id = d.departments_id
+            LEFT JOIN (
+                SELECT mr.department_id,
+                       COUNT(a.appointments_id)               AS appointment_today,
+                       COUNT(DISTINCT a.patient_id)           AS patient_count
+                FROM appointments a
+                INNER JOIN medical_rooms mr ON mr.medical_rooms_id = a.room_id
+                WHERE a.appointment_date = CURRENT_DATE
+                  AND mr.department_id IS NOT NULL
+                GROUP BY mr.department_id
+            ) appt_stats ON appt_stats.department_id = d.departments_id
             ${whereString}
             ORDER BY d.code ASC
             LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}

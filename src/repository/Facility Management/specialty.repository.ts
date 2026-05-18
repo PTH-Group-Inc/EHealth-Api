@@ -8,20 +8,38 @@ export class SpecialtyRepository {
     static async getSpecialties(page: number, limit: number, searchKeyword?: string): Promise<[Specialty[], number]> {
         const offset = (page - 1) * limit;
         const params: any[] = [];
-        // Mặc định luôn có điều kiện này
-        let whereClause = 'WHERE deleted_at IS NULL';
+        // Count query dùng alias rỗng (chỉ FROM specialties), data query alias `s`.
+        // Tách 2 whereClause để tránh phải regex replace.
+        let countWhere = 'WHERE deleted_at IS NULL';
+        let dataWhere = 'WHERE s.deleted_at IS NULL';
 
         if (searchKeyword) {
-            whereClause += ` AND (name ILIKE $1 OR code ILIKE $1)`;
+            countWhere += ` AND (name ILIKE $1 OR code ILIKE $1)`;
+            dataWhere += ` AND (s.name ILIKE $1 OR s.code ILIKE $1)`;
             params.push(`%${searchKeyword}%`);
         }
 
-        const countQuery = `SELECT COUNT(*) as total FROM specialties ${whereClause}`;
+        const countQuery = `SELECT COUNT(*) as total FROM specialties ${countWhere}`;
+        // Aggregate stats: service_count via specialty_services, doctor_count via doctors.
+        // Tránh FE phải call thêm 2 API rồi aggregate ở client.
         const dataQuery = `
-            SELECT specialties_id, code, name, description, logo_url 
-            FROM specialties 
-            ${whereClause} 
-            ORDER BY code ASC 
+            SELECT s.specialties_id, s.code, s.name, s.description, s.logo_url,
+                   COALESCE(svc_stats.service_count, 0)::int AS service_count,
+                   COALESCE(doc_stats.doctor_count, 0)::int  AS doctor_count
+            FROM specialties s
+            LEFT JOIN (
+                SELECT specialty_id, COUNT(*) AS service_count
+                FROM specialty_services
+                GROUP BY specialty_id
+            ) svc_stats ON svc_stats.specialty_id = s.specialties_id
+            LEFT JOIN (
+                SELECT specialty_id, COUNT(*) AS doctor_count
+                FROM doctors
+                WHERE is_active = TRUE
+                GROUP BY specialty_id
+            ) doc_stats ON doc_stats.specialty_id = s.specialties_id
+            ${dataWhere}
+            ORDER BY s.code ASC
             LIMIT $${params.length + 1} OFFSET $${params.length + 2}
         `;
 
