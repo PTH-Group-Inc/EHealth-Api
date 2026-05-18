@@ -34,7 +34,7 @@ export class DrugCategoryRepository {
         const total = parseInt(countResult.rows[0].count, 10);
 
         const dataQuery = `
-            SELECT drug_categories_id, code, name, description
+            SELECT drug_categories_id, drug_categories_id AS drug_category_id, code, name, description
             FROM drug_categories
             ${whereClause}
             ORDER BY name ASC
@@ -56,7 +56,7 @@ export class DrugCategoryRepository {
      */
     static async getCategoryById(id: string): Promise<DrugCategory | null> {
         const query = `
-            SELECT drug_categories_id, code, name, description, deleted_at
+            SELECT drug_categories_id, drug_categories_id AS drug_category_id, code, name, description, deleted_at
             FROM drug_categories
             WHERE drug_categories_id = $1 AND deleted_at IS NULL
         `;
@@ -69,7 +69,7 @@ export class DrugCategoryRepository {
      */
     static async getCategoryByCode(code: string): Promise<DrugCategory | null> {
         const query = `
-            SELECT drug_categories_id, code, name, description, deleted_at
+            SELECT drug_categories_id, drug_categories_id AS drug_category_id, code, name, description, deleted_at
             FROM drug_categories
             WHERE code = $1 AND deleted_at IS NULL
         `;
@@ -83,7 +83,7 @@ export class DrugCategoryRepository {
      */
     static async getAllCategories(): Promise<DrugCategory[]> {
         const query = `
-            SELECT drug_categories_id, code, name, description, deleted_at
+            SELECT drug_categories_id, drug_categories_id AS drug_category_id, code, name, description, deleted_at
             FROM drug_categories
             WHERE deleted_at IS NULL
             ORDER BY name ASC
@@ -103,7 +103,7 @@ export class DrugCategoryRepository {
             SET name = excluded.name, 
                 description = excluded.description, 
                 deleted_at = NULL
-            RETURNING drug_categories_id, code, name, description, deleted_at
+            RETURNING drug_categories_id, drug_categories_id AS drug_category_id, code, name, description, deleted_at
         `;
         const result = await pool.query(query, [id, code, name, description]);
         return result.rows[0];
@@ -116,7 +116,7 @@ export class DrugCategoryRepository {
         const query = `
             INSERT INTO drug_categories (drug_categories_id, code, name, description)
             VALUES ($1, $2, $3, $4)
-            RETURNING drug_categories_id, code, name, description
+            RETURNING drug_categories_id, drug_categories_id AS drug_category_id, code, name, description
         `;
         const result = await pool.query(query, [
             id,
@@ -152,7 +152,7 @@ export class DrugCategoryRepository {
             UPDATE drug_categories
             SET ${updates.join(', ')}
             WHERE drug_categories_id = $1
-            RETURNING drug_categories_id, code, name, description
+            RETURNING drug_categories_id, drug_categories_id AS drug_category_id, code, name, description
         `;
 
         const result = await pool.query(query, params);

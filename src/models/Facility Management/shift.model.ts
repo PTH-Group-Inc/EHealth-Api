@@ -1,5 +1,8 @@
 // src/models/shift.model.ts
 export interface Shift {
+    /** Canonical alias snake_case (#7). */
+    shift_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `shift_id`. */
     shifts_id: string;
     facility_id: string;
     code: string;

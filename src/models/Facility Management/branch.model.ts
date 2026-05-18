@@ -1,4 +1,7 @@
 export interface BranchInfo {
+    /** Canonical alias snake_case (#7). */
+    branch_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `branch_id`. */
     branches_id: string;
     facility_id: string;
     code: string;
@@ -13,6 +16,9 @@ export interface BranchInfo {
 }
 
 export interface BranchDropdown {
+    /** Canonical alias snake_case (#7). */
+    branch_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). */
     branches_id: string;
     facility_id: string;
     code: string;
@@ -22,7 +28,7 @@ export interface BranchDropdown {
 // Input tạo mới chi nhánh
 export interface CreateBranchInput {
     facility_id: string;
-    code: string;
+    code?: string;  // optional - BE auto-gen nếu không truyền (FE bỏ field Mã)
     name: string;
     address: string;
     phone?: string;

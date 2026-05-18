@@ -15,6 +15,7 @@ import {
     BED_STATUS,
     BED_STATUS_TRANSITIONS
 } from '../../constants/bed.constant';
+import { generateCode } from '../../utils/code-generator.util';
 
 
 export class BedService {
@@ -72,11 +73,17 @@ export class BedService {
             throw BED_ERRORS.BRANCH_NOT_FOUND;
         }
 
-        // Kiểm tra mã giường trùng trong cùng chi nhánh
-        const codeExists = await BedRepository.checkCodeExistsInBranch(input.code, input.branch_id);
-        if (codeExists) {
-            throw BED_ERRORS.CODE_ALREADY_EXISTS;
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = input.code?.trim() || generateCode('BED');
+
+        // Chỉ check unique khi user truyền code thủ công
+        if (input.code?.trim()) {
+            const codeExists = await BedRepository.checkCodeExistsInBranch(input.code, input.branch_id);
+            if (codeExists) {
+                throw BED_ERRORS.CODE_ALREADY_EXISTS;
+            }
         }
+        input.code = code;
 
         // Kiểm tra khoa hợp lệ (nếu có)
         if (input.department_id) {

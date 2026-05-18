@@ -1,6 +1,7 @@
 import { SupplierRepository } from '../../repository/Medication Management/supplier.repository';
 import { CreateSupplierInput, UpdateSupplierInput } from '../../models/Medication Management/stock-in.model';
 import { SUPPLIER_ERRORS } from '../../constants/stock-in.constant';
+import { generateCode } from '../../utils/code-generator.util';
 
 const HTTP_STATUS = { BAD_REQUEST: 400, NOT_FOUND: 404, CONFLICT: 409 };
 
@@ -24,11 +25,19 @@ export class SupplierService {
     }
 
     static async create(input: CreateSupplierInput) {
-        if (!input.code || !input.name) {
+        if (!input.name) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED', SUPPLIER_ERRORS.MISSING_REQUIRED);
         }
-        const exists = await SupplierRepository.codeExists(input.code);
-        if (exists) throw new AppError(HTTP_STATUS.CONFLICT, 'CODE_EXISTS', SUPPLIER_ERRORS.CODE_EXISTS);
+
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã khỏi modal)
+        const code = input.code?.trim() || generateCode('SUP');
+
+        // Chỉ check unique khi user truyền code thủ công
+        if (input.code?.trim()) {
+            const exists = await SupplierRepository.codeExists(input.code);
+            if (exists) throw new AppError(HTTP_STATUS.CONFLICT, 'CODE_EXISTS', SUPPLIER_ERRORS.CODE_EXISTS);
+        }
+        input.code = code;
 
         const id = SupplierRepository.generateId();
         return SupplierRepository.create(id, input);

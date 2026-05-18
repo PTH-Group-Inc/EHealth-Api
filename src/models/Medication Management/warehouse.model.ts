@@ -18,7 +18,7 @@ export interface Warehouse {
 /** Input tạo kho */
 export interface CreateWarehouseInput {
     branch_id: string;
-    code: string;
+    code?: string;
     name: string;
     warehouse_type?: string;
     address?: string;

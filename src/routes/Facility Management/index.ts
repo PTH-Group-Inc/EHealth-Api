@@ -23,6 +23,7 @@ import { holidayRoutes } from './holiday.routes';
 import { facilityStatusRoutes } from './facility-status.routes';
 import bookingConfigRoutes from './booking-config.routes';
 import { roomMaintenanceRoutes } from './room-maintenance.routes';
+import doctorRoutes from './doctor.routes';
 
 const router = Router();
 
@@ -50,5 +51,6 @@ router.use('/holidays', holidayRoutes);
 router.use('/facility-status', facilityStatusRoutes);
 router.use('/booking-configs', bookingConfigRoutes);
 router.use('/room-maintenance', roomMaintenanceRoutes);
+router.use('/doctors', doctorRoutes);
 
 export default router;

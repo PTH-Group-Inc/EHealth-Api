@@ -9,6 +9,8 @@ import { normalizeRoleCodes, pickPrimaryRoleRow } from '../../utils/role-priorit
 export class UserRepository {
     private static mapUserDetailRow(row: any): UserDetail {
         return {
+            // BACKEND_TASKS #7: expose canonical snake_case alias bên cạnh field cũ.
+            user_id: row.users_id,
             users_id: row.users_id,
             email: row.email,
             phone: row.phone,

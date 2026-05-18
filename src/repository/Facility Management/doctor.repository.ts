@@ -48,8 +48,9 @@ export class DoctorRepository {
      */
     static async getActiveDoctors(): Promise<any[]> {
         const query = `
-            SELECT 
+            SELECT
                 d.doctors_id,
+                d.doctors_id AS doctor_id,
                 d.user_id,
                 d.title,
                 d.consultation_fee,

@@ -1,7 +1,16 @@
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 import { env } from './env';
 import logger from './logger.config';
 import { dbPoolActiveConnections } from './metrics';
+
+// --- Type parsers ---
+// Mặc định driver `pg` trả về NUMERIC/DECIMAL và INT8 dưới dạng string để tránh mất chính xác.
+// Trong scope dự án này (ID, count, price tiền VND) các giá trị luôn nằm trong miền số an toàn của JS (Number.MAX_SAFE_INTEGER = 2^53 - 1),
+// nên ta cast về number để FE khỏi phải `Number(item.price ?? 0)` mỗi nơi.
+// OID 1700 = NUMERIC/DECIMAL
+types.setTypeParser(1700, (val: string | null) => (val === null ? null : parseFloat(val)));
+// OID 20 = INT8 (bigint)
+types.setTypeParser(20, (val: string | null) => (val === null ? null : parseInt(val, 10)));
 
 export const pool = new Pool({
     user: env.db.user,

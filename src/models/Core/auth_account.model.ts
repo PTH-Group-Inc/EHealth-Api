@@ -2,6 +2,9 @@ export type AccountRole = 'ADMIN' | 'DOCTOR' | 'NURSE' | 'PATIENT' | 'CUSTOMER' 
 export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'BANNED' | 'PENDING';
 
 export interface User {
+  /** Canonical alias snake_case (#7). */
+  user_id?: string;
+  /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `user_id`. */
   users_id: string;
   email: string | null;
   phone: string | null;

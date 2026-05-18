@@ -30,7 +30,7 @@ export interface MedicalEquipment {
 export interface CreateEquipmentInput {
     facility_id: string;
     branch_id: string;
-    code: string;
+    code?: string;
     name: string;
     serial_number?: string;
     manufacturer?: string;

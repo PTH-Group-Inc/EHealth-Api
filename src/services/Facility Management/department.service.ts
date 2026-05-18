@@ -3,6 +3,7 @@ import { BranchRepository } from '../../repository/Facility Management/branch.re
 import { DepartmentStatus, DEPARTMENT_ERRORS } from '../../constants/department.constant';
 import { CreateDepartmentInput, UpdateDepartmentInput, DepartmentQuery } from '../../models/Facility Management/department.model';
 import { v4 as uuidv4 } from 'uuid';
+import { generateCode } from '../../utils/code-generator.util';
 
 export class DepartmentService {
 
@@ -40,11 +41,16 @@ export class DepartmentService {
         const branch = await BranchRepository.findBranchById(data.branch_id);
         if (!branch) throw DEPARTMENT_ERRORS.BRANCH_NOT_FOUND;
 
-        const isExists = await DepartmentRepository.checkDepartmentCodeExistsInBranch(data.code, data.branch_id);
-        if (isExists) throw DEPARTMENT_ERRORS.CODE_EXISTS;
+        // Auto-gen code nếu FE không truyền (FE bỏ field Mã)
+        const code = data.code?.trim() || generateCode('DEPT');
+
+        if (data.code?.trim()) {
+            const isExists = await DepartmentRepository.checkDepartmentCodeExistsInBranch(data.code, data.branch_id);
+            if (isExists) throw DEPARTMENT_ERRORS.CODE_EXISTS;
+        }
 
         const newId = `DEPT_${uuidv4().replace(/-/g, '').substring(0, 8)}`;
-        await DepartmentRepository.createDepartment({ ...data, departments_id: newId });
+        await DepartmentRepository.createDepartment({ ...data, code, departments_id: newId });
 
         return { department_id: newId };
     }

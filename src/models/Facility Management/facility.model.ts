@@ -25,6 +25,9 @@ export interface UserFacilityInfo {
 }
 
 export interface FacilityDropdown {
+    /** Canonical alias snake_case (#7). */
+    facility_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `facility_id`. */
     facilities_id: string;
     code: string;
     name: string;
@@ -32,6 +35,9 @@ export interface FacilityDropdown {
 
 // Thông tin chi tiết cơ sở y tế
 export interface FacilityInfo {
+    /** Canonical alias snake_case (#7). */
+    facility_id?: string;
+    /** @deprecated giữ tạm để backward compat (BACKEND_TASKS #7). Dùng `facility_id`. */
     facilities_id: string;
     code: string;
     name: string;

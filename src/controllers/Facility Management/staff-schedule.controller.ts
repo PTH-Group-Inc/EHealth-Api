@@ -11,10 +11,13 @@ export class StaffScheduleController {
      * Tạo lịch phân công
      */
     static createSchedule = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const { user_id, medical_room_id, shift_id, working_date } = req.body;
+            // Hỗ trợ alias từ FE: staff_id, work_date — auto map sang BE convention
+            const user_id = req.body.user_id ?? req.body.staff_id;
+            const working_date = req.body.working_date ?? req.body.work_date;
+            const { medical_room_id, shift_id } = req.body;
 
             if (!user_id || !medical_room_id || !shift_id || !working_date) {
-                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DATA', 'Thiếu thông tin phân công lịch bắt buộc');
+                throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DATA', 'Thiếu thông tin phân công lịch bắt buộc (user_id/staff_id, medical_room_id, shift_id, working_date/work_date)');
             }
 
             const schedule = await StaffScheduleService.createSchedule({
@@ -31,6 +34,38 @@ export class StaffScheduleController {
                 message: 'Phân công lịch làm việc thành công',
                 data: schedule
             });
+    });
+
+    /**
+     * Batch tạo nhiều lịch (cho AI auto-assign trên FE)
+     * Payload: { assignments: [{ user_id|staff_id, shift_id, working_date|work_date, medical_room_id }] }
+     */
+    static batchCreateSchedules = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const raw = req.body?.assignments;
+        if (!Array.isArray(raw) || raw.length === 0) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYLOAD', 'Cần truyền mảng "assignments" không rỗng');
+        }
+        if (raw.length > 500) {
+            throw new AppError(HTTP_STATUS.BAD_REQUEST, 'TOO_MANY', 'Tối đa 500 assignment mỗi request');
+        }
+
+        // Map FE shape (staff_id/work_date) → BE shape (user_id/working_date)
+        const assignments = raw.map((a: any) => ({
+            user_id: a.user_id ?? a.staff_id,
+            shift_id: a.shift_id,
+            working_date: a.working_date ?? a.work_date,
+            medical_room_id: a.medical_room_id,
+            start_time: '',
+            end_time: '',
+        }));
+
+        const result = await StaffScheduleService.batchCreateSchedules(assignments);
+
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: `Batch hoàn tất: ${result.success}/${result.total} thành công, ${result.failed} thất bại`,
+            data: result,
+        });
     });
 
     /**
