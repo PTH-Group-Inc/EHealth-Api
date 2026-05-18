@@ -47,6 +47,37 @@ router.post('/', verifyAccessToken, checkSessionStatus, StaffScheduleController.
 
 /**
  * @swagger
+ * /api/staff-schedules/batch:
+ *   post:
+ *     tags: [Staff Schedule]
+ *     summary: Batch tạo nhiều lịch (cho AI auto-assign trên FE)
+ *     description: |
+ *       Tạo nhiều lịch trong 1 request. KHÔNG fail-fast: 1 item lỗi không block các item khác.
+ *       Response chứa breakdown success/failed cho từng index.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               assignments:
+ *                 type: array
+ *                 maxItems: 500
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     user_id: { type: string, description: "alias staff_id" }
+ *                     shift_id: { type: string }
+ *                     medical_room_id: { type: string }
+ *                     working_date: { type: string, description: "YYYY-MM-DD, alias work_date" }
+ *     responses:
+ *       200:
+ *         description: Batch hoàn tất kèm chi tiết từng item
+ */
+router.post('/batch', verifyAccessToken, checkSessionStatus, StaffScheduleController.batchCreateSchedules);
+
+/**
+ * @swagger
  * /api/staff-schedules:
  *   get:
  *     summary: Lấy danh sách toàn bộ lịch làm việc

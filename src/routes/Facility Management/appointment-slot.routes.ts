@@ -55,6 +55,32 @@ router.post('/', verifyAccessToken, checkSessionStatus, AppointmentSlotControlle
 
 /**
  * @swagger
+ * /api/slots/bulk:
+ *   post:
+ *     tags: [Slot]
+ *     summary: Bulk tạo slot — alias cho POST / với interval_minutes
+ *     description: |
+ *       Endpoint alias rõ ràng cho FE biết đây là bulk-create. Delegate sang
+ *       AppointmentSlotService.bulkCreateSlots — yêu cầu shift_id + interval_minutes.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [shift_id, interval_minutes]
+ *             properties:
+ *               shift_id: { type: string }
+ *               interval_minutes: { type: integer, minimum: 5, maximum: 120 }
+ *               doctor_id: { type: string }
+ *               medical_room_id: { type: string }
+ *     responses:
+ *       201:
+ *         description: Mảng slot vừa tạo
+ */
+router.post('/bulk', verifyAccessToken, checkSessionStatus, AppointmentSlotController.createSlot);
+
+/**
+ * @swagger
  * /api/slots:
  *   get:
  *     summary: Lấy danh sách Slot khám bệnh

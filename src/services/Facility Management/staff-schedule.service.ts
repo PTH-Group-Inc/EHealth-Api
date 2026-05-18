@@ -110,6 +110,41 @@ export class StaffScheduleService {
     }
 
     /**
+     * Batch tạo lịch — duyệt từng assignment, ghi kết quả success/error theo index.
+     * KHÔNG fail-fast: 1 item lỗi không block các item khác.
+     * Dùng cho AI auto-assign trên FE (50-100+ assignment/lần).
+     */
+    static async batchCreateSchedules(assignments: CreateStaffScheduleInput[]): Promise<{
+        total: number;
+        success: number;
+        failed: number;
+        results: Array<{ index: number; success: boolean; data?: StaffSchedule; error?: string }>;
+    }> {
+        const results: Array<{ index: number; success: boolean; data?: StaffSchedule; error?: string }> = [];
+
+        for (let i = 0; i < assignments.length; i++) {
+            try {
+                const data = await this.createSchedule(assignments[i]);
+                results.push({ index: i, success: true, data });
+            } catch (err: any) {
+                results.push({
+                    index: i,
+                    success: false,
+                    error: err?.message ?? err?.code ?? 'Lỗi không xác định',
+                });
+            }
+        }
+
+        const success = results.filter(r => r.success).length;
+        return {
+            total: assignments.length,
+            success,
+            failed: assignments.length - success,
+            results,
+        };
+    }
+
+    /**
      * Lấy danh sách lịch phân công có filter
      */
     static async getSchedules(filters: { staff_schedules_id?: string; user_id?: string; shift_id?: string; working_date?: string; medical_room_id?: string; branch_id?: string }): Promise<StaffSchedule[]> {
