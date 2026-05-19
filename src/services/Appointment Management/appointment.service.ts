@@ -734,7 +734,12 @@ export class AppointmentService {
             const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
             const invoiceCode = `INV-${dateStr}-${rand}`;
 
-            const depositAmount = PRE_BOOK_DEPOSIT_AMOUNT;
+            // Lấy cấu hình đặt cọc từ chi nhánh (hoặc dùng mặc định nếu không có)
+            const branchConfig = await BookingConfigService.getResolvedConfig(data.branch_id);
+            // Nếu đã gọi vào luồng preBook thì ưu tiên dùng deposit_amount của cấu hình
+            const depositAmount = branchConfig.deposit_amount > 0 
+                ? Number(branchConfig.deposit_amount) 
+                : PRE_BOOK_DEPOSIT_AMOUNT;
 
             // Tạo invoice cho đặt cọc
             await client.query(`

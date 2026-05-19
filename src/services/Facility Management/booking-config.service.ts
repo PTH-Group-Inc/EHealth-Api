@@ -47,22 +47,24 @@ export class BookingConfigService {
         if (cancelRule) globalValues.cancellation_allowed_hours = cancelRule.value as number;
 
         // Resolve: Branch → Global → Default
-        const resolve = (field: keyof typeof DEFAULT_BOOKING_CONFIG, branchVal: number | null | undefined): { value: number; source: 'branch' | 'global' | 'default' } => {
+        const resolve = <T>(field: keyof typeof DEFAULT_BOOKING_CONFIG, branchVal: T | null | undefined): { value: T; source: 'branch' | 'global' | 'default' } => {
             if (branchVal !== null && branchVal !== undefined) {
                 return { value: branchVal, source: 'branch' };
             }
             const globalVal = globalValues[field.toLowerCase()];
             if (globalVal !== null && globalVal !== undefined) {
-                return { value: globalVal, source: 'global' };
+                return { value: globalVal as unknown as T, source: 'global' };
             }
-            return { value: DEFAULT_BOOKING_CONFIG[field], source: 'default' };
+            return { value: DEFAULT_BOOKING_CONFIG[field] as unknown as T, source: 'default' };
         };
 
-        const maxPatients = resolve('MAX_PATIENTS_PER_SLOT', branchConfig?.max_patients_per_slot);
-        const bufferDuration = resolve('BUFFER_DURATION', branchConfig?.buffer_duration);
-        const advanceDays = resolve('ADVANCE_BOOKING_DAYS', branchConfig?.advance_booking_days);
-        const minHours = resolve('MINIMUM_BOOKING_HOURS', branchConfig?.minimum_booking_hours);
-        const cancelHours = resolve('CANCELLATION_ALLOWED_HOURS', branchConfig?.cancellation_allowed_hours);
+        const maxPatients = resolve<number>('MAX_PATIENTS_PER_SLOT', branchConfig?.max_patients_per_slot);
+        const bufferDuration = resolve<number>('BUFFER_DURATION', branchConfig?.buffer_duration);
+        const advanceDays = resolve<number>('ADVANCE_BOOKING_DAYS', branchConfig?.advance_booking_days);
+        const minHours = resolve<number>('MINIMUM_BOOKING_HOURS', branchConfig?.minimum_booking_hours);
+        const cancelHours = resolve<number>('CANCELLATION_ALLOWED_HOURS', branchConfig?.cancellation_allowed_hours);
+        const requireDeposit = resolve<boolean>('REQUIRE_DEPOSIT', branchConfig?.require_deposit);
+        const depositAmount = resolve<number>('DEPOSIT_AMOUNT', branchConfig?.deposit_amount !== null && branchConfig?.deposit_amount !== undefined ? Number(branchConfig?.deposit_amount) : null);
 
         return {
             branch_id: branchId,
@@ -71,12 +73,16 @@ export class BookingConfigService {
             advance_booking_days: advanceDays.value,
             minimum_booking_hours: minHours.value,
             cancellation_allowed_hours: cancelHours.value,
+            require_deposit: requireDeposit.value,
+            deposit_amount: depositAmount.value,
             sources: {
                 max_patients_per_slot: maxPatients.source,
                 buffer_duration: bufferDuration.source,
                 advance_booking_days: advanceDays.source,
                 minimum_booking_hours: minHours.source,
                 cancellation_allowed_hours: cancelHours.source,
+                require_deposit: requireDeposit.source,
+                deposit_amount: depositAmount.source,
             },
         };
     }
@@ -132,6 +138,19 @@ export class BookingConfigService {
             const v = input.cancellation_allowed_hours;
             if (!Number.isInteger(v) || v < BOOKING_CONFIG_LIMITS.CANCELLATION_ALLOWED_HOURS.min || v > BOOKING_CONFIG_LIMITS.CANCELLATION_ALLOWED_HOURS.max) {
                 throw BOOKING_CONFIG_ERRORS.INVALID_CANCEL_HOURS;
+            }
+        }
+
+        if (input.deposit_amount !== undefined && input.deposit_amount !== null) {
+            const v = Number(input.deposit_amount);
+            if (isNaN(v) || v < BOOKING_CONFIG_LIMITS.DEPOSIT_AMOUNT.min || v > BOOKING_CONFIG_LIMITS.DEPOSIT_AMOUNT.max) {
+                throw BOOKING_CONFIG_ERRORS.INVALID_DEPOSIT_AMOUNT;
+            }
+        }
+
+        if (input.require_deposit !== undefined && input.require_deposit !== null) {
+            if (typeof input.require_deposit !== 'boolean') {
+                input.require_deposit = Boolean(input.require_deposit);
             }
         }
 

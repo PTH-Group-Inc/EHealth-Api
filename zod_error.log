@@ -1,0 +1,12 @@
+[
+  {
+    "origin": "string",
+    "code": "too_small",
+    "minimum": 1,
+    "inclusive": true,
+    "path": [
+      "reason"
+    ],
+    "message": "Lý do hủy không được để trống"
+  }
+]

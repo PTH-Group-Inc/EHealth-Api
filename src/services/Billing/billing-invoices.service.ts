@@ -228,12 +228,16 @@ export class BillingInvoiceService {
         if (!invoice) throw BILLING_INVOICE_ERRORS.INVOICE_NOT_FOUND;
         if (invoice.status === INVOICE_STATUS.CANCELLED) throw BILLING_INVOICE_ERRORS.INVOICE_CANCELLED;
 
-        /* Kiểm tra đã có giao dịch thanh toán chưa */
+        /* Kiểm tra còn tiền chưa hoàn trả không */
         if (invoice.payments && invoice.payments.length > 0) {
-            const hasSuccessPayment = invoice.payments.some(
-                (p: PaymentTransaction) => p.status === PAYMENT_STATUS.SUCCESS && p.transaction_type === 'PAYMENT'
-            );
-            if (hasSuccessPayment) throw BILLING_INVOICE_ERRORS.INVOICE_HAS_PAYMENTS;
+            const totalPaid = invoice.payments
+                .filter((p: PaymentTransaction) => p.status === PAYMENT_STATUS.SUCCESS && p.transaction_type === 'PAYMENT')
+                .reduce((sum: number, p: PaymentTransaction) => sum + Number(p.amount || 0), 0);
+            const totalRefunded = invoice.payments
+                .filter((p: PaymentTransaction) => p.status === PAYMENT_STATUS.SUCCESS && p.transaction_type === 'REFUND')
+                .reduce((sum: number, p: PaymentTransaction) => sum + Number(p.amount || 0), 0);
+            // Chỉ block khi còn tiền chưa hoàn trả
+            if (totalPaid - totalRefunded > 0) throw BILLING_INVOICE_ERRORS.INVOICE_HAS_PAYMENTS;
         }
 
         return await BillingInvoiceRepository.cancelInvoice(invoiceId, reason, userId);

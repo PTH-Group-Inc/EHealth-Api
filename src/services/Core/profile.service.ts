@@ -80,13 +80,13 @@ export class ProfileService {
     /**
      * Lấy lịch sử phiên đăng nhập của người dùng
      */
-    static async getMySessions(userId: string, currentSessionId: string): Promise<SessionResponse[]> {
+    static async getMySessions(userId: string, currentSessionId: string, currentIp?: string | null): Promise<SessionResponse[]> {
         const sessions = await UserSessionRepository.findActiveByAccount(userId);
 
         return sessions.map((session: any) => ({
             user_sessions_id: session.user_sessions_id,
             device_name: session.device_name,
-            ip_address: session.ip_address,
+            ip_address: session.ip_address || (session.user_sessions_id === currentSessionId ? currentIp : null) || null,
             last_used_at: session.last_used_at,
             expired_at: session.expired_at,
             revoked_at: session.revoked_at,

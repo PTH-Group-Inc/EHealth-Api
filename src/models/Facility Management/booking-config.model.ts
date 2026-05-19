@@ -12,6 +12,8 @@ export interface BookingConfigEntity {
     advance_booking_days: number | null;
     minimum_booking_hours: number | null;
     cancellation_allowed_hours: number | null;
+    require_deposit: boolean | null;
+    deposit_amount: number | null;
     created_at: string;
     updated_at: string;
 }
@@ -26,6 +28,8 @@ export interface ResolvedBookingConfig {
     advance_booking_days: number;
     minimum_booking_hours: number;
     cancellation_allowed_hours: number;
+    require_deposit: boolean;
+    deposit_amount: number;
     pre_booking_enabled?: boolean;
     pre_booking_fee?: number;
     /** Ghi chú nguồn gốc từng field (từ 'branch' hay 'global' hay 'default') */
@@ -39,4 +43,6 @@ export interface UpdateBookingConfigInput {
     advance_booking_days?: number | null;
     minimum_booking_hours?: number | null;
     cancellation_allowed_hours?: number | null;
+    require_deposit?: boolean | null;
+    deposit_amount?: number | null;
 }

@@ -16,7 +16,7 @@ export class AuthController {
                 {
                     deviceId: clientInfo?.deviceId,
                     deviceName: clientInfo?.deviceName,
-                    ip: req.ip,
+                    ip: req.ip || req.socket?.remoteAddress || req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() || '127.0.0.1',
                     userAgent: req.headers["user-agent"] ?? clientInfo?.userAgent ?? "",
                 }
             );
@@ -39,7 +39,7 @@ export class AuthController {
                 {
                     deviceId: clientInfo?.deviceId,
                     deviceName: clientInfo?.deviceName,
-                    ip: req.ip,
+                    ip: req.ip || req.socket?.remoteAddress || req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() || '127.0.0.1',
                     userAgent: req.headers["user-agent"] ?? clientInfo?.userAgent ?? "",
                 }
             );

@@ -13,6 +13,7 @@ export class BookingConfigRepository {
                    max_patients_per_slot, buffer_duration,
                    advance_booking_days, minimum_booking_hours,
                    cancellation_allowed_hours,
+                   require_deposit, deposit_amount,
                    created_at, updated_at
             FROM booking_configurations
             WHERE branch_id = $1
@@ -34,6 +35,8 @@ export class BookingConfigRepository {
             advance_booking_days?: number | null;
             minimum_booking_hours?: number | null;
             cancellation_allowed_hours?: number | null;
+            require_deposit?: boolean | null;
+            deposit_amount?: number | null;
         },
     ): Promise<BookingConfigEntity> {
         const query = `
@@ -41,15 +44,18 @@ export class BookingConfigRepository {
                 config_id, facility_id, branch_id,
                 max_patients_per_slot, buffer_duration,
                 advance_booking_days, minimum_booking_hours,
-                cancellation_allowed_hours
+                cancellation_allowed_hours,
+                require_deposit, deposit_amount
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             ON CONFLICT (branch_id) DO UPDATE SET
                 max_patients_per_slot = COALESCE($4, booking_configurations.max_patients_per_slot),
                 buffer_duration = COALESCE($5, booking_configurations.buffer_duration),
                 advance_booking_days = COALESCE($6, booking_configurations.advance_booking_days),
                 minimum_booking_hours = COALESCE($7, booking_configurations.minimum_booking_hours),
                 cancellation_allowed_hours = COALESCE($8, booking_configurations.cancellation_allowed_hours),
+                require_deposit = COALESCE($9, booking_configurations.require_deposit),
+                deposit_amount = COALESCE($10, booking_configurations.deposit_amount),
                 updated_at = CURRENT_TIMESTAMP
             RETURNING *
         `;
@@ -62,6 +68,8 @@ export class BookingConfigRepository {
             data.advance_booking_days ?? null,
             data.minimum_booking_hours ?? null,
             data.cancellation_allowed_hours ?? null,
+            data.require_deposit ?? null,
+            data.deposit_amount ?? null,
         ]);
         return result.rows[0];
     }

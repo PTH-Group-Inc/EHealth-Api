@@ -56,8 +56,9 @@ export class ProfileController {
     static getMySessions = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const userId = (req as any).auth?.user_id;
             const currentSessionId = (req as any).auth?.sessionId;
+            const currentIp = req.ip || req.socket?.remoteAddress || req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() || null;
 
-            const sessions = await ProfileService.getMySessions(userId!, currentSessionId!);
+            const sessions = await ProfileService.getMySessions(userId!, currentSessionId!, currentIp);
 
             res.status(200).json({
                 success: true,

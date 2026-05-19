@@ -59,8 +59,9 @@ function normalizeError(err: any): AppError | null {
     }
     if (err && typeof err === 'object' && !Array.isArray(err) && !(err instanceof AppError)) {
         const statusCode = err.status || err.httpCode;
-        if (statusCode && err.code && err.message) {
-            return new AppError(statusCode, err.code, err.message);
+        if (err.code && err.message) {
+            // Default to 400 (Bad Request) for business errors without explicit status
+            return new AppError(statusCode || 400, err.code, err.message);
         }
     }
 

@@ -10,6 +10,8 @@ export const DEFAULT_BOOKING_CONFIG = {
     ADVANCE_BOOKING_DAYS: 30,
     MINIMUM_BOOKING_HOURS: 2,
     CANCELLATION_ALLOWED_HOURS: 12,
+    REQUIRE_DEPOSIT: false,
+    DEPOSIT_AMOUNT: 50000,
 } as const;
 
 /**
@@ -28,6 +30,7 @@ export const BOOKING_CONFIG_LIMITS = {
     ADVANCE_BOOKING_DAYS: { min: 1, max: 365 },
     MINIMUM_BOOKING_HOURS: { min: 0, max: 72 },
     CANCELLATION_ALLOWED_HOURS: { min: 0, max: 168 },
+    DEPOSIT_AMOUNT: { min: 0, max: 10000000 },
 } as const;
 
 /** Mã lỗi HTTP */
@@ -66,5 +69,10 @@ export const BOOKING_CONFIG_ERRORS = {
         httpCode: 400,
         code: 'BKCFG_007',
         message: 'Thời hạn hủy lịch phải từ 0 đến 168 giờ (7 ngày).',
+    },
+    INVALID_DEPOSIT_AMOUNT: {
+        httpCode: 400,
+        code: 'BKCFG_008',
+        message: 'Số tiền đặt cọc không hợp lệ (0 - 10,000,000).',
     },
 } as const;
