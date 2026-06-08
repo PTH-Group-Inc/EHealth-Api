@@ -45,6 +45,19 @@ export class AppointmentService {
      * Đặt lịch khám mới
      */
     static async createAppointment(data: CreateAppointmentInput, userId?: string): Promise<Appointment & { warning?: string | null }> {
+        // Resolve doctor_id to doctors_id if user_id was passed
+        if (data.doctor_id) {
+            try {
+                const docRes = await pool.query(
+                    `SELECT doctors_id FROM doctors WHERE doctors_id = $1 OR user_id = $1 LIMIT 1`,
+                    [data.doctor_id]
+                );
+                if (docRes.rows.length > 0) {
+                    data.doctor_id = docRes.rows[0].doctors_id;
+                }
+            } catch {}
+        }
+
         // Auto-resolve branch_id if missing and doctor_id is provided
         if (!data.branch_id && data.doctor_id) {
             try {
@@ -1376,16 +1389,18 @@ export class AppointmentService {
             ) ?? undefined;
         }
 
-        // 3. Gán BS đúng chuyên khoa + ít tải nhất tại branch
+        // 3. Gán BS đúng chuyên khoa + ít tải nhất tại branch (nếu chưa chọn BS)
         let warning: string | undefined;
-        const doctor = await AppointmentCoordinationRepository.getLeastLoadedDoctorForShiftAtBranch(
-            data.appointment_date, data.shift_id, data.branch_id, specialtyId
-        );
-        if (doctor) {
-            data.doctor_id = doctor.doctor_id;
-        } else if (specialtyId) {
-            // Có yêu cầu chuyên khoa nhưng không tìm được BS → cảnh báo
-            warning = APPOINTMENT_WARNINGS.NO_SPECIALTY_DOCTOR;
+        if (!data.doctor_id) {
+            const doctor = await AppointmentCoordinationRepository.getLeastLoadedDoctorForShiftAtBranch(
+                data.appointment_date, data.shift_id, data.branch_id, specialtyId
+            );
+            if (doctor) {
+                data.doctor_id = doctor.doctor_id;
+            } else if (specialtyId) {
+                // Có yêu cầu chuyên khoa nhưng không tìm được BS → cảnh báo
+                warning = APPOINTMENT_WARNINGS.NO_SPECIALTY_DOCTOR;
+            }
         }
         // Không throw — lịch vẫn tạo được, staff gán BS sau
 
@@ -1394,10 +1409,35 @@ export class AppointmentService {
             data.specialty_id = specialtyId;
         }
 
-        // 4. Gán phòng đúng khoa (ưu tiên) hoặc phòng trống bất kỳ (fallback)
-        const room = await AppointmentRepository.findAvailableRoom(data.branch_id, specialtyId);
-        if (room) {
-            data.room_id = room.medical_rooms_id;
+        // 4. Gán phòng: ưu tiên phòng theo lịch trực của BS đã chọn/gán
+        if (data.doctor_id) {
+            try {
+                const docScheduleRoomRes = await pool.query(
+                    `SELECT ss.medical_room_id 
+                     FROM staff_schedules ss
+                     JOIN doctors d ON ss.user_id = d.user_id
+                     WHERE d.doctors_id = $1 
+                       AND ss.working_date = $2::date
+                       AND ss.shift_id = $3
+                       AND ss.is_leave = false
+                       AND ss.status = 'ACTIVE'
+                     LIMIT 1`,
+                    [data.doctor_id, data.appointment_date, data.shift_id]
+                );
+                if (docScheduleRoomRes.rows.length > 0 && docScheduleRoomRes.rows[0].medical_room_id) {
+                    data.room_id = docScheduleRoomRes.rows[0].medical_room_id;
+                }
+            } catch (err) {
+                logger.error('[SMART_ALLOCATE] Error getting doctor room from schedule:', err);
+            }
+        }
+
+        // Fallback gán phòng đúng khoa (ưu tiên) hoặc phòng trống bất kỳ
+        if (!data.room_id) {
+            const room = await AppointmentRepository.findAvailableRoom(data.branch_id, specialtyId);
+            if (room) {
+                data.room_id = room.medical_rooms_id;
+            }
         }
 
         return { warning };

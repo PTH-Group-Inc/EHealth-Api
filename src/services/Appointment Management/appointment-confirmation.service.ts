@@ -28,6 +28,10 @@ export class AppointmentConfirmationService {
             throw new AppError(404, 'NOT_FOUND', APPOINTMENT_ERRORS.NOT_FOUND);
         }
 
+        if (appointment.status === APPOINTMENT_STATUS.CONFIRMED) {
+            return appointment;
+        }
+
         if (appointment.status !== APPOINTMENT_STATUS.PENDING && appointment.status !== APPOINTMENT_STATUS.PENDING_DEPOSIT) {
             throw new AppError(400, 'NOT_PENDING', CONFIRMATION_ERRORS.NOT_PENDING);
         }
