@@ -58,6 +58,46 @@ export class AppointmentService {
             } catch {}
         }
 
+        // Resolve specialty_id if it is actually a department_id, or if it's missing but doctor_id is present
+        if (data.specialty_id) {
+            try {
+                // Check if it exists in specialties
+                const specRes = await pool.query(
+                    `SELECT specialties_id FROM specialties WHERE specialties_id = $1 LIMIT 1`,
+                    [data.specialty_id]
+                );
+                if (specRes.rows.length === 0) {
+                    // Check if it is a department_id, and if so map to the first linked specialty_id
+                    const deptRes = await pool.query(
+                        `SELECT ds.specialty_id 
+                         FROM department_specialties ds
+                         WHERE ds.department_id = $1 LIMIT 1`,
+                        [data.specialty_id]
+                    );
+                    if (deptRes.rows.length > 0) {
+                        data.specialty_id = deptRes.rows[0].specialty_id;
+                    } else {
+                        data.specialty_id = undefined;
+                    }
+                }
+            } catch {
+                data.specialty_id = undefined;
+            }
+        }
+
+        // If specialty_id is still missing but doctor_id is provided, resolve it from the doctor
+        if (!data.specialty_id && data.doctor_id) {
+            try {
+                const docSpecRes = await pool.query(
+                    `SELECT specialty_id FROM doctors WHERE doctors_id = $1 OR user_id = $1 LIMIT 1`,
+                    [data.doctor_id]
+                );
+                if (docSpecRes.rows.length > 0) {
+                    data.specialty_id = docSpecRes.rows[0].specialty_id;
+                }
+            } catch {}
+        }
+
         // Auto-resolve branch_id if missing and doctor_id is provided
         if (!data.branch_id && data.doctor_id) {
             try {
