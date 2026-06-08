@@ -9,6 +9,7 @@
  * Environment variables (read from .env if loaded):
  *   DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
  */
+import "dotenv/config";
 import { Pool } from "pg";
 import * as fs from "fs";
 import * as path from "path";
@@ -18,7 +19,7 @@ const DATA_DIR = path.resolve(__dirname, "../databases/data");
 async function main() {
     const all = process.argv.includes("--all");
     const minNum = all ? 1 : 13;
-    const maxNum = 18;
+    const maxNum = 21;
 
     const pool = new Pool({
         host: process.env.DB_HOST ?? "localhost",
@@ -55,7 +56,7 @@ async function main() {
             await pool.query(sql);
             console.log(`OK (${Date.now() - t0}ms)`);
         } catch (e: any) {
-            console.log(`FAIL: ${e.message}`);
+            console.log(`FAIL:`, e);
             await pool.end();
             process.exit(1);
         }
