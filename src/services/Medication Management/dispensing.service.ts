@@ -191,7 +191,7 @@ export class DispensingService {
     static async getByPrescriptionId(prescriptionId: string): Promise<any> {
         // Lấy thông tin đơn thuốc gốc từ DB
         const rxResult = await pool.query(
-            `SELECT p.prescriptions_id, p.prescription_code, p.status as rx_status, p.clinical_diagnosis, p.doctor_notes, p.created_at,
+            `SELECT p.prescriptions_id, p.prescription_code, p.status as rx_status, p.clinical_diagnosis, p.doctor_notes, p.prescribed_at as created_at,
                     pat.full_name AS patient_name, pat.id AS patient_id, pat.date_of_birth, pat.gender, pat.phone_number,
                     up_doc.full_name AS doctor_name,
                     dept.name AS dept_name
