@@ -72,15 +72,15 @@ VALUES
  'PRESCRIBED', 'Bệnh phổi tắc nghẽn mạn tính',       'Bỏ thuốc lá hoàn toàn',            '2026-05-19 11:45:00'),
 ('RX_SEED_0024', 'RX-2026-0024', 'ENC_DEMO_030', 'USR_DOC_05', 'PAT_045',
  'PRESCRIBED', 'Đau khớp gối',                       'Chườm ấm khi đau',                 '2026-05-19 12:00:00'),
-('RX_SEED_0025', 'RX-2026-0025', 'ENC_DEMO_011', 'USR_DOC_06', 'PAT_026',
+('RX_SEED_0025', 'RX-2026-0025', 'ENC_DEMO_005', 'USR_DOC_06', 'PAT_026',
  'PRESCRIBED', 'Bổ sung canxi & vitamin D',          'Uống sau ăn sáng',                 '2026-05-19 12:30:00'),
-('RX_SEED_0026', 'RX-2026-0026', 'ENC_DEMO_012', 'USR_DOC_07', 'PAT_027',
+('RX_SEED_0026', 'RX-2026-0026', 'ENC_DEMO_006', 'USR_DOC_07', 'PAT_027',
  'PRESCRIBED', 'Mất ngủ mạn tính',                   'Tránh caffeine sau 16h',           '2026-05-19 13:00:00'),
-('RX_SEED_0027', 'RX-2026-0027', 'ENC_DEMO_013', 'USR_DOC_08', 'PAT_028',
+('RX_SEED_0027', 'RX-2026-0027', 'ENC_DEMO_007', 'USR_DOC_08', 'PAT_028',
  'PRESCRIBED', 'Thiếu máu thiếu sắt',                'Uống với vitamin C',               '2026-05-19 13:30:00'),
-('RX_SEED_0028', 'RX-2026-0028', 'ENC_DEMO_014', 'USR_DOC_09', 'PAT_029',
+('RX_SEED_0028', 'RX-2026-0028', 'ENC_DEMO_008', 'USR_DOC_09', 'PAT_029',
  'PRESCRIBED', 'Đau thần kinh toạ',                  'Vật lý trị liệu kết hợp',          '2026-05-19 14:00:00'),
-('RX_SEED_0029', 'RX-2026-0029', 'ENC_DEMO_015', 'USR_DOC_10', 'PAT_030',
+('RX_SEED_0029', 'RX-2026-0029', 'ENC_DEMO_009', 'USR_DOC_10', 'PAT_030',
  'CANCELLED',  'Viêm tai giữa - đã hủy do dị ứng',   'Đổi phác đồ kháng sinh khác',      '2026-05-19 06:30:00')
 ON CONFLICT (prescriptions_id) DO NOTHING;
 

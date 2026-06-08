@@ -278,6 +278,16 @@ INSERT INTO leave_requests (leave_requests_id, user_id, start_date, end_date, re
 ON CONFLICT (leave_requests_id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
+-- 8b. PRESCRIPTIONS (Đơn thuốc mẫu bổ sung cho DDO_DEMO_001..004)
+-- ---------------------------------------------------------------------
+INSERT INTO prescriptions (prescriptions_id, prescription_code, encounter_id, doctor_id, patient_id, status, clinical_diagnosis, doctor_notes, prescribed_at) VALUES
+('RX_SEED_0001', 'RX-2026-0001', 'ENC_DEMO_001', 'USR_DOC_06', 'PAT_016', 'DISPENSED', 'Cảm thông thường', 'Nghỉ ngơi đầy đủ', '2026-05-15 09:15:00'),
+('RX_SEED_0002', 'RX-2026-0002', 'ENC_DEMO_002', 'USR_DOC_07', 'PAT_017', 'DISPENSED', 'Viêm dạ dày', 'Uống thuốc trước ăn', '2026-05-16 10:00:00'),
+('RX_SEED_0003', 'RX-2026-0003', 'ENC_DEMO_003', 'USR_DOC_08', 'PAT_018', 'DISPENSED', 'Tăng huyết áp', 'Theo dõi HA định kỳ', '2026-05-17 13:45:00'),
+('RX_SEED_0004', 'RX-2026-0004', 'ENC_DEMO_004', 'USR_DOC_09', 'PAT_019', 'PRESCRIBED', 'Đái tháo đường', 'Uống đúng liều', '2026-05-19 07:30:00')
+ON CONFLICT (prescriptions_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------
 -- 9. DRUG DISPENSE ORDERS (Phiếu cấp phát thuốc)
 -- ---------------------------------------------------------------------
 INSERT INTO drug_dispense_orders (drug_dispense_orders_id, prescription_id, pharmacist_id, status, dispensed_at, dispense_code, notes) VALUES
@@ -322,16 +332,17 @@ ON CONFLICT (treatment_plans_id) DO NOTHING;
 COMMIT;
 
 -- =====================================================================
--- VERIFY counts sau khi seed
+-- VERIFY counts sau khi seed (commented out due to psql specific syntax)
 -- =====================================================================
-\echo '=== POST-SEED COUNTS ==='
-SELECT 'discount_policies'       AS table_name, COUNT(*) FROM discount_policies
-UNION ALL SELECT 'vouchers',              COUNT(*) FROM vouchers
-UNION ALL SELECT 'service_bundles',       COUNT(*) FROM service_bundles
-UNION ALL SELECT 'service_bundle_items',  COUNT(*) FROM service_bundle_items
-UNION ALL SELECT 'e_invoice_config',      COUNT(*) FROM e_invoice_config
-UNION ALL SELECT 'e_invoices',            COUNT(*) FROM e_invoices
-UNION ALL SELECT 'e_invoice_items',       COUNT(*) FROM e_invoice_items
-UNION ALL SELECT 'leave_requests',        COUNT(*) FROM leave_requests
-UNION ALL SELECT 'drug_dispense_orders',  COUNT(*) FROM drug_dispense_orders
-UNION ALL SELECT 'treatment_plans',       COUNT(*) FROM treatment_plans;
+-- \echo '=== POST-SEED COUNTS ==='
+-- SELECT 'discount_policies'       AS table_name, COUNT(*) FROM discount_policies
+-- UNION ALL SELECT 'vouchers',              COUNT(*) FROM vouchers
+-- UNION ALL SELECT 'service_bundles',       COUNT(*) FROM service_bundles
+-- UNION ALL SELECT 'service_bundle_items',  COUNT(*) FROM service_bundle_items
+-- UNION ALL SELECT 'e_invoice_config',      COUNT(*) FROM e_invoice_config
+-- UNION ALL SELECT 'e_invoices',            COUNT(*) FROM e_invoices
+-- UNION ALL SELECT 'e_invoice_items',       COUNT(*) FROM e_invoice_items
+-- UNION ALL SELECT 'leave_requests',        COUNT(*) FROM leave_requests
+-- UNION ALL SELECT 'drug_dispense_orders',  COUNT(*) FROM drug_dispense_orders
+-- UNION ALL SELECT 'treatment_plans',       COUNT(*) FROM treatment_plans;
+

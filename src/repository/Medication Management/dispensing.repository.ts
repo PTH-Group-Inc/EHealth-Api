@@ -518,7 +518,8 @@ export class DispensingRepository {
             `SELECT ddo.*,
                     up.full_name AS pharmacist_name,
                     p.prescription_code,
-                    pat.full_name AS patient_name
+                    pat.full_name AS patient_name,
+                    (SELECT COUNT(*)::int FROM drug_dispense_details ddd WHERE ddd.dispense_order_id = ddo.drug_dispense_orders_id) AS items_count
              FROM drug_dispense_orders ddo
              LEFT JOIN user_profiles up ON up.user_id = ddo.pharmacist_id
              LEFT JOIN prescriptions p ON p.prescriptions_id = ddo.prescription_id
