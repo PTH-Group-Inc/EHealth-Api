@@ -45,6 +45,44 @@ export class AppointmentService {
      * Đặt lịch khám mới
      */
     static async createAppointment(data: CreateAppointmentInput, userId?: string): Promise<Appointment & { warning?: string | null }> {
+        // Auto-resolve branch_id if missing and doctor_id is provided
+        if (!data.branch_id && data.doctor_id) {
+            try {
+                const docBranchRes = await pool.query(
+                    `SELECT ubd.branch_id 
+                     FROM user_branch_dept ubd
+                     WHERE ubd.user_id = (SELECT user_id FROM doctors WHERE doctors_id = $1 OR user_id = $1 LIMIT 1)
+                     LIMIT 1`,
+                    [data.doctor_id]
+                );
+                if (docBranchRes.rows.length > 0) {
+                    data.branch_id = docBranchRes.rows[0].branch_id;
+                }
+            } catch {}
+        }
+
+        // Auto-resolve branch_id if still missing and slot_id is provided
+        if (!data.branch_id && data.slot_id) {
+            try {
+                const slotBranchRes = await pool.query(
+                    `SELECT s.facility_id 
+                     FROM appointment_slots sl
+                     JOIN shifts s ON sl.shift_id = s.shifts_id
+                     WHERE sl.slot_id = $1 LIMIT 1`,
+                    [data.slot_id]
+                );
+                if (slotBranchRes.rows.length > 0) {
+                    const branchRes = await pool.query(
+                        `SELECT branches_id FROM branches WHERE facility_id = $1 AND status = 'ACTIVE' LIMIT 1`,
+                        [slotBranchRes.rows[0].facility_id]
+                    );
+                    if (branchRes.rows.length > 0) {
+                        data.branch_id = branchRes.rows[0].branches_id;
+                    }
+                }
+            } catch {}
+        }
+
         // VALIDATE CÁC TRƯỜNG BẮT BUỘC
         if (!data.patient_id || !data.branch_id || (!data.slot_id && !data.shift_id) || !data.appointment_date || !data.booking_channel) {
             throw new AppError(HTTP_STATUS.BAD_REQUEST, 'MISSING_REQUIRED_FIELDS',
@@ -321,14 +359,14 @@ export class AppointmentService {
         }
 
         // Kiểm tra chính sách hủy lịch
-        const isAdmin = userRoles?.includes('ADMIN') || false;
+        const isStaffOrAdmin = userRoles?.includes('ADMIN') || userRoles?.includes('STAFF') || false;
         let policyResult: string = POLICY_RESULT.ALLOWED;
         let policyChecked = false;
 
         if (existing.slot_id) {
             policyChecked = true;
             const policyCheck = await this.checkCancelPolicyInternal(existing);
-            if (!policyCheck.allowed && !isAdmin) {
+            if (!policyCheck.allowed && !isStaffOrAdmin) {
                 throw new AppError(HTTP_STATUS.BAD_REQUEST, 'CANCEL_POLICY_BLOCKED',
                     `${CHANGE_ERRORS.CANCEL_POLICY_BLOCKED}. Yêu cầu hủy tối thiểu ${policyCheck.policy_hours} giờ trước giờ khám`);
             }
@@ -889,6 +927,35 @@ export class AppointmentService {
      */
     static async getAvailableSlots(date: string, doctorId?: string, branchId?: string, facilityId?: string): Promise<any[]> {
 
+        // Auto-resolve branchId and facilityId if they are missing but doctorId is provided
+        if (!branchId && !facilityId) {
+            if (doctorId) {
+                const docBranchRes = await pool.query(
+                    `SELECT ubd.branch_id, b.facility_id 
+                     FROM user_branch_dept ubd
+                     JOIN branches b ON ubd.branch_id = b.branches_id
+                     WHERE ubd.user_id = (SELECT user_id FROM doctors WHERE doctors_id = $1 OR user_id = $1 LIMIT 1)
+                     LIMIT 1`,
+                    [doctorId]
+                );
+                if (docBranchRes.rows.length > 0) {
+                    branchId = docBranchRes.rows[0].branch_id;
+                    facilityId = docBranchRes.rows[0].facility_id;
+                }
+            }
+            
+            // Fallback to first active branch if still missing
+            if (!branchId && !facilityId) {
+                const fallbackRes = await pool.query(
+                    `SELECT branches_id, facility_id FROM branches WHERE status = 'ACTIVE' LIMIT 1`
+                );
+                if (fallbackRes.rows.length > 0) {
+                    branchId = fallbackRes.rows[0].branches_id;
+                    facilityId = fallbackRes.rows[0].facility_id;
+                }
+            }
+        }
+
         // Fix #1: Auto-resolve facility_id → branch_id nếu branchId không phải branch thực
         if (branchId) {
             // Thử tìm branch trước
@@ -995,6 +1062,8 @@ export class AppointmentService {
 
         return slots.map(slot => ({
             ...slot,
+            branch_id: branchId,
+            facility_id: facilityId,
             max_capacity: maxPatients,
             is_available: slot.booked_count < maxPatients
         }));

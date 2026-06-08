@@ -6,6 +6,7 @@ import {
     DISPENSE_CONFIG,
     DISPENSE_ERRORS,
 } from '../../constants/dispensing.constant';
+import { EncryptionUtil } from '../../utils/encryption.util';
 
 const HTTP_STATUS = { BAD_REQUEST: 400, NOT_FOUND: 404, CONFLICT: 409, INTERNAL_SERVER_ERROR: 500 };
 
@@ -65,7 +66,7 @@ export class DispensingService {
 
             // 4. Validate từng dòng
             for (const item of input.items) {
-                if (!item.prescription_detail_id || !item.inventory_id || !item.dispensed_quantity || item.dispensed_quantity <= 0) {
+                if (!item.prescription_detail_id || !item.inventory_id) {
                     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ITEM', DISPENSE_ERRORS.INVALID_ITEM);
                 }
 
@@ -73,6 +74,15 @@ export class DispensingService {
                 const detail = await DispensingRepository.getPrescriptionDetail(item.prescription_detail_id, prescriptionId);
                 if (!detail.exists) {
                     throw new AppError(HTTP_STATUS.NOT_FOUND, 'DETAIL_NOT_FOUND', DISPENSE_ERRORS.DETAIL_NOT_FOUND);
+                }
+
+                // Tự động lấy số lượng kê đơn nếu frontend không gửi dispensed_quantity
+                if (!item.dispensed_quantity) {
+                    item.dispensed_quantity = detail.quantity ?? 0;
+                }
+
+                if (item.dispensed_quantity <= 0) {
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ITEM', DISPENSE_ERRORS.INVALID_ITEM);
                 }
 
                 // Check lô tồn kho + LOCK
@@ -178,21 +188,104 @@ export class DispensingService {
     /**
      * Xem phiếu cấp phát theo đơn thuốc
      */
-    static async getByPrescriptionId(prescriptionId: string): Promise<DispenseOrderFull | null> {
-        const rxInfo = await DispensingRepository.getPrescriptionInfo(prescriptionId);
-        if (!rxInfo.exists) {
+    static async getByPrescriptionId(prescriptionId: string): Promise<any> {
+        // Lấy thông tin đơn thuốc gốc từ DB
+        const rxResult = await pool.query(
+            `SELECT p.prescriptions_id, p.prescription_code, p.status as rx_status, p.clinical_diagnosis, p.doctor_notes, p.created_at,
+                    pat.full_name AS patient_name, pat.id AS patient_id, pat.date_of_birth, pat.gender, pat.phone_number,
+                    up_doc.full_name AS doctor_name,
+                    dept.name AS dept_name
+             FROM prescriptions p
+             LEFT JOIN patients pat ON pat.id::text = p.patient_id
+             LEFT JOIN user_profiles up_doc ON up_doc.user_id = p.doctor_id
+             LEFT JOIN encounters e ON e.encounters_id = p.encounter_id
+             LEFT JOIN medical_rooms mr ON mr.medical_rooms_id = e.room_id
+             LEFT JOIN departments dept ON dept.departments_id = mr.department_id
+             WHERE p.prescriptions_id = $1`,
+            [prescriptionId]
+        );
+
+        if (rxResult.rows.length === 0) {
             throw new AppError(HTTP_STATUS.NOT_FOUND, 'PRESCRIPTION_NOT_FOUND', DISPENSE_ERRORS.PRESCRIPTION_NOT_FOUND);
         }
 
-        const result = await DispensingRepository.findByPrescriptionId(prescriptionId);
-        if (!result.order) return null;
+        const rx = rxResult.rows[0];
+        let age = 0;
+        if (rx.date_of_birth) {
+            const birthDate = new Date(rx.date_of_birth);
+            const today = new Date();
+            age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+        }
 
-        const totalCost = result.details.reduce((s, d) => s + (d.dispensed_quantity * (d.unit_price || 0)), 0);
+        // Kiểm tra xem đã cấp phát chưa
+        const result = await DispensingRepository.findByPrescriptionId(prescriptionId);
+        let medicines = [];
+
+        if (result.order) {
+            // Đã cấp phát -> lấy từ chi tiết phiếu cấp phát
+            medicines = result.details.map((d: any) => ({
+                prescription_detail_id: d.prescription_detail_id,
+                drug_id: d.drug_id,
+                name: d.brand_name || d.name,
+                qty: `${d.dispensed_quantity} ${d.dispensing_unit || ''}`.trim(),
+                dosage: `${d.dosage || ''} · ${d.frequency || ''} · ${d.usage_instruction || ''}`.trim().replace(/^ · | · $/, '').replace(/ ·  · /g, ' · '),
+                lot: d.batch_number || '—',
+                expiry: d.expiry_date ? new Date(d.expiry_date).toLocaleDateString('vi-VN') : '—',
+            }));
+        } else {
+            // Chưa cấp phát -> lấy từ chi tiết đơn thuốc gốc và gợi ý lô FEFO
+            const detailsResult = await pool.query(
+                `SELECT pd.prescription_details_id, pd.drug_id, pd.quantity, pd.dosage, pd.frequency, pd.usage_instruction,
+                        d.brand_name, d.dispensing_unit
+                 FROM prescription_details pd
+                 LEFT JOIN drugs d ON d.drugs_id = pd.drug_id
+                 WHERE pd.prescription_id = $1 AND pd.is_active = TRUE`,
+                [prescriptionId]
+            );
+
+            for (const r of detailsResult.rows) {
+                // Gợi ý lô tồn kho theo FEFO
+                const batchResult = await pool.query(
+                    `SELECT pharmacy_inventory_id, batch_number, expiry_date
+                     FROM pharmacy_inventory
+                     WHERE drug_id = $1 AND stock_quantity > 0 AND expiry_date > CURRENT_DATE
+                     ORDER BY expiry_date ASC
+                     LIMIT 1`,
+                    [r.drug_id]
+                );
+
+                const batch = batchResult.rows[0] || {};
+                medicines.push({
+                    prescription_detail_id: r.prescription_details_id,
+                    drug_id: r.drug_id,
+                    inventory_id: batch.pharmacy_inventory_id || '',
+                    name: r.brand_name,
+                    qty: `${r.quantity} ${r.dispensing_unit || ''}`.trim(),
+                    dosage: `${r.dosage || ''} · ${r.frequency || ''} · ${r.usage_instruction || ''}`.trim().replace(/^ · | · $/, '').replace(/ ·  · /g, ' · '),
+                    lot: batch.batch_number || 'Hết hàng',
+                    expiry: batch.expiry_date ? new Date(batch.expiry_date).toLocaleDateString('vi-VN') : '—',
+                });
+            }
+        }
+
         return {
-            order: result.order,
-            details: result.details,
-            total_items: result.details.length,
-            total_cost: totalCost,
+            id: rx.prescriptions_id,
+            patient: rx.patient_name || '—',
+            patientId: rx.patient_id || '',
+            age: age,
+            gender: rx.gender === 'MALE' ? 'Nam' : rx.gender === 'FEMALE' ? 'Nữ' : rx.gender || '—',
+            phone: rx.phone_number || '—',
+            doctor: rx.doctor_name || '—',
+            dept: rx.dept_name || '—',
+            diagnosis: rx.clinical_diagnosis ? EncryptionUtil.decrypt(rx.clinical_diagnosis) : '—',
+            date: rx.created_at ? new Date(rx.created_at).toLocaleDateString('vi-VN') : '—',
+            note: rx.doctor_notes ? EncryptionUtil.decrypt(rx.doctor_notes) : '—',
+            medicines: medicines,
+            isDispensed: !!result.order,
         };
     }
 

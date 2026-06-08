@@ -79,6 +79,11 @@ appointmentConfirmationRoutes.patch(
     [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.confirm
 );
+appointmentConfirmationRoutes.post(
+    '/:id/confirm',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentConfirmationController.confirm
+);
 
 /**
  * @swagger
@@ -200,6 +205,11 @@ appointmentConfirmationRoutes.patch(
     [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.batchConfirm
 );
+appointmentConfirmationRoutes.post(
+    '/batch-confirm',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentConfirmationController.batchConfirm
+);
 
 // =====================================================================
 // 3.6.2. CHECK-IN & HOÀN TẤT (Status Transitions)
@@ -260,6 +270,11 @@ appointmentConfirmationRoutes.patch(
  *         description: Lịch khám không tồn tại
  */
 appointmentConfirmationRoutes.patch(
+    '/:id/check-in',
+    [verifyAccessToken, checkSessionStatus],
+    AppointmentConfirmationController.checkIn
+);
+appointmentConfirmationRoutes.post(
     '/:id/check-in',
     [verifyAccessToken, checkSessionStatus],
     AppointmentConfirmationController.checkIn

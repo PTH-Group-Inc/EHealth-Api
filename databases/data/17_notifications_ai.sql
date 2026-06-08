@@ -604,12 +604,13 @@ ON CONFLICT (message_id) DO NOTHING;
 COMMIT;
 
 -- =====================================================================
--- VERIFY counts sau khi seed
+-- VERIFY counts sau khi seed (commented out due to psql specific syntax)
 -- =====================================================================
-\echo '=== POST-SEED COUNTS (17_notifications_ai) ==='
-SELECT 'user_notifications' AS table_name, COUNT(*) AS row_count
-  FROM user_notifications WHERE user_notifications_id LIKE 'NOTIF_DEMO_%'
-UNION ALL
-SELECT 'ai_chat_sessions',  COUNT(*) FROM ai_chat_sessions WHERE session_id LIKE 'AICS_DEMO_%'
-UNION ALL
-SELECT 'ai_chat_messages',  COUNT(*) FROM ai_chat_messages WHERE message_id LIKE 'AICM_DEMO_%';
+-- \echo '=== POST-SEED COUNTS (17_notifications_ai) ==='
+-- SELECT 'user_notifications' AS table_name, COUNT(*) AS row_count
+--   FROM user_notifications WHERE user_notifications_id LIKE 'NOTIF_DEMO_%'
+-- UNION ALL
+-- SELECT 'ai_chat_sessions',  COUNT(*) FROM ai_chat_sessions WHERE session_id LIKE 'AICS_DEMO_%'
+-- UNION ALL
+-- SELECT 'ai_chat_messages',  COUNT(*) FROM ai_chat_messages WHERE message_id LIKE 'AICM_DEMO_%';
+

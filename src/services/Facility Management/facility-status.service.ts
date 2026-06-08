@@ -101,7 +101,7 @@ export class FacilityStatusService {
      * Lấy trạng thái hôm nay
      */
     static async getStatusToday(facilityId?: string): Promise<FacilityDayStatus | FacilityDayStatus[]> {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
         if (!facilityId) {
             const facilities = await FacilityRepository.getFacilitiesForDropdown();
             return Promise.all(facilities.map(f => this.determineFacilityStatus(f.facilities_id, today)));

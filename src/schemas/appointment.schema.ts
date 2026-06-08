@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createAppointmentSchema = z.object({
     patient_id: z.string().min(1, "patient_id không được để trống"),
-    branch_id: z.string().min(1, "branch_id không được để trống"),
+    branch_id: z.string().optional(),
     shift_id: z.string().optional(),
     slot_id: z.string().optional(),
     doctor_id: z.string().optional(),

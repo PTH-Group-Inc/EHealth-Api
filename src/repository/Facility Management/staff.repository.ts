@@ -127,7 +127,9 @@ export class StaffRepository {
                 d.consultation_fee,
                 d.specialty_id,
                 sp.name as specialty_name,
-                f.name as facility_name
+                f.name as facility_name,
+                ubd.department_id,
+                dp.name as department_name
             FROM users u
             LEFT JOIN user_profiles up ON u.users_id = up.user_id
             LEFT JOIN user_roles ur ON u.users_id = ur.user_id
@@ -135,10 +137,11 @@ export class StaffRepository {
             LEFT JOIN doctors d ON u.users_id = d.user_id
             LEFT JOIN specialties sp ON d.specialty_id = sp.specialties_id
             LEFT JOIN user_branch_dept ubd ON u.users_id = ubd.user_id
+            LEFT JOIN departments dp ON ubd.department_id = dp.departments_id
             LEFT JOIN branches b ON ubd.branch_id = b.branches_id
             LEFT JOIN facilities f ON b.facility_id = f.facilities_id
             ${whereString}
-            GROUP BY u.users_id, up.user_profiles_id, d.doctors_id, d.title, d.consultation_fee, d.specialty_id, sp.name, f.name
+            GROUP BY u.users_id, up.user_profiles_id, d.doctors_id, d.title, d.consultation_fee, d.specialty_id, sp.name, f.name, ubd.department_id, dp.name
             ORDER BY u.created_at DESC
             LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}
         `;

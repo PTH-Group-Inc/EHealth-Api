@@ -173,6 +173,18 @@ clinicalExamRoutes.patch(
 );
 
 /**
+ * GET /api/clinical-examinations/{encounterId}/vitals
+ * Lấy riêng sinh hiệu của encounter
+ */
+clinicalExamRoutes.get(
+    '/:encounterId/vitals',
+    verifyAccessToken,
+    checkSessionStatus,
+    ClinicalExamController.getVitals
+);
+
+
+/**
  * @swagger
  * /api/clinical-examinations/{encounterId}/finalize:
  *   patch:

@@ -110,6 +110,7 @@ inboxRouter.get('/', UserNotificationController.getMyInbox);
  *         description: Thành công
  */
 inboxRouter.put('/read-all', UserNotificationController.markAllAsRead);
+inboxRouter.patch('/read-all', UserNotificationController.markAllAsRead);
 
 /**
  * @swagger
@@ -133,6 +134,7 @@ inboxRouter.put('/read-all', UserNotificationController.markAllAsRead);
  *         description: Thành công
  */
 inboxRouter.put('/:id/read', UserNotificationController.markAsRead);
+inboxRouter.patch('/:id/read', UserNotificationController.markAsRead);
 
 /**
  * @swagger

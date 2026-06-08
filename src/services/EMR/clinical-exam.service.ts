@@ -99,9 +99,6 @@ export class ClinicalExamService {
         return await ClinicalExamRepository.findByEncounterId(encounterId) as ClinicalExamination;
     }
 
-    /**
-     * Cập nhật riêng sinh hiệu — cho phép cả khi phiếu FINAL
-     */
     static async updateVitals(encounterId: string, data: UpdateVitalsInput): Promise<ClinicalExamination> {
         /** Kiểm tra encounter editable */
         await this.validateEncounterEditable(encounterId);
@@ -115,6 +112,30 @@ export class ClinicalExamService {
         await ClinicalExamRepository.updateVitals(encounterId, data);
         return await ClinicalExamRepository.findByEncounterId(encounterId) as ClinicalExamination;
     }
+
+    /**
+     * Lấy riêng sinh hiệu của encounter.
+     * Để tránh lỗi 404 cho frontend khi chưa đo sinh hiệu, nếu chưa có phiếu khám, trả về null/object trống thay vì quăng lỗi 404.
+     */
+    static async getVitals(encounterId: string): Promise<Record<string, any>> {
+        const record = await ClinicalExamRepository.findByEncounterId(encounterId);
+        if (!record) {
+            return {}; // Trả về object trống để frontend không bị lỗi 404 khi mới vào phòng khám
+        }
+        return {
+            pulse: record.pulse,
+            blood_pressure_systolic: record.blood_pressure_systolic,
+            blood_pressure_diastolic: record.blood_pressure_diastolic,
+            temperature: record.temperature,
+            respiratory_rate: record.respiratory_rate,
+            spo2: record.spo2,
+            weight: record.weight,
+            height: record.height,
+            bmi: record.bmi,
+            blood_glucose: record.blood_glucose,
+        };
+    }
+
 
     /**
      * Chuyển phiếu khám từ DRAFT → FINAL (chỉ BS mới được)

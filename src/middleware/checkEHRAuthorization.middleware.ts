@@ -27,6 +27,11 @@ export const checkEHRAuthorization = async (req: AuthenticatedRequest, res: Resp
             return next();
         }
 
+        // 1b. Cho phép PHARMACIST và NURSE đọc dữ liệu EHR (cần thiết để cấp phát thuốc an toàn)
+        if (auth.roles && (auth.roles.includes('PHARMACIST') || auth.roles.includes('NURSE') || auth.roles.includes('RECEPTIONIST'))) {
+            return next();
+        }
+
         // 2. Cho phép chính bệnh nhân đó 
         // Giả sử user account của bệnh nhân lưu patientId trong auth hoặc user_id match
         // Note: hiện tại account_id trong patients có thể match với user_id
@@ -59,6 +64,7 @@ export const checkEHRAuthorization = async (req: AuthenticatedRequest, res: Resp
         if (rows.length > 0) {
             return next(); // Bác sĩ có quyền
         }
+
 
         // Nếu không thuộc các trường hợp trên -> 403
         return res.status(403).json({

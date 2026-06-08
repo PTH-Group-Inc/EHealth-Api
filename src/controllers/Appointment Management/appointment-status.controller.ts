@@ -112,9 +112,11 @@ export class AppointmentStatusController {
     /** GET /api/appointment-status/queue/today — Hàng đợi hôm nay */
     static getQueue = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const filters = {
-                branch_id: req.query.branch_id?.toString(),
-                room_id: req.query.room_id?.toString(),
+                branch_id: (req.query.branch_id || req.query.branchId)?.toString(),
+                room_id: (req.query.room_id || req.query.roomId)?.toString(),
                 status: req.query.status?.toString(),
+                doctor_id: (req.query.doctor_id || req.query.doctorId)?.toString(),
+                specialty_id: (req.query.specialty_id || req.query.specialtyId || req.query.department_id || req.query.departmentId)?.toString(),
                 include_all: req.query.include_all === 'true'
             };
             const data = await AppointmentStatusService.getQueueToday(filters);

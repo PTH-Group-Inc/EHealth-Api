@@ -525,7 +525,7 @@ export class BillingDocumentRepository {
         const sql = `
             SELECT i.*, p.full_name as patient_name, p.patient_code, p.address as patient_address,
                    p.email as patient_email,
-                   f.name as facility_name, f.address as facility_address,
+                   f.name as facility_name, f.headquarters_address as facility_address,
                    up.full_name as created_by_name
             FROM invoices i
             LEFT JOIN patients p ON i.patient_id = p.id

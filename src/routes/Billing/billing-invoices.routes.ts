@@ -85,7 +85,7 @@ router.post('/invoices', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), va
  *       400:
  *         description: Encounter không tồn tại hoặc đã có HĐ
  */
-router.post('/invoices/generate/:encounterId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF'), BillingInvoiceController.generateInvoice);
+router.post('/invoices/generate/:encounterId', verifyAccessToken, authorizeRoles('ADMIN', 'STAFF', 'DOCTOR'), BillingInvoiceController.generateInvoice);
 
 /**
  * @swagger

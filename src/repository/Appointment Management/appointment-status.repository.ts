@@ -374,11 +374,20 @@ export class AppointmentStatusRepository {
         room_id?: string;
         status?: string;
         specialty_id?: string;
+        doctor_id?: string;
         include_all?: boolean;
     }): Promise<any[]> {
         const conditions: string[] = [`a.appointment_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`];
         const params: any[] = [];
         let paramIdx = 1;
+
+        let resolvedDoctorId = filters.doctor_id;
+        if (resolvedDoctorId && (resolvedDoctorId.startsWith('USR_') || resolvedDoctorId.startsWith('usr_'))) {
+            const docRes = await pool.query('SELECT doctors_id FROM doctors WHERE user_id = $1', [resolvedDoctorId]);
+            if (docRes.rows.length > 0) {
+                resolvedDoctorId = docRes.rows[0].doctors_id;
+            }
+        }
 
         if (!filters.status && !filters.include_all) {
             conditions.push(`a.status IN ('${APPOINTMENT_STATUS.CHECKED_IN}', '${APPOINTMENT_STATUS.IN_PROGRESS}')`);
@@ -399,6 +408,10 @@ export class AppointmentStatusRepository {
         if (filters.specialty_id) {
             conditions.push(`d.specialty_id = $${paramIdx++}`);
             params.push(filters.specialty_id);
+        }
+        if (resolvedDoctorId) {
+            conditions.push(`a.doctor_id = $${paramIdx++}`);
+            params.push(resolvedDoctorId);
         }
 
         const query = `

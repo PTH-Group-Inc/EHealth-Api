@@ -70,10 +70,18 @@ export class TeleFollowUpController {
 
     /** GET /follow-ups/updates/attention */
     static getAttentionUpdates = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).auth?.user_id;
+            const userId = (req as any).auth?.user_id || (req as any).user?.userId;
+            let doctorId = userId;
+            if (doctorId && doctorId.startsWith('USR_DOC_')) {
+                const { pool } = require('../../config/postgresdb');
+                const docRes = await pool.query('SELECT doctors_id FROM doctors WHERE user_id = $1', [doctorId]);
+                if (docRes.rows[0]) {
+                    doctorId = docRes.rows[0].doctors_id;
+                }
+            }
             const page = parseInt(req.query.page as string) || 1;
             const limit = Math.min(parseInt(req.query.limit as string) || 20, REMOTE_CONSULTATION_CONFIG.MAX_LIMIT);
-            const result = await TeleFollowUpService.getAttentionUpdates(userId, page, limit);
+            const result = await TeleFollowUpService.getAttentionUpdates(doctorId, page, limit);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result.data, pagination: { total: result.total, page, limit } });
     });
 
@@ -87,8 +95,16 @@ export class TeleFollowUpController {
 
     /** GET /follow-ups/plans/upcoming */
     static getUpcomingPlans = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).auth?.user_id;
-            const result = await TeleFollowUpService.getUpcomingPlans(userId);
+            const userId = (req as any).auth?.user_id || (req as any).user?.userId;
+            let doctorId = userId;
+            if (doctorId && doctorId.startsWith('USR_DOC_')) {
+                const { pool } = require('../../config/postgresdb');
+                const docRes = await pool.query('SELECT doctors_id FROM doctors WHERE user_id = $1', [doctorId]);
+                if (docRes.rows[0]) {
+                    doctorId = docRes.rows[0].doctors_id;
+                }
+            }
+            const result = await TeleFollowUpService.getUpcomingPlans(doctorId);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
     });
 
@@ -98,10 +114,20 @@ export class TeleFollowUpController {
     static listPlans = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const page = parseInt(req.query.page as string) || REMOTE_CONSULTATION_CONFIG.DEFAULT_PAGE;
             const limit = Math.min(parseInt(req.query.limit as string) || REMOTE_CONSULTATION_CONFIG.DEFAULT_LIMIT, REMOTE_CONSULTATION_CONFIG.MAX_LIMIT);
+            
+            let doctorId = (req.query.doctor_id || req.query.doctorId) as string | undefined;
+            if (doctorId && doctorId.startsWith('USR_DOC_')) {
+                const { pool } = require('../../config/postgresdb');
+                const docRes = await pool.query('SELECT doctors_id FROM doctors WHERE user_id = $1', [doctorId]);
+                if (docRes.rows[0]) {
+                    doctorId = docRes.rows[0].doctors_id;
+                }
+            }
+
             const filters = {
                 status: req.query.status as string,
                 plan_type: req.query.plan_type as string,
-                doctor_id: req.query.doctor_id as string,
+                doctor_id: doctorId as string,
                 keyword: req.query.keyword as string,
                 page,
                 limit,
@@ -126,7 +152,18 @@ export class TeleFollowUpController {
 
     /** GET /follow-ups/stats */
     static getStats = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const doctorId = req.query.doctor_id as string;
+            let doctorId = (req.query.doctor_id || req.query.doctorId) as string | undefined;
+            if (!doctorId) {
+                const userId = (req as any).auth?.user_id || (req as any).user?.userId;
+                doctorId = userId;
+            }
+            if (doctorId && doctorId.startsWith('USR_DOC_')) {
+                const { pool } = require('../../config/postgresdb');
+                const docRes = await pool.query('SELECT doctors_id FROM doctors WHERE user_id = $1', [doctorId]);
+                if (docRes.rows[0]) {
+                    doctorId = docRes.rows[0].doctors_id;
+                }
+            }
             const result = await TeleFollowUpService.getStats(doctorId);
             res.status(HTTP_STATUS.OK).json({ success: true, data: result });
     });

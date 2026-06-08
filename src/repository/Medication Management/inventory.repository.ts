@@ -104,12 +104,15 @@ export class InventoryRepository {
      */
     static async findExpiring(days: number): Promise<ExpiryAlert[]> {
         const result = await pool.query(
-            `SELECT pi.pharmacy_inventory_id, pi.drug_id, pi.batch_number,
-                    pi.expiry_date, pi.stock_quantity, pi.location_bin,
-                    d.drug_code, d.brand_name,
+            `SELECT pi.pharmacy_inventory_id, pi.pharmacy_inventory_id AS id, pi.pharmacy_inventory_id AS batch_id,
+                    pi.drug_id, pi.batch_number,
+                    pi.expiry_date, pi.stock_quantity, pi.stock_quantity AS quantity, pi.location_bin,
+                    d.drug_code, d.brand_name, d.brand_name AS drug_name,
+                    w.name AS warehouse_name,
                     (pi.expiry_date - CURRENT_DATE) AS days_until_expiry
              FROM pharmacy_inventory pi
              LEFT JOIN drugs d ON d.drugs_id = pi.drug_id
+             LEFT JOIN warehouses w ON w.warehouse_id = pi.warehouse_id
              WHERE pi.expiry_date <= (CURRENT_DATE + $1::int)
                AND pi.expiry_date > CURRENT_DATE
                AND pi.stock_quantity > 0
@@ -134,10 +137,12 @@ export class InventoryRepository {
      */
     static async findLowStock(): Promise<any[]> {
         const result = await pool.query(
-            `SELECT pi.pharmacy_inventory_id, pi.drug_id, pi.batch_number,
-                    pi.stock_quantity, pi.low_stock_threshold, pi.location_bin,
+            `SELECT pi.pharmacy_inventory_id, pi.pharmacy_inventory_id AS id, pi.pharmacy_inventory_id AS batch_id,
+                    pi.drug_id, pi.batch_number,
+                    pi.stock_quantity, pi.stock_quantity AS quantity, pi.low_stock_threshold, pi.location_bin,
                     pi.expiry_date,
-                    d.drug_code, d.brand_name, d.dispensing_unit,
+                    d.drug_code, d.brand_name, d.brand_name AS drug_name, d.dispensing_unit,
+                    w.name AS warehouse_name,
                     CASE
                         WHEN pi.low_stock_threshold > 0
                         THEN ROUND((pi.stock_quantity::numeric / pi.low_stock_threshold) * 100)
@@ -145,6 +150,7 @@ export class InventoryRepository {
                     END AS percentage_remaining
              FROM pharmacy_inventory pi
              LEFT JOIN drugs d ON d.drugs_id = pi.drug_id
+             LEFT JOIN warehouses w ON w.warehouse_id = pi.warehouse_id
              WHERE pi.stock_quantity <= pi.low_stock_threshold
                AND pi.stock_quantity >= 0
              ORDER BY pi.stock_quantity ASC`

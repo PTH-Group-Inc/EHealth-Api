@@ -148,7 +148,7 @@ INSERT INTO locked_slots (locked_slot_id, slot_id, locked_date, lock_reason, loc
 ('LCK_T19_013', 'SLT_2604_032760b4', '2026-05-23', 'Giao ban dau ngay', 'USR_ADMIN_01'),
 ('LCK_T19_014', 'SLT_2604_08e61bdc', '2026-05-23', 'Giao ban dau ngay', 'USR_ADMIN_01'),
 ('LCK_T19_015', 'SLT_2604_23278da3', '2026-05-23', 'Chuan bi nghi trua', 'USR_ADMIN_01')
-ON CONFLICT (slot_id, locked_date) DO NOTHING;
+ON CONFLICT (locked_slot_id) DO NOTHING;
 
 -- -----------------------------------------------------------------
 -- 4. CAP NHAT TINH TRANG PHONG (room_status)

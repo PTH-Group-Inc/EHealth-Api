@@ -49,9 +49,6 @@ export class ClinicalExamController {
             });
     });
 
-    /**
-     * PATCH /api/clinical-examinations/:encounterId/vitals — Cập nhật riêng sinh hiệu
-     */
     static updateVitals = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
             const record = await ClinicalExamService.updateVitals(req.params.encounterId as string, req.body);
             res.status(HTTP_STATUS.OK).json({
@@ -60,6 +57,19 @@ export class ClinicalExamController {
                 data: record,
             });
     });
+
+    /**
+     * GET /api/clinical-examinations/:encounterId/vitals — Lấy riêng sinh hiệu
+     */
+    static getVitals = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            const record = await ClinicalExamService.getVitals(req.params.encounterId as string);
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: 'Lấy sinh hiệu thành công',
+                data: record,
+            });
+    });
+
 
     /**
      * PATCH /api/clinical-examinations/:encounterId/finalize — Xác nhận phiếu khám

@@ -37,7 +37,7 @@ export class AppointmentStatusService {
         }
 
         // Kiểm tra appointment_date = TODAY
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
         if (appointment.appointment_date !== today) {
             throw new AppError(400, 'NOT_TODAY', STATUS_ERRORS.NOT_TODAY);
         }
@@ -183,7 +183,7 @@ export class AppointmentStatusService {
         }
 
         // Kiểm tra appointment_date = TODAY
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
         if (appointment.appointment_date !== today) {
             throw new AppError(400, 'NOT_TODAY', STATUS_ERRORS.NOT_TODAY);
         }
@@ -501,7 +501,7 @@ export class AppointmentStatusService {
      * Dashboard trạng thái lịch khám theo ngày bất kỳ
      */
     static async getDashboardByDate(date?: string, branchId?: string): Promise<any> {
-        const targetDate = date || new Date().toISOString().slice(0, 10);
+        const targetDate = date || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
         const data = await AppointmentStatusRepository.getDashboardByDate(branchId, date);
         return {
             date: targetDate,

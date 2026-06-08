@@ -129,7 +129,14 @@ export class StockOutRepository {
                     w2.name AS dest_warehouse_name,
                     s.name AS supplier_name,
                     u1.full_name AS created_by_name,
-                    u2.full_name AS confirmed_by_name
+                    u2.full_name AS confirmed_by_name,
+                    (SELECT COALESCE(SUM(sod.quantity), 0)::int
+                     FROM stock_out_details sod
+                     WHERE sod.stock_out_order_id = soo.stock_out_order_id) AS total_items,
+                    (SELECT COALESCE(SUM(sod.quantity * pi.unit_price), 0)::double precision
+                     FROM stock_out_details sod
+                     LEFT JOIN pharmacy_inventory pi ON pi.pharmacy_inventory_id = sod.inventory_id
+                     WHERE sod.stock_out_order_id = soo.stock_out_order_id) AS total_value
              FROM stock_out_orders soo
              LEFT JOIN warehouses w1 ON w1.warehouse_id = soo.warehouse_id
              LEFT JOIN warehouses w2 ON w2.warehouse_id = soo.dest_warehouse_id
@@ -305,7 +312,14 @@ export class StockOutRepository {
                     w2.name AS dest_warehouse_name,
                     s.name AS supplier_name,
                     u1.full_name AS created_by_name,
-                    u2.full_name AS confirmed_by_name
+                    u2.full_name AS confirmed_by_name,
+                    (SELECT COALESCE(SUM(sod.quantity), 0)::int
+                     FROM stock_out_details sod
+                     WHERE sod.stock_out_order_id = soo.stock_out_order_id) AS total_items,
+                    (SELECT COALESCE(SUM(sod.quantity * pi.unit_price), 0)::double precision
+                     FROM stock_out_details sod
+                     LEFT JOIN pharmacy_inventory pi ON pi.pharmacy_inventory_id = sod.inventory_id
+                     WHERE sod.stock_out_order_id = soo.stock_out_order_id) AS total_value
              FROM stock_out_orders soo
              LEFT JOIN warehouses w1 ON w1.warehouse_id = soo.warehouse_id
              LEFT JOIN warehouses w2 ON w2.warehouse_id = soo.dest_warehouse_id

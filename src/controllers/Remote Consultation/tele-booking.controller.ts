@@ -49,7 +49,7 @@ export class TeleBookingController {
 
     /** POST /booking — Tạo phiên đặt lịch */
     static createBooking = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id || (req as any).user?.userId;
             const session = await TeleBookingService.createBooking(req.body, userId);
             res.status(HTTP_STATUS.CREATED).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CREATED, data: session });
     });
@@ -62,14 +62,14 @@ export class TeleBookingController {
 
     /** POST /booking/:sessionId/confirm — Xác nhận phiên */
     static confirmBooking = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id || (req as any).user?.userId;
             const session = await TeleBookingService.confirmBooking(String(req.params.sessionId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CONFIRMED, data: session });
     });
 
     /** POST /booking/:sessionId/cancel — Hủy phiên */
     static cancelBooking = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id || (req as any).user?.userId;
             const { cancellation_reason } = req.body;
             const session = await TeleBookingService.cancelBooking(String(req.params.sessionId), cancellation_reason || 'Không rõ lý do', userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.SESSION_CANCELLED, data: session });
@@ -79,7 +79,7 @@ export class TeleBookingController {
 
     /** POST /booking/:sessionId/payment — Khởi tạo thanh toán */
     static initiatePayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id || (req as any).user?.userId;
             const result = await TeleBookingService.initiatePayment(String(req.params.sessionId), userId);
             res.status(HTTP_STATUS.OK).json({ success: true, message: TELE_BOOKING_SUCCESS.PAYMENT_INITIATED, data: result });
     });
@@ -100,16 +100,25 @@ export class TeleBookingController {
 
     /** GET /booking — Danh sách phiên (ADMIN/DOCTOR) */
     static listBookings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+            let doctorId = (req.query.doctor_id || req.query.doctorId) as string | undefined;
+            if (doctorId && doctorId.startsWith('USR_DOC_')) {
+                const { pool } = require('../../config/postgresdb');
+                const docRes = await pool.query('SELECT doctors_id FROM doctors WHERE user_id = $1', [doctorId]);
+                if (docRes.rows[0]) {
+                    doctorId = docRes.rows[0].doctors_id;
+                }
+            }
+
             const filters = {
-                patient_id: req.query.patient_id as string | undefined,
-                doctor_id: req.query.doctor_id as string | undefined,
-                specialty_id: req.query.specialty_id as string | undefined,
-                facility_id: req.query.facility_id as string | undefined,
-                type_id: req.query.type_id as string | undefined,
+                patient_id: (req.query.patient_id || req.query.patientId) as string | undefined,
+                doctor_id: doctorId,
+                specialty_id: (req.query.specialty_id || req.query.specialtyId) as string | undefined,
+                facility_id: (req.query.facility_id || req.query.facilityId) as string | undefined,
+                type_id: (req.query.type_id || req.query.typeId) as string | undefined,
                 status: req.query.status as string | undefined,
-                payment_status: req.query.payment_status as string | undefined,
-                from_date: req.query.from_date as string | undefined,
-                to_date: req.query.to_date as string | undefined,
+                payment_status: (req.query.payment_status || req.query.paymentStatus) as string | undefined,
+                from_date: (req.query.from_date || req.query.fromDate || req.query.from) as string | undefined,
+                to_date: (req.query.to_date || req.query.toDate || req.query.to) as string | undefined,
                 keyword: req.query.keyword as string | undefined,
                 page: parseInt(req.query.page as string) || REMOTE_CONSULTATION_CONFIG.DEFAULT_PAGE,
                 limit: Math.min(parseInt(req.query.limit as string) || REMOTE_CONSULTATION_CONFIG.DEFAULT_LIMIT, REMOTE_CONSULTATION_CONFIG.MAX_LIMIT),
@@ -120,12 +129,9 @@ export class TeleBookingController {
 
     /** GET /booking/my-bookings — Lịch sử của BN đang đăng nhập */
     static getMyBookings = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const userId = (req as any).user?.userId;
+            const userId = (req as any).auth?.user_id || (req as any).user?.userId;
             // Lấy patientId từ query, nếu không có thì lấy profile mặc định
-            let patientId = req.query.patientId as string | undefined;
-            if (!patientId && req.query.patient_id) {
-                patientId = req.query.patient_id as string;
-            }
+            let patientId = (req.query.patientId || req.query.patient_id) as string | undefined;
             if (!patientId) {
                 const { pool } = require('../../config/postgresdb');
                 const patientResult = await pool.query(`SELECT id::varchar AS patient_id FROM patients WHERE account_id = $1 LIMIT 1`, [userId]);
@@ -137,8 +143,8 @@ export class TeleBookingController {
             }
 
             const filters = {
-                from_date: req.query.from_date as string | undefined,
-                to_date: req.query.to_date as string | undefined,
+                from_date: (req.query.from_date || req.query.fromDate || req.query.from) as string | undefined,
+                to_date: (req.query.to_date || req.query.toDate || req.query.to) as string | undefined,
                 status: req.query.status as string | undefined,
                 page: parseInt(req.query.page as string) || REMOTE_CONSULTATION_CONFIG.DEFAULT_PAGE,
                 limit: Math.min(parseInt(req.query.limit as string) || REMOTE_CONSULTATION_CONFIG.DEFAULT_LIMIT, REMOTE_CONSULTATION_CONFIG.MAX_LIMIT),

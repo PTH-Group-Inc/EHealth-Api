@@ -14,6 +14,7 @@ import notificationCategoryRoutes from './notification-category.routes';
 import notificationTemplateRoutes from './notification-template.routes';
 import notificationRoleConfigRoutes from './notification-role-config.routes';
 import userNotificationRoutes from './user-notification.routes';
+import aiRoutes from './ai.routes';
 
 const router = Router();
 
@@ -55,5 +56,8 @@ router.use('/notifications/categories', notificationCategoryRoutes);
 router.use('/notifications/templates', notificationTemplateRoutes);
 router.use('/notifications/role-configs', notificationRoleConfigRoutes);
 router.use('/notifications/inbox', userNotificationRoutes);
+
+// AI Module Routes (Mocked for frontend presentation)
+router.use('/ai', aiRoutes);
 
 export default router;

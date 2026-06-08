@@ -484,6 +484,14 @@ export class AppointmentRepository {
      * Lấy danh sách lịch khám theo bác sĩ
      */
     static async findByDoctorId(doctorId: string, filters?: { fromDate?: string; toDate?: string }): Promise<Appointment[]> {
+        let resolvedDoctorId = doctorId;
+        if (doctorId.startsWith('USR_') || doctorId.startsWith('usr_')) {
+            const docRes = await pool.query('SELECT doctors_id FROM doctors WHERE user_id = $1', [doctorId]);
+            if (docRes.rows.length > 0) {
+                resolvedDoctorId = docRes.rows[0].doctors_id;
+            }
+        }
+
         let query = `
             SELECT a.*,
                    TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
@@ -498,7 +506,7 @@ export class AppointmentRepository {
             WHERE a.doctor_id = $1
               AND a.status NOT IN ('${APPOINTMENT_STATUS.CANCELLED}', '${APPOINTMENT_STATUS.NO_SHOW}')
         `;
-        const values: any[] = [doctorId];
+        const values: any[] = [resolvedDoctorId];
         let idx = 2;
 
         if (filters?.fromDate) {
