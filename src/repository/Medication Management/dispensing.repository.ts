@@ -80,17 +80,24 @@ export class DispensingRepository {
         exists: boolean;
         drug_id?: string;
         quantity?: number;
+        brand_name?: string;
     }> {
         const result = await pool.query(
-            `SELECT prescription_details_id, drug_id, quantity
-             FROM prescription_details
-             WHERE prescription_details_id = $1
-               AND prescription_id = $2
-               AND is_active = TRUE`,
+            `SELECT pd.prescription_details_id, pd.drug_id, pd.quantity, d.brand_name
+             FROM prescription_details pd
+             LEFT JOIN drugs d ON d.drugs_id = pd.drug_id
+             WHERE pd.prescription_details_id = $1
+               AND pd.prescription_id = $2
+               AND pd.is_active = TRUE`,
             [detailId, prescriptionId]
         );
         if (result.rows.length === 0) return { exists: false };
-        return { exists: true, drug_id: result.rows[0].drug_id, quantity: result.rows[0].quantity };
+        return {
+            exists: true,
+            drug_id: result.rows[0].drug_id,
+            quantity: result.rows[0].quantity,
+            brand_name: result.rows[0].brand_name
+        };
     }
 
     /** Lấy tất cả các dòng thuốc của đơn thuốc (prescription) */

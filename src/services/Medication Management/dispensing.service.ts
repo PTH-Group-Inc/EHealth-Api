@@ -66,7 +66,7 @@ export class DispensingService {
 
             // 4. Validate từng dòng
             for (const item of input.items) {
-                if (!item.prescription_detail_id || !item.inventory_id) {
+                if (!item.prescription_detail_id) {
                     throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ITEM', DISPENSE_ERRORS.INVALID_ITEM);
                 }
 
@@ -74,6 +74,11 @@ export class DispensingService {
                 const detail = await DispensingRepository.getPrescriptionDetail(item.prescription_detail_id, prescriptionId);
                 if (!detail.exists) {
                     throw new AppError(HTTP_STATUS.NOT_FOUND, 'DETAIL_NOT_FOUND', DISPENSE_ERRORS.DETAIL_NOT_FOUND);
+                }
+
+                if (!item.inventory_id) {
+                    const drugName = detail.brand_name || 'Thuốc';
+                    throw new AppError(HTTP_STATUS.BAD_REQUEST, 'INSUFFICIENT_STOCK', `Thuốc "${drugName}" đã hết hàng hoặc không có lô tồn kho hợp lệ.`);
                 }
 
                 // Tự động lấy số lượng kê đơn nếu frontend không gửi dispensed_quantity
