@@ -150,7 +150,7 @@ export class DispensingRepository {
              FROM pharmacy_inventory pi
              LEFT JOIN drugs d ON d.drugs_id = pi.drug_id
              WHERE pi.pharmacy_inventory_id = $1
-             FOR UPDATE`,
+             FOR UPDATE OF pi`,
             [inventoryId]
         );
         if (result.rows.length === 0) return { exists: false };
@@ -172,7 +172,7 @@ export class DispensingRepository {
                AND pi.stock_quantity > 0
                AND pi.expiry_date > CURRENT_DATE
              ORDER BY pi.expiry_date ASC
-             FOR UPDATE`,
+             FOR UPDATE OF pi`,
             [drugId]
         );
         return result.rows;
