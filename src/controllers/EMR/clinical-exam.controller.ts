@@ -41,7 +41,9 @@ export class ClinicalExamController {
      * PATCH /api/clinical-examinations/:encounterId — Cập nhật phiếu khám
      */
     static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const record = await ClinicalExamService.update(req.params.encounterId as string, req.body);
+            const encounterId = req.params.encounterId as string;
+            const userId = (req as any).auth?.user_id;
+            const record = await ClinicalExamService.update(encounterId, req.body, userId);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: CLINICAL_EXAM_SUCCESS.UPDATED,
@@ -50,7 +52,9 @@ export class ClinicalExamController {
     });
 
     static updateVitals = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-            const record = await ClinicalExamService.updateVitals(req.params.encounterId as string, req.body);
+            const encounterId = req.params.encounterId as string;
+            const userId = (req as any).auth?.user_id;
+            const record = await ClinicalExamService.updateVitals(encounterId, req.body, userId);
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: CLINICAL_EXAM_SUCCESS.VITALS_UPDATED,

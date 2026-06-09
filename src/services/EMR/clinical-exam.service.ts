@@ -65,14 +65,18 @@ export class ClinicalExamService {
     /**
      * Cập nhật phiếu khám lâm sàng (chỉ khi DRAFT)
      */
-    static async update(encounterId: string, data: UpdateClinicalExamInput): Promise<ClinicalExamination> {
+    static async update(encounterId: string, data: UpdateClinicalExamInput, userId?: string): Promise<ClinicalExamination> {
         /** Kiểm tra encounter editable */
         await this.validateEncounterEditable(encounterId);
 
-        /** Kiểm tra phiếu khám tồn tại */
-        const record = await ClinicalExamRepository.findByEncounterId(encounterId);
+        /** Kiểm tra phiếu khám tồn tại, nếu chưa có thì tự động tạo mới */
+        let record = await ClinicalExamRepository.findByEncounterId(encounterId);
         if (!record) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', CLINICAL_EXAM_ERRORS.NOT_FOUND);
+            await ClinicalExamRepository.create(encounterId, {}, userId || 'SYSTEM');
+            record = await ClinicalExamRepository.findByEncounterId(encounterId);
+            if (!record) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', CLINICAL_EXAM_ERRORS.NOT_FOUND);
+            }
         }
 
         /** Phiếu FINAL không cho sửa phần khám lâm sàng */
@@ -99,14 +103,18 @@ export class ClinicalExamService {
         return await ClinicalExamRepository.findByEncounterId(encounterId) as ClinicalExamination;
     }
 
-    static async updateVitals(encounterId: string, data: UpdateVitalsInput): Promise<ClinicalExamination> {
+    static async updateVitals(encounterId: string, data: UpdateVitalsInput, userId?: string): Promise<ClinicalExamination> {
         /** Kiểm tra encounter editable */
         await this.validateEncounterEditable(encounterId);
 
-        /** Kiểm tra phiếu khám tồn tại */
-        const record = await ClinicalExamRepository.findByEncounterId(encounterId);
+        /** Kiểm tra phiếu khám tồn tại, nếu chưa có thì tự động tạo mới */
+        let record = await ClinicalExamRepository.findByEncounterId(encounterId);
         if (!record) {
-            throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', CLINICAL_EXAM_ERRORS.NOT_FOUND);
+            await ClinicalExamRepository.create(encounterId, {}, userId || 'SYSTEM');
+            record = await ClinicalExamRepository.findByEncounterId(encounterId);
+            if (!record) {
+                throw new AppError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', CLINICAL_EXAM_ERRORS.NOT_FOUND);
+            }
         }
 
         await ClinicalExamRepository.updateVitals(encounterId, data);
